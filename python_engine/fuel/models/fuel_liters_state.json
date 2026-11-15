@@ -1,0 +1,17 @@
+{
+  "model_ready": true,
+  "sample_count": 156,
+  "metrics": {
+    "mae": 0.2590863690476192,
+    "rmse": 0.3434059039127156,
+    "r2": 0.9072157555899573,
+    "train_mae": 0.1819794490847416,
+    "test_mae": 0.2590863690476192
+  },
+  "target_range": {
+    "min": 0.73,
+    "max": 4.57,
+    "mean": 2.4725641025641028
+  },
+  "message": "FUEL_ML_READY"
+}

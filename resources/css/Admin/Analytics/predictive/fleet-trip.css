@@ -612,6 +612,43 @@
     color: #1e293b !important;
 }
 
+.predictive-fleet-page .ft-ml-eta {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+    color: #334155;
+    white-space: nowrap;
+}
+
+.predictive-fleet-page .ft-ml-eta > .fa-clock {
+    font-size: 9px;
+    color: #64748b;
+    opacity: 0.8;
+}
+
+.predictive-fleet-page .ft-eta-src {
+    font-style: normal;
+    font-size: 7.5px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border-radius: 6px;
+}
+
+.predictive-fleet-page .ft-eta-src--ml {
+    color: #1d4ed8;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+}
+
+.predictive-fleet-page .ft-eta-src--stat {
+    color: #b45309;
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+}
+
 .predictive-fleet-page .ft-riskbar {
     min-width: 130px;
     display: flex;

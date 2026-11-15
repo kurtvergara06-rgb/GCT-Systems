@@ -267,6 +267,106 @@ document.addEventListener('DOMContentLoaded', function () {
 
   /*
   |--------------------------------------------------------------------------
+  | ISSUE STOCK MODAL
+  |--------------------------------------------------------------------------
+  */
+
+  const issueModal = document.getElementById('issueModal');
+  const issueForm = document.getElementById('issueForm');
+  const issueSelect = document.getElementById('issue_item');
+  const issueSubmitBtn = document.getElementById('issueSubmitBtn');
+  const openIssueModalButton = document.getElementById('openIssueModal');
+
+  function updateIssuePreview() {
+    if (!issueSelect) {
+      return;
+    }
+
+    const selected = issueSelect.selectedOptions?.[0];
+    const nameLabel = document.getElementById('issue_preview_name');
+    const quantityLabel = document.getElementById('issue_preview_quantity');
+    const unitLabel = document.getElementById('issue_preview_unit');
+
+    if (!selected || !selected.value) {
+      if (nameLabel) {
+        nameLabel.textContent = 'Select an item...';
+      }
+      if (quantityLabel) {
+        quantityLabel.textContent = '—';
+      }
+      if (unitLabel) {
+        unitLabel.textContent = '—';
+      }
+
+      return;
+    }
+
+    if (nameLabel) {
+      nameLabel.textContent = selected.textContent;
+    }
+    if (quantityLabel) {
+      quantityLabel.textContent = selected.dataset.quantity ?? '—';
+    }
+    if (unitLabel) {
+      unitLabel.textContent = selected.dataset.unit ?? '—';
+    }
+  }
+
+  function openIssueModalFor(itemId) {
+    if (!issueModal || !issueSelect) {
+      return;
+    }
+
+    if (itemId) {
+      const match = Array.from(issueSelect.options).find(function (option) {
+        return option.value === String(itemId);
+      });
+
+      if (match) {
+        issueSelect.value = match.value;
+      }
+    }
+
+    updateIssuePreview();
+    openModal(issueModal);
+  }
+
+  if (openIssueModalButton && issueModal) {
+    openIssueModalButton.addEventListener('click', function (event) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      openIssueModalFor(null);
+    });
+  }
+
+  if (issueSelect) {
+    issueSelect.addEventListener('change', updateIssuePreview);
+  }
+
+  document.addEventListener('click', function (event) {
+    const issueButton = event.target.closest('.openIssueModal');
+
+    if (!issueButton) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    openIssueModalFor(issueButton.dataset.itemId);
+  });
+
+  if (issueForm && issueSubmitBtn) {
+    issueForm.addEventListener('submit', function () {
+      // Prevent duplicate submission on double-click / repeated enter.
+      issueSubmitBtn.disabled = true;
+      issueSubmitBtn.dataset.processing = 'true';
+    });
+  }
+
+  /*
+  |--------------------------------------------------------------------------
   | CLOSE BUTTONS
   |--------------------------------------------------------------------------
   */

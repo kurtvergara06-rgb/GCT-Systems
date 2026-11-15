@@ -3,6 +3,7 @@
    MATCHED TO JOB ORDERS SCALE
 ========================================================= */
 
+.trip-records-page,
 .trip-schedule-page {
     --trip-blue: #0b40b5;
     --trip-blue-dark: #07338f;
@@ -34,6 +35,7 @@
    TOPBAR
 ========================================================= */
 
+.trip-records-page .topbar,
 .trip-schedule-page .topbar {
     margin-bottom: 20px;
 }
@@ -273,22 +275,55 @@
 
     padding: 10px 12px;
 
-    display: grid;
-
-    grid-template-columns:
-        minmax(280px, 1fr)
-        170px
-        160px
-        170px;
-
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
     gap: 10px;
-
-    align-items: end;
 
     border: 1px solid var(--trip-border);
     border-radius: 12px;
 
     background: #ffffff;
+}
+
+.trip-toolbar .trip-search {
+    flex: 1 1 240px;
+    min-width: 220px;
+}
+
+.trip-toolbar .trip-filter {
+    flex: 0 1 160px;
+    min-width: 140px;
+}
+
+.trip-toolbar .trip-filter.date-filter {
+    flex: 0 1 150px;
+}
+
+.trip-clear-btn {
+    height: 40px;
+    padding: 0 14px;
+    border: 1px solid var(--trip-border);
+    border-radius: 9px;
+    background: #ffffff;
+    color: var(--trip-navy);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    white-space: nowrap;
+    margin-left: auto;
+}
+
+.trip-clear-btn:hover {
+    background: #f1f5f9;
+    color: var(--trip-blue);
+    border-color: #cbd5e1;
 }
 
 
@@ -434,6 +469,7 @@
 
 .trip-table thead {
     background: var(--trip-table-head);
+    background: #f3f7fc;
 }
 
 
@@ -442,6 +478,8 @@
     top: 0;
     z-index: 2;
     background: var(--trip-table-head);
+    z-index: 10;
+    background-color: #f3f7fc !important;
 
     padding: 13px 14px;
 
@@ -720,11 +758,27 @@
 
 
 .trip-status.completed {
-    background: #f1f5f9;
+    background: #dcfce7;
 
-    border: 1px solid #dce5f2;
+    border: 1px solid #b7efca;
 
-    color: #475569;
+    color: #15803d;
+}
+
+.trip-status.delayed {
+    background: #fff0f0;
+
+    border: 1px solid #fecaca;
+
+    color: #dc2626;
+}
+
+.trip-status.cancelled {
+    background: #f8fafc;
+
+    border: 1px solid #e2e8f0;
+
+    color: #94a3b8;
 }
 
 
@@ -848,7 +902,8 @@
 }
 
 
-.trip-pagination button {
+.trip-pagination button,
+.trip-pagination a {
     min-height: 34px;
 
     padding: 0 12px;
@@ -862,15 +917,31 @@
 
     font-size: 12px;
     font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.18s ease;
 }
 
+.trip-pagination button:hover,
+.trip-pagination a:hover {
+    background: #f8fbff;
+    border-color: var(--trip-blue);
+    color: var(--trip-blue);
+}
 
-.trip-pagination button:disabled {
+.trip-pagination button:disabled,
+.trip-pagination a.disabled {
     background: #f8fafc;
 
     color: #94a3b8;
 
+    border-color: var(--trip-border);
     cursor: not-allowed;
+    pointer-events: none;
 }
 
 
@@ -879,6 +950,15 @@
 
     font-size: 12px;
     font-weight: 500;
+    padding: 0 4px;
+}
+
+.trip-table-footer svg {
+    max-width: 16px !important;
+    max-height: 16px !important;
+    width: 16px !important;
+    height: 16px !important;
+    display: inline-block;
 }
 
 
@@ -983,6 +1063,65 @@
     cursor: pointer;
 }
 
+/* =========================================================
+   DETAIL INSPECTION MODAL
+========================================================= */
+
+.trip-detail-body {
+    padding: 20px 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.trip-detail-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.trip-detail-section-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--trip-muted);
+    border-bottom: 1px solid var(--trip-soft-border);
+    padding-bottom: 6px;
+    margin: 0;
+}
+
+.trip-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.trip-detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    background: #f8fafc;
+    border: 1px solid #eef2f7;
+    border-radius: 9px;
+    padding: 10px 12px;
+}
+
+.trip-detail-item.full {
+    grid-column: 1 / -1;
+}
+
+.trip-detail-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #64748b;
+}
+
+.trip-detail-value {
+    font-size: 13px;
+    font-weight: 700;
+    color: #0f172a;
+}
 
 /* =========================================================
    FORM

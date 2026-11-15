@@ -2,10 +2,12 @@
 
 use App\Http\Controllers\Operation\AutoSchedulingController;
 use App\Http\Controllers\Operation\BusController;
+use App\Http\Controllers\Operation\DailyDriverReportController;
 use App\Http\Controllers\Operation\DriverAttendanceController;
 use App\Http\Controllers\Operation\MechanicAttendanceController;
 use App\Http\Controllers\Operation\RouteController;
 use App\Http\Controllers\Operation\TripAssignmentController;
+use App\Http\Controllers\Operation\TripRecordController;
 use App\Http\Controllers\Operation\TripScheduleController;
 use Illuminate\Support\Facades\Route;
 
@@ -94,7 +96,19 @@ Route::controller(AutoSchedulingController::class)
 Route::redirect('/operation/auto-dispatch', '/operation/auto-scheduling')
     ->name('auto-dispatch');
 
-Route::view(
+Route::get(
     '/operation/trip-records',
-    'Operation.Trip_Records.trip-records'
+    [TripRecordController::class, 'index']
 )->name('trip-records');
+
+Route::controller(DailyDriverReportController::class)
+    ->prefix('operation/daily-driver-reports')
+    ->group(function () {
+        Route::get('/', 'index')->name('daily-driver-reports');
+        Route::get('/create', 'create')->name('daily-driver-reports.create');
+        Route::post('/', 'store')->name('daily-driver-reports.store');
+        Route::get('/schedule-lookup', 'scheduleLookup')
+            ->middleware('throttle:60,1')
+            ->name('daily-driver-reports.schedule-lookup');
+        Route::get('/{dailyDriverReport}', 'show')->name('daily-driver-reports.show');
+    });

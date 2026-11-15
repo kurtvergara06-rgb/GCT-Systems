@@ -606,3 +606,99 @@
   }
 
 }
+
+/* =====================================================
+   REFERENCE / ID BADGE + DATA SOURCE BADGE
+   Shared pill styles for document numbers and source.
+===================================================== */
+
+.ref-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border: 1px solid #d6dce5;
+  border-radius: 4px;
+  background: #f8fafc;
+  color: #123f6b;
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  line-height: 1.5;
+}
+
+.source-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.source-badge--app {
+  border: 1px solid #bfe3cd;
+  background: #e9f8ef;
+  color: #156a44;
+}
+
+.source-badge--demo {
+  border: 1px solid #d6dce5;
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+
+/* =====================================================
+   ITEM MOVEMENT HISTORY PAGE
+===================================================== */
+
+.item-history-header {
+  align-items: center;
+}
+
+.item-history-header h2 {
+  margin: 0;
+}
+
+.item-history-header p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.item-history-header .secondary-btn {
+  white-space: nowrap;
+}
+
+.item-movement-stats {
+  margin: 14px 0;
+}
+
+.history-demo-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  border: 1px solid #f3d19a;
+  border-radius: 10px;
+  background: #fff8ea;
+  color: #7a5b1e;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.history-demo-notice i {
+  margin-top: 2px;
+  color: #d99a2b;
+}
+
+.item-history-toolbar {
+  margin-bottom: 12px;
+}

@@ -185,6 +185,7 @@ export default defineConfig({
                 // ======================================================
 
                 'resources/css/Operation/Trip_Records/trip-records.css',
+                'resources/js/Operation/Trip_Records/trip-records.js',
 
                 // ======================================================
                 // PURCHASE

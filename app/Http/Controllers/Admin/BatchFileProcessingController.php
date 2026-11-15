@@ -1201,7 +1201,10 @@ class BatchFileProcessingController extends Controller
         array $payload,
         array $rawData
     ): void {
-        GpsTripRecord::create([
+        $duration = $payload['duration_minutes'] ?? null;
+        $total    = $payload['total_minutes'] ?? null;
+
+        $record = GpsTripRecord::create([
             'batch_upload_id' => $batch->id,
             'record_no' => $payload['record_no'] ?? null,
             'bus_no' => $payload['bus_no'] ?? null,
@@ -1211,8 +1214,8 @@ class BatchFileProcessingController extends Controller
             'initial_location' => $payload['initial_location'] ?? null,
             'ending_at' => $payload['ending_at'] ?? null,
             'final_location' => $payload['final_location'] ?? null,
-            'duration_minutes' => $payload['duration_minutes'] ?? null,
-            'total_minutes' => $payload['total_minutes'] ?? null,
+            'duration_minutes' => $duration,
+            'total_minutes' => $total,
             'in_motion_minutes' => $payload['in_motion_minutes'] ?? null,
             'idling_minutes' => $payload['idling_minutes'] ?? null,
             'mileage_km' => $payload['mileage_km'] ?? null,
@@ -1230,6 +1233,21 @@ class BatchFileProcessingController extends Controller
                 ]
             ),
         ]);
+
+        if (
+            $record
+            && $duration !== null
+            && $total !== null
+            && (int) $duration > 720
+            && (int) $total > 720
+        ) {
+            $raw = $record->raw_data ?? [];
+            $raw['activity_period_warning'] = 'Record duration exceeds 12 hours. '
+                . 'This may represent a full vehicle activity period rather than '
+                . 'a single trip. Requires Operations review.';
+            $record->raw_data = $raw;
+            $record->save();
+        }
     }
 
     private function mapUnifiedRecord(

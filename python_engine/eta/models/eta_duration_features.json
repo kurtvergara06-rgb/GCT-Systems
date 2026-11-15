@@ -1,0 +1,48 @@
+{
+  "features": [
+    "route_encoded",
+    "distance_km",
+    "route_estimated_time_minutes",
+    "departure_hour",
+    "day_of_week",
+    "is_weekend",
+    "shift_encoded",
+    "bus_no_encoded"
+  ],
+  "target": "actual_trip_duration",
+  "route_metadata": {
+    "SM City Cebu - Mactan Airport": {
+      "distance_km": 12.5,
+      "estimated_time_minutes": 45.0
+    },
+    "Fuente Osme\u00f1a - IT Park": {
+      "distance_km": 4.8,
+      "estimated_time_minutes": 25.0
+    },
+    "Ayala Center - IT Park": {
+      "distance_km": 3.5,
+      "estimated_time_minutes": 20.0
+    },
+    "Parkmall - Mactan Newtown": {
+      "distance_km": 9.3,
+      "estimated_time_minutes": 40.0
+    },
+    "Talisay - SM Seaside": {
+      "distance_km": 11.7,
+      "estimated_time_minutes": 55.0
+    }
+  },
+  "bus_encodings": {
+    "GCT-101": 0,
+    "GCT-102": 1,
+    "GCT-103": 2,
+    "GCT-104": 3,
+    "GCT-105": 4,
+    "GCT-106": 5,
+    "GCT-108": 6,
+    "GCT-109": 7,
+    "GCT-110": 8,
+    "GCT-111": 9,
+    "GCT-113": 10
+  }
+}

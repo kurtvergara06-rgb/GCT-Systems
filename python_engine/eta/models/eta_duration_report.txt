@@ -1,0 +1,34 @@
+ETA / Trip Duration model report
+========================================
+Feature target:     actual_trip_duration (minutes)
+Feature inputs:     route_encoded, distance_km, route_estimated_time_minutes, departure_hour, day_of_week, is_weekend, shift_encoded, bus_no_encoded
+Samples available:  362
+Training rows:      289
+Test rows:          73
+
+Metrics (held-out test set):
+  MAE : 4.62 minutes
+  RMSE: 6.13 minutes
+  R2  : 0.8243
+
+Label range (training):
+  min : 14.0
+  max : 92.0
+  mean: 43.8
+
+Feature importances:
+  route_estimated_time_minutes       0.3093
+  distance_km                        0.2981
+  route_encoded                      0.2843
+  bus_no_encoded                     0.0451
+  day_of_week                        0.0326
+  departure_hour                     0.0157
+  shift_encoded                      0.0118
+  is_weekend                         0.0031
+
+Configuration (reused project-wide RF convention):
+  n_estimators=200, max_depth=None, min_samples_leaf=2,
+  max_features='sqrt', random_state=42, n_jobs=-1
+
+Note: the label is the REAL GPS trip duration (minutes). It is
+NEVER included as an input feature (no target leakage).

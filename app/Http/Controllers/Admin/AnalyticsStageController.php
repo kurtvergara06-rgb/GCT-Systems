@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Maintenance\Bus;
 use App\Models\Warehouse\InventoryItem;
+use App\Services\EtaPredictionService;
 use App\Services\FleetTripPredictionService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -33,7 +34,8 @@ class AnalyticsStageController extends Controller
     public function show(
         Request $request,
         string $stage,
-        FleetTripPredictionService $predictionService
+        FleetTripPredictionService $predictionService,
+        EtaPredictionService $etaService
     ): View {
         abort_unless(array_key_exists($stage, self::STAGES), 404);
 
@@ -42,7 +44,7 @@ class AnalyticsStageController extends Controller
             $domain = 'all';
         }
 
-        $fleet = app(FleetTripAnalyticsController::class)->data($request, $predictionService);
+        $fleet = app(FleetTripAnalyticsController::class)->data($request, $predictionService, $etaService);
         $fuel = app(FuelAnalyticsController::class)->data($request);
 
         $inventoryItems = InventoryItem::query()
@@ -427,6 +429,14 @@ class AnalyticsStageController extends Controller
             ->take(8)
             ->values()
             ->map(function ($prediction): array {
+                $mlEtaArrival = $prediction->eta_estimated_arrival_at ?? null;
+                $statisticalArrival = $prediction->estimated_arrival_at ?? null;
+                // ML ETA -> statistical ETA -> "—" fallback order.
+                $etaArrival = $mlEtaArrival ?? $statisticalArrival;
+                $etaSource = $mlEtaArrival !== null
+                    ? 'ml'
+                    : ($statisticalArrival !== null ? 'statistical' : null);
+
                 return [
                     $prediction->trip_code ?? 'Scheduled Trip',
                     (string) ($prediction->bus_no ?? '—'),
@@ -436,6 +446,8 @@ class AnalyticsStageController extends Controller
                     'Delay Risk',
                     $prediction->risk_level ?? 'Low',
                     'Scheduled',
+                    $etaArrival ? $etaArrival->format('M j, Y h:i A') : '—',
+                    'eta_source' => $etaSource,
                 ];
             });
 

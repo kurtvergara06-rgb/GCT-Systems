@@ -1,0 +1,43 @@
+{
+  "model_ready": true,
+  "message": "DELAY_ML_READY (SAMPLE/DEVELOPMENT)",
+  "source": "sample",
+  "disclaimer": "SAMPLE / DEMONSTRATION DATA - NOT ACTUAL GCT OPERATIONAL DATA. This Model #3 implementation is a demonstration prototype trained on a separate sample dataset because the current GCT database does not contain sufficient genuine historical DDR/schedule records for delay-model training. The sample dataset is not presented as actual GCT operational data, and the model is NOT trained on genuine GCT historical delay records.",
+  "sample_count": 500,
+  "n_train": 401,
+  "n_test": 99,
+  "metrics": {
+    "mae": 3.3359938309866326,
+    "rmse": 4.410477796015025,
+    "r2": -0.06264806441908521,
+    "train_mae": 1.7349021786591767
+  },
+  "target_range": {
+    "min": 0.7,
+    "max": 29.1,
+    "mean": 7.724688279301746
+  },
+  "periods": {
+    "train_start": "2026-03-19",
+    "train_end": "2026-07-29",
+    "test_start": "2026-07-30",
+    "test_end": "2026-08-31"
+  },
+  "risk_thresholds": [
+    {
+      "max_minutes": 5,
+      "label": "On Time"
+    },
+    {
+      "max_minutes": 10,
+      "label": "Minor Delay"
+    },
+    {
+      "max_minutes": 20,
+      "label": "Moderate Delay"
+    },
+    {
+      "label": "High Delay"
+    }
+  ]
+}

@@ -6,12 +6,20 @@ use App\Http\Controllers\Controller;
 use App\Models\Maintenance\JobOrder;
 use App\Models\Maintenance\PurchaseRequest;
 use App\Models\Warehouse\InventoryItem;
+use App\Services\Warehouse\InventoryLedgerService;
 use App\Traits\SystemDataUpdateBroadcaster;
 use Illuminate\Http\Request;
 
 class WarehousePartRequestController extends Controller
 {
     use SystemDataUpdateBroadcaster;
+
+    private InventoryLedgerService $ledger;
+
+    public function __construct(InventoryLedgerService $ledger)
+    {
+        $this->ledger = $ledger;
+    }
 
     /*
     |--------------------------------------------------------------------------
@@ -211,14 +219,17 @@ class WarehousePartRequestController extends Controller
         foreach ($parts as $part) {
             $inventoryItem = $this->findInventoryItem($part['name'], $part['unit'] ?? '');
 
-            if ($inventoryItem) {
-                $inventoryItem->update([
-                    'quantity_available' => max(
-                        0,
-                        (int) $inventoryItem->quantity_available - (int) $part['quantity']
-                    ),
-                ]);
+            if (! $inventoryItem) {
+                continue;
             }
+
+            $this->ledger->stockOut(
+                $inventoryItem,
+                (int) $part['quantity'],
+                $purchaseRequest->pr_no ?? $purchaseRequest->id,
+                'Issued through Warehouse Part Request.',
+                auth()->id()
+            );
         }
 
         $purchaseRequest->update([

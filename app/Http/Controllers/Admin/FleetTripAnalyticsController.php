@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Admin\GpsTripRecord;
 use App\Models\Maintenance\Bus;
 use App\Models\Operation\TripSchedule;
+use App\Services\EtaPredictionService;
 use App\Services\FleetTripPredictionService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -16,14 +17,16 @@ class FleetTripAnalyticsController extends Controller
 {
     public function index(
         Request $request,
-        FleetTripPredictionService $predictionService
+        FleetTripPredictionService $predictionService,
+        EtaPredictionService $etaService
     ): View {
-        return view('Admin.Analytics.fleet-trip', $this->data($request, $predictionService));
+        return view('Admin.Analytics.fleet-trip', $this->data($request, $predictionService, $etaService));
     }
 
     public function data(
         Request $request,
-        FleetTripPredictionService $predictionService
+        FleetTripPredictionService $predictionService,
+        EtaPredictionService $etaService
     ): array {
         $period = $this->normalizePeriod((string) $request->input('period', 'this-month'));
         $selectedBus = strtoupper(trim((string) $request->input('bus', 'all')));
@@ -97,7 +100,8 @@ class FleetTripAnalyticsController extends Controller
         $diagnostics = $this->buildDiagnostics($records);
         $prediction = $this->buildPrediction(
             $selectedBus,
-            $predictionService
+            $predictionService,
+            $etaService
         );
 
         return [
@@ -462,7 +466,8 @@ class FleetTripAnalyticsController extends Controller
 
     private function buildPrediction(
         string $selectedBus,
-        FleetTripPredictionService $predictionService
+        FleetTripPredictionService $predictionService,
+        EtaPredictionService $etaService
     ): object {
         $historyStart = now()->copy()->subDays(90)->startOfDay();
         $historyEnd = now()->copy();
@@ -495,12 +500,14 @@ class FleetTripAnalyticsController extends Controller
             });
         }
 
+        $etaTargets = [];
+
         $targets = $scheduleQuery
             ->orderBy('trip_date')
             ->orderBy('departure_time')
             ->limit(20)
             ->get()
-            ->map(function (TripSchedule $schedule) {
+            ->map(function (TripSchedule $schedule) use (&$etaTargets) {
                 $departureAt = Carbon::parse(
                     $schedule->trip_date->format('Y-m-d')
                     . ' '
@@ -522,6 +529,21 @@ class FleetTripAnalyticsController extends Controller
                         ? "{$origin} - {$destination}"
                         : 'Unspecified Route';
                 }
+
+                // ETA ML payload per trip (kept separate from the statistical
+                // payload so the existing prediction contract stays unchanged).
+                $etaTargets[$schedule->trip_code] = [
+                    'route' => $routeLabel,
+                    'departure_at' => $departureAt->toIso8601String(),
+                    'shift' => trim((string) ($schedule->shift ?? '')),
+                    'bus_no' => $schedule->assignment?->bus?->bus_no,
+                    'distance_km' => $route?->distance_km !== null
+                        ? (float) $route->distance_km
+                        : null,
+                    'route_estimated_time_minutes' => $route?->estimated_time_minutes !== null
+                        ? (float) $route->estimated_time_minutes
+                        : null,
+                ];
 
                 return [
                     'trip_code' => $schedule->trip_code,
@@ -586,6 +608,8 @@ class FleetTripAnalyticsController extends Controller
                     'baseline_duration_minutes' => (float) ($item['baseline_duration_minutes'] ?? 0),
                 ];
             });
+
+        $predictions = $this->attachEtaPredictions($predictions, $etaTargets, $etaService);
 
         $eligibility = collect($response['eligibility'] ?? [])
             ->map(fn (array $item) => (object) [
@@ -656,5 +680,57 @@ class FleetTripAnalyticsController extends Controller
         }
 
         return ((float) $values->get($middle - 1) + (float) $values->get($middle)) / 2;
+    }
+
+    /**
+     * Enrich the displayed predictions with the ETA Random Forest model's
+     * predicted duration/arrival via parallel, short-bounded HTTP calls.
+     *
+     * ML ETA is purely additive: any failure or missing schedule mapping
+     * leaves eta_* fields null so callers fall back to the statistical ETA.
+     */
+    private function attachEtaPredictions(
+        Collection $predictions,
+        array $etaTargets,
+        EtaPredictionService $etaService
+    ): Collection {
+        if ($predictions->isEmpty()) {
+            return $predictions;
+        }
+
+        $displayed = $predictions
+            ->sortByDesc('delay_risk_percent')
+            ->take(8)
+            ->values();
+
+        $payloads = [];
+
+        foreach ($displayed as $prediction) {
+            $target = $etaTargets[$prediction->trip_code] ?? null;
+
+            if ($target === null) {
+                continue;
+            }
+
+            $payloads[$prediction->trip_code] = $target;
+        }
+
+        $etaResponses = $payloads !== []
+            ? $etaService->predictBatch($payloads)
+            : [];
+
+        return $predictions->map(function (object $prediction) use ($etaResponses): object {
+            $eta = $etaResponses[$prediction->trip_code] ?? null;
+
+            if ($eta === null || empty($eta['estimated_arrival_at'])) {
+                return $prediction;
+            }
+
+            $prediction->eta_predicted_duration_minutes = (float) ($eta['predicted_duration_minutes'] ?? 0);
+            $prediction->eta_estimated_arrival_at = Carbon::parse($eta['estimated_arrival_at']);
+            $prediction->eta_sample_count = (int) ($eta['sample_count'] ?? 0);
+
+            return $prediction;
+        });
     }
 }

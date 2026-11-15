@@ -153,6 +153,12 @@
             ],
             ['label' => 'Bus Master List', 'route' => 'bus-master-list', 'icon' => 'fa-bus'],
             ['label' => 'Trip Records', 'route' => 'trip-records', 'icon' => 'fa-clock-rotate-left'],
+            [
+                'label' => 'Daily Drivers Report',
+                'route' => 'daily-driver-reports',
+                'icon' => 'fa-file-lines',
+                'active_routes' => ['daily-driver-reports', 'daily-driver-reports.*'],
+            ],
         ];
     }
 

@@ -1,0 +1,17 @@
+{
+  "model_ready": true,
+  "sample_count": 362,
+  "metrics": {
+    "mae": 4.624494285365078,
+    "rmse": 6.132630990575449,
+    "r2": 0.8243474318833754,
+    "train_mae": 3.387806776305145,
+    "test_mae": 4.624494285365078
+  },
+  "target_range": {
+    "min": 14.0,
+    "max": 92.0,
+    "mean": 43.79834254143646
+  },
+  "message": "ETA_ML_READY"
+}
