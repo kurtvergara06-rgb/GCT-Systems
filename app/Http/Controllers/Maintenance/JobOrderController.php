@@ -6,10 +6,18 @@ use App\Http\Controllers\Controller;
 use App\Models\Maintenance\JobOrder;
 use App\Models\Maintenance\PurchaseRequest;
 use App\Models\Operation\MechanicAttendance;
+use App\Services\PartParser;
 use Illuminate\Http\Request;
 
 class JobOrderController extends Controller
 {
+    private PartParser $partParser;
+
+    public function __construct(PartParser $partParser)
+    {
+        $this->partParser = $partParser;
+    }
+
     public function index(Request $request)
     {
         $query = JobOrder::query();
@@ -108,7 +116,8 @@ class JobOrderController extends Controller
         ]);
 
         $assignedMechanic = $validated['assigned_mechanic'] ?? null;
-        $partNeeded = $this->formatPartsNeeded($request->parts);
+        $parts = $this->partParser->normalizePartsInput($request->parts ?? []);
+        $partNeeded = count($parts) > 0 ? $this->partParser->formatParts($parts) : null;
 
         $status = 'On Hold';
 
@@ -208,7 +217,8 @@ class JobOrderController extends Controller
             }
         }
 
-        $partNeeded = $this->formatPartsNeeded($request->parts);
+        $parts = $this->partParser->normalizePartsInput($request->parts ?? []);
+        $partNeeded = count($parts) > 0 ? $this->partParser->formatParts($parts) : null;
         $partStatus = $jobOrder->part_status;
 
         if (! $partNeeded) {
@@ -279,7 +289,11 @@ class JobOrderController extends Controller
                 ->with('error', 'This job order already has an active purchase request.');
         }
 
-        $parsedParts = $this->parsePartsForPurchaseRequest($jobOrder->part_needed);
+        $parts = $this->partParser->parsePartText($jobOrder->part_needed);
+        $parsedParts = [
+            'item' => $this->partParser->formatParts($parts),
+            'quantity' => $this->partParser->calculateTotalQuantity($parts),
+        ];
 
         PurchaseRequest::create([
             'pr_no' => $this->generatePrNo(),
@@ -430,87 +444,5 @@ class JobOrderController extends Controller
         return $newPrNo;
     }
 
-    private function formatPartsNeeded(?array $parts): ?string
-    {
-        if (! $parts) {
-            return null;
-        }
 
-        $formattedParts = [];
-
-        foreach ($parts as $part) {
-            $name = trim($part['name'] ?? '');
-            $quantity = $part['quantity'] ?? null;
-            $unit = trim($part['unit'] ?? '');
-
-            if ($name === '') {
-                continue;
-            }
-
-            if ($quantity && $unit) {
-                $formattedParts[] = "{$name} - Qty: {$quantity} {$unit}";
-            } elseif ($quantity) {
-                $formattedParts[] = "{$name} - Qty: {$quantity}";
-            } else {
-                $formattedParts[] = $name;
-            }
-        }
-
-        return count($formattedParts) > 0
-            ? implode(', ', $formattedParts)
-            : null;
-    }
-
-    private function parsePartsForPurchaseRequest(?string $partNeeded): array
-    {
-        if (! $partNeeded) {
-            return [
-                'item' => '',
-                'quantity' => 1,
-            ];
-        }
-
-        $parts = collect(explode(',', $partNeeded))
-            ->map(fn ($part) => trim($part))
-            ->filter();
-
-        $cleanParts = [];
-        $totalQuantity = 0;
-
-        foreach ($parts as $part) {
-            if (str_contains($part, ' - Qty:')) {
-                [$name, $quantityWithUnit] = explode(' - Qty:', $part, 2);
-
-                $name = trim($name);
-                $quantityWithUnit = trim($quantityWithUnit);
-
-                preg_match('/^(\d+)\s*(.*)$/', $quantityWithUnit, $matches);
-
-                $quantity = isset($matches[1]) ? (int) $matches[1] : 1;
-                $unit = isset($matches[2]) ? trim($matches[2]) : '';
-
-                if ($name !== '') {
-                    if ($unit !== '') {
-                        $cleanParts[] = "{$name} - Qty: {$quantity} {$unit}";
-                    } else {
-                        $cleanParts[] = "{$name} - Qty: {$quantity}";
-                    }
-
-                    $totalQuantity += $quantity > 0 ? $quantity : 1;
-                }
-            } else {
-                $name = trim($part);
-
-                if ($name !== '') {
-                    $cleanParts[] = "{$name} - Qty: 1";
-                    $totalQuantity += 1;
-                }
-            }
-        }
-
-        return [
-            'item' => implode(', ', $cleanParts),
-            'quantity' => $totalQuantity > 0 ? $totalQuantity : 1,
-        ];
-    }
 }

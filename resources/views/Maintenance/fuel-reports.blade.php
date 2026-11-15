@@ -1,7 +1,10 @@
 <x-layout.app
   title="FROMS - Fuel Reports"
   :assets="[
-    'resources/css/Maintenance/fuel-reports.css'
+    'resources/css/Main-style/main.css',
+    'resources/css/Main-style/sidebar.css',
+    'resources/css/Maintenance/fuel-reports.css',
+    'resources/js/Main-style/sidebar.js'
   ]"
 >
 
@@ -11,8 +14,6 @@
       department="Maintenance"
       subtitle="Department Module"
       icon="fa-truck"
-      user-name="R. Lim"
-      user-role="Maintenance Admin"
       :items="[
         ['label' => 'Dashboard', 'route' => 'maintenance-dashboard', 'icon' => 'fa-table-cells-large'],
         ['label' => 'Job Orders', 'route' => 'job-orders', 'icon' => 'fa-clipboard-list'],
@@ -26,30 +27,13 @@
 
     <main class="main">
 
-      <!-- TOP BAR -->
-      <header class="topbar">
-        <div>
-          <h1>Fuel Reports</h1>
-          <p>Track vehicle fuel efficiency, fuel usage, and inefficient trips</p>
-        </div>
+      <x-layout.topbar
+        title="Fuel Reports"
+        subtitle="Track vehicle fuel efficiency, fuel usage, and inefficient trips"
+        notification-count="6"
+      />
 
-        <div class="top-actions">
-          <button class="icon-btn notification">
-            <i class="fa-regular fa-bell"></i>
-            <span>6</span>
-          </button>
-
-          <button class="icon-btn">
-            <i class="fa-regular fa-circle-question"></i>
-          </button>
-
-          <button class="icon-btn">
-            <i class="fa-solid fa-user"></i>
-          </button>
-        </div>
-      </header>
-
-      <!-- SUMMARY CARDS -->
+      {{-- SUMMARY CARDS --}}
       <section class="stats-grid">
 
         <div class="stat-card">
@@ -110,7 +94,7 @@
 
       </section>
 
-      <!-- EFFICIENCY BY VEHICLE -->
+      {{-- EFFICIENCY BY VEHICLE --}}
       <section class="table-card fuel-card">
 
         <div class="section-header">
@@ -135,7 +119,7 @@
             </select>
           </div>
 
-          <button class="primary-btn">
+          <button class="primary-btn" type="button">
             <i class="fa-solid fa-plus"></i>
             Add Fuel Record
           </button>
@@ -231,7 +215,7 @@
 
       </section>
 
-      <!-- RECENT FUEL RECORDS -->
+      {{-- RECENT FUEL RECORDS --}}
       <section class="table-card fuel-card">
 
         <div class="section-header">

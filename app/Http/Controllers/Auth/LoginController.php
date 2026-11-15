@@ -41,7 +41,7 @@ class LoginController extends Controller
             'last_login_at' => now(),
         ])->save();
 
-        return redirect()->intended($this->redirectByRole($user->role, $user->department));
+        return redirect()->intended($this->redirectByDepartmentAndRole($user->department, $user->role));
     }
 
     public function logout(Request $request): RedirectResponse
@@ -54,50 +54,40 @@ class LoginController extends Controller
         return redirect()->route('login');
     }
 
-    private function redirectByRole(?string $role, ?string $department): string
+    private function redirectByDepartmentAndRole(?string $department, ?string $role): string
     {
-        $normalizedRole = strtolower(trim($role ?? ''));
-        $normalizedDepartment = strtolower(trim($department ?? ''));
+        $department = strtolower(trim($department ?? ''));
+        $role = strtolower(trim($role ?? ''));
 
-        if ($normalizedRole === 'system admin' || $normalizedRole === 'admin') {
+        $department = str_replace(['_', '-'], ' ', $department);
+        $role = str_replace(['_', '-'], ' ', $role);
+
+        /*
+          Admin role is removed.
+          Admin account should be:
+          department = Admin
+          role = head
+        */
+        if ($department === 'admin' && in_array($role, ['head', 'staff'], true)) {
             return route('admin.dashboard');
         }
 
-        if ($normalizedRole === 'head') {
-            return match ($normalizedDepartment) {
-                'maintenance' => route('maintenance-dashboard'),
-                'purchase', 'purchasing' => route('purchase-orders'),
-                'warehouse' => route('inventory'),
-                'operation' => route('dashboard-operation'),
-                default => route('login'),
-            };
+        if ($department === 'maintenance' && in_array($role, ['head', 'staff'], true)) {
+            return route('maintenance-dashboard');
         }
 
-        if ($normalizedRole === 'staff') {
-            return match ($normalizedDepartment) {
-                'maintenance' => route('maintenance-dashboard'),
-                'purchase', 'purchasing' => route('purchase-orders'),
-                'warehouse' => route('inventory'),
-                'operation' => route('dashboard-operation'),
-                default => route('login'),
-            };
+        if (in_array($department, ['purchase', 'purchasing'], true) && in_array($role, ['head', 'staff'], true)) {
+            return route('purchase-orders');
         }
 
-        return match ($role) {
-            'System Admin' => route('admin.dashboard'),
+        if ($department === 'warehouse' && in_array($role, ['head', 'staff'], true)) {
+            return route('inventory');
+        }
 
-            'Maintenance Head',
-            'Maintenance Staff' => route('maintenance-dashboard'),
+        if ($department === 'operation' && in_array($role, ['head', 'staff'], true)) {
+            return route('dashboard-operation');
+        }
 
-            'Purchasing Head',
-            'Purchasing Staff' => route('purchase-orders'),
-
-            'Warehouse Staff' => route('inventory'),
-
-            'Operation Head',
-            'Operation Staff' => route('dashboard-operation'),
-
-            default => route('login'),
-        };
+        return route('login');
     }
 }

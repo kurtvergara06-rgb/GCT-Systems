@@ -2,10 +2,42 @@
   'department' => 'Department',
   'subtitle' => 'Department Module',
   'icon' => 'fa-table-cells-large',
-  'userName' => 'Admin',
-  'userRole' => 'System Admin',
+  'userName' => null,
+  'userRole' => null,
   'items' => []
 ])
+
+@php
+  $authUser = auth()->user();
+
+  $displayName = trim($userName ?? $authUser?->name ?? 'Guest User');
+
+  $roleRaw = strtolower(trim($authUser?->role ?? ''));
+  $departmentRaw = trim($authUser?->department ?? $department);
+
+  $roleRaw = str_replace(['_', '-'], ' ', $roleRaw);
+
+  if (strtolower($departmentRaw) === 'admin') {
+    $displayRole = 'System Admin';
+  } elseif ($userRole) {
+    $displayRole = $userRole;
+  } elseif (str_contains($roleRaw, 'head')) {
+    $displayRole = $departmentRaw . ' Head';
+  } elseif (str_contains($roleRaw, 'staff')) {
+    $displayRole = $departmentRaw . ' Staff';
+  } else {
+    $displayRole = $departmentRaw . ' User';
+  }
+
+  $nameParts = collect(explode(' ', $displayName))->filter()->values();
+
+  $initials = strtoupper(
+    substr($nameParts->get(0, ''), 0, 1) .
+    substr($nameParts->get(1, ''), 0, 1)
+  );
+
+  $initials = $initials ?: 'U';
+@endphp
 
 <aside class="sidebar">
 
@@ -87,18 +119,79 @@
     @endforeach
   </nav>
 
-  {{-- USER BOX --}}
-  <div class="user-box">
-    <div class="avatar">
-      <i class="fa-solid fa-user"></i>
+  {{-- USER PROFILE --}}
+  <div class="sidebar-profile-wrap">
+
+    <button
+      type="button"
+      class="user-box sidebar-profile-toggle"
+      id="sidebarProfileToggle"
+      aria-expanded="false"
+    >
+      <div class="avatar">
+        <span>{{ $initials }}</span>
+      </div>
+
+      <div class="user-box-text">
+        <h4>{{ $displayName }}</h4>
+        <p>{{ $displayRole }}</p>
+      </div>
+
+      <i class="fa-solid fa-chevron-down profile-chevron"></i>
+    </button>
+
+    <div class="sidebar-profile-menu" id="sidebarProfileMenu">
+
+      <div class="profile-menu-header">
+        <div class="profile-menu-avatar">
+          {{ $initials }}
+        </div>
+
+        <div>
+          <h4>{{ $displayName }}</h4>
+          <p>{{ $displayRole }}</p>
+        </div>
+      </div>
+
+      <div class="profile-menu-divider"></div>
+
+      <button type="button" class="profile-menu-item" disabled>
+        <i class="fa-solid fa-user"></i>
+        <span>Profile</span>
+      </button>
+
+      @if(\Illuminate\Support\Facades\Route::has('settings'))
+        <a href="{{ route('settings') }}" class="profile-menu-item">
+          <i class="fa-solid fa-gear"></i>
+          <span>Settings</span>
+        </a>
+      @else
+        <button type="button" class="profile-menu-item" disabled>
+          <i class="fa-solid fa-gear"></i>
+          <span>Settings</span>
+        </button>
+      @endif
+
+      <div class="profile-menu-divider"></div>
+
+      @if(\Illuminate\Support\Facades\Route::has('logout'))
+        <form action="{{ route('logout') }}" method="POST" class="profile-logout-form">
+          @csrf
+
+          <button type="submit" class="profile-menu-item logout">
+            <i class="fa-solid fa-right-from-bracket"></i>
+            <span>Log out</span>
+          </button>
+        </form>
+      @else
+        <button type="button" class="profile-menu-item logout" disabled>
+          <i class="fa-solid fa-right-from-bracket"></i>
+          <span>Log out</span>
+        </button>
+      @endif
+
     </div>
 
-    <div>
-      <h4>{{ $userName }}</h4>
-      <p>{{ $userRole }}</p>
-    </div>
-
-    <i class="fa-solid fa-chevron-down"></i>
   </div>
 
 </aside>

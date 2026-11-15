@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Maintenance;
 use App\Http\Controllers\Controller;
 use App\Models\Maintenance\JobOrder;
 use App\Models\Maintenance\PurchaseRequest;
+use App\Services\PartParser;
 use Illuminate\Http\Request;
 
 class PurchaseRequestController extends Controller
@@ -22,6 +23,13 @@ class PurchaseRequestController extends Controller
         'Issued',
     ];
 
+    private PartParser $partParser;
+
+    public function __construct(PartParser $partParser)
+    {
+        $this->partParser = $partParser;
+    }
+
     private function canApprovePurchaseRequest(): bool
     {
         if (! auth()->check()) {
@@ -33,22 +41,34 @@ class PurchaseRequestController extends Controller
         $role = strtolower(trim($user->role ?? ''));
         $department = strtolower(trim($user->department ?? ''));
 
-        return $department === 'maintenance' && in_array($role, [
-            'admin',
-            'head',
-            'maintenance_admin',
-            'maintenance admin',
-            'maintenance-admin',
-            'maintenance_head',
-            'maintenance head',
-            'maintenance-head',
-        ], true);
+        /*
+         * Admin role is removed.
+         * Only Maintenance Head can approve/reject.
+         */
+        return $department === 'maintenance' && $role === 'head';
+    }
+
+    private function maintenancePurchaseRequestQuery()
+    {
+        return PurchaseRequest::query()
+            ->where('pr_no', 'not like', '%-P')
+            ->where(function ($query) {
+                $query->whereNull('job_order_no')
+                    ->orWhere('job_order_no', '!=', 'RESTOCK');
+            })
+            ->where(function ($query) {
+                $query->whereNull('bus_no')
+                    ->orWhere('bus_no', '!=', 'RESTOCK');
+            })
+            ->where(function ($query) {
+                $query->whereNull('source_type')
+                    ->orWhere('source_type', 'Maintenance Request');
+            });
     }
 
     public function index(Request $request)
     {
-        $query = PurchaseRequest::query()
-            ->where('pr_no', 'not like', '%-P');
+        $query = $this->maintenancePurchaseRequestQuery();
 
         if ($request->filled('search')) {
             $search = trim($request->search);
@@ -72,23 +92,23 @@ class PurchaseRequestController extends Controller
             ->paginate(8)
             ->withQueryString();
 
-        $submitted = PurchaseRequest::where('pr_no', 'not like', '%-P')
+        $submitted = $this->maintenancePurchaseRequestQuery()
             ->where('status', 'Submitted')
             ->count();
 
-        $approved = PurchaseRequest::where('pr_no', 'not like', '%-P')
+        $approved = $this->maintenancePurchaseRequestQuery()
             ->where('status', 'Approved')
             ->count();
 
-        $rejected = PurchaseRequest::where('pr_no', 'not like', '%-P')
+        $rejected = $this->maintenancePurchaseRequestQuery()
             ->where('status', 'Rejected')
             ->count();
 
-        $forPurchase = PurchaseRequest::where('pr_no', 'not like', '%-P')
+        $forPurchase = $this->maintenancePurchaseRequestQuery()
             ->where('status', 'For Purchase')
             ->count();
 
-        $issued = PurchaseRequest::where('pr_no', 'not like', '%-P')
+        $issued = $this->maintenancePurchaseRequestQuery()
             ->where('status', 'Issued')
             ->count();
 
@@ -143,8 +163,28 @@ class PurchaseRequestController extends Controller
             'remarks' => 'nullable|string|max:1000',
         ]);
 
+        if (strtoupper(trim($validated['job_order_no'])) === 'RESTOCK' || strtoupper(trim($validated['bus_no'])) === 'RESTOCK') {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Inventory restock requests are not allowed in Maintenance Purchase Requests.');
+        }
+
+        $jobOrder = JobOrder::where('job_order_no', $validated['job_order_no'])->first();
+
+        if (! $jobOrder) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Selected job order was not found.');
+        }
+
         $hasActiveRequest = PurchaseRequest::where('job_order_no', $validated['job_order_no'])
             ->where('pr_no', 'not like', '%-P')
+            ->where(function ($query) {
+                $query->whereNull('source_type')
+                    ->orWhere('source_type', 'Maintenance Request');
+            })
             ->whereNotIn('status', ['Rejected', 'Issued'])
             ->exists();
 
@@ -155,7 +195,15 @@ class PurchaseRequestController extends Controller
                 ->with('error', 'This job order already has an active purchase request.');
         }
 
-        $parts = $this->normalizePartsFromRequest($request);
+        $parts = $this->partParser->normalizePartsInput($request->parts ?? []);
+
+        if (count($parts) === 0 && $request->filled('item')) {
+            $parts[] = [
+                'name' => trim($request->item),
+                'quantity' => (int) ($request->quantity ?? 1) > 0 ? (int) ($request->quantity ?? 1) : 1,
+                'unit' => trim($request->unit ?? ''),
+            ];
+        }
 
         if (count($parts) === 0) {
             return redirect()
@@ -164,8 +212,8 @@ class PurchaseRequestController extends Controller
                 ->with('error', 'Please add at least one requested part.');
         }
 
-        $formattedParts = $this->formatPartsNeeded($parts);
-        $totalQuantity = $this->calculateTotalQuantity($parts);
+        $formattedParts = $this->partParser->formatParts($parts);
+        $totalQuantity = $this->partParser->calculateTotalQuantity($parts);
 
         $purchaseRequest = PurchaseRequest::create([
             'pr_no' => $this->generatePrNo(),
@@ -188,6 +236,12 @@ class PurchaseRequestController extends Controller
 
     public function update(Request $request, PurchaseRequest $purchaseRequest)
     {
+        if ($this->isRestockRequest($purchaseRequest)) {
+            return redirect()
+                ->back()
+                ->with('error', 'Inventory restock requests cannot be edited from Maintenance.');
+        }
+
         if ($purchaseRequest->status !== 'Submitted') {
             return redirect()
                 ->back()
@@ -209,7 +263,31 @@ class PurchaseRequestController extends Controller
             'remarks' => 'nullable|string|max:1000',
         ]);
 
-        $parts = $this->normalizePartsFromRequest($request);
+        if (strtoupper(trim($validated['job_order_no'])) === 'RESTOCK' || strtoupper(trim($validated['bus_no'])) === 'RESTOCK') {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Inventory restock requests are not allowed in Maintenance Purchase Requests.');
+        }
+
+        $jobOrder = JobOrder::where('job_order_no', $validated['job_order_no'])->first();
+
+        if (! $jobOrder) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Selected job order was not found.');
+        }
+
+        $parts = $this->partParser->normalizePartsInput($request->parts ?? []);
+
+        if (count($parts) === 0 && $request->filled('item')) {
+            $parts[] = [
+                'name' => trim($request->item),
+                'quantity' => (int) ($request->quantity ?? 1) > 0 ? (int) ($request->quantity ?? 1) : 1,
+                'unit' => trim($request->unit ?? ''),
+            ];
+        }
 
         if (count($parts) === 0) {
             return redirect()
@@ -218,8 +296,8 @@ class PurchaseRequestController extends Controller
                 ->with('error', 'Please add at least one requested part.');
         }
 
-        $formattedParts = $this->formatPartsNeeded($parts);
-        $totalQuantity = $this->calculateTotalQuantity($parts);
+        $formattedParts = $this->partParser->formatParts($parts);
+        $totalQuantity = $this->partParser->calculateTotalQuantity($parts);
 
         $oldJobOrderNo = $purchaseRequest->job_order_no;
 
@@ -228,6 +306,7 @@ class PurchaseRequestController extends Controller
             'bus_no' => $validated['bus_no'],
             'item' => $formattedParts,
             'quantity' => $totalQuantity,
+            'source_type' => 'Maintenance Request',
             'remarks' => $validated['remarks'] ?? null,
         ]);
 
@@ -237,6 +316,10 @@ class PurchaseRequestController extends Controller
             if ($oldJobOrder) {
                 $hasOtherRequest = PurchaseRequest::where('job_order_no', $oldJobOrderNo)
                     ->where('pr_no', 'not like', '%-P')
+                    ->where(function ($query) {
+                        $query->whereNull('source_type')
+                            ->orWhere('source_type', 'Maintenance Request');
+                    })
                     ->exists();
 
                 if (! $hasOtherRequest) {
@@ -256,8 +339,14 @@ class PurchaseRequestController extends Controller
 
     public function approve(PurchaseRequest $purchaseRequest)
     {
+        if ($this->isRestockRequest($purchaseRequest)) {
+            return redirect()
+                ->back()
+                ->with('error', 'Inventory restock requests cannot be approved from Maintenance.');
+        }
+
         if (! $this->canApprovePurchaseRequest()) {
-            abort(403, 'Only Maintenance Head or Maintenance Admin can approve purchase requests.');
+            abort(403, 'Only Maintenance Head can approve purchase requests.');
         }
 
         if ($purchaseRequest->status !== 'Submitted') {
@@ -280,8 +369,14 @@ class PurchaseRequestController extends Controller
 
     public function reject(PurchaseRequest $purchaseRequest)
     {
+        if ($this->isRestockRequest($purchaseRequest)) {
+            return redirect()
+                ->back()
+                ->with('error', 'Inventory restock requests cannot be rejected from Maintenance.');
+        }
+
         if (! $this->canApprovePurchaseRequest()) {
-            abort(403, 'Only Maintenance Head or Maintenance Admin can reject purchase requests.');
+            abort(403, 'Only Maintenance Head can reject purchase requests.');
         }
 
         if ($purchaseRequest->status !== 'Submitted') {
@@ -305,6 +400,12 @@ class PurchaseRequestController extends Controller
 
     public function markForPurchase(PurchaseRequest $purchaseRequest)
     {
+        if ($this->isRestockRequest($purchaseRequest)) {
+            return redirect()
+                ->back()
+                ->with('error', 'Inventory restock requests cannot be sent to purchase from Maintenance.');
+        }
+
         if ($purchaseRequest->status !== 'Approved') {
             return redirect()
                 ->back()
@@ -324,6 +425,12 @@ class PurchaseRequestController extends Controller
 
     public function markDelivered(PurchaseRequest $purchaseRequest)
     {
+        if ($this->isRestockRequest($purchaseRequest)) {
+            return redirect()
+                ->back()
+                ->with('error', 'Inventory restock requests cannot be marked delivered from Maintenance.');
+        }
+
         $purchaseRequest->update([
             'status' => 'Delivered',
         ]);
@@ -337,6 +444,12 @@ class PurchaseRequestController extends Controller
 
     public function issue(PurchaseRequest $purchaseRequest)
     {
+        if ($this->isRestockRequest($purchaseRequest)) {
+            return redirect()
+                ->back()
+                ->with('error', 'Inventory restock requests cannot be issued from Maintenance.');
+        }
+
         $purchaseRequest->update([
             'status' => 'Issued',
             'issued_at' => now(),
@@ -351,6 +464,12 @@ class PurchaseRequestController extends Controller
 
     public function destroy(PurchaseRequest $purchaseRequest)
     {
+        if ($this->isRestockRequest($purchaseRequest)) {
+            return redirect()
+                ->back()
+                ->with('error', 'Inventory restock requests cannot be deleted from Maintenance.');
+        }
+
         $jobOrderNo = $purchaseRequest->job_order_no;
 
         $purchaseRequest->delete();
@@ -360,6 +479,10 @@ class PurchaseRequestController extends Controller
         if ($jobOrder && ! empty($jobOrder->part_needed)) {
             $hasOtherRequest = PurchaseRequest::where('job_order_no', $jobOrderNo)
                 ->where('pr_no', 'not like', '%-P')
+                ->where(function ($query) {
+                    $query->whereNull('source_type')
+                        ->orWhere('source_type', 'Maintenance Request');
+                })
                 ->exists();
 
             if (! $hasOtherRequest) {
@@ -374,8 +497,19 @@ class PurchaseRequestController extends Controller
             ->with('success', 'Purchase request deleted successfully.');
     }
 
+    private function isRestockRequest(PurchaseRequest $purchaseRequest): bool
+    {
+        return strtoupper(trim($purchaseRequest->job_order_no ?? '')) === 'RESTOCK'
+            || strtoupper(trim($purchaseRequest->bus_no ?? '')) === 'RESTOCK'
+            || strtolower(trim($purchaseRequest->source_type ?? '')) === 'inventory restock';
+    }
+
     private function updateRelatedJobOrderPartStatus(PurchaseRequest $purchaseRequest, string $partStatus): void
     {
+        if ($this->isRestockRequest($purchaseRequest)) {
+            return;
+        }
+
         $jobOrder = JobOrder::where('job_order_no', $purchaseRequest->job_order_no)->first();
 
         if (! $jobOrder) {
@@ -414,71 +548,4 @@ class PurchaseRequestController extends Controller
         return $newPrNo;
     }
 
-    private function normalizePartsFromRequest(Request $request): array
-    {
-        $parts = [];
-
-        if ($request->filled('parts') && is_array($request->parts)) {
-            foreach ($request->parts as $part) {
-                $name = trim($part['name'] ?? '');
-                $quantity = (int) ($part['quantity'] ?? 1);
-                $unit = trim($part['unit'] ?? '');
-
-                if ($name === '') {
-                    continue;
-                }
-
-                $parts[] = [
-                    'name' => $name,
-                    'quantity' => $quantity > 0 ? $quantity : 1,
-                    'unit' => $unit,
-                ];
-            }
-        }
-
-        if (count($parts) === 0 && $request->filled('item')) {
-            $parts[] = [
-                'name' => trim($request->item),
-                'quantity' => (int) ($request->quantity ?? 1) > 0 ? (int) ($request->quantity ?? 1) : 1,
-                'unit' => trim($request->unit ?? ''),
-            ];
-        }
-
-        return $parts;
-    }
-
-    private function formatPartsNeeded(array $parts): string
-    {
-        $formattedParts = [];
-
-        foreach ($parts as $part) {
-            $name = trim($part['name'] ?? '');
-            $quantity = (int) ($part['quantity'] ?? 1);
-            $unit = trim($part['unit'] ?? '');
-
-            if ($name === '') {
-                continue;
-            }
-
-            if ($unit !== '') {
-                $formattedParts[] = "{$name} - Qty: {$quantity} {$unit}";
-            } else {
-                $formattedParts[] = "{$name} - Qty: {$quantity}";
-            }
-        }
-
-        return implode(', ', $formattedParts);
-    }
-
-    private function calculateTotalQuantity(array $parts): int
-    {
-        $total = 0;
-
-        foreach ($parts as $part) {
-            $quantity = (int) ($part['quantity'] ?? 1);
-            $total += $quantity > 0 ? $quantity : 1;
-        }
-
-        return $total > 0 ? $total : 1;
-    }
 }

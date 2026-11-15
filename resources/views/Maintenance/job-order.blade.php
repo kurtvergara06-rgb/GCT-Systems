@@ -4,6 +4,7 @@
     'resources/css/Main-style/main.css',
     'resources/css/Main-style/sidebar.css',
     'resources/css/Maintenance/job-order.css',
+    'resources/js/Main-style/sidebar.js',
     'resources/js/Maintenance/job-order.js'
   ]"
 >
@@ -20,14 +21,37 @@
     :message="session('error')"
   />
 
+  @if($errors->any())
+    <div id="validationErrorModal" class="delete-modal-overlay show active" style="display: flex;">
+      <div class="delete-modal-box">
+        <div class="delete-icon">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+
+        <h2>Form Error</h2>
+        <p>Please check the form. Some required information is missing.</p>
+
+        <ul style="text-align: left; margin: 12px 0 0; color: #dc2626; font-size: 13px;">
+          @foreach($errors->all() as $error)
+            <li>{{ $error }}</li>
+          @endforeach
+        </ul>
+
+        <div class="delete-modal-actions">
+          <button type="button" id="closeValidationErrorModal" class="cancel-delete-btn">
+            Okay
+          </button>
+        </div>
+      </div>
+    </div>
+  @endif
+
   <div class="app">
 
     <x-layout.sidebar
       department="Maintenance"
       subtitle="Department Module"
       icon="fa-truck"
-      user-name="R. Lim"
-      user-role="Maintenance Admin"
       :items="[
         ['label' => 'Dashboard', 'route' => 'maintenance-dashboard', 'icon' => 'fa-table-cells-large'],
         ['label' => 'Job Orders', 'route' => 'job-orders', 'icon' => 'fa-clipboard-list'],
