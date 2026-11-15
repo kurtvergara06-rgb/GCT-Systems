@@ -2,7 +2,7 @@
   title="FROMS - Warehouse Inventory"
   :assets="[
     'resources/css/Warehouse/inventory.css',
-    'resources/css/Main-style/main.css',
+    'resources/css/Main-styles/main.css',
     'resources/js/Warehouse/inventory.js'
   ]"
 >
@@ -187,9 +187,10 @@
                   <td>{{ $item->unit_of_measurement }}</td>
                   <td><strong>{{ $item->reorder_level }}</strong></td>
                   <td>
-                    <span class="badge {{ $badgeClass }}">
-                      {{ $status }}
-                    </span>
+                    <x-ui.status-badge 
+                      :status="$status"
+                      type="inventory"
+                    />
                   </td>
                   <td>{{ $item->supplier ?? '—' }}</td>
                   <td>{{ $item->storage_location ?? '—' }}</td>

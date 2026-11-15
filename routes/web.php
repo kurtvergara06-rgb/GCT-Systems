@@ -273,13 +273,14 @@ Route::middleware('auth')->group(function () {
         ->name('admin.permissions');
 
     Route::controller(AdminUserController::class)
-        ->prefix('admin/users')
-        ->group(function () {
-            Route::get('/', 'index')->name('admin.users');
-            Route::post('/', 'store')->name('admin.users.store');
-            Route::put('/{user}', 'update')->name('admin.users.update');
-            Route::patch('/{user}/status', 'updateStatus')->name('admin.users.update-status');
-            Route::patch('/{user}/reset-password', 'resetPassword')->name('admin.users.reset-password');
-        });
+    ->prefix('admin/users')
+    ->group(function () {
+        Route::get('/', 'index')->name('admin.users');
+        Route::post('/', 'store')->name('admin.users.store');
+        Route::put('/{user}', 'update')->name('admin.users.update');
+        Route::patch('/{user}/status', 'updateStatus')->name('admin.users.update-status');
+        Route::patch('/{user}/reset-password', 'resetPassword')->name('admin.users.reset-password');
+        Route::delete('/{user}', 'destroy')->name('admin.users.destroy');
+    });
 
 });

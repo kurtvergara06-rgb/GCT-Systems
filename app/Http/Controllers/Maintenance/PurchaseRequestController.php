@@ -7,6 +7,7 @@ use App\Models\Maintenance\JobOrder;
 use App\Models\Maintenance\PurchaseRequest;
 use App\Services\PartParser;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class PurchaseRequestController extends Controller
 {
@@ -32,11 +33,11 @@ class PurchaseRequestController extends Controller
 
     private function canApprovePurchaseRequest(): bool
     {
-        if (! auth()->check()) {
-            return false;
+        if (! Auth::check()) {
+        return false;
         }
 
-        $user = auth()->user();
+        $user = Auth::user();
 
         $role = strtolower(trim($user->role ?? ''));
         $department = strtolower(trim($user->department ?? ''));

@@ -1,8 +1,8 @@
 <x-layout.app
   title="FROMS - Mechanic Attendance"
   :assets="[
-    'resources/css/Main-style/main.css',
-    'resources/css/Main-style/sidebar.css',
+    'resources/css/Main-styles/main.css',
+    'resources/css/Main-styles/sidebar.css',
     'resources/css/Operation/attendance.css',
     'resources/js/Operation/mechanic-attendance.js'
   ]"

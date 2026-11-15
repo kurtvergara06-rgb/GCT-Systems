@@ -1,10 +1,10 @@
 <x-layout.app
   title="FROMS - Fuel Reports"
   :assets="[
-    'resources/css/Main-style/main.css',
-    'resources/css/Main-style/sidebar.css',
+    'resources/css/Main-styles/main.css',
+    'resources/css/Main-styles/sidebar.css',
     'resources/css/Maintenance/fuel-reports.css',
-    'resources/js/Main-style/sidebar.js'
+    'resources/js/Main-js/sidebar.js'
   ]"
 >
 
