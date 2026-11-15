@@ -150,7 +150,7 @@
                                 </th>
                                 @unless(request('fleet_purpose') === 'Reserve')
                                 <th>Client Allocation</th>
-                                <th>Authorized Drivers</th>
+                                <th>Authorized Driver</th>
                                 @endunless
                                 <th>Actions</th>
                             </tr>
@@ -213,14 +213,6 @@
                                                     <strong class="bus-disclosure-primary" title="{{ $bus->authorizedDrivers->first()->driver_name }}">{{ $bus->authorizedDrivers->first()->driver_name }}</strong>
                                                     <small>Driver profile</small>
                                                 </span>
-                                                @if($bus->authorizedDrivers->count() > 1)
-                                                    <button type="button" class="bus-more-trigger" data-bus-more aria-label="Show {{ $bus->authorizedDrivers->count() - 1 }} more drivers for bus {{ $bus->bus_no }}" aria-expanded="false">+{{ $bus->authorizedDrivers->count() - 1 }} more <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></button>
-                                                    <div class="bus-more-source" hidden>
-                                                        @foreach($bus->authorizedDrivers->skip(1) as $driver)
-                                                            <div class="bus-more-entry bus-identity-entry"><span class="bus-identity-avatar bus-driver-avatar" aria-hidden="true"><i class="fa-solid fa-user"></i></span><span class="bus-identity-details"><strong title="{{ $driver->driver_name }}">{{ $driver->driver_name }}</strong><small>Driver profile</small></span></div>
-                                                        @endforeach
-                                                    </div>
-                                                @endif
                                             </div>
                                         @endif
                                     </td>
@@ -335,7 +327,7 @@
                     <div><dt>Capacity</dt><dd data-bus-detail="capacity">—</dd></div>
                     <div><dt>Status</dt><dd><span class="bus-details-status" data-bus-detail="status">—</span></dd></div>
                     <div><dt>Bus Purpose</dt><dd data-bus-detail="fleetPurpose">—</dd></div>
-                    <div data-bus-regular-detail><dt>Client Allocation</dt><dd data-bus-detail="clientAllocation">—</dd></div><div data-bus-regular-detail><dt>Authorized Drivers</dt><dd data-bus-detail="authorizedDrivers">—</dd></div>
+                    <div data-bus-regular-detail><dt>Client Allocation</dt><dd data-bus-detail="clientAllocation">—</dd></div><div data-bus-regular-detail><dt>Authorized Driver</dt><dd data-bus-detail="authorizedDrivers">—</dd></div>
                 </dl>
                 <div class="bus-details-section bus-details-route-heading">
                     <i class="fa-solid fa-route" aria-hidden="true"></i>

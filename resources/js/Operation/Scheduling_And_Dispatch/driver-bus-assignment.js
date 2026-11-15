@@ -337,7 +337,7 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-bus-assignment
         if (assignmentBusOptionsContainer) {
             assignmentBusOptionsContainer.innerHTML = buses.length
                 ? buses.map((bus) => {
-                    const busIdentifier = bus.plate_no || 'Plate not recorded';
+                    const busIdentifier = bus.bus_no || 'Bus ID not recorded';
                     const label = bus.model ? `${busIdentifier} — ${bus.model}` : busIdentifier;
                     const search = `${bus.bus_no} ${bus.model || ''} ${bus.plate_no || ''}`.toLowerCase();
 

@@ -23,7 +23,7 @@ class OperationMasterAllocationsTest extends TestCase
         $this->assertCount(0, $bus->operationClients);
     }
 
-    public function test_driver_can_be_authorized_for_multiple_buses_and_bus_can_have_multiple_drivers(): void
+    public function test_driver_can_be_authorized_for_multiple_buses_and_each_bus_has_one_driver(): void
     {
         $first = Bus::create(['bus_no' => 'DRV-BUS-1', 'status' => 'Active']);
         $second = Bus::create(['bus_no' => 'DRV-BUS-2', 'status' => 'Active']);
@@ -31,10 +31,11 @@ class OperationMasterAllocationsTest extends TestCase
         $driverB = Driver::create(['driver_id' => 'DRV-B', 'driver_name' => 'Driver B', 'shift' => 'Morning', 'employment_status' => 'Active']);
 
         $driverA->authorizedBuses()->sync([$first->id, $second->id]);
-        $driverB->authorizedBuses()->sync([$first->id]);
-
         $this->assertEqualsCanonicalizing([$first->id, $second->id], $driverA->fresh()->authorizedBuses->pluck('id')->all());
-        $this->assertEqualsCanonicalizing([$driverA->id, $driverB->id], $first->fresh()->authorizedDrivers->pluck('id')->all());
+        $this->assertSame([$driverA->id], $first->fresh()->authorizedDrivers->pluck('id')->all());
+
+        $this->expectException(\Illuminate\Database\QueryException::class);
+        $driverB->authorizedBuses()->sync([$first->id]);
     }
 
     public function test_bus_allocations_support_single_and_multiple_clients(): void
