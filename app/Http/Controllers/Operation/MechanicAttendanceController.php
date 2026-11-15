@@ -44,7 +44,7 @@ class MechanicAttendanceController extends Controller
 
         $summaryDate = $request->filled('attendance_date')
             ? Carbon::parse($request->attendance_date)->toDateString()
-            : today()->toDateString();
+            : now(config('app.business_timezone', 'Asia/Manila'))->toDateString();
 
         $summaryQuery = MechanicAttendance::query()
             ->whereDate('attendance_date', $summaryDate);
@@ -316,7 +316,7 @@ class MechanicAttendanceController extends Controller
     {
         $date = trim($date ?? '');
         if ($date === '') {
-            return today()->toDateString();
+            return now(config('app.business_timezone', 'Asia/Manila'))->toDateString();
         }
 
         foreach (['Y-m-d', 'm/d/Y', 'm/d/y', 'd/m/Y'] as $format) {

@@ -2,29 +2,18 @@
 
 namespace App\Http\Controllers\Purchase;
 
-use Illuminate\Support\Facades\Schema;
 use App\Http\Controllers\Controller;
 use App\Models\Maintenance\JobOrder;
 use App\Models\Purchase\MaintenanceRequest;
 use App\Models\Purchase\PurchaseOrder;
-use App\Models\Warehouse\InventoryItem;
-use App\Services\Warehouse\InventoryLedgerService;
 use App\Traits\SystemDataUpdateBroadcaster;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Illuminate\Http\RedirectResponse;
 
 class PurchaseOrderController extends Controller
 {
     use SystemDataUpdateBroadcaster;
-
-    private InventoryLedgerService $ledger;
-
-    public function __construct(InventoryLedgerService $ledger)
-    {
-        $this->ledger = $ledger;
-    }
 
     private array $statuses = [
         'Ordered',
@@ -261,47 +250,44 @@ class PurchaseOrderController extends Controller
     public function updateStatus(Request $request, PurchaseOrder $purchaseOrder)
     {
         $validated = $request->validate([
-            'status' => 'required|string|in:For Pick-up,For Delivery,Delivered,Picked Up',
-            'warehouse_receive' => 'nullable|boolean',
+            'status' => 'required|string|in:For Pick-up,For Delivery',
         ]);
 
-        $warehouseReceive = $request->boolean('warehouse_receive');
-        $allowedTransitions = $warehouseReceive
-            ? [
-                'For Delivery' => ['Delivered'],
-                'For Pick-up' => ['Picked Up'],
-            ]
-            : [
-                'Ordered' => ['For Pick-up', 'For Delivery'],
-            ];
+        $allowedTransitions = [
+            'Ordered' => ['For Pick-up', 'For Delivery'],
+        ];
 
         if (! in_array($validated['status'], $allowedTransitions[$purchaseOrder->status] ?? [], true)) {
             return redirect()->back()->with('error', 'That purchase order status change is not allowed from the current workflow state.');
         }
 
-        DB::transaction(function () use ($purchaseOrder, $validated, $warehouseReceive) {
-            $purchaseOrder->update(['status' => $validated['status']]);
-            $this->syncRelatedMaintenanceRequestsAndJobOrders($purchaseOrder, $validated['status']);
+        DB::transaction(function () use ($purchaseOrder, $validated, $allowedTransitions) {
+            $lockedOrder = PurchaseOrder::query()
+                ->whereKey($purchaseOrder->id)
+                ->lockForUpdate()
+                ->firstOrFail();
 
-            if ($warehouseReceive) {
-                $this->postPurchaseOrderToInventory($purchaseOrder);
+            if (! in_array($validated['status'], $allowedTransitions[$lockedOrder->status] ?? [], true)) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'status' => 'That purchase order status change is no longer allowed.',
+                ]);
             }
+
+            $lockedOrder->update(['status' => $validated['status']]);
+            $this->syncRelatedMaintenanceRequestsAndJobOrders($lockedOrder, $validated['status']);
         });
 
         $this->broadcastSystemDataUpdated(
-            $warehouseReceive ? 'Warehouse' : 'Purchase',
+            'Purchase',
             'PurchaseOrder',
-            $warehouseReceive ? 'received' : 'status_updated',
+            'status_updated',
             $purchaseOrder->id,
-            $warehouseReceive ? 'Warehouse received a purchase order.' : 'A purchase order status was updated.'
+            'A purchase order status was updated.'
         );
 
-        session()->flash(
-            'success',
-            $warehouseReceive ? 'Delivery received and inventory updated successfully.' : 'Purchase order status updated successfully.'
-        );
+        session()->flash('success', 'Purchase order status updated successfully.');
 
-        return new RedirectResponse($warehouseReceive ? '/warehouse/incoming-deliveries' : '/purchase-orders');
+        return new RedirectResponse('/purchase-orders');
     }
 
     public function destroy(PurchaseOrder $purchaseOrder)
@@ -322,128 +308,6 @@ class PurchaseOrderController extends Controller
         session()->flash('success', 'Purchase order deleted successfully.');
 
         return new RedirectResponse('/purchase-orders');
-    }
-
-    private function postPurchaseOrderToInventory(PurchaseOrder $purchaseOrder): void
-    {
-        $purchaseOrder->refresh();
-
-        if ($purchaseOrder->inventory_posted_at) {
-            return;
-        }
-
-        $items = $purchaseOrder->items;
-
-        if (! is_array($items) || count($items) === 0) {
-            return;
-        }
-
-        foreach ($items as $item) {
-            $rawItemName = trim($item['item_description'] ?? '');
-
-            if ($rawItemName === '') {
-                continue;
-            }
-
-            $quantity = max(1, (int) ($item['quantity'] ?? 1));
-            $unit = trim($item['unit'] ?? 'PC');
-            $supplier = $purchaseOrder->supplier_name ?: 'N/A';
-            $referenceNo = $purchaseOrder->po_no ?: ('PO-' . strtoupper(Str::random(8)));
-
-            foreach ($this->splitItemNames($rawItemName) as $itemName) {
-                $inventoryItem = $this->findInventoryItem($itemName);
-
-                if ($inventoryItem) {
-                    $this->ledger->stockIn(
-                        $inventoryItem,
-                        $quantity,
-                        $referenceNo,
-                        'Received from Purchase Order.',
-                        auth()->id()
-                    );
-
-                    $this->syncSupplierAndUnit($inventoryItem, $supplier, $unit);
-                } else {
-                    $inventoryItem = InventoryItem::create([
-                        'item_code' => $this->generateInventoryItemCode(),
-                        'item_name' => $itemName,
-                        'category' => 'Auto Parts',
-                        'quantity_available' => 0,
-                        'unit_of_measurement' => $unit ?: 'PC',
-                        'reorder_level' => 5,
-                        'supplier' => $supplier,
-                        'storage_location' => 'Warehouse',
-                    ]);
-
-                    $this->ledger->stockIn(
-                        $inventoryItem,
-                        $quantity,
-                        $referenceNo,
-                        'Received from Purchase Order.',
-                        auth()->id()
-                    );
-                }
-            }
-        }
-
-        $purchaseOrder->update(['inventory_posted_at' => now()]);
-    }
-
-    private function splitItemNames(string $itemName): array
-    {
-        return collect(explode(',', $itemName))
-            ->map(fn ($name) => trim($name))
-            ->filter(fn ($name) => $name !== '')
-            ->values()
-            ->toArray();
-    }
-
-    private function findInventoryItem(string $itemName): ?InventoryItem
-    {
-        $itemName = strtolower(trim($itemName));
-
-        if ($itemName === '') {
-            return null;
-        }
-
-        return InventoryItem::query()
-            ->where(function ($q) use ($itemName) {
-                $q->whereRaw('LOWER(item_name) = ?', [$itemName]);
-
-                if (Schema::hasColumn('inventory_items', 'parts_name')) {
-                    $q->orWhereRaw('LOWER(parts_name) = ?', [$itemName]);
-                }
-
-                $q->orWhereRaw('LOWER(item_code) = ?', [$itemName]);
-            })
-            ->first();
-    }
-
-    private function generateInventoryItemCode(): string
-    {
-        do {
-            $code = 'PART-' . strtoupper(Str::random(5));
-        } while (InventoryItem::where('item_code', $code)->exists());
-
-        return $code;
-    }
-
-    private function syncSupplierAndUnit(InventoryItem $inventoryItem, string $supplier, string $unit): void
-    {
-        $updates = [];
-
-        if (empty($inventoryItem->supplier)) {
-            $updates['supplier'] = $supplier;
-        }
-
-        if (empty($inventoryItem->unit ?? $inventoryItem->unit_of_measurement)) {
-            $updates['unit_of_measurement'] = $unit ?: 'PC';
-            $updates['unit'] = $unit ?: 'PC';
-        }
-
-        if ($updates !== []) {
-            $inventoryItem->update($updates);
-        }
     }
 
     private function syncRelatedMaintenanceRequestsAndJobOrders(PurchaseOrder $purchaseOrder, string $status): void

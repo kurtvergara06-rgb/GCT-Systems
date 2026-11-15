@@ -7,6 +7,12 @@
     'resources/js/Main-js/sidebar.js'
   ]"
 >
+  @php
+    $canEditWarehouse = auth()->user()?->hasSystemPermission('warehouse', 'edit') ?? false;
+    $currentView = $currentView ?? 'active';
+    $isHistory = $currentView === 'history';
+  @endphp
+
   <div class="app">
     <x-layout.sidebar department="Warehouse" />
 
@@ -25,14 +31,42 @@
       </section>
 
       <section data-ajax-region="records" class="table-card incoming-delivery-card">
-        <div class="section-header">
+        <div class="section-header warehouse-record-header">
           <div>
-            <h2>Delivery Records</h2>
-            <p>Purchase Orders marked for delivery appear here for Warehouse receiving.</p>
+            <h2>{{ $isHistory ? 'Delivery History' : 'Active Incoming Deliveries' }}</h2>
+            <p>Purchase Orders ready for Warehouse receiving and completed receipt records.</p>
           </div>
+
+          <nav class="warehouse-record-tabs" aria-label="Incoming delivery record view" role="tablist">
+            <a
+              href="{{ route('incoming-deliveries', ['view' => 'active']) }}"
+              class="warehouse-record-tab {{ !$isHistory ? 'is-active' : '' }}"
+              data-allow-partial-navigation="true"
+              role="tab"
+              aria-selected="{{ !$isHistory ? 'true' : 'false' }}"
+            >
+              <i class="fa-solid fa-list-check"></i>
+              <span>Active</span>
+            </a>
+            <a
+              href="{{ route('incoming-deliveries', ['view' => 'history']) }}"
+              class="warehouse-record-tab {{ $isHistory ? 'is-active' : '' }}"
+              data-allow-partial-navigation="true"
+              role="tab"
+              aria-selected="{{ $isHistory ? 'true' : 'false' }}"
+            >
+              <i class="fa-solid fa-clock-rotate-left"></i>
+              <span>History</span>
+            </a>
+          </nav>
         </div>
 
+        @if($isHistory)
+          <p class="warehouse-history-note">Warehouse-received purchase orders are kept here for reference and audit history.</p>
+        @endif
+
         <form action="{{ route('incoming-deliveries') }}" method="GET" class="toolbar delivery-toolbar" data-server-filter="true">
+          <input type="hidden" name="view" value="{{ $currentView }}">
           <div class="search-box">
             <i class="fa-solid fa-magnifying-glass"></i>
             <input type="text" name="search" value="{{ request('search') }}" placeholder="Search PO no., supplier, item, or delivery...">
@@ -40,7 +74,7 @@
 
           <div class="filter-group">
             <select name="status" id="deliveryStatus">
-              @foreach(['All Statuses', 'For Delivery', 'For Pick-up', 'Delivered', 'Picked Up', 'Received'] as $status)
+              @foreach(array_merge(['All Statuses'], $statusOptions ?? []) as $status)
                 <option value="{{ $status }}" @selected(request('status', 'All Statuses') === $status)>{{ $status }}</option>
               @endforeach
             </select>
@@ -87,9 +121,11 @@
                     <x-ui.status-badge :status="$displayStatus" class="delivery-status {{ $statusClass }}" />
                   </td>
                   <td>
-                    @if(!$received && in_array($delivery->status, ['For Delivery', 'For Pick-up'], true))
+                    @if($isHistory || $received)
+                      <span class="delivery-status received"><i class="fa-solid fa-lock"></i>&nbsp; Read only</span>
+                    @elseif($canEditWarehouse && in_array($delivery->status, ['For Delivery', 'For Pick-up'], true))
                       <form
-                        action="{{ route('purchase-orders.update-status', $delivery) }}"
+                        action="{{ route('incoming-deliveries.receive', $delivery) }}"
                         method="POST"
                         class="inline-action-form"
                         data-confirm-form
@@ -99,16 +135,13 @@
                         data-confirm-type="approve"
                       >
                         @csrf
-                        @method('PATCH')
-                        <input type="hidden" name="warehouse_receive" value="1">
-                        <input type="hidden" name="status" value="{{ $delivery->status === 'For Pick-up' ? 'Picked Up' : 'Delivered' }}">
                         <button type="submit" class="primary-btn receive-delivery-btn" title="Receive Delivery">
                           <i class="fa-solid fa-box-open"></i>
                           Receive
                         </button>
                       </form>
                     @else
-                      <span class="delivery-status received"><i class="fa-solid fa-circle-check"></i>&nbsp; Received</span>
+                      <span class="delivery-status for-delivery"><i class="fa-solid fa-lock"></i>&nbsp; View only</span>
                     @endif
                   </td>
                 </tr>
@@ -118,8 +151,8 @@
                     <x-ui.empty-state
                       class="delivery-empty-state"
                       icon="fa-truck-ramp-box"
-                      title="No incoming deliveries"
-                      description="Purchase Orders marked For Delivery or For Pick-up will appear here automatically."
+                      :title="$isHistory ? 'No delivery history' : 'No incoming deliveries'"
+                      :description="$isHistory ? 'Warehouse-received purchase orders will appear here automatically.' : 'Purchase Orders marked For Delivery or For Pick-up will appear here automatically.'"
                     />
                   </td>
                 </tr>

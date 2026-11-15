@@ -125,9 +125,8 @@
 
   grid-template-columns:
     minmax(280px, 1fr)
-    minmax(130px, 150px)
-    minmax(130px, 150px)
-    minmax(150px, 170px);
+    minmax(140px, 170px)
+    minmax(140px, 170px);
 
   align-items: end;
 
@@ -577,7 +576,7 @@
 
   .stock-movement-toolbar {
     grid-template-columns:
-      repeat(3, minmax(0, 1fr));
+      repeat(2, minmax(0, 1fr));
   }
 
   .stock-movement-toolbar .search-box {
@@ -609,8 +608,8 @@
 }
 
 /* =====================================================
-   REFERENCE / ID BADGE + DATA SOURCE BADGE
-   Shared pill styles for document numbers and source.
+   REFERENCE / ID BADGE
+   Shared pill style for document numbers.
 ===================================================== */
 
 .ref-badge {
@@ -629,31 +628,6 @@
   white-space: nowrap;
   line-height: 1.5;
 }
-
-.source-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 2px 8px;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 800;
-  line-height: 1.5;
-  white-space: nowrap;
-}
-
-.source-badge--app {
-  border: 1px solid #bfe3cd;
-  background: #e9f8ef;
-  color: #156a44;
-}
-
-.source-badge--simulated {
-  border: 1px solid #d6dce5;
-  background: #f1f5f9;
-  color: #64748b;
-}
-
 
 /* =====================================================
    ITEM MOVEMENT HISTORY PAGE

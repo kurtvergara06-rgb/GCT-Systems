@@ -138,14 +138,6 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
     });
   }
 
-  if (viewPrModal) {
-    viewPrModal.addEventListener('click', function (event) {
-      if (event.target === viewPrModal) {
-        closeModal(viewPrModal);
-      }
-    });
-  }
-
   const issuePartsModal = document.getElementById('issuePartsModal');
   const issuePartsForm = document.getElementById('issuePartsForm');
   const issuePartsFields = document.getElementById('issue_parts_fields');
@@ -226,14 +218,6 @@ window.GCTPartialNavigation.registerInitializer('warehouse-part-requests', '.war
       });
     }
   });
-
-  if (issuePartsModal) {
-    issuePartsModal.addEventListener('click', function (event) {
-      if (event.target === issuePartsModal) {
-        closeModal(issuePartsModal);
-      }
-    });
-  }
 
   const warehouseStatusFilter = document.getElementById('warehouseStatusFilter');
 

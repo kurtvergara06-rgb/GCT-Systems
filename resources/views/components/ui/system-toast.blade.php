@@ -25,7 +25,7 @@
         }
     }
 
-    if ($errors->any()) {
+    if (isset($errors) && $errors->any()) {
         $firstError = trim((string) $errors->first());
 
         if (!empty($firstError)) {

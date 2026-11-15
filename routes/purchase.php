@@ -53,5 +53,5 @@ Route::middleware('role:purchase:head,purchase:staff,admin:head')->group(functio
 });
 
 Route::patch('/purchase-orders/{purchaseOrder}/status', [PurchaseOrderController::class, 'updateStatus'])
-    ->middleware('role:purchase:head,purchase:staff,warehouse:head,admin:head')
+    ->middleware('role:purchase:head,purchase:staff,admin:head')
     ->name('purchase-orders.update-status');

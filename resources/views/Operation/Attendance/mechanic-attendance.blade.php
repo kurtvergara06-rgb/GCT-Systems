@@ -38,7 +38,7 @@
         notification-count="6"
       />
 
-      @if($errors->any())
+      @if(isset($errors) && $errors->any())
         <div class="alert-error">
           <ul>
             @foreach($errors->all() as $error)

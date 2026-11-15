@@ -3,9 +3,12 @@
 namespace Tests\Feature;
 
 use App\Models\Admin\User;
+use App\Models\Admin\RolePermission;
 use App\Models\Maintenance\JobOrder;
 use App\Models\Maintenance\PurchaseRequest;
 use App\Models\Warehouse\InventoryItem;
+use App\Models\Warehouse\InventoryIssuance;
+use App\Models\Warehouse\InventoryIssuanceItem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -18,11 +21,6 @@ class MaintenanceWarehousePartsWorkflowTest extends TestCase
         $user = User::factory()->create([
             'department' => 'Maintenance',
             'role' => 'staff',
-            'status' => 'Active',
-        ]);
-        $warehouseHead = User::factory()->create([
-            'department' => 'Warehouse',
-            'role' => 'head',
             'status' => 'Active',
         ]);
         $warehouseStaff = User::factory()->create([
@@ -74,18 +72,6 @@ class MaintenanceWarehousePartsWorkflowTest extends TestCase
             'storage_location' => 'Warehouse 1',
         ]);
 
-        $this->actingAs($warehouseHead)
-            ->post(route('part-requests.approve-for-issue', $purchaseRequest))
-            ->assertRedirect();
-
-        $this->assertSame('Approved for Issue', $purchaseRequest->fresh()->warehouse_status);
-        $this->assertSame(5, (int) $inventoryItem->fresh()->quantity_available);
-
-        $this->actingAs($warehouseStaff)
-            ->post(route('part-requests.prepare', $purchaseRequest))
-            ->assertRedirect();
-
-        $this->assertSame('Preparing', $purchaseRequest->fresh()->warehouse_status);
         $this->assertSame(5, (int) $inventoryItem->fresh()->quantity_available);
 
         $issueResponse = $this
@@ -99,9 +85,16 @@ class MaintenanceWarehousePartsWorkflowTest extends TestCase
         $this->assertSame('Issued', $jobOrder->fresh()->part_status);
         $this->assertSame(3, (int) $inventoryItem->fresh()->quantity_available);
         $this->assertSame(2, $purchaseRequest->fresh()->warehouse_issue_quantities[0]['issued']);
+
+        $this->actingAs($warehouseStaff)
+            ->post(route('part-requests.issue', $purchaseRequest))
+            ->assertSessionHas('error');
+
+        $this->assertSame(3, (int) $inventoryItem->fresh()->quantity_available);
+        $this->assertSame(1, InventoryIssuance::where('reference_no', $purchaseRequest->pr_no)->count());
     }
 
-    public function test_warehouse_roles_are_enforced_for_approval_preparation_and_issue(): void
+    public function test_warehouse_edit_capability_controls_direct_issue(): void
     {
         $head = User::factory()->create(['department' => 'Warehouse', 'role' => 'head', 'status' => 'Active']);
         $staff = User::factory()->create(['department' => 'Warehouse', 'role' => 'staff', 'status' => 'Active']);
@@ -123,26 +116,24 @@ class MaintenanceWarehousePartsWorkflowTest extends TestCase
             'warehouse_status' => 'Pending Warehouse Approval',
         ]);
 
-        $this->actingAs($staff)
-            ->post(route('part-requests.approve-for-issue', $request))
-            ->assertForbidden();
-
-        $this->actingAs($head)
-            ->post(route('part-requests.prepare', $request))
-            ->assertForbidden();
-
-        $this->actingAs($head)
-            ->post(route('part-requests.approve-for-issue', $request))
-            ->assertRedirect();
+        $headPermissions = RolePermission::where('role_key', 'warehouse_head')->firstOrFail();
+        $headMatrix = $headPermissions->permissions;
+        data_set($headMatrix, 'warehouse.edit', false);
+        $headPermissions->update(['permissions' => $headMatrix]);
 
         $this->actingAs($head)
             ->post(route('part-requests.issue', $request))
             ->assertForbidden();
 
-        $this->assertSame(4, (int) $item->fresh()->quantity_available);
+        $this->actingAs($staff)
+            ->post(route('part-requests.issue', $request))
+            ->assertRedirect()
+            ->assertSessionHas('success');
+
+        $this->assertSame(2, (int) $item->fresh()->quantity_available);
     }
 
-    public function test_warehouse_staff_issues_prepared_parts_using_requested_quantity_automatically(): void
+    public function test_warehouse_staff_issues_available_parts_using_requested_quantity_automatically(): void
     {
         $warehouseStaff = User::factory()->create([
             'department' => 'Warehouse',
@@ -181,15 +172,12 @@ class MaintenanceWarehousePartsWorkflowTest extends TestCase
         ]);
 
         $purchaseRequest = PurchaseRequest::create([
-            'pr_no' => 'PR-GCT-0004',
+            'pr_no' => 'PR-AUTO-'.strtoupper(\Illuminate\Support\Str::random(8)),
             'job_order_no' => $jobOrder->job_order_no,
             'bus_no' => $jobOrder->bus_no,
             'item' => 'Air Filter (1 pcs), Fuel Filter (3 pcs)',
             'quantity' => 4,
             'status' => 'Approved',
-            'warehouse_status' => 'Preparing',
-            'warehouse_prepared_by' => $warehouseStaff->id,
-            'warehouse_prepared_at' => now(),
         ]);
 
         // Post issue without any issued_quantities payload
@@ -209,6 +197,10 @@ class MaintenanceWarehousePartsWorkflowTest extends TestCase
         $this->assertSame(19, (int) $itemA->fresh()->quantity_available);
         $this->assertSame(7, (int) $itemB->fresh()->quantity_available);
 
+        $issuance = InventoryIssuance::where('reference_no', $purchaseRequest->pr_no)->firstOrFail();
+        $this->assertSame($warehouseStaff->id, $issuance->issued_by);
+        $this->assertCount(2, InventoryIssuanceItem::where('inventory_issuance_id', $issuance->id)->get());
+
         // warehouse_issue_quantities history matches requested quantities automatically
         $history = $updatedPr->warehouse_issue_quantities;
         $this->assertIsArray($history);
@@ -225,14 +217,14 @@ class MaintenanceWarehousePartsWorkflowTest extends TestCase
             'inventory_item_id' => $itemA->id,
             'movement_type' => 'Stock Out',
             'quantity_change' => -1,
-            'reference_no' => 'PR-GCT-0004',
+            'reference_no' => $purchaseRequest->pr_no,
         ]);
 
         $this->assertDatabaseHas('stock_movements', [
             'inventory_item_id' => $itemB->id,
             'movement_type' => 'Stock Out',
             'quantity_change' => -3,
-            'reference_no' => 'PR-GCT-0004',
+            'reference_no' => $purchaseRequest->pr_no,
         ]);
     }
 }

@@ -141,7 +141,7 @@ class MaintenanceDashboardController extends Controller
             ->keyBy(fn (JobOrder $jo) => Str::lower(trim($jo->assigned_mechanic)));
 
         $todayAttendance = MechanicAttendance::query()
-            ->whereDate('attendance_date', today())
+            ->whereDate('attendance_date', now(config('app.business_timezone', 'Asia/Manila'))->toDateString())
             ->latest('id')
             ->get()
             ->unique('mechanic_id')

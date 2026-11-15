@@ -21,7 +21,7 @@
         <x-ui.summary-card label="Total Movements" value="{{ $totalMovements }}" small="Recorded stock transactions" icon="fa-right-left" color="blue" />
         <x-ui.summary-card label="Stock In" value="{{ $stockIn }}" small="Inventory received" icon="fa-arrow-down" color="green" />
         <x-ui.summary-card label="Stock Out" value="{{ $stockOut }}" small="Inventory issued" icon="fa-arrow-up" color="red" />
-        <x-ui.summary-card label="System Transactions" value="{{ $genuineTransactions }}" small="Recorded through live workflows" icon="fa-check" color="purple" />
+        <x-ui.summary-card label="Adjustments" value="{{ $adjustments }}" small="Inventory corrections" icon="fa-sliders" color="purple" />
       </section>
 
       <section data-ajax-region="records" class="table-card stock-movement-card">
@@ -54,13 +54,6 @@
             </select>
           </div>
 
-          <div class="filter-group">
-            <select name="source" id="movementSourceFilter" aria-label="Record origin">
-              <option value="All Sources" @selected(request('source', 'All Sources') === 'All Sources')>All Records</option>
-              <option value="app" @selected(request('source') === 'app')>System Transactions</option>
-              <option value="simulated" @selected(request('source') === 'simulated')>Simulated</option>
-            </select>
-          </div>
         </form>
 
         <div class="table-wrap">
@@ -70,7 +63,6 @@
                 <th>Date / Time</th>
                 <th>Item / Part</th>
                 <th>Reference</th>
-                <th>Record Origin</th>
                 <th>Movement</th>
                 <th>Qty</th>
                 <th>Previous</th>
@@ -115,11 +107,6 @@
                     @endif
                   </td>
                   <td>
-                    <span class="source-badge source-badge--{{ $movement->source === 'app' ? 'app' : 'simulated' }}">
-                      {{ $movement->source === 'app' ? 'System' : 'Simulated' }}
-                    </span>
-                  </td>
-                  <td>
                     <span class="movement-badge {{ $movementClass }}">
                       <i class="fa-solid {{ $movementIcon }}"></i>
                       {{ $movement->movement_type }}
@@ -136,7 +123,7 @@
                 </tr>
               @empty
                 <tr>
-                  <td colspan="9" class="empty-stock-movements">
+                  <td colspan="8" class="empty-stock-movements">
                     <x-ui.empty-state
                       class="stock-movement-empty-state"
                       icon="fa-right-left"

@@ -550,7 +550,7 @@ class OperationMaintenanceReferralWorkflowTest extends TestCase
         $this->assertSame('Approved', $pr->fresh()->status);
         $this->assertSame('Approved', $jobOrder->fresh()->part_status);
 
-        // 9. Warehouse Head authorizes; Warehouse Staff prepares and issues.
+        // 9. Warehouse Staff issues directly because Maintenance already approved.
         $inventoryItem = InventoryItem::create([
             'item_code' => 'ALT-24V-001',
             'item_name' => 'Heavy Duty Alternator 24V',
@@ -562,16 +562,8 @@ class OperationMaintenanceReferralWorkflowTest extends TestCase
             'storage_location' => 'Warehouse Shelf A-2',
         ]);
 
-        $this->actingAs($warehouseHead)
-            ->post(route('part-requests.approve-for-issue', $pr))
-            ->assertRedirect();
-
-        $this->actingAs($warehouseStaff)
-            ->post(route('part-requests.prepare', $pr))
-            ->assertRedirect();
-
         $issueResponse = $this->actingAs($warehouseStaff)
-            ->post(route('part-requests.issue', $pr), ['issued_quantities' => [1]]);
+            ->post(route('part-requests.issue', $pr));
         $issueResponse->assertRedirect();
 
         $this->assertSame('Issued', $pr->fresh()->status);

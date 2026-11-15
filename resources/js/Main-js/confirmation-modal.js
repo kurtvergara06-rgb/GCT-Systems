@@ -43,25 +43,49 @@ document.addEventListener('DOMContentLoaded', function () {
         modal.style.display = 'flex';
         modal.classList.add('show', 'active');
         modal.setAttribute('aria-hidden', 'false');
-        document.body.style.overflow = 'hidden';
 
-        window.setTimeout(() => confirmButton.focus(), 50);
-    }
-
-    function closeModal() {
-        modal.classList.remove('show', 'active');
-        modal.style.display = 'none';
-        modal.setAttribute('aria-hidden', 'true');
-
-        resetConfirmButton();
-
-        pendingForm = null;
-        pendingCallback = null;
-        pendingSubmitter = null;
         if (window.GCTModalBackdrop?.sync) {
             window.GCTModalBackdrop.sync();
         } else {
-            document.body.style.overflow = '';
+            document.body.style.overflow = 'hidden';
+        }
+
+        window.GCTSystemAnimations
+            ?.animateModalOpen?.(modal);
+
+        window.setTimeout(
+            () => confirmButton.focus(),
+            220
+        );
+    }
+
+    function closeModal() {
+        const finalizeClose = () => {
+            modal.classList.remove('show', 'active');
+            modal.style.display = 'none';
+            modal.setAttribute('aria-hidden', 'true');
+
+            resetConfirmButton();
+
+            pendingForm = null;
+            pendingCallback = null;
+            pendingSubmitter = null;
+
+            if (window.GCTModalBackdrop?.sync) {
+                window.GCTModalBackdrop.sync();
+            } else {
+                document.body.style.overflow = '';
+            }
+        };
+
+        if (
+            !window.GCTSystemAnimations
+                ?.animateModalClose?.(
+                    modal,
+                    finalizeClose
+                )
+        ) {
+            finalizeClose();
         }
     }
 

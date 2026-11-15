@@ -81,4 +81,39 @@ class MaintenanceGsapAnimationTest extends TestCase
             $styles
         );
     }
+
+    public function test_global_confirmation_uses_shared_modal_animation_lifecycle(): void
+    {
+        $confirmation = file_get_contents(
+            resource_path('js/Main-js/confirmation-modal.js')
+        );
+        $animations = file_get_contents(
+            resource_path('js/Main-js/system-animations.js')
+        );
+        $styles = file_get_contents(
+            resource_path('css/Main-styles/page-transitions.css')
+        );
+
+        $this->assertStringContainsString(
+            '?.animateModalOpen?.(modal)',
+            $confirmation
+        );
+        $this->assertStringContainsString(
+            '?.animateModalClose?.(',
+            $confirmation
+        );
+        $this->assertStringContainsString(
+            "force3D: true",
+            $animations
+        );
+        $this->assertStringContainsString(
+            "ease: 'power2.out'",
+            $animations
+        );
+        $this->assertStringContainsString(
+            'will-change: opacity, transform;',
+            $styles
+        );
+    }
+
 }

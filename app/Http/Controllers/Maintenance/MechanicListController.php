@@ -16,7 +16,7 @@ class MechanicListController extends Controller
     {
         $selectedDate = $request->filled('attendance_date')
             ? Carbon::parse($request->attendance_date)->toDateString()
-            : today()->toDateString();
+            : now(config('app.business_timezone', 'Asia/Manila'))->toDateString();
 
         $activeJobs = JobOrder::query()
             ->whereNotNull('assigned_mechanic')

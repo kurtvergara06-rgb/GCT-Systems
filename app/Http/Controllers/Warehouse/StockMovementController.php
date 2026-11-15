@@ -32,10 +32,6 @@ class StockMovementController extends Controller
             $movementQuery->where('movement_type', $request->type);
         }
 
-        if ($request->filled('source') && $request->source !== 'All Sources') {
-            $movementQuery->where('source', $request->source);
-        }
-
         if ($request->date_filter === 'Today') {
             $movementQuery->whereDate('created_at', today());
         } elseif ($request->date_filter === 'This Week') {
@@ -49,15 +45,13 @@ class StockMovementController extends Controller
         $stockIn = StockMovement::where('movement_type', 'Stock In')->count();
         $stockOut = StockMovement::where('movement_type', 'Stock Out')->count();
         $adjustments = StockMovement::where('movement_type', 'Adjustment')->count();
-        $genuineTransactions = StockMovement::where('source', 'app')->count();
 
         return compact(
             'stockMovements',
             'totalMovements',
             'stockIn',
             'stockOut',
-            'adjustments',
-            'genuineTransactions'
+            'adjustments'
         );
     }
 }

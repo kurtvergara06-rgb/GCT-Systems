@@ -44,6 +44,15 @@ main.gct-maintenance-gsap-reveal {
     transition: none !important;
 }
 
+.gct-system-modal-animated {
+    will-change: opacity;
+}
+
+.gct-system-modal-surface-animated {
+    will-change: opacity, transform;
+    backface-visibility: hidden;
+}
+
 .gct-system-reveal-panel,
 .gct-system-region-animating {
     animation: none !important;

@@ -433,7 +433,7 @@
                 />
 
                 <x-ui.form-select
-                    label="Bus #"
+                    label="Bus ID / Plate"
                     name="bus_no"
                     id="jobBusNo"
                     icon="fa-bus"
@@ -441,7 +441,7 @@
                     :options="$availableBuses
                         ->mapWithKeys(function ($bus) {
                             return [
-                                $bus->bus_no => $bus->bus_no . ($bus->plate_no ? ' - ' . $bus->plate_no : '')
+                                $bus->bus_no => $bus->bus_no.' · '.($bus->plate_no ?: 'Plate not assigned')
                             ];
                         })
                         ->toArray()"
@@ -656,7 +656,7 @@
                 />
 
                 <x-ui.form-select
-                    label="Bus #"
+                    label="Bus ID / Plate"
                     name="bus_no"
                     id="edit_bus_no"
                     icon="fa-bus"
@@ -664,7 +664,7 @@
                     :options="$buses
                         ->mapWithKeys(function ($bus) {
                             return [
-                                $bus->bus_no => $bus->bus_no . ($bus->plate_no ? ' - ' . $bus->plate_no : '')
+                                $bus->bus_no => $bus->bus_no.' · '.($bus->plate_no ?: 'Plate not assigned')
                             ];
                         })
                         ->toArray()"

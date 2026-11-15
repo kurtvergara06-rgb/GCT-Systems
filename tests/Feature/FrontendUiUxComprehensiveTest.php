@@ -597,21 +597,21 @@ class FrontendUiUxComprehensiveTest extends TestCase
         $this->assertSame('Approved', $data['activePartRequests']->first()->status);
     }
 
-    public function test_stock_movement_filters_are_compact_and_clearly_label_record_origin(): void
+    public function test_stock_movement_filters_do_not_expose_internal_record_sources(): void
     {
         $response = $this->actingAs($this->warehouseUser)->get(route('stock-movements'));
 
         $response
             ->assertOk()
-            ->assertDontSee('realistic simulated operational history')
             ->assertSee('Complete inventory transaction and adjustment history.')
-            ->assertSee('System Transactions')
-            ->assertSee('All Records')
-            ->assertSee('Record Origin')
+            ->assertSee('Adjustments')
+            ->assertDontSee('Record Origin')
+            ->assertDontSee('movementSourceFilter', false)
+            ->assertDontSee('Simulated')
+            ->assertDontSee('System Transactions')
             ->assertSeeInOrder([
                 'movementTypeFilter',
                 'movementDateFilter',
-                'movementSourceFilter',
             ], false);
     }
 
@@ -652,11 +652,11 @@ class FrontendUiUxComprehensiveTest extends TestCase
         $this->assertStringContainsString('Southern Luzon Parts Supply', $table);
     }
 
-    public function test_inventory_defaults_to_application_records_and_labels_simulated_items(): void
+    public function test_inventory_uses_one_operational_dataset_without_source_filter_or_badges(): void
     {
-        $applicationItem = InventoryItem::create([
-            'item_code' => 'APP-INV-001',
-            'item_name' => 'Application Brake Pad',
+        $firstItem = InventoryItem::create([
+            'item_code' => 'INV-UNIFIED-001',
+            'item_name' => 'Unified Brake Pad A',
             'category' => 'Brakes',
             'on_hand' => 8,
             'quantity_available' => 8,
@@ -665,9 +665,9 @@ class FrontendUiUxComprehensiveTest extends TestCase
             'source' => 'app',
         ]);
 
-        $simulatedItem = InventoryItem::create([
-            'item_code' => 'SIM-INV-001',
-            'item_name' => 'Simulated Brake Pad',
+        $secondItem = InventoryItem::create([
+            'item_code' => 'INV-UNIFIED-002',
+            'item_name' => 'Unified Brake Pad B',
             'category' => 'Brakes',
             'on_hand' => 12,
             'quantity_available' => 12,
@@ -676,25 +676,18 @@ class FrontendUiUxComprehensiveTest extends TestCase
             'source' => 'simulated',
         ]);
 
-        $applicationView = $this->actingAs($this->warehouseUser)
+        $response = $this->actingAs($this->warehouseUser)
             ->get(route('inventory'));
 
-        $applicationView
+        $response
             ->assertOk()
-            ->assertSee($applicationItem->item_name)
-            ->assertDontSee($simulatedItem->item_name)
-            ->assertSee('Application Records')
-            ->assertSee('source-badge--app', false);
-
-        $simulatedView = $this->actingAs($this->warehouseUser)
-            ->get(route('inventory', ['source' => 'simulated']));
-
-        $simulatedView
-            ->assertOk()
-            ->assertSee($simulatedItem->item_name)
-            ->assertDontSee($applicationItem->item_name)
-            ->assertSee('Simulated Records')
-            ->assertSee('source-badge--simulated', false);
+            ->assertSee($firstItem->item_name)
+            ->assertSee($secondItem->item_name)
+            ->assertDontSee('inventorySourceFilter', false)
+            ->assertDontSee('Application Records')
+            ->assertDontSee('Simulated Records')
+            ->assertDontSee('source-badge--app', false)
+            ->assertDontSee('source-badge--simulated', false);
     }
 
     public function test_inventory_movement_history_opens_as_a_modal_without_the_simulated_notice(): void
@@ -729,20 +722,70 @@ class FrontendUiUxComprehensiveTest extends TestCase
             ->assertOk()
             ->assertSee('openMovementHistory', false)
             ->assertSee('id="movementHistoryModal"', false)
-            ->assertSee(route('inventory.movements', $item), false);
+            ->assertSee('data-item-id="'.$item->id.'"', false)
+            ->assertSee(route('inventory.movements', $item), false)
+            ->assertDontSee('href="'.route('inventory.movements', $item).'"', false);
 
         $modal = $this->actingAs($this->warehouseUser)
             ->withHeader('X-Requested-With', 'XMLHttpRequest')
-            ->get(route('inventory.movements', $item));
+            ->get(route('inventory.movements', [
+                'inventoryItem' => $item,
+                'modal' => 1,
+            ]));
 
         $modal
             ->assertOk()
             ->assertSee('data-movement-history-content', false)
             ->assertSee('Modal Test Battery')
-            ->assertSee('Simulated')
+            ->assertDontSee('Simulated')
+            ->assertDontSee('Source')
             ->assertDontSee('This item has')
             ->assertDontSee('These rows are isolated from application records')
             ->assertDontSee('Back to Inventory');
+
+        $direct = $this->actingAs($this->warehouseUser)
+            ->get(route('inventory.movements', $item));
+
+        $direct->assertRedirect(route('inventory', [
+            'movement_item' => $item->id,
+        ]));
+    }
+
+
+    public function test_inventory_movement_modal_uses_ajax_without_page_navigation(): void
+    {
+        $js = file_get_contents(
+            resource_path('js/Warehouse/inventory.js')
+        );
+
+        $this->assertStringContainsString(
+            'loadMovementHistory',
+            $js
+        );
+        $this->assertStringContainsString(
+            "event.target.closest('.openMovementHistory')",
+            $js
+        );
+        $this->assertStringContainsString(
+            "'X-Requested-With': 'XMLHttpRequest'",
+            $js
+        );
+        $this->assertStringContainsString(
+            "parsed.searchParams.set('modal', '1')",
+            $js
+        );
+        $this->assertStringContainsString(
+            "data-movement-history-filter",
+            $js
+        );
+        $this->assertStringContainsString(
+            "ajax:content-updated",
+            $js
+        );
+        $this->assertStringContainsString(
+            'movementHistoryRequest?.abort();',
+            $js
+        );
     }
 
     // =========================================================================
