@@ -159,10 +159,6 @@ class GenericBatchProcessingServiceProvider extends ServiceProvider
                     return;
                 }
 
-                $gpsBatch->load([
-                    'tripRecords' => fn ($query) => $query->orderBy('beginning_at'),
-                ]);
-
                 $recordsQuery = GpsTripRecord::query()
                     ->with('batchUpload')
                     ->where('batch_upload_id', $gpsBatch->id)
@@ -188,10 +184,13 @@ class GenericBatchProcessingServiceProvider extends ServiceProvider
                 $view->with([
                     'selectedBatchId' => $gpsBatch->id,
                     'selectedBatch' => $gpsBatch,
-                    'selectedRecord' => $gpsBatch->tripRecords
-                        ->sortByDesc('beginning_at')
+                    'selectedRecord' => $gpsBatch->tripRecords()
+                        ->latest('beginning_at')
                         ->first(),
-                    'allSelectedRecords' => $gpsBatch->tripRecords,
+                    'allSelectedRecords' => $gpsBatch->tripRecords()
+                        ->orderBy('beginning_at')
+                        ->paginate(50, ['*'], 'preview_page')
+                        ->withQueryString(),
                     'records' => $recordsQuery
                         ->latest('beginning_at')
                         ->paginate(25)

@@ -39,6 +39,9 @@ window.GCTPartialNavigation.registerInitializer('admin-batch-processing', '.batc
 
     let hasUnsavedBatchChanges = false;
 
+    const autoOpenPreview = document.querySelector('.batch-processing-page')
+        ?.dataset.autoOpenPreview;
+
     function setLoading(button, text) {
         if (!(button instanceof HTMLButtonElement)) {
             return;
@@ -102,6 +105,12 @@ window.GCTPartialNavigation.registerInitializer('admin-batch-processing', '.batc
         if (!hasOpenModal) {
             document.body.classList.remove('modal-open');
         }
+    }
+
+    if (autoOpenPreview === 'raw') {
+        openModal(rawUploadModal);
+    } else if (autoOpenPreview === 'clean') {
+        openModal(cleanDataModal);
     }
 
     function showNotification(message, type = 'info') {

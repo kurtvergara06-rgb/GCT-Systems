@@ -212,9 +212,30 @@
     </div>
 
     <div class="batch-table-footer">
-        <p>
-            Showing {{ number_format($records->count()) }} {{ \Illuminate\Support\Str::plural('record', $records->count()) }}
-        </p>
+        @if($records->hasPages())
+            <p>
+                Showing {{ number_format($records->firstItem()) }}–{{ number_format($records->lastItem()) }}
+                of {{ number_format($records->total()) }} records
+            </p>
+
+            <nav class="batch-simple-pagination" aria-label="Structured record pages">
+                <a
+                    class="simple-page-button {{ $records->onFirstPage() ? 'disabled' : '' }}"
+                    href="{{ $records->previousPageUrl() ?? '#' }}"
+                    @if($records->onFirstPage()) aria-disabled="true" tabindex="-1" @endif
+                >Previous</a>
+                <span class="simple-page-info">Page {{ $records->currentPage() }} of {{ $records->lastPage() }}</span>
+                <a
+                    class="simple-page-button {{ $records->hasMorePages() ? '' : 'disabled' }}"
+                    href="{{ $records->nextPageUrl() ?? '#' }}"
+                    @unless($records->hasMorePages()) aria-disabled="true" tabindex="-1" @endunless
+                >Next</a>
+            </nav>
+        @else
+            <p>
+                Showing {{ number_format($records->count()) }} {{ \Illuminate\Support\Str::plural('record', $records->count()) }}
+            </p>
+        @endif
     </div>
 </section>
 
@@ -281,6 +302,22 @@
                     </tbody>
                 </table>
             </div>
+
+            @if($allSelectedRecords->hasPages())
+                <nav class="batch-simple-pagination" aria-label="Raw record preview pages">
+                    <a
+                        class="simple-page-button {{ $allSelectedRecords->onFirstPage() ? 'disabled' : '' }}"
+                        href="{{ $allSelectedRecords->onFirstPage() ? '#' : route('batch-file-processing', array_merge(request()->query(), ['preview_page' => $allSelectedRecords->currentPage() - 1, 'preview' => 'raw']), false) }}"
+                        @if($allSelectedRecords->onFirstPage()) aria-disabled="true" tabindex="-1" @endif
+                    >Previous</a>
+                    <span class="simple-page-info">Page {{ $allSelectedRecords->currentPage() }} of {{ $allSelectedRecords->lastPage() }}</span>
+                    <a
+                        class="simple-page-button {{ $allSelectedRecords->hasMorePages() ? '' : 'disabled' }}"
+                        href="{{ $allSelectedRecords->hasMorePages() ? route('batch-file-processing', array_merge(request()->query(), ['preview_page' => $allSelectedRecords->currentPage() + 1, 'preview' => 'raw']), false) : '#' }}"
+                        @unless($allSelectedRecords->hasMorePages()) aria-disabled="true" tabindex="-1" @endunless
+                    >Next</a>
+                </nav>
+            @endif
         </div>
     </div>
 @endif
@@ -310,7 +347,7 @@
 
                 <div class="batch-editor-actions">
                     <span class="unsaved-changes-label">
-                        {{ number_format($allSelectedRecords->count()) }} records
+                        {{ number_format($allSelectedRecords->total()) }} records
                     </span>
 
                     <span class="{{ $selectedBatch->status === 'Processed' ? 'processed-badge' : 'review-badge' }}">
@@ -398,6 +435,22 @@
                     </tbody>
                 </table>
             </div>
+
+            @if($allSelectedRecords->hasPages())
+                <nav class="batch-simple-pagination" aria-label="Clean record preview pages">
+                    <a
+                        class="simple-page-button {{ $allSelectedRecords->onFirstPage() ? 'disabled' : '' }}"
+                        href="{{ $allSelectedRecords->onFirstPage() ? '#' : route('batch-file-processing', array_merge(request()->query(), ['preview_page' => $allSelectedRecords->currentPage() - 1, 'preview' => 'clean']), false) }}"
+                        @if($allSelectedRecords->onFirstPage()) aria-disabled="true" tabindex="-1" @endif
+                    >Previous</a>
+                    <span class="simple-page-info">Page {{ $allSelectedRecords->currentPage() }} of {{ $allSelectedRecords->lastPage() }}</span>
+                    <a
+                        class="simple-page-button {{ $allSelectedRecords->hasMorePages() ? '' : 'disabled' }}"
+                        href="{{ $allSelectedRecords->hasMorePages() ? route('batch-file-processing', array_merge(request()->query(), ['preview_page' => $allSelectedRecords->currentPage() + 1, 'preview' => 'clean']), false) : '#' }}"
+                        @unless($allSelectedRecords->hasMorePages()) aria-disabled="true" tabindex="-1" @endunless
+                    >Next</a>
+                </nav>
+            @endif
         </div>
     </div>
 @endif
