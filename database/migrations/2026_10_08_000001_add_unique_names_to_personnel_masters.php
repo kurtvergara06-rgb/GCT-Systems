@@ -15,16 +15,20 @@ return new class extends Migration
             'drivers_driver_name_unique'
         );
 
-        $this->addUniqueIndexIfMissing(
-            'mechanics',
-            'mechanic_name',
-            'mechanics_mechanic_name_unique'
-        );
+        // mechanic_id is the stable personnel identifier used by attendance
+        // history. A mechanic's name is a display value and legacy databases
+        // may legitimately contain the same name for different mechanic IDs.
+        // Keep those records intact and let the existing application validation
+        // prevent new ambiguous names instead of enforcing a destructive or
+        // deployment-blocking database constraint here.
     }
 
     public function down(): void
     {
         $this->dropUniqueIndexIfPresent('drivers', 'drivers_driver_name_unique');
+
+        // Older environments may already have completed the original version
+        // of this migration, so retain a guarded cleanup for rollback safety.
         $this->dropUniqueIndexIfPresent('mechanics', 'mechanics_mechanic_name_unique');
     }
 
