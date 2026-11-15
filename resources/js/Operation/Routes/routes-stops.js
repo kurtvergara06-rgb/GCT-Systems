@@ -77,8 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        modal.classList.add('show');
-        modal.classList.add('active');
+        modal.classList.add('show', 'active');
 
         document.body.style.overflow = 'hidden';
     }
@@ -90,17 +89,30 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        modal.classList.remove('show');
-        modal.classList.remove('active');
+        modal.classList.remove('show', 'active');
 
         const openModalExists =
             document.querySelector(
-                '.route-modal-overlay.show, .modal-overlay.show'
+                '.ui-form-overlay.show, ' +
+                '.route-modal-overlay.show, ' +
+                '.modal-overlay.show'
             );
 
         if (!openModalExists) {
             document.body.style.overflow = '';
         }
+    }
+
+
+    /* =========================================================
+       STORE ORIGINAL ACTION
+    ========================================================= */
+
+    if (routeForm) {
+
+        routeForm.dataset.storeUrl =
+            routeForm.getAttribute('action');
+
     }
 
 
@@ -116,10 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         routeForm.reset();
 
-        /*
-         * Important:
-         * Laravel POST form should NOT send _method=POST.
-         */
+
         if (routeFormMethod) {
 
             routeFormMethod.disabled = true;
@@ -151,24 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
 
-        if (routeStopList) {
-
-            routeStopList.innerHTML = '';
-
-            addStopInput();
-
-        }
-    }
-
-
-    /*
-     * Store original action once.
-     */
-    if (routeForm) {
-
-        routeForm.dataset.storeUrl =
-            routeForm.getAttribute('action');
-
+        resetStops();
     }
 
 
@@ -176,20 +168,16 @@ document.addEventListener('DOMContentLoaded', () => {
        NEW ROUTE
     ========================================================= */
 
-    if (openRouteModalBtn) {
+    openRouteModalBtn?.addEventListener(
+        'click',
+        () => {
 
-        openRouteModalBtn.addEventListener(
-            'click',
-            () => {
+            resetCreateForm();
 
-                resetCreateForm();
+            openModal(routeModal);
 
-                openModal(routeModal);
-
-            }
-        );
-
-    }
+        }
+    );
 
 
     /* =========================================================
@@ -213,22 +201,85 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     /* =========================================================
-       ADD STOP
+       STOP ROW
+       GLOBAL FORM REPEATER CLASSES
     ========================================================= */
 
-    if (addRouteStop) {
+    function createStopRow(value = '') {
 
-        addRouteStop.addEventListener(
-            'click',
-            () => {
+        const item =
+            document.createElement('div');
 
-                addStopInput();
 
-            }
+        /*
+         * IMPORTANT:
+         * These ui-form-* classes use the GLOBAL
+         * form-components.css styling.
+         */
+        item.className =
+            'ui-form-repeater-row route-stop-item';
+
+
+        const number =
+            document.createElement('div');
+
+        number.className =
+            'ui-form-repeater-number route-stop-number';
+
+
+        const input =
+            document.createElement('input');
+
+        input.type = 'text';
+        input.name = 'stops[]';
+        input.value = value;
+        input.placeholder = 'Enter stop name';
+
+
+        const removeButton =
+            document.createElement('button');
+
+        removeButton.type = 'button';
+
+        removeButton.className =
+            'ui-form-repeater-remove remove-route-stop';
+
+        removeButton.title =
+            'Remove Stop';
+
+
+        const trashIcon =
+            document.createElement('i');
+
+        trashIcon.className =
+            'fa-solid fa-trash';
+
+
+        removeButton.appendChild(
+            trashIcon
         );
 
+
+        item.appendChild(
+            number
+        );
+
+        item.appendChild(
+            input
+        );
+
+        item.appendChild(
+            removeButton
+        );
+
+
+        return item;
     }
 
+
+    /* =========================================================
+       ADD STOP
+    ========================================================= */
 
     function addStopInput(value = '') {
 
@@ -238,42 +289,77 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
         const item =
-            document.createElement('div');
+            createStopRow(value);
 
 
-        item.className =
-            'route-stop-item';
+        routeStopList.appendChild(
+            item
+        );
 
 
-        item.innerHTML = `
-            <div class="route-stop-number"></div>
-
-            <input
-                type="text"
-                name="stops[]"
-                placeholder="Enter stop name"
-            >
-
-            <button
-                type="button"
-                class="remove-route-stop"
-                title="Remove Stop"
-            >
-                <i class="fa-solid fa-trash"></i>
-            </button>
-        `;
+        updateStopNumbers();
+    }
 
 
-        const input =
-            item.querySelector('input');
+    addRouteStop?.addEventListener(
+        'click',
+        () => {
+
+            addStopInput();
+
+        }
+    );
 
 
-        if (input) {
-            input.value = value;
+    /* =========================================================
+       RESET STOPS
+    ========================================================= */
+
+    function resetStops() {
+
+        if (!routeStopList) {
+            return;
         }
 
 
-        routeStopList.appendChild(item);
+        routeStopList.innerHTML = '';
+
+
+        addStopInput();
+    }
+
+
+    /* =========================================================
+       POPULATE STOPS
+    ========================================================= */
+
+    function populateStops(stops = []) {
+
+        if (!routeStopList) {
+            return;
+        }
+
+
+        routeStopList.innerHTML = '';
+
+
+        if (
+            Array.isArray(stops) &&
+            stops.length > 0
+        ) {
+
+            stops.forEach(stop => {
+
+                addStopInput(stop);
+
+            });
+
+        } else {
+
+            addStopInput();
+
+        }
+
 
         updateStopNumbers();
     }
@@ -283,55 +369,66 @@ document.addEventListener('DOMContentLoaded', () => {
        REMOVE STOP
     ========================================================= */
 
-    if (routeStopList) {
+    routeStopList?.addEventListener(
+        'click',
+        event => {
 
-        routeStopList.addEventListener(
-            'click',
-            event => {
-
-                const removeButton =
-                    event.target.closest(
-                        '.remove-route-stop'
-                    );
+            const removeButton =
+                event.target.closest(
+                    '.remove-route-stop'
+                );
 
 
-                if (!removeButton) {
-                    return;
-                }
-
-
-                const item =
-                    removeButton.closest(
-                        '.route-stop-item'
-                    );
-
-
-                if (!item) {
-                    return;
-                }
-
-
-                item.remove();
-
-
-                if (
-                    routeStopList.querySelectorAll(
-                        '.route-stop-item'
-                    ).length === 0
-                ) {
-
-                    addStopInput();
-
-                }
-
-
-                updateStopNumbers();
-
+            if (!removeButton) {
+                return;
             }
-        );
 
-    }
 
+            const item =
+                removeButton.closest(
+                    '.route-stop-item'
+                );
+
+
+            if (!item) {
+                return;
+            }
+
+
+            const rows =
+                routeStopList.querySelectorAll(
+                    '.route-stop-item'
+                );
+
+
+            /*
+             * Always keep at least one stop field.
+             */
+            if (rows.length <= 1) {
+
+                const input =
+                    item.querySelector('input');
+
+                if (input) {
+                    input.value = '';
+                }
+
+                return;
+            }
+
+
+            item.remove();
+
+
+            updateStopNumbers();
+
+        }
+    );
+
+
+    /* =========================================================
+       STOP NUMBERS
+    ========================================================= */
 
     function updateStopNumbers() {
 
@@ -341,7 +438,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
         routeStopList
-            .querySelectorAll('.route-stop-item')
+            .querySelectorAll(
+                '.route-stop-item'
+            )
             .forEach(
                 (item, index) => {
 
@@ -352,8 +451,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
                     if (number) {
+
                         number.textContent =
                             String(index + 1);
+
                     }
 
                 }
@@ -362,7 +463,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     /* =========================================================
-       GET BUTTON DATA
+       GET ROUTE DATA
     ========================================================= */
 
     function getRouteData(button) {
@@ -374,7 +475,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             stops =
                 JSON.parse(
-                    button.dataset.stops || '[]'
+                    button.dataset.stops ||
+                    '[]'
                 );
 
         } catch (error) {
@@ -388,6 +490,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
         return {
+
             id:
                 button.dataset.id || '',
 
@@ -419,6 +522,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 Array.isArray(stops)
                     ? stops
                     : [],
+
         };
     }
 
@@ -443,70 +547,93 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
             const route =
-                getRouteData(editButton);
+                getRouteData(
+                    editButton
+                );
 
 
             if (routeModalTitle) {
+
                 routeModalTitle.textContent =
                     'Edit Route';
+
             }
 
 
             if (saveRouteText) {
+
                 saveRouteText.textContent =
                     'Update Route';
+
             }
 
 
             if (routeCode) {
+
                 routeCode.value =
                     route.routeCode;
+
             }
 
 
             if (routeName) {
+
                 routeName.value =
                     route.routeName;
+
             }
 
 
             if (routeOrigin) {
+
                 routeOrigin.value =
                     route.origin;
+
             }
 
 
             if (routeDestination) {
+
                 routeDestination.value =
                     route.destination;
+
             }
 
 
             if (routeDistance) {
+
                 routeDistance.value =
                     route.distance;
+
             }
 
 
             if (routeTime) {
+
                 routeTime.value =
                     route.time;
+
             }
 
 
             if (routeStatus) {
+
                 routeStatus.value =
                     route.status;
+
             }
 
 
             /*
-             * Change POST form to Laravel PUT.
+             * Laravel PUT request.
              */
             if (routeFormMethod) {
 
-                routeFormMethod.disabled = false;
-                routeFormMethod.value = 'PUT';
+                routeFormMethod.disabled =
+                    false;
+
+                routeFormMethod.value =
+                    'PUT';
 
             }
 
@@ -522,31 +649,17 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
 
-            if (routeStopList) {
-
-                routeStopList.innerHTML = '';
-
-
-                if (route.stops.length > 0) {
-
-                    route.stops.forEach(
-                        stop => {
-
-                            addStopInput(stop);
-
-                        }
-                    );
-
-                } else {
-
-                    addStopInput();
-
-                }
-
-            }
+            /*
+             * Load stops using GLOBAL repeater.
+             */
+            populateStops(
+                route.stops
+            );
 
 
-            openModal(routeModal);
+            openModal(
+                routeModal
+            );
 
         }
     );
@@ -572,7 +685,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
             const route =
-                getRouteData(viewButton);
+                getRouteData(
+                    viewButton
+                );
 
 
             setText(
@@ -601,6 +716,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             setText(
                 'viewRouteDistance',
+
                 route.distance
                     ? `${formatNumber(route.distance)} KM`
                     : '—'
@@ -609,6 +725,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             setText(
                 'viewRouteTime',
+
                 route.time
                     ? `${route.time} minutes`
                     : '—'
@@ -635,6 +752,10 @@ document.addEventListener('DOMContentLoaded', () => {
     );
 
 
+    /* =========================================================
+       SET TEXT
+    ========================================================= */
+
     function setText(id, value) {
 
         const element =
@@ -642,10 +763,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
         if (element) {
-            element.textContent = value;
+
+            element.textContent =
+                value;
+
         }
     }
 
+
+    /* =========================================================
+       FORMAT NUMBER
+    ========================================================= */
 
     function formatNumber(value) {
 
@@ -654,7 +782,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
         if (!Number.isFinite(number)) {
+
             return value;
+
         }
 
 
@@ -667,6 +797,10 @@ document.addEventListener('DOMContentLoaded', () => {
         );
     }
 
+
+    /* =========================================================
+       VIEW STATUS
+    ========================================================= */
 
     function renderViewStatus(status) {
 
@@ -703,9 +837,15 @@ document.addEventListener('DOMContentLoaded', () => {
             status || 'Unknown';
 
 
-        wrapper.appendChild(badge);
+        wrapper.appendChild(
+            badge
+        );
     }
 
+
+    /* =========================================================
+       ROUTE PATH
+    ========================================================= */
 
     function renderRoutePath(
         origin,
@@ -727,9 +867,6 @@ document.addEventListener('DOMContentLoaded', () => {
         path.innerHTML = '';
 
 
-        /*
-         * Origin
-         */
         path.appendChild(
             createPathItem(
                 origin || 'Unknown Origin',
@@ -740,9 +877,6 @@ document.addEventListener('DOMContentLoaded', () => {
         );
 
 
-        /*
-         * Stops
-         */
         stops.forEach(
             (stop, index) => {
 
@@ -759,9 +893,6 @@ document.addEventListener('DOMContentLoaded', () => {
         );
 
 
-        /*
-         * Destination
-         */
         path.appendChild(
             createPathItem(
                 destination ||
@@ -776,6 +907,10 @@ document.addEventListener('DOMContentLoaded', () => {
         );
     }
 
+
+    /* =========================================================
+       CREATE PATH ITEM
+    ========================================================= */
 
     function createPathItem(
         name,
@@ -810,7 +945,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 : 'fa-solid fa-circle';
 
 
-        marker.appendChild(icon);
+        marker.appendChild(
+            icon
+        );
 
 
         const content =
@@ -833,12 +970,22 @@ document.addEventListener('DOMContentLoaded', () => {
             label;
 
 
-        content.appendChild(strong);
-        content.appendChild(span);
+        content.appendChild(
+            strong
+        );
+
+        content.appendChild(
+            span
+        );
 
 
-        item.appendChild(marker);
-        item.appendChild(content);
+        item.appendChild(
+            marker
+        );
+
+        item.appendChild(
+            content
+        );
 
 
         return item;
@@ -846,7 +993,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     /* =========================================================
-       CLOSE VIEW MODAL
+       CLOSE VIEW
     ========================================================= */
 
     document
@@ -894,7 +1041,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             selectedDeleteForm =
                 formId
-                    ? document.getElementById(formId)
+                    ? document.getElementById(
+                        formId
+                    )
                     : null;
 
 
@@ -924,57 +1073,52 @@ document.addEventListener('DOMContentLoaded', () => {
     );
 
 
-    if (cancelDeleteRoute) {
+    cancelDeleteRoute?.addEventListener(
+        'click',
+        () => {
 
-        cancelDeleteRoute.addEventListener(
-            'click',
-            () => {
+            selectedDeleteForm =
+                null;
 
-                selectedDeleteForm = null;
 
-                closeModal(
-                    deleteRouteModal
-                );
+            closeModal(
+                deleteRouteModal
+            );
 
+        }
+    );
+
+
+    confirmDeleteRoute?.addEventListener(
+        'click',
+        () => {
+
+            if (!selectedDeleteForm) {
+                return;
             }
-        );
-
-    }
 
 
-    if (confirmDeleteRoute) {
-
-        confirmDeleteRoute.addEventListener(
-            'click',
-            () => {
-
-                if (!selectedDeleteForm) {
-                    return;
-                }
+            const form =
+                selectedDeleteForm;
 
 
-                const form =
-                    selectedDeleteForm;
+            selectedDeleteForm =
+                null;
 
 
-                selectedDeleteForm = null;
+            closeModal(
+                deleteRouteModal
+            );
 
 
-                closeModal(
-                    deleteRouteModal
-                );
+            form.requestSubmit();
 
-
-                form.requestSubmit();
-
-            }
-        );
-
-    }
+        }
+    );
 
 
     /* =========================================================
-       CLOSE MODALS BY CLICKING BACKDROP
+       BACKDROP CLOSE
     ========================================================= */
 
     [
@@ -989,9 +1133,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 'click',
                 event => {
 
-                    if (event.target === modal) {
+                    if (
+                        event.target ===
+                        modal
+                    ) {
 
-                        closeModal(modal);
+                        closeModal(
+                            modal
+                        );
 
                     }
 
@@ -1002,19 +1151,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     /* =========================================================
-       ESC KEY
+       ESC
     ========================================================= */
 
     document.addEventListener(
         'keydown',
         event => {
 
-            if (event.key !== 'Escape') {
+            if (
+                event.key !==
+                'Escape'
+            ) {
                 return;
             }
 
 
-            closeModal(routeModal);
+            closeModal(
+                routeModal
+            );
 
             closeModal(
                 routeDetailsModal
@@ -1063,7 +1217,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     /* =========================================================
-       GLOBAL FEEDBACK MODAL
+       FEEDBACK MODAL
     ========================================================= */
 
     document
@@ -1093,7 +1247,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     /* =========================================================
-       INITIAL STOP NUMBERS
+       INITIAL NUMBERING
     ========================================================= */
 
     updateStopNumbers();

@@ -1,254 +1,580 @@
 document.addEventListener('DOMContentLoaded', function () {
-  const modal = document.getElementById('globalConfirmationModal');
-  const modalTitle = document.getElementById('globalConfirmationTitle');
-  const modalMessage = document.getElementById('globalConfirmationMessage');
-  const modalIcon = document.getElementById('globalConfirmationIcon');
-  const confirmButton = document.getElementById('confirmGlobalAction');
-  const cancelButton = document.getElementById('cancelGlobalConfirmation');
 
-  if (!modal || !modalTitle || !modalMessage || !modalIcon || !confirmButton || !cancelButton) {
-    return;
-  }
+    const modal =
+        document.getElementById('globalConfirmationModal');
 
-  let pendingForm = null;
-  let pendingCallback = null;
-  let pendingSubmitter = null;
-  let isSubmitting = false;
+    const modalTitle =
+        document.getElementById('globalConfirmationTitle');
 
-  const defaultConfirmText = confirmButton.textContent.trim() || 'Confirm';
+    const modalMessage =
+        document.getElementById('globalConfirmationMessage');
 
-  function resetConfirmButton() {
-    confirmButton.disabled = false;
-    confirmButton.textContent = defaultConfirmText;
-    confirmButton.classList.remove('is-loading');
-  }
+    const modalIcon =
+        document.getElementById('globalConfirmationIcon');
 
-  function openModal() {
-    resetConfirmButton();
+    const confirmButton =
+        document.getElementById('confirmGlobalAction');
 
-    modal.classList.add('show', 'active');
-    modal.style.display = 'flex';
-    modal.setAttribute('aria-hidden', 'false');
+    const cancelButton =
+        document.getElementById('cancelGlobalConfirmation');
 
-    window.setTimeout(function () {
-      confirmButton.focus();
-    }, 50);
-  }
 
-  function closeModal() {
-    modal.classList.remove('show', 'active');
-    modal.style.display = 'none';
-    modal.setAttribute('aria-hidden', 'true');
-
-    resetConfirmButton();
-
-    pendingForm = null;
-    pendingCallback = null;
-    pendingSubmitter = null;
-    isSubmitting = false;
-  }
-
-  function getFormMethod(form) {
-    const method = form.getAttribute('method') || 'GET';
-
-    return method.toUpperCase();
-  }
-
-  function shouldConfirmForm(form) {
-    return Boolean(form && form.matches('[data-confirm-form]') && getFormMethod(form) !== 'GET');
-  }
-
-  function getIcon(type) {
-    switch (type) {
-      case 'delete':
-        return { className: 'danger', icon: 'fa-trash' };
-      case 'create':
-        return { className: 'create', icon: 'fa-plus' };
-      case 'update':
-        return { className: 'update', icon: 'fa-pen-to-square' };
-      case 'approve':
-        return { className: 'success', icon: 'fa-check' };
-      case 'reject':
-        return { className: 'danger', icon: 'fa-xmark' };
-      case 'issue':
-        return { className: 'success', icon: 'fa-box-open' };
-      case 'status':
-        return { className: 'warning', icon: 'fa-arrows-rotate' };
-      default:
-        return { className: 'warning', icon: 'fa-triangle-exclamation' };
-    }
-  }
-
-  function configureModal(options = {}) {
-    const type = options.type || 'warning';
-    const iconData = getIcon(type);
-
-    modalTitle.textContent = options.title || 'Confirm Action';
-    modalMessage.textContent = options.message || 'Are you sure you want to continue?';
-    confirmButton.textContent = options.button || 'Confirm';
-
-    modalIcon.className = `global-confirmation-icon ${iconData.className}`;
-    modalIcon.innerHTML = `<i class="fa-solid ${iconData.icon}"></i>`;
-
-    confirmButton.className = type === 'delete' || type === 'reject' ? 'danger-btn' : 'primary-btn';
-  }
-
-  function getFormConfirmationOptions(form) {
-    return {
-      title: form.dataset.confirmTitle || 'Confirm Action',
-      message: form.dataset.confirmMessage || 'Are you sure you want to continue?',
-      button: form.dataset.confirmButton || 'Confirm',
-      type: form.dataset.confirmType || 'warning',
-    };
-  }
-
-  function submitPendingForm() {
-    if (!pendingForm || isSubmitting) {
-      return;
+    if (
+        !modal ||
+        !modalTitle ||
+        !modalMessage ||
+        !modalIcon ||
+        !confirmButton ||
+        !cancelButton
+    ) {
+        return;
     }
 
-    if (!pendingForm.checkValidity()) {
-      if (typeof pendingForm.reportValidity === 'function') {
-        pendingForm.reportValidity();
-      }
 
-      closeModal();
-      return;
+    let pendingForm = null;
+    let pendingCallback = null;
+    let pendingSubmitter = null;
+    let isSubmitting = false;
+
+
+    function resetConfirmButton() {
+
+        confirmButton.disabled = false;
+
+        confirmButton.classList.remove(
+            'is-loading'
+        );
     }
 
-    isSubmitting = true;
-    confirmButton.disabled = true;
-    confirmButton.textContent = 'Please wait...';
-    confirmButton.classList.add('is-loading');
 
-    pendingForm.dataset.confirmed = 'true';
+    function openModal() {
 
-    const formToSubmit = pendingForm;
-    const submitter = pendingSubmitter;
+        resetConfirmButton();
 
-    if (submitter && typeof formToSubmit.requestSubmit === 'function') {
-      formToSubmit.requestSubmit(submitter);
-      return;
+        modal.style.display = 'flex';
+
+        modal.classList.add(
+            'show',
+            'active'
+        );
+
+        modal.setAttribute(
+            'aria-hidden',
+            'false'
+        );
+
+        document.body.style.overflow =
+            'hidden';
+
+
+        window.setTimeout(() => {
+
+            confirmButton.focus();
+
+        }, 50);
     }
 
-    if (typeof formToSubmit.requestSubmit === 'function') {
-      formToSubmit.requestSubmit();
-      return;
+
+    function closeModal() {
+
+        modal.classList.remove(
+            'show',
+            'active'
+        );
+
+        modal.style.display = 'none';
+
+        modal.setAttribute(
+            'aria-hidden',
+            'true'
+        );
+
+        resetConfirmButton();
+
+        pendingForm = null;
+        pendingCallback = null;
+        pendingSubmitter = null;
+        isSubmitting = false;
+
+        document.body.style.overflow = '';
     }
 
-    formToSubmit.submit();
-  }
 
-  document.addEventListener('submit', function (event) {
-    const form = event.target.closest('[data-confirm-form]');
+    function getFormMethod(form) {
 
-    if (!shouldConfirmForm(form)) {
-      return;
+        const method =
+            form.getAttribute('method') || 'GET';
+
+        return method.toUpperCase();
     }
 
-    if (form.dataset.confirmed === 'true') {
-      form.dataset.confirmed = 'false';
-      return;
+
+    function shouldConfirmForm(form) {
+
+        return Boolean(
+            form &&
+            form.matches('[data-confirm-form]') &&
+            getFormMethod(form) !== 'GET'
+        );
     }
 
-    event.preventDefault();
 
-    pendingForm = form;
-    pendingCallback = null;
-    pendingSubmitter = event.submitter || null;
-    isSubmitting = false;
+    function getIcon(type) {
 
-    configureModal(getFormConfirmationOptions(form));
-    openModal();
-  });
+        switch (type) {
 
-  document.addEventListener('click', function (event) {
-    const button = event.target.closest('[data-confirm-action]');
+            case 'delete':
+                return {
+                    className: 'danger',
+                    icon: 'fa-triangle-exclamation',
+                };
 
-    if (!button) {
-      return;
-    }
+            case 'create':
+                return {
+                    className: 'create',
+                    icon: 'fa-plus',
+                };
 
-    event.preventDefault();
+            case 'update':
+                return {
+                    className: 'update',
+                    icon: 'fa-pen-to-square',
+                };
 
-    const targetFormId = button.dataset.confirmFormId;
-    const targetForm = targetFormId ? document.getElementById(targetFormId) : null;
+            case 'approve':
+                return {
+                    className: 'approve',
+                    icon: 'fa-check',
+                };
 
-    if (targetForm && !targetForm.checkValidity()) {
-      if (typeof targetForm.reportValidity === 'function') {
-        targetForm.reportValidity();
-      }
+            case 'reject':
+                return {
+                    className: 'reject',
+                    icon: 'fa-xmark',
+                };
 
-      return;
-    }
+            case 'issue':
+                return {
+                    className: 'success',
+                    icon: 'fa-box-open',
+                };
 
-    pendingForm = targetForm;
-    pendingSubmitter = null;
-    isSubmitting = false;
+            case 'status':
+                return {
+                    className: 'warning',
+                    icon: 'fa-arrows-rotate',
+                };
 
-    pendingCallback = !targetForm && button.href
-      ? function () {
-          window.location.href = button.href;
+            default:
+                return {
+                    className: 'warning',
+                    icon: 'fa-triangle-exclamation',
+                };
         }
-      : null;
-
-    configureModal({
-      title: button.dataset.confirmTitle || 'Confirm Action',
-      message: button.dataset.confirmMessage || 'Are you sure you want to continue?',
-      button: button.dataset.confirmButton || 'Confirm',
-      type: button.dataset.confirmType || 'warning',
-    });
-
-    openModal();
-  });
-
-  window.openSystemConfirmation = function (options = {}, callback = null) {
-    pendingForm = null;
-    pendingSubmitter = null;
-    isSubmitting = false;
-
-    pendingCallback = typeof callback === 'function' ? callback : null;
-
-    configureModal(options);
-    openModal();
-  };
-
-  confirmButton.addEventListener('click', function () {
-    if (pendingForm) {
-      submitPendingForm();
-      return;
     }
 
-    if (pendingCallback) {
-      const callbackToRun = pendingCallback;
 
-      confirmButton.disabled = true;
-      confirmButton.textContent = 'Please wait...';
-      confirmButton.classList.add('is-loading');
+    function getConfirmButtonClasses(type) {
 
-      pendingCallback = null;
+        switch (type) {
 
-      callbackToRun();
-      closeModal();
-      return;
+            case 'approve':
+                return [
+                    'global-confirm-btn',
+                    'approve-confirm-btn'
+                ];
+
+            case 'reject':
+            case 'delete':
+                return [
+                    'global-confirm-btn',
+                    'danger-btn'
+                ];
+
+            default:
+                return [
+                    'global-confirm-btn',
+                    'primary-btn'
+                ];
+        }
     }
 
-    closeModal();
-  });
 
-  cancelButton.addEventListener('click', function () {
-    closeModal();
-  });
+    function configureModal(options = {}) {
 
-  modal.addEventListener('click', function (event) {
-    if (event.target === modal) {
-      closeModal();
+        const type =
+            options.type || 'warning';
+
+        const iconData =
+            getIcon(type);
+
+
+        modalTitle.textContent =
+            options.title || 'Confirm Action';
+
+
+        if (options.messageHtml) {
+
+            modalMessage.innerHTML =
+                options.messageHtml;
+
+        } else {
+
+            modalMessage.textContent =
+                options.message ||
+                'Are you sure you want to continue?';
+        }
+
+
+        confirmButton.textContent =
+            options.button || 'Confirm';
+
+
+        modalIcon.className =
+            `global-confirmation-icon ${iconData.className}`;
+
+        modalIcon.innerHTML =
+            `<i class="fa-solid ${iconData.icon}"></i>`;
+
+
+        confirmButton.className =
+            getConfirmButtonClasses(type)
+                .join(' ');
     }
-  });
 
-  document.addEventListener('keydown', function (event) {
-    if (event.key === 'Escape' && modal.classList.contains('show')) {
-      closeModal();
+
+    function getFormConfirmationOptions(form) {
+
+        return {
+            title:
+                form.dataset.confirmTitle ||
+                'Confirm Action',
+
+            message:
+                form.dataset.confirmMessage ||
+                'Are you sure you want to continue?',
+
+            button:
+                form.dataset.confirmButton ||
+                'Confirm',
+
+            type:
+                form.dataset.confirmType ||
+                'warning',
+        };
     }
-  });
+
+
+    function submitPendingForm() {
+
+        if (
+            !pendingForm ||
+            isSubmitting
+        ) {
+            return;
+        }
+
+
+        if (!pendingForm.checkValidity()) {
+
+            pendingForm.reportValidity?.();
+
+            closeModal();
+
+            return;
+        }
+
+
+        isSubmitting = true;
+
+        confirmButton.disabled = true;
+
+        confirmButton.innerHTML = `
+            <i class="fa-solid fa-spinner fa-spin"></i>
+            Please wait...
+        `;
+
+        confirmButton.classList.add(
+            'is-loading'
+        );
+
+
+        pendingForm.dataset.confirmed =
+            'true';
+
+
+        const formToSubmit =
+            pendingForm;
+
+        const submitter =
+            pendingSubmitter;
+
+
+        if (
+            submitter &&
+            typeof formToSubmit.requestSubmit === 'function'
+        ) {
+
+            formToSubmit.requestSubmit(
+                submitter
+            );
+
+            return;
+        }
+
+
+        if (
+            typeof formToSubmit.requestSubmit === 'function'
+        ) {
+
+            formToSubmit.requestSubmit();
+
+            return;
+        }
+
+
+        formToSubmit.submit();
+    }
+
+
+    document.addEventListener(
+        'submit',
+        function (event) {
+
+            const form =
+                event.target.closest(
+                    '[data-confirm-form]'
+                );
+
+
+            if (!shouldConfirmForm(form)) {
+                return;
+            }
+
+
+            if (
+                form.dataset.confirmed === 'true'
+            ) {
+
+                form.dataset.confirmed =
+                    'false';
+
+                return;
+            }
+
+
+            event.preventDefault();
+
+
+            pendingForm = form;
+
+            pendingCallback = null;
+
+            pendingSubmitter =
+                event.submitter || null;
+
+            isSubmitting = false;
+
+
+            configureModal(
+                getFormConfirmationOptions(form)
+            );
+
+
+            openModal();
+        }
+    );
+
+
+    document.addEventListener(
+        'click',
+        function (event) {
+
+            const button =
+                event.target.closest(
+                    '[data-confirm-action]'
+                );
+
+
+            if (!button) {
+                return;
+            }
+
+
+            event.preventDefault();
+
+
+            const targetFormId =
+                button.dataset.confirmFormId;
+
+
+            const targetForm =
+                targetFormId
+                    ? document.getElementById(
+                        targetFormId
+                    )
+                    : null;
+
+
+            if (
+                targetForm &&
+                !targetForm.checkValidity()
+            ) {
+
+                targetForm.reportValidity?.();
+
+                return;
+            }
+
+
+            pendingForm =
+                targetForm;
+
+            pendingSubmitter =
+                null;
+
+            isSubmitting =
+                false;
+
+
+            pendingCallback =
+                !targetForm &&
+                button.href
+                    ? () => {
+                        window.location.href =
+                            button.href;
+                    }
+                    : null;
+
+
+            configureModal({
+                title:
+                    button.dataset.confirmTitle ||
+                    'Confirm Action',
+
+                message:
+                    button.dataset.confirmMessage ||
+                    'Are you sure you want to continue?',
+
+                button:
+                    button.dataset.confirmButton ||
+                    'Confirm',
+
+                type:
+                    button.dataset.confirmType ||
+                    'warning',
+            });
+
+
+            openModal();
+        }
+    );
+
+
+    window.openSystemConfirmation =
+        function (
+            options = {},
+            callback = null
+        ) {
+
+            pendingForm = null;
+
+            pendingSubmitter = null;
+
+            pendingCallback =
+                typeof callback === 'function'
+                    ? callback
+                    : null;
+
+            isSubmitting = false;
+
+
+            configureModal(options);
+
+            openModal();
+        };
+
+
+    confirmButton.addEventListener(
+        'click',
+        function () {
+
+            if (pendingForm) {
+
+                submitPendingForm();
+
+                return;
+            }
+
+
+            if (pendingCallback) {
+
+                const callbackToRun =
+                    pendingCallback;
+
+
+                pendingCallback = null;
+
+                isSubmitting = true;
+
+                confirmButton.disabled = true;
+
+                confirmButton.innerHTML = `
+                    <i class="fa-solid fa-spinner fa-spin"></i>
+                    Please wait...
+                `;
+
+                confirmButton.classList.add(
+                    'is-loading'
+                );
+
+
+                callbackToRun();
+
+                return;
+            }
+
+
+            closeModal();
+        }
+    );
+
+
+    cancelButton.addEventListener(
+        'click',
+        function () {
+
+            closeModal();
+        }
+    );
+
+
+    modal.addEventListener(
+        'click',
+        function (event) {
+
+            if (
+                event.target === modal
+            ) {
+
+                closeModal();
+            }
+        }
+    );
+
+
+    document.addEventListener(
+        'keydown',
+        function (event) {
+
+            if (
+                event.key === 'Escape' &&
+                modal.classList.contains('show')
+            ) {
+
+                closeModal();
+            }
+        }
+    );
+
 });

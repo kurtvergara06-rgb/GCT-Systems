@@ -1,1203 +1,1298 @@
-/* PMS SCHEDULING PAGE ONLY */
+/* =========================================================
+   PMS SCHEDULING
+   Page-specific styles only
 
-/* TABLE CARD */
-.table-card,
-.panel-card {
-  background: #ffffff;
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 18px;
-  box-shadow: 0 8px 22px rgba(12, 35, 68, 0.06);
-  overflow-x: auto;
-  margin-bottom: 20px;
+   IMPORTANT:
+   Add/Edit form styling comes from:
+   resources/css/Main-styles/form-components.css
+========================================================= */
+
+.pms-page {
+    --pms-blue: #0b40b5;
+    --pms-blue-dark: #07338f;
+
+    --pms-navy: #061f3d;
+
+    --pms-yellow: #ffc400;
+    --pms-yellow-dark: #f5a800;
+
+    --pms-card: #ffffff;
+
+    --pms-text: #0f172a;
+    --pms-muted: #64748b;
+
+    --pms-border: #dce5f2;
+    --pms-soft-border: #e7edf5;
+
+    --pms-table-head: #f3f7fc;
+
+    --pms-red: #dc2626;
+    --pms-green: #15803d;
+
+    --pms-shadow:
+        0 4px 16px rgba(6, 31, 61, 0.07);
+
+    --pms-shadow-hover:
+        0 10px 24px rgba(6, 31, 61, 0.11);
 }
 
-/* CARD HEADER */
-.section-header {
-  margin-bottom: 12px;
+
+/* =========================================================
+   TOPBAR
+========================================================= */
+
+.pms-page .topbar {
+    margin-bottom: 20px;
 }
 
-.pms-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
+.pms-page .topbar h1 {
+    color: var(--pms-navy);
+    letter-spacing: -0.02em;
 }
 
-.section-header h2,
-.record-header h2 {
-  font-size: 18px;
-  font-weight: 800;
-  color: var(--text);
+.pms-page .topbar p {
+    color: var(--pms-muted);
 }
 
-.section-header p,
-.record-subtitle {
-  color: var(--muted);
-  font-size: 12px;
-  margin-top: 3px;
-}
 
-/* STATUS LEGEND */
-.status-legend {
-  display: flex;
-  align-items: center;
-  gap: 22px;
-  color: var(--muted);
-  font-size: 12px;
-  white-space: nowrap;
-  padding-top: 6px;
-}
+/* =========================================================
+   SUMMARY CARDS
+========================================================= */
 
-.dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  display: inline-block;
-  margin-right: 7px;
-}
-
-.green {
-  background: #16a34a;
-}
-
-.yellow {
-  background: #f5b400;
-}
-
-.red {
-  background: #dc2626;
-}
-
-/* TOOLBAR - SAME STYLE AS JOB ORDER */
-.pms-toolbar {
-  padding: 12px 16px;
-  gap: 12px;
-  border-radius: 14px;
-  margin-bottom: 18px;
-  display: flex;
-  align-items: center;
-}
-
-.pms-toolbar .search-box {
-  flex: 1;
-}
-
-.pms-toolbar .search-box input {
-  height: 38px;
-  font-size: 13px;
-  border-radius: 9px;
-  padding-left: 40px;
-}
-
-.pms-toolbar .search-box i {
-  font-size: 13px;
-  left: 14px;
-}
-
-.pms-toolbar .filter-group {
-  gap: 8px;
-}
-
-.pms-toolbar .filter-group label {
-  font-size: 12px;
-}
-
-.pms-toolbar .filter-group select {
-  height: 38px;
-  min-width: 120px;
-  font-size: 13px;
-  border-radius: 9px;
-  padding: 0 10px;
-}
-
-/* TABLE */
-.table-wrap {
-  width: 100%;
-  overflow-x: auto;
-}
-
-.pms-table,
-.panel-card table {
-  width: 100%;
-  min-width: 1050px;
-  border-collapse: collapse;
-}
-
-.pms-table thead,
-.panel-card thead {
-  background: #f0f5fc;
-}
-
-.pms-table th,
-.panel-card th {
-  padding: 14px 13px;
-  text-align: left;
-  font-size: 13px;
-  font-weight: 800;
-  color: var(--text);
-  white-space: nowrap;
-  text-transform: uppercase;
-}
-
-.pms-table td,
-.panel-card td {
-  padding: 14px 13px;
-  border-bottom: 1px solid var(--border);
-  font-size: 14px;
-  color: var(--text);
-}
-
-.pms-table tbody tr:hover,
-.panel-card tbody tr:hover {
-  background: #f7faff;
-}
-
-.pms-table tbody tr:last-child td,
-.panel-card tbody tr:last-child td {
-  border-bottom: none;
-}
-
-/* CENTER STATUS COLUMN */
-.pms-table .status-col {
-  text-align: center;
-}
-
-/* BADGES */
-.badge {
-  min-width: 112px;
-  padding: 7px 12px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 700;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
-}
-
-/* PMS STATUS BADGES */
-.badge.upcoming {
-  background: #ddf8e7;
-  color: #16a34a;
-}
-
-.badge.due-soon {
-  background: #fff3cd;
-  color: #b77900;
-}
-
-.badge.overdue {
-  background: #ffe2e2;
-  color: #dc2626;
-}
-
-/* ACTIONS */
-.actions {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-}
-
-.actions button {
-  width: 34px;
-  height: 34px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: 0.2s ease;
-}
-
-.actions .edit {
-  background: #edf3fb;
-  color: #082445;
-}
-
-.actions .delete {
-  background: #fff0f0;
-  color: var(--red);
-}
-
-.actions button:hover {
-  transform: translateY(-2px);
-}
-
-/* RESPONSIVE */
-@media (max-width: 1200px) {
-  .pms-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .status-legend {
-    flex-wrap: wrap;
-  }
-
-  .pms-toolbar {
-    flex-wrap: wrap;
-  }
-}
-
-@media (max-width: 768px) {
-  .app {
-    flex-direction: column;
-  }
-
-  .main {
-    margin-left: 0;
-    width: 100%;
-    padding: 20px;
-  }
-
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .topbar {
-    flex-direction: column;
-    align-items: flex-start;
+.pms-page .pms-stats-grid {
     gap: 16px;
-  }
-}
-.pms-add-btn,
-.pms-filter-btn,
-.pms-save-btn,
-.create-pms-jo-btn {
-    border: none;
-    cursor: pointer;
-    font-weight: 800;
-    transition: 0.2s ease;
+    margin-bottom: 20px;
 }
 
-.pms-add-btn,
-.pms-save-btn {
+.pms-page .pms-stats-grid .stat-card,
+.pms-page .pms-stats-grid .stat-card-link {
+    min-height: 112px;
+
+    padding: 18px 20px;
+
+    display: grid;
+    grid-template-columns: 48px minmax(0, 1fr);
+
+    align-items: center;
+    gap: 14px;
+
+    background: var(--pms-card);
+
+    border: 1px solid var(--pms-border);
+    border-radius: 16px;
+
+    box-shadow: var(--pms-shadow);
+
+    transition:
+        transform 0.18s ease,
+        box-shadow 0.18s ease;
+}
+
+.pms-page .pms-stats-grid .stat-card:hover,
+.pms-page .pms-stats-grid .stat-card-link:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--pms-shadow-hover);
+}
+
+.pms-page .pms-stats-grid .stat-icon {
+    width: 48px;
+    height: 48px;
+
+    flex: 0 0 48px;
+
+    border-radius: 14px;
+
+    font-size: 18px;
+}
+
+.pms-page .pms-stats-grid .stat-card p,
+.pms-page .pms-stats-grid .stat-card-link p {
+    margin: 0;
+
+    color: var(--pms-muted);
+
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.pms-page .pms-stats-grid .stat-card h2,
+.pms-page .pms-stats-grid .stat-card-link h2 {
+    margin: 3px 0 2px;
+
+    color: var(--pms-navy);
+
+    font-size: 25px;
+    font-weight: 800;
+
+    line-height: 1;
+}
+
+.pms-page .pms-stats-grid .stat-card small,
+.pms-page .pms-stats-grid .stat-card-link small {
+    color: var(--pms-muted);
+
+    font-size: 11px;
+    font-weight: 500;
+}
+
+
+/* =========================================================
+   MAIN CARD
+========================================================= */
+
+.pms-page .pms-table-card {
+    margin-bottom: 20px;
+
+    padding: 16px;
+
+    overflow: hidden;
+
+    background: var(--pms-card);
+
+    border: 1px solid var(--pms-border);
+    border-radius: 16px;
+
+    box-shadow: var(--pms-shadow);
+}
+
+
+/* =========================================================
+   SECTION HEADER
+========================================================= */
+
+.pms-page .pms-header {
+    margin-bottom: 12px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 16px;
+}
+
+.pms-page .pms-header h2 {
+    margin: 0;
+
+    color: var(--pms-navy);
+
+    font-size: 18px;
+    font-weight: 800;
+
+    letter-spacing: -0.01em;
+}
+
+.pms-page .pms-header p {
+    margin: 3px 0 0;
+
+    color: var(--pms-muted);
+
+    font-size: 12px;
+
+    line-height: 1.45;
+}
+
+
+/* =========================================================
+   ADD PMS BUTTON
+========================================================= */
+
+.pms-page .pms-add-btn {
+    min-height: 40px;
+
+    padding: 0 15px;
+
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    background: #2563eb;
-    color: #ffffff;
+    justify-content: center;
+
+    gap: 7px;
+
+    background:
+        linear-gradient(
+            135deg,
+            var(--pms-yellow),
+            var(--pms-yellow-dark)
+        );
+
+    border: 1px solid var(--pms-yellow-dark);
     border-radius: 9px;
-    padding: 10px 14px;
+
+    color: var(--pms-navy);
+
     font-size: 12px;
+    font-weight: 800;
+
+    white-space: nowrap;
+
+    cursor: pointer;
+
+    box-shadow:
+        0 5px 12px rgba(255, 196, 0, 0.22);
+
+    transition:
+        transform 0.18s ease,
+        box-shadow 0.18s ease;
 }
 
-.pms-add-btn:hover,
-.pms-save-btn:hover {
-    background: #1d4ed8;
+.pms-page .pms-add-btn:hover {
+    transform: translateY(-1px);
+
+    box-shadow:
+        0 8px 18px rgba(255, 196, 0, 0.32);
+}
+
+
+/* =========================================================
+   TOOLBAR
+========================================================= */
+
+.pms-page .pms-toolbar {
+    width: 100%;
+
+    margin-bottom: 14px;
+
+    padding: 10px 12px;
+
+    display: grid;
+
+    grid-template-columns:
+        minmax(280px, 1fr)
+        150px;
+
+    align-items: end;
+
+    gap: 10px;
+
+    background: #ffffff;
+
+    border: 1px solid var(--pms-border);
+    border-radius: 12px;
+}
+
+
+/* =========================================================
+   SEARCH
+========================================================= */
+
+.pms-page .pms-toolbar .search-box {
+    min-width: 0;
+}
+
+.pms-page .pms-toolbar .search-box input {
+    width: 100%;
+    height: 40px;
+
+    padding: 0 14px 0 40px;
+
+    background: #ffffff;
+
+    border: 1px solid var(--pms-border);
+    border-radius: 9px;
+
+    color: var(--pms-text);
+
+    font-size: 13px;
+
+    outline: none;
+}
+
+.pms-page .pms-toolbar .search-box input::placeholder {
+    color: #8a98ac;
+}
+
+.pms-page .pms-toolbar .search-box i {
+    left: 14px;
+
+    color: var(--pms-blue);
+
+    font-size: 13px;
+}
+
+.pms-page .pms-toolbar .search-box input:focus {
+    border-color: var(--pms-blue);
+
+    box-shadow:
+        0 0 0 3px rgba(11, 64, 181, 0.12);
+}
+
+
+/* =========================================================
+   FILTER
+========================================================= */
+
+.pms-page .pms-toolbar .filter-group {
+    min-width: 0;
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 5px;
+}
+
+.pms-page .pms-toolbar .filter-group label {
+    color: var(--pms-muted);
+
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.pms-page .pms-toolbar .filter-group select {
+    width: 100%;
+    height: 40px;
+
+    padding: 0 34px 0 11px;
+
+    background: #ffffff;
+
+    border: 1px solid var(--pms-border);
+    border-radius: 9px;
+
+    color: var(--pms-text);
+
+    font-size: 12px;
+    font-weight: 600;
+
+    outline: none;
+
+    cursor: pointer;
+}
+
+.pms-page .pms-toolbar .filter-group select:focus {
+    border-color: var(--pms-blue);
+
+    box-shadow:
+        0 0 0 3px rgba(11, 64, 181, 0.12);
+}
+
+
+/* =========================================================
+   TABLE WRAPPER
+========================================================= */
+
+.pms-page .table-wrap {
+    width: 100%;
+
+    overflow-x: auto;
+
+    border-radius: 10px;
+}
+
+
+/* =========================================================
+   MAIN PMS TABLE
+========================================================= */
+
+.pms-page .pms-table {
+    width: 100%;
+
+    min-width: 980px;
+
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.pms-page .pms-table thead {
+    background: var(--pms-table-head);
+}
+
+.pms-page .pms-table th {
+    padding: 13px 14px;
+
+    color: #475569;
+
+    font-size: 11px;
+    font-weight: 700;
+
+    letter-spacing: 0.055em;
+
+    line-height: 1.25;
+
+    text-align: left;
+    text-transform: uppercase;
+
+    white-space: nowrap;
+
+    border-bottom:
+        1px solid var(--pms-border);
+}
+
+.pms-page .pms-table td {
+    padding: 13px 14px;
+
+    color: var(--pms-text);
+
+    font-size: 13px;
+    font-weight: 500;
+
+    vertical-align: middle;
+
+    border-bottom:
+        1px solid var(--pms-soft-border);
+}
+
+.pms-page .pms-table tbody tr {
+    transition:
+        background-color 0.18s ease;
+}
+
+.pms-page .pms-table tbody tr:hover {
+    background: #f8fbff;
+}
+
+.pms-page .pms-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+
+/* =========================================================
+   TABLE ALIGNMENT
+========================================================= */
+
+.pms-page .pms-table .status-col {
+    text-align: center;
+}
+
+.pms-page .pms-table th:last-child,
+.pms-page .pms-table td:last-child {
+    text-align: center;
+}
+
+
+/* =========================================================
+   STATUS BADGES
+========================================================= */
+
+.pms-page .pms-table .badge {
+    min-width: 90px;
+    min-height: 26px;
+
+    padding: 0 11px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 1px solid transparent;
+    border-radius: 999px;
+
+    font-size: 11px;
+    font-weight: 700;
+
+    line-height: 1;
+
+    white-space: nowrap;
+}
+
+.pms-page .pms-table .badge.upcoming {
+    background: #dcfce7;
+
+    border-color: #b7efca;
+
+    color: #15803d;
+}
+
+.pms-page .pms-table .badge.due-soon {
+    background: #fff3cd;
+
+    border-color: #f8dd82;
+
+    color: #9a6700;
+}
+
+.pms-page .pms-table .badge.overdue {
+    background: #fee2e2;
+
+    border-color: #fecaca;
+
+    color: #c62828;
+}
+
+
+/* =========================================================
+   VIEW TASKS BUTTON
+========================================================= */
+
+.pms-page .pms-view-tasks-btn {
+    width: 34px;
+    min-width: 34px;
+
+    height: 34px;
+    min-height: 34px;
+
+    padding: 0;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    background: #eaf2ff;
+
+    border: 1px solid #d4e3ff;
+    border-radius: 8px;
+
+    color: var(--pms-blue);
+
+    font-size: 13px;
+
+    cursor: pointer;
+
+    box-shadow: none;
+
+    transition:
+        transform 0.18s ease,
+        background-color 0.18s ease,
+        border-color 0.18s ease,
+        color 0.18s ease;
+}
+
+.pms-page .pms-view-tasks-btn:hover {
+    background: var(--pms-blue);
+
+    border-color: var(--pms-blue);
+
+    color: #ffffff;
+
     transform: translateY(-1px);
 }
 
-.pms-filter-btn {
-    height: 38px;
-    border-radius: 9px;
-    padding: 0 12px;
-    background: #edf3fb;
-    color: #082445;
-}
 
-.create-pms-jo-btn {
-    width: 34px;
-    height: 34px;
-    border-radius: 8px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: #fff3cd;
-    color: #b77900;
-    text-decoration: none;
-}
-
-.create-pms-jo-btn:hover {
-    background: #f5b400;
-    color: #082445;
-    transform: translateY(-2px);
-}
-
-.actions form {
-    margin: 0;
-}
-
-.pms-empty-row {
-    text-align: center;
-    color: var(--muted);
-    padding: 28px !important;
-}
+/* =========================================================
+   VIEW PMS TASKS MODAL OVERLAY
+========================================================= */
 
 .pms-modal-overlay {
     position: fixed;
+
     inset: 0;
-    z-index: 9999;
+
+    z-index: 10000;
+
     display: none;
     align-items: center;
     justify-content: center;
-    padding: 18px;
-    background: rgba(15, 23, 42, 0.58);
-    backdrop-filter: blur(3px);
+
+    padding: 20px;
+
+    overflow-y: auto;
+
+    background:
+        rgba(6, 31, 61, 0.58);
+
+    backdrop-filter: blur(4px);
 }
 
-.pms-modal-overlay.show {
+.pms-modal-overlay.show,
+.pms-modal-overlay.active {
     display: flex;
 }
+
+
+/* =========================================================
+   VIEW PMS TASKS MODAL
+========================================================= */
 
 .pms-modal {
-    width: min(620px, 100%);
-    max-height: 90vh;
-    overflow-y: auto;
-    background: #ffffff;
-    border-radius: 18px;
+    box-sizing: border-box;
+
+    width: min(720px, calc(100vw - 40px));
+
+    max-height: calc(100vh - 40px);
+
     padding: 22px;
-    box-shadow: 0 24px 70px rgba(15, 23, 42, 0.3);
+
+    overflow-y: auto;
+
+    background: #ffffff;
+
+    border: 1px solid var(--pms-border);
+    border-radius: 18px;
+
+    box-shadow:
+        0 24px 70px rgba(6, 31, 61, 0.28);
 }
 
+
+/* =========================================================
+   WIDE VIEW TASK LIST
+========================================================= */
+
+.pms-wide-modal {
+    width: min(1280px, 97vw);
+
+    max-height: calc(100vh - 40px);
+
+    overflow-y: auto;
+}
+
+
+/* =========================================================
+   VIEW MODAL HEADER
+========================================================= */
+
 .pms-modal-header {
+    margin-bottom: 18px;
+
+    padding-bottom: 14px;
+
     display: flex;
+    align-items: flex-start;
     justify-content: space-between;
+
     gap: 18px;
-    margin-bottom: 20px;
+
+    border-bottom:
+        1px solid var(--pms-soft-border);
 }
 
 .pms-modal-header h2 {
     margin: 0;
-    color: var(--text);
-    font-size: 19px;
+
+    color: var(--pms-navy);
+
+    font-size: 20px;
+    font-weight: 800;
 }
 
 .pms-modal-header p {
     margin: 5px 0 0;
-    color: var(--muted);
+
+    color: var(--pms-muted);
+
     font-size: 12px;
+
+    line-height: 1.5;
 }
+
+
+/* =========================================================
+   VIEW MODAL CLOSE BUTTON
+========================================================= */
 
 .pms-close-btn {
-    width: 34px;
-    height: 34px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    background: #f1f5f9;
-    color: #475569;
-}
+    width: 36px;
+    height: 36px;
 
-.pms-form-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 14px;
-}
+    flex: 0 0 36px;
 
-.pms-form-grid .full-width {
-    grid-column: 1 / -1;
-}
+    padding: 0;
 
-.pms-modal-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 22px;
-}
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 
-.pms-cancel-btn {
-    border: 1px solid var(--border);
-    border-radius: 9px;
-    background: #ffffff;
-    color: var(--text);
-    padding: 10px 14px;
-    cursor: pointer;
-    font-weight: 800;
-}
-
-@media (max-width: 640px) {
-    .pms-form-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .pms-form-grid .full-width {
-        grid-column: auto;
-    }
-
-    .pms-header {
-        flex-direction: column;
-    }
-}
-
-.pms-modal input[readonly] {
     background: #f8fafc;
-    color: #64748b;
-    cursor: not-allowed;
+
+    border: 1px solid var(--pms-border);
+    border-radius: 9px;
+
+    color: var(--pms-navy);
+
+    font-size: 13px;
+
+    cursor: pointer;
+
+    transition:
+        background-color 0.18s ease,
+        border-color 0.18s ease,
+        color 0.18s ease;
 }
 
-.pms-modal input[readonly]:focus {
-    border-color: var(--border);
-    box-shadow: none;
+.pms-close-btn:hover {
+    background: #fee2e2;
+
+    border-color: #fecaca;
+
+    color: #dc2626;
 }
 
-.pms-modal select {
+
+/* =========================================================
+   PMS TASK POPUP TABLE WRAPPER
+========================================================= */
+
+.pms-popup-table-wrap {
     width: 100%;
+
+    margin-top: 4px;
+
+    overflow-x: visible;
 }
 
-#pmsStatusPreview {
-    font-weight: 800;
+
+/* =========================================================
+   PMS TASK POPUP TABLE
+========================================================= */
+
+.pms-tasks-popup .pms-table {
+    width: 100%;
+
+    min-width: 0;
+
+    table-layout: fixed;
 }
+
+
+/* =========================================================
+   POPUP COLUMN WIDTHS
+========================================================= */
+
+.pms-tasks-popup .pms-table th:nth-child(1),
+.pms-tasks-popup .pms-table td:nth-child(1) {
+    width: 14%;
+}
+
+.pms-tasks-popup .pms-table th:nth-child(2),
+.pms-tasks-popup .pms-table td:nth-child(2) {
+    width: 14%;
+}
+
+.pms-tasks-popup .pms-table th:nth-child(3),
+.pms-tasks-popup .pms-table td:nth-child(3) {
+    width: 13%;
+}
+
+.pms-tasks-popup .pms-table th:nth-child(4),
+.pms-tasks-popup .pms-table td:nth-child(4) {
+    width: 14%;
+}
+
+.pms-tasks-popup .pms-table th:nth-child(5),
+.pms-tasks-popup .pms-table td:nth-child(5) {
+    width: 18%;
+}
+
+.pms-tasks-popup .pms-table th:nth-child(6),
+.pms-tasks-popup .pms-table td:nth-child(6) {
+    width: 13%;
+}
+
+.pms-tasks-popup .pms-table th:nth-child(7),
+.pms-tasks-popup .pms-table td:nth-child(7) {
+    width: 14%;
+}
+
+
+/* =========================================================
+   POPUP TABLE TEXT
+========================================================= */
+
+.pms-tasks-popup .pms-table th {
+    padding: 12px 9px;
+
+    font-size: 10px;
+
+    white-space: nowrap;
+}
+
+.pms-tasks-popup .pms-table td {
+    padding: 12px 9px;
+
+    font-size: 12px;
+
+    white-space: nowrap;
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+}
+
+
+/* =========================================================
+   POPUP STATUS BADGES
+========================================================= */
+
+.pms-tasks-popup .pms-table .badge {
+    min-width: 80px;
+    min-height: 24px;
+
+    padding: 0 8px;
+
+    font-size: 10px;
+}
+
+
+/* =========================================================
+   POPUP ACTIONS LAYOUT
+========================================================= */
+
+.pms-page .actions {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 6px;
+
+    white-space: nowrap;
+}
+
+.pms-page .actions form {
+    display: inline-flex;
+
+    margin: 0;
+}
+
+.pms-tasks-popup .actions {
+    width: 100%;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 6px;
+}
+
+
+/* =========================================================
+   SHARED POPUP ACTION BUTTON
+========================================================= */
+
+.pms-tasks-popup .create-pms-jo-btn,
+.pms-tasks-popup .pms-edit-task-btn,
+.pms-tasks-popup .actions .delete,
+.pms-tasks-popup .pms-action-placeholder {
+    width: 34px;
+    min-width: 34px;
+
+    height: 34px;
+    min-height: 34px;
+
+    padding: 0;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 8px;
+
+    font-size: 13px;
+
+    line-height: 1;
+
+    text-decoration: none;
+
+    transition:
+        transform 0.18s ease,
+        background-color 0.18s ease,
+        border-color 0.18s ease,
+        color 0.18s ease,
+        box-shadow 0.18s ease;
+}
+
+
+/* =========================================================
+   ACTION ICON ALIGNMENT
+========================================================= */
+
+.pms-tasks-popup .actions i {
+    display: block;
+
+    margin: 0;
+
+    font-size: 13px;
+
+    line-height: 1;
+
+    color: inherit;
+
+    pointer-events: none;
+}
+
+
+/* =========================================================
+   CREATE JOB ORDER ACTION
+   YELLOW
+========================================================= */
+
+.pms-tasks-popup .create-pms-jo-btn {
+    background: #fff4c7;
+
+    border: 1px solid #f8dd82;
+
+    color: #9a6700;
+
+    cursor: pointer;
+}
+
+.pms-tasks-popup .create-pms-jo-btn:hover {
+    background: var(--pms-yellow);
+
+    border-color: var(--pms-yellow-dark);
+
+    color: var(--pms-navy);
+
+    transform: translateY(-1px);
+
+    box-shadow:
+        0 4px 10px rgba(255, 196, 0, 0.24);
+}
+
+
+/* =========================================================
+   EDIT ACTION
+   BLUE
+========================================================= */
+
+.pms-tasks-popup .pms-edit-task-btn {
+    background: #eaf2ff;
+
+    border: 1px solid #cfe0ff;
+
+    color: var(--pms-blue);
+
+    cursor: pointer;
+}
+
+.pms-tasks-popup .pms-edit-task-btn:hover {
+    background: var(--pms-blue);
+
+    border-color: var(--pms-blue);
+
+    color: #ffffff;
+
+    transform: translateY(-1px);
+
+    box-shadow:
+        0 4px 10px rgba(11, 64, 181, 0.20);
+}
+
+
+/* =========================================================
+   DELETE ACTION
+   RED
+========================================================= */
+
+.pms-tasks-popup .actions .delete {
+    background: #fff0f0;
+
+    border: 1px solid #fecaca;
+
+    color: var(--pms-red);
+
+    cursor: pointer;
+}
+
+.pms-tasks-popup .actions .delete:hover {
+    background: var(--pms-red);
+
+    border-color: var(--pms-red);
+
+    color: #ffffff;
+
+    transform: translateY(-1px);
+
+    box-shadow:
+        0 4px 10px rgba(220, 38, 38, 0.18);
+}
+
+
+/* =========================================================
+   DISABLED CREATE JO PLACEHOLDER
+========================================================= */
+
+.pms-tasks-popup .pms-action-placeholder {
+    background: #f8fafc;
+
+    border: 1px solid #e2e8f0;
+
+    color: #94a3b8;
+
+    cursor: default;
+}
+
+
+/* =========================================================
+   EMPTY ROW
+========================================================= */
+
+.pms-page .pms-empty-row {
+    padding: 32px !important;
+
+    color: var(--pms-muted);
+
+    font-size: 13px;
+    font-weight: 500;
+
+    text-align: center;
+}
+
+
+/* =========================================================
+   VIEW MODAL FOOTER
+========================================================= */
+
+.pms-view-footer {
+    margin-top: 16px;
+
+    padding-top: 16px;
+
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+
+    border-top:
+        1px solid var(--pms-soft-border);
+}
+
+
+/* =========================================================
+   PREDICTED STATUS
+========================================================= */
 
 #pmsStatusPreview[value="Upcoming"] {
-    color: #16a34a;
+    color: #15803d;
 }
 
 #pmsStatusPreview[value="Due Soon"] {
-    color: #b77900;
+    color: #9a6700;
 }
 
 #pmsStatusPreview[value="Overdue"] {
     color: #dc2626;
 }
 
-/* PMS action icons */
-.create-pms-jo-btn,
-.pms-table .edit {
-    width: 34px;
-    height: 34px;
-    border: none;
-    border-radius: 8px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    text-decoration: none;
-    cursor: pointer;
-    transition: 0.2s ease;
-}
-
-.create-pms-jo-btn {
-    background: #fbbf24;
-    color: #163b62;
-}
-
-.create-pms-jo-btn:hover {
-    background: #f59e0b;
-    color: #ffffff;
-}
-
-.create-pms-jo-btn i {
-    display: inline-block;
-    font-size: 14px;
-    color: inherit;
-}
-
-.pms-table .edit {
-    background: #e8f1ff;
-    color: #2563eb;
-}
-
-.pms-table .edit:hover {
-    background: #d8e8ff;
-}
-
-/* Existing PMS Blade inline styles moved here */
-.pms-wide-modal {
-            width: min(1100px, 96vw);
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-
-        .pms-popup-table-wrap {
-            margin-top: 16px;
-        }
-
-        .pms-action-placeholder {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 34px;
-            height: 34px;
-            color: #94a3b8;
-            font-weight: 700;
-        }
-
-        .create-pms-jo-btn,
-        .pms-edit-task-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 34px;
-            height: 34px;
-            border: none;
-            border-radius: 9px;
-            cursor: pointer;
-            text-decoration: none;
-        }
-
-        .create-pms-jo-btn {
-            color: #2563eb;
-            background: #eff6ff;
-        }
-
-        .create-pms-jo-btn:hover {
-            background: #dbeafe;
-        }
-
-        .pms-edit-task-btn {
-            color: #d97706;
-            background: #fffbeb;
-        }
-
-        .pms-edit-task-btn:hover {
-            background: #fef3c7;
-        }
-
-        .pms-view-tasks-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 36px;
-            height: 36px;
-            border: none;
-            border-radius: 10px;
-            color: #2563eb;
-            background: #eff6ff;
-            cursor: pointer;
-        }
-
-        .pms-view-tasks-btn:hover {
-            background: #dbeafe;
-        }
-
-        .actions {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 7px;
-        }
-
-        .actions form {
-            margin: 0;
-        }
 
 /* =========================================================
-   GCT-BRANDED PMS SCHEDULING POLISH
-   Scoped to .pms-page so other modules remain unchanged.
+   TABLE FOOTER
 ========================================================= */
 
-.pms-page {
-  --pms-blue: #0b40b5;
-  --pms-blue-dark: #07338f;
-  --pms-navy: #061f3d;
-  --pms-yellow: #ffc400;
-  --pms-yellow-dark: #f5a800;
-  --pms-card: #ffffff;
-  --pms-text: #0f172a;
-  --pms-muted: #64748b;
-  --pms-border: #dce5f2;
-  --pms-table-head: #f3f7fc;
-  --pms-shadow: 0 4px 16px rgba(6, 31, 61, 0.07);
-  --pms-shadow-hover: 0 10px 24px rgba(6, 31, 61, 0.11);
-}
-
-.pms-page .topbar {
-  margin-bottom: 20px;
-}
-
-.pms-page .topbar h1 {
-  color: var(--pms-navy);
-  letter-spacing: -0.02em;
-}
-
-.pms-page .topbar p {
-  color: var(--pms-muted);
-}
-
-/* KPI cards */
-.pms-page .pms-stats-grid {
-  gap: 16px;
-  margin-bottom: 20px;
-}
-
-.pms-page .pms-stats-grid .stat-card,
-.pms-page .pms-stats-grid .stat-card-link {
-  min-height: 112px;
-  padding: 18px 20px;
-  border: 1px solid var(--pms-border);
-  border-radius: 16px;
-  background: var(--pms-card);
-  box-shadow: var(--pms-shadow);
-  display: grid;
-  grid-template-columns: 48px minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 14px;
-}
-
-.pms-page .pms-stats-grid .stat-card:hover,
-.pms-page .pms-stats-grid .stat-card-link:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--pms-shadow-hover);
-}
-
-.pms-page .pms-stats-grid .stat-icon {
-  width: 48px;
-  height: 48px;
-  flex: 0 0 48px;
-  border-radius: 14px;
-  font-size: 18px;
-}
-
-.pms-page .pms-stats-grid .stat-card p,
-.pms-page .pms-stats-grid .stat-card-link p {
-  margin: 0;
-  color: var(--pms-muted);
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.pms-page .pms-stats-grid .stat-card h2,
-.pms-page .pms-stats-grid .stat-card-link h2 {
-  margin: 3px 0 2px;
-  color: var(--pms-navy);
-  font-size: 25px;
-  font-weight: 800;
-  line-height: 1;
-}
-
-.pms-page .pms-stats-grid .stat-card small,
-.pms-page .pms-stats-grid .stat-card-link small {
-  color: var(--pms-muted);
-  font-size: 11px;
-  font-weight: 500;
-}
-
-.pms-page .pms-stats-grid .arrow {
-  color: var(--pms-blue);
-  font-size: 14px;
-}
-
-/* Main PMS card */
-.pms-page .pms-table-card {
-  padding: 16px;
-  border: 1px solid var(--pms-border);
-  border-radius: 16px;
-  background: var(--pms-card);
-  box-shadow: var(--pms-shadow);
-  overflow: hidden;
-}
-
-.pms-page .pms-header {
-  margin-bottom: 12px;
-  align-items: center;
-}
-
-.pms-page .pms-header h2 {
-  color: var(--pms-navy);
-  font-size: 18px;
-  font-weight: 800;
-  letter-spacing: -0.01em;
-}
-
-.pms-page .pms-header p {
-  margin-top: 3px;
-  color: var(--pms-muted);
-  font-size: 12px;
-  line-height: 1.45;
-}
-
-.pms-page .pms-add-btn {
-  min-height: 40px;
-  padding: 0 15px;
-  border: 1px solid var(--pms-yellow-dark);
-  border-radius: 9px;
-  background: linear-gradient(135deg, var(--pms-yellow), var(--pms-yellow-dark));
-  color: var(--pms-navy);
-  box-shadow: 0 5px 12px rgba(255, 196, 0, 0.22);
-  font-size: 12px;
-  font-weight: 800;
-  white-space: nowrap;
-}
-
-.pms-page .pms-add-btn:hover {
-  background: linear-gradient(135deg, #ffd12f, var(--pms-yellow));
-  color: var(--pms-navy);
-  transform: translateY(-1px);
-  box-shadow: 0 8px 18px rgba(255, 196, 0, 0.32);
-}
-
-/* Search and filter toolbar */
-.pms-page .pms-toolbar {
-  width: 100%;
-  display: grid;
-  grid-template-columns: minmax(280px, 1fr) 150px;
-  align-items: end;
-  gap: 10px;
-  margin-bottom: 14px;
-  padding: 10px 12px;
-  border: 1px solid var(--pms-border);
-  border-radius: 12px;
-  background: #ffffff;
-  box-shadow: none;
-}
-
-.pms-page .pms-toolbar .search-box {
-  min-width: 0;
-}
-
-.pms-page .pms-toolbar .search-box input {
-  width: 100%;
-  height: 40px;
-  padding: 0 14px 0 40px;
-  border: 1px solid var(--pms-border);
-  border-radius: 9px;
-  background: #ffffff;
-  color: var(--pms-text);
-  font-size: 13px;
-}
-
-.pms-page .pms-toolbar .search-box input::placeholder {
-  color: #8a98ac;
-}
-
-.pms-page .pms-toolbar .search-box i {
-  left: 14px;
-  color: var(--pms-blue);
-  font-size: 13px;
-}
-
-.pms-page .pms-toolbar .search-box input:focus,
-.pms-page .pms-toolbar .filter-group select:focus {
-  border-color: var(--pms-blue);
-  box-shadow: 0 0 0 3px rgba(11, 64, 181, 0.12);
-  outline: none;
-}
-
-.pms-page .pms-toolbar .filter-group {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 5px;
-}
-
-.pms-page .pms-toolbar .filter-group label {
-  color: var(--pms-muted);
-  font-size: 11px;
-  font-weight: 600;
-}
-
-.pms-page .pms-toolbar .filter-group select {
-  width: 100%;
-  min-width: 0;
-  height: 40px;
-  padding: 0 34px 0 11px;
-  border: 1px solid var(--pms-border);
-  border-radius: 9px;
-  background: #ffffff;
-  color: var(--pms-text);
-  font-size: 12px;
-  font-weight: 600;
-}
-
-/* Main and popup tables */
-.pms-page .table-wrap {
-  width: 100%;
-  overflow-x: auto;
-  border-radius: 10px;
-}
-
-.pms-page .pms-table {
-  width: 100%;
-  min-width: 980px;
-  border-collapse: separate;
-  border-spacing: 0;
-}
-
-.pms-page .pms-table thead {
-  background: var(--pms-table-head);
-}
-
-.pms-page .pms-table th {
-  padding: 13px 14px;
-  color: #475569;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.055em;
-  line-height: 1.25;
-  text-transform: uppercase;
-  white-space: nowrap;
-  border-bottom: 1px solid var(--pms-border);
-}
-
-.pms-page .pms-table td {
-  padding: 13px 14px;
-  color: var(--pms-text);
-  font-size: 13px;
-  font-weight: 500;
-  border-bottom: 1px solid #e7edf5;
-  vertical-align: middle;
-}
-
-.pms-page .pms-table tbody tr {
-  transition: background-color 0.18s ease;
-}
-
-.pms-page .pms-table tbody tr:hover {
-  background: #f8fbff;
-}
-
-.pms-page .pms-table tbody tr:last-child td {
-  border-bottom: none;
-}
-
-.pms-page .pms-table > thead th:nth-child(1),
-.pms-page .pms-table > tbody td:nth-child(1),
-.pms-page .pms-table > thead th:nth-child(6),
-.pms-page .pms-table > tbody td:nth-child(6),
-.pms-page .pms-table > thead th:nth-child(7),
-.pms-page .pms-table > tbody td:nth-child(7) {
-  text-align: center;
-}
-
-.pms-page .pms-table strong {
-  color: var(--pms-navy);
-  font-weight: 700;
-}
-
-/* Status badges */
-.pms-page .pms-table .badge {
-  min-width: 90px;
-  min-height: 26px;
-  padding: 0 11px;
-  border: 1px solid transparent;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 700;
-  line-height: 1;
-  white-space: nowrap;
-}
-
-.pms-page .pms-table .badge.upcoming {
-  background: #dcfce7;
-  color: #15803d;
-  border-color: #b7efca;
-}
-
-.pms-page .pms-table .badge.due-soon {
-  background: #fff3cd;
-  color: #9a6700;
-  border-color: #f8dd82;
-}
-
-.pms-page .pms-table .badge.overdue {
-  background: #fee2e2;
-  color: #c62828;
-  border-color: #fecaca;
-}
-
-/* Main list action */
-.pms-page .pms-view-tasks-btn {
-  width: 34px;
-  min-width: 34px;
-  height: 34px;
-  min-height: 34px;
-  padding: 0;
-  border: 1px solid #d4e3ff;
-  border-radius: 8px;
-  background: #eaf2ff;
-  color: var(--pms-blue);
-  box-shadow: none;
-  font-size: 13px;
-}
-
-.pms-page .pms-view-tasks-btn:hover {
-  background: var(--pms-blue);
-  color: #ffffff;
-  transform: translateY(-1px);
-}
-
-/* Modal overlay and modal surface */
-.pms-page .pms-modal-overlay {
-  background: rgba(6, 31, 61, 0.58);
-  backdrop-filter: blur(4px);
-}
-
-.pms-page .pms-modal {
-  border: 1px solid rgba(220, 229, 242, 0.9);
-  border-radius: 18px;
-  background: #ffffff;
-  box-shadow: 0 24px 70px rgba(6, 31, 61, 0.28);
-}
-
-.pms-page .pms-wide-modal {
-  width: min(1120px, 96vw);
-}
-
-.pms-page .pms-modal-header {
-  align-items: flex-start;
-  margin-bottom: 18px;
-  padding-bottom: 14px;
-  border-bottom: 1px solid #e7edf5;
-}
-
-.pms-page .pms-modal-header h2 {
-  color: var(--pms-navy);
-  font-size: 20px;
-  font-weight: 800;
-}
-
-.pms-page .pms-modal-header p {
-  color: var(--pms-muted);
-  line-height: 1.5;
-}
-
-.pms-page .pms-close-btn {
-  width: 34px;
-  height: 34px;
-  border: 1px solid var(--pms-border);
-  border-radius: 8px;
-  background: #f8fafc;
-  color: var(--pms-navy);
-}
-
-.pms-page .pms-close-btn:hover {
-  border-color: #fecaca;
-  background: #fee2e2;
-  color: #dc2626;
-}
-
-/* Modal forms */
-.pms-page .pms-form-grid {
-  gap: 14px 16px;
-}
-
-.pms-page .pms-modal .form-group label {
-  color: var(--pms-navy);
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.pms-page .pms-modal .form-group input,
-.pms-page .pms-modal .form-group select,
-.pms-page .pms-modal .form-group textarea {
-  min-height: 42px;
-  border: 1px solid var(--pms-border);
-  border-radius: 9px;
-  color: var(--pms-text);
-  background: #ffffff;
-  font-size: 13px;
-}
-
-.pms-page .pms-modal .form-group input:focus,
-.pms-page .pms-modal .form-group select:focus,
-.pms-page .pms-modal .form-group textarea:focus {
-  border-color: var(--pms-blue);
-  box-shadow: 0 0 0 3px rgba(11, 64, 181, 0.12);
-  outline: none;
-}
-
-.pms-page .pms-modal input[readonly] {
-  background: #f8fafc;
-  color: var(--pms-muted);
-  cursor: default;
-}
-
-.pms-page .pms-modal-actions {
-  padding-top: 16px;
-  border-top: 1px solid #e7edf5;
-}
-
-.pms-page .pms-cancel-btn,
-.pms-page .pms-save-btn {
-  min-height: 40px;
-  padding: 0 15px;
-  border-radius: 9px;
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.pms-page .pms-cancel-btn {
-  border: 1px solid var(--pms-border);
-  background: #ffffff;
-  color: var(--pms-navy);
-}
-
-.pms-page .pms-cancel-btn:hover {
-  border-color: var(--pms-blue);
-  color: var(--pms-blue);
-  background: #f5f8ff;
-}
-
-.pms-page .pms-save-btn {
-  border: 1px solid var(--pms-yellow-dark);
-  background: linear-gradient(135deg, var(--pms-yellow), var(--pms-yellow-dark));
-  color: var(--pms-navy);
-  box-shadow: 0 5px 12px rgba(255, 196, 0, 0.2);
-}
-
-.pms-page .pms-save-btn:hover {
-  background: linear-gradient(135deg, #ffd12f, var(--pms-yellow));
-  color: var(--pms-navy);
-  transform: translateY(-1px);
-}
-
-/* Popup action buttons */
-.pms-page .actions {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  white-space: nowrap;
-}
-
-.pms-page .actions form {
-  display: inline-flex;
-  margin: 0;
-}
-
-.pms-page .create-pms-jo-btn,
-.pms-page .pms-edit-task-btn,
-.pms-page .actions .delete {
-  width: 34px;
-  min-width: 34px;
-  height: 34px;
-  min-height: 34px;
-  padding: 0;
-  border: 1px solid transparent;
-  border-radius: 8px;
-  box-shadow: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 13px;
-}
-
-.pms-page .create-pms-jo-btn {
-  background: #fff4c7;
-  color: #9a6700;
-  border-color: #f8dd82;
-}
-
-.pms-page .create-pms-jo-btn:hover {
-  background: var(--pms-yellow);
-  color: var(--pms-navy);
-  transform: translateY(-1px);
-}
-
-.pms-page .pms-edit-task-btn {
-  background: #eaf2ff;
-  color: var(--pms-blue);
-  border-color: #d4e3ff;
-}
-
-.pms-page .pms-edit-task-btn:hover {
-  background: var(--pms-blue);
-  color: #ffffff;
-  transform: translateY(-1px);
-}
-
-.pms-page .actions .delete {
-  background: #fff0f0;
-  color: #dc2626;
-  border-color: #fee2e2;
-}
-
-.pms-page .actions .delete:hover {
-  background: #dc2626;
-  color: #ffffff;
-  transform: translateY(-1px);
-}
-
-.pms-page .pms-action-placeholder {
-  width: 34px;
-  height: 34px;
-  color: #94a3b8;
-}
-
-/* Empty rows */
-.pms-page .pms-empty-row {
-  padding: 32px !important;
-  color: var(--pms-muted);
-  font-size: 13px;
-  font-weight: 600;
-  text-align: center;
-}
-
-/* Pagination */
 .pms-page .table-footer {
-  margin-top: 14px;
-  padding-top: 14px;
-  border-top: 1px solid #e7edf5;
+    margin-top: 14px;
+
+    padding-top: 14px;
+
+    border-top:
+        1px solid var(--pms-soft-border);
 }
 
 .pms-page .table-footer p,
 .pms-page .page-number {
-  color: var(--pms-muted);
-  font-size: 12px;
-  font-weight: 500;
+    color: var(--pms-muted);
+
+    font-size: 12px;
+    font-weight: 500;
 }
 
 .pms-page .page-btn {
-  min-height: 34px;
-  padding: 0 12px;
-  border: 1px solid var(--pms-border);
-  border-radius: 8px;
-  background: #ffffff;
-  color: var(--pms-navy);
-  font-size: 12px;
-  font-weight: 600;
-  box-shadow: none;
+    min-height: 34px;
+
+    padding: 0 12px;
+
+    background: #ffffff;
+
+    border: 1px solid var(--pms-border);
+    border-radius: 8px;
+
+    color: var(--pms-navy);
+
+    font-size: 12px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    box-shadow: none;
 }
 
 .pms-page .page-btn:not(.disabled):hover {
-  border-color: var(--pms-blue);
-  color: var(--pms-blue);
-  background: #f5f8ff;
+    background: #f5f8ff;
+
+    border-color: var(--pms-blue);
+
+    color: var(--pms-blue);
 }
 
 .pms-page .page-btn.disabled {
-  background: #f8fafc;
-  color: #94a3b8;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
+    background: #f8fafc;
+
+    color: #94a3b8;
+
+    cursor: not-allowed;
 }
 
-/* Responsive */
+
+/* =========================================================
+   TABLET
+========================================================= */
+
 @media (max-width: 1100px) {
-  .pms-page .pms-toolbar {
-    grid-template-columns: 1fr;
-  }
 
-  .pms-page .pms-header {
-    align-items: stretch;
-  }
+    .pms-page .pms-toolbar {
+        grid-template-columns: 1fr;
+    }
 
-  .pms-page .pms-add-btn {
-    align-self: flex-start;
-  }
+    .pms-page .pms-header {
+        align-items: flex-start;
+    }
+
+    .pms-wide-modal {
+        width: 96vw;
+    }
+
+    .pms-popup-table-wrap {
+        overflow-x: auto;
+    }
+
+    .pms-tasks-popup .pms-table {
+        min-width: 950px;
+
+        table-layout: auto;
+    }
+
 }
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
 
 @media (max-width: 768px) {
-  .pms-page .pms-stats-grid {
-    grid-template-columns: 1fr;
-  }
 
-  .pms-page .pms-header {
-    flex-direction: column;
-  }
+    .pms-page .pms-stats-grid {
+        grid-template-columns: 1fr;
+    }
 
-  .pms-page .pms-add-btn {
-    width: 100%;
+    .pms-page .pms-header {
+        flex-direction: column;
+
+        align-items: stretch;
+    }
+
+    .pms-page .pms-add-btn {
+        width: 100%;
+
+        justify-content: center;
+    }
+
+    .pms-page .pms-table-card {
+        padding: 12px;
+    }
+
+    .pms-modal-overlay {
+        padding: 12px;
+    }
+
+    .pms-modal,
+    .pms-wide-modal {
+        width: 100%;
+    }
+
+    .pms-view-footer .ui-form-btn {
+        width: 100%;
+    }
+
+}
+
+/* =========================================================
+   PMS ACTION BUTTONS
+========================================================= */
+
+.pms-tasks-popup .actions {
+    display: inline-flex;
+    align-items: center;
     justify-content: center;
-  }
+    gap: 8px;
+    white-space: nowrap;
+}
 
-  .pms-page .pms-table-card {
-    padding: 12px;
-  }
+.pms-tasks-popup .actions form {
+    margin: 0;
+    display: inline-flex;
+}
 
-  .pms-page .pms-modal {
-    width: min(100%, 620px);
-    padding: 18px;
-  }
+.pms-tasks-popup .create-pms-jo-btn,
+.pms-tasks-popup .pms-edit-task-btn,
+.pms-tasks-popup .actions .delete,
+.pms-tasks-popup .pms-action-placeholder {
+    width: 36px;
+    min-width: 36px;
+    height: 36px;
+    min-height: 36px;
+    padding: 0;
 
-  .pms-page .pms-modal-actions {
-    flex-direction: column-reverse;
-  }
-
-  .pms-page .pms-cancel-btn,
-  .pms-page .pms-save-btn {
-    width: 100%;
+    display: inline-flex;
+    align-items: center;
     justify-content: center;
-  }
+
+    border-radius: 10px;
+    border: 1px solid transparent;
+
+    text-decoration: none;
+    cursor: pointer;
+
+    transition: all 0.18s ease;
+}
+
+.pms-tasks-popup .create-pms-jo-btn i,
+.pms-tasks-popup .pms-edit-task-btn i,
+.pms-tasks-popup .actions .delete i,
+.pms-tasks-popup .pms-action-placeholder i {
+    font-size: 14px;
+    line-height: 1;
+    color: inherit;
+    pointer-events: none;
+}
+
+/* =========================================================
+   ADD TO JO BUTTON - YELLOW
+========================================================= */
+
+.pms-tasks-popup .create-pms-jo-btn {
+    background: #fff7db;
+    border-color: #f6d66b;
+    color: #d89b00;
+}
+
+.pms-tasks-popup .create-pms-jo-btn:hover {
+    background: #ffe79a;
+    border-color: #e0b200;
+    color: #a87400;
+    transform: translateY(-1px);
+}
+
+/* =========================================================
+   EDIT / VIEW BUTTON - BLUE
+========================================================= */
+
+.pms-tasks-popup .pms-edit-task-btn,
+.pms-tasks-popup .pms-view-task-btn {
+    background: #edf4ff;
+    border-color: #cfe0ff;
+    color: #1556d6;
+}
+
+.pms-tasks-popup .pms-edit-task-btn:hover,
+.pms-tasks-popup .pms-view-task-btn:hover {
+    background: #dbe9ff;
+    border-color: #aecaef;
+    color: #0f49b5;
+    transform: translateY(-1px);
+}
+
+/* =========================================================
+   DELETE BUTTON - RED
+========================================================= */
+
+.pms-tasks-popup .actions .delete,
+.pms-tasks-popup .pms-delete-task-btn {
+    background: #fff1f1;
+    border-color: #f7caca;
+    color: #e53935;
+}
+
+.pms-tasks-popup .actions .delete:hover,
+.pms-tasks-popup .pms-delete-task-btn:hover {
+    background: #ffe1e1;
+    border-color: #f0b2b2;
+    color: #c62828;
+    transform: translateY(-1px);
+}
+
+/* =========================================================
+   DISABLED PLACEHOLDER
+========================================================= */
+
+.pms-tasks-popup .pms-action-placeholder {
+    background: #f8fafc;
+    border-color: #e2e8f0;
+    color: #94a3b8;
+    cursor: default;
 }

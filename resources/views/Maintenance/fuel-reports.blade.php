@@ -36,7 +36,6 @@
         subtitle="Track GPS-based fuel efficiency and fuel usage for every bus"
       />
 
-      {{-- SUCCESS MESSAGE --}}
       @if(session('success'))
         <div class="fuel-alert success">
           <i class="fa-solid fa-circle-check"></i>
@@ -44,7 +43,6 @@
         </div>
       @endif
 
-      {{-- ERROR MESSAGE --}}
       @if(session('error'))
         <div class="fuel-alert error">
           <i class="fa-solid fa-triangle-exclamation"></i>
@@ -52,7 +50,6 @@
         </div>
       @endif
 
-      {{-- VALIDATION ERRORS --}}
       @if($errors->any())
         <div class="fuel-alert error">
           <i class="fa-solid fa-triangle-exclamation"></i>
@@ -69,7 +66,7 @@
         </div>
       @endif
 
-      {{-- SUMMARY CARDS --}}
+      {{-- SUMMARY --}}
       <section class="stats-grid fuel-stats-grid">
 
         <x-ui.summary-card
@@ -106,7 +103,7 @@
 
       </section>
 
-      {{-- ANALYTICS CHARTS --}}
+      {{-- CHARTS --}}
       <section class="fuel-analytics-grid">
 
         <x-ui.chart-card
@@ -127,7 +124,7 @@
 
       </section>
 
-      {{-- ANALYTICS INSIGHTS --}}
+      {{-- INSIGHTS --}}
       <section class="fuel-insights-grid">
 
         <x-ui.analytics-insight
@@ -160,16 +157,13 @@
 
       </section>
 
-      {{-- EFFICIENCY BY VEHICLE --}}
+      {{-- EFFICIENCY TABLE --}}
       <section class="table-card fuel-card fuel-efficiency-card">
 
         <div class="section-header">
           <div>
             <h2>Efficiency by Vehicle</h2>
-
-            <p>
-              Fuel efficiency summary based on the selected reporting period.
-            </p>
+            <p>Fuel efficiency summary based on the selected reporting period.</p>
           </div>
         </div>
 
@@ -180,14 +174,19 @@
           button-id="openFuelModal"
           button-label="Add Fuel Record"
         >
+
           <div class="filter-group">
-            <label for="fuelDateFilter">Date</label>
+
+            <label for="fuelDateFilter">
+              Date
+            </label>
 
             <select
               name="date_filter"
               id="fuelDateFilter"
               onchange="this.form.submit()"
             >
+
               <option
                 value="This Month"
                 @selected(request('date_filter', 'This Month') === 'This Month')
@@ -208,12 +207,17 @@
               >
                 Today
               </option>
+
             </select>
+
           </div>
+
         </x-ui.table-toolbar>
 
         <div class="table-wrap">
+
           <table class="fuel-table">
+
             <thead>
               <tr>
                 <th>Vehicle</th>
@@ -227,17 +231,25 @@
             </thead>
 
             <tbody>
+
               @forelse($vehicleSummaries as $vehicle)
+
                 @php
                   $statusClass = strtolower(
                     str_replace(' ', '-', $vehicle->status)
                   );
 
-                  $vsSign = $vehicle->vs_fleet_avg >= 0 ? '+' : '';
+                  $vsSign =
+                    $vehicle->vs_fleet_avg >= 0
+                      ? '+'
+                      : '';
                 @endphp
 
                 <tr class="{{ $vehicle->status === 'Inefficient' ? 'danger-row' : '' }}">
-                  <td>{{ $vehicle->bus_no }}</td>
+
+                  <td>
+                    {{ $vehicle->bus_no }}
+                  </td>
 
                   <td>
                     {{ number_format($vehicle->total_km, 2) }} km
@@ -255,10 +267,14 @@
                     {{ $vsSign }}{{ number_format($vehicle->vs_fleet_avg, 1) }}%
                   </td>
 
-                  <td>{{ $vehicle->entries }}</td>
+                  <td>
+                    {{ $vehicle->entries }}
+                  </td>
 
                   <td>
+
                     <span class="badge {{ $statusClass }}">
+
                       @if($vehicle->status === 'Inefficient')
                         <i class="fa-solid fa-triangle-exclamation"></i>
                       @elseif($vehicle->status === 'Efficient')
@@ -266,38 +282,44 @@
                       @endif
 
                       {{ $vehicle->status }}
+
                     </span>
+
                   </td>
+
                 </tr>
+
               @empty
-                <tr>
-                  <x-ui.empty-row
-                    colspan="7"
-                    message="No fuel records found for the selected period."
-                  />
-                </tr>
+
+                <x-ui.empty-row
+                  colspan="7"
+                  message="No fuel records found for the selected period."
+                />
+
               @endforelse
+
             </tbody>
+
           </table>
+
         </div>
 
       </section>
 
-      {{-- RECENT FUEL RECORDS --}}
+      {{-- RECENT RECORDS --}}
       <section class="table-card fuel-card recent-fuel-card">
 
         <div class="section-header">
           <div>
             <h2>Recent Fuel Records</h2>
-
-            <p>
-              Latest fuel records with GPS or manual distance source.
-            </p>
+            <p>Latest fuel records with GPS or manual distance source.</p>
           </div>
         </div>
 
         <div class="table-wrap">
+
           <table class="fuel-table recent-records-table">
+
             <thead>
               <tr>
                 <th>Date</th>
@@ -313,19 +335,29 @@
             </thead>
 
             <tbody>
+
               @forelse($recentFuelRecords as $record)
+
                 @php
-                  $recordStatusClass = strtolower(
-                    str_replace(' ', '-', $record->status)
-                  );
+                  $recordStatusClass =
+                    strtolower(
+                      str_replace(
+                        ' ',
+                        '-',
+                        $record->status
+                      )
+                    );
                 @endphp
 
                 <tr>
+
                   <td>
                     {{ $record->report_date?->format('M d, Y') }}
                   </td>
 
-                  <td>{{ $record->bus_no }}</td>
+                  <td>
+                    {{ $record->bus_no }}
+                  </td>
 
                   <td>
                     {{ number_format((float) $record->distance_km, 2) }} km
@@ -344,7 +376,9 @@
                   </td>
 
                   <td>
+
                     <span class="source-badge {{ strtolower($record->distance_source) }}">
+
                       <i
                         class="fa-solid {{
                           $record->distance_source === 'GPS'
@@ -354,7 +388,9 @@
                       ></i>
 
                       {{ $record->distance_source }}
+
                     </span>
+
                   </td>
 
                   <td>
@@ -364,13 +400,13 @@
                   </td>
 
                   <td>
+
                     <div class="fuel-actions">
 
                       <button
                         type="button"
                         class="fuel-action-btn view"
                         title="View Fuel Record"
-                        aria-label="View Fuel Record"
                         data-view-fuel
                         data-id="{{ $record->id }}"
                         data-report-date="{{ $record->report_date?->format('Y-m-d') }}"
@@ -393,7 +429,6 @@
                         type="button"
                         class="fuel-action-btn edit"
                         title="Edit Fuel Record"
-                        aria-label="Edit Fuel Record"
                         data-edit-fuel
                         data-id="{{ $record->id }}"
                         data-update-url="{{ route('fuel-reports.update', $record) }}"
@@ -418,6 +453,7 @@
                         data-confirm-button="Yes, Delete"
                         data-confirm-type="delete"
                       >
+
                         @csrf
                         @method('DELETE')
 
@@ -425,25 +461,31 @@
                           type="submit"
                           class="fuel-action-btn delete"
                           title="Delete Fuel Record"
-                          aria-label="Delete Fuel Record"
                         >
                           <i class="fa-solid fa-trash"></i>
                         </button>
+
                       </form>
 
                     </div>
+
                   </td>
+
                 </tr>
+
               @empty
-                <tr>
-                  <x-ui.empty-row
-                    colspan="9"
-                    message="No recent fuel records found."
-                  />
-                </tr>
+
+                <x-ui.empty-row
+                  colspan="9"
+                  message="No recent fuel records found."
+                />
+
               @endforelse
+
             </tbody>
+
           </table>
+
         </div>
 
       </section>
@@ -452,17 +494,25 @@
 
   </div>
 
-  {{-- ADD / EDIT FUEL RECORD MODAL --}}
-  <div class="fuel-modal-overlay" id="fuelModal">
+  {{-- =========================================================
+      ADD / EDIT FUEL RECORD
+  ========================================================== --}}
+  <div
+    class="fuel-modal-overlay"
+    id="fuelModal"
+  >
+
     <div class="fuel-modal">
 
       <div class="fuel-modal-header">
+
         <div>
-          <h2 id="fuelModalTitle">Add Fuel Record</h2>
+          <h2 id="fuelModalTitle">
+            Add Fuel Record
+          </h2>
 
           <p>
-            Select a bus and date. The system will automatically find the
-            matching processed GPS mileage.
+            Select a bus and date. The system will automatically find the matching processed GPS mileage.
           </p>
         </div>
 
@@ -474,6 +524,7 @@
         >
           <i class="fa-solid fa-xmark"></i>
         </button>
+
       </div>
 
       <form
@@ -487,6 +538,7 @@
         data-confirm-button="Yes, Save Record"
         data-confirm-type="create"
       >
+
         @csrf
 
         <input
@@ -499,7 +551,10 @@
         <div class="fuel-form-grid">
 
           <div class="form-group">
-            <label for="fuelReportDate">Date</label>
+
+            <label for="fuelReportDate">
+              Date
+            </label>
 
             <input
               type="date"
@@ -508,44 +563,64 @@
               value="{{ old('report_date', now()->toDateString()) }}"
               required
             >
+
           </div>
 
           <div class="form-group">
-            <label for="fuelBusNo">Vehicle</label>
+
+            <label for="fuelBusNo">
+              Vehicle
+            </label>
 
             <select
               id="fuelBusNo"
               name="bus_no"
               required
             >
-              <option value="">Select bus</option>
+
+              <option value="">
+                Select bus
+              </option>
 
               @foreach($buses as $bus)
+
                 @php
-                  $busNumber = trim((string) $bus->bus_no);
-                  $plateNumber = trim((string) $bus->plate_no);
+                  $busNumber =
+                    trim((string) $bus->bus_no);
+
+                  $plateNumber =
+                    trim((string) $bus->plate_no);
 
                   $showPlateNumber =
                     $plateNumber !== '' &&
-                    strtoupper($plateNumber) !== strtoupper($busNumber);
+                    strtoupper($plateNumber)
+                      !== strtoupper($busNumber);
                 @endphp
 
                 <option
                   value="{{ $busNumber }}"
                   @selected(old('bus_no') === $busNumber)
                 >
+
                   {{ $busNumber }}
 
                   @if($showPlateNumber)
                     — {{ $plateNumber }}
                   @endif
+
                 </option>
+
               @endforeach
+
             </select>
+
           </div>
 
           <div class="form-group">
-            <label for="fuelDriverName">Driver Name</label>
+
+            <label for="fuelDriverName">
+              Driver Name
+            </label>
 
             <input
               type="text"
@@ -554,12 +629,17 @@
               value="{{ old('driver_name') }}"
               placeholder="Optional"
             >
+
           </div>
 
           <div class="form-group">
-            <label for="fuelLiters">Fuel Added</label>
+
+            <label for="fuelLiters">
+              Fuel Added
+            </label>
 
             <div class="fuel-input-with-unit">
+
               <input
                 type="number"
                 id="fuelLiters"
@@ -572,21 +652,28 @@
               >
 
               <span>L</span>
+
             </div>
+
           </div>
 
           <div class="form-group full-width">
-            <label>GPS Mileage Lookup</label>
+
+            <label>
+              GPS Mileage Lookup
+            </label>
 
             <div
               class="gps-status-card idle"
               id="gpsStatusCard"
             >
+
               <div class="gps-status-icon">
                 <i class="fa-solid fa-location-dot"></i>
               </div>
 
               <div class="gps-status-content">
+
                 <strong id="gpsStatusTitle">
                   Select a bus and date
                 </strong>
@@ -600,22 +687,33 @@
                   id="gpsStatusDetails"
                   hidden
                 >
+
                   <span>
                     Distance:
-                    <strong id="gpsDistanceValue">0.00 km</strong>
+                    <strong id="gpsDistanceValue">
+                      0.00 km
+                    </strong>
                   </span>
 
                   <span>
                     Idling:
-                    <strong id="gpsIdlingValue">0 min</strong>
+                    <strong id="gpsIdlingValue">
+                      0 min
+                    </strong>
                   </span>
+
                 </div>
+
               </div>
+
             </div>
+
           </div>
 
           <div class="form-group full-width manual-toggle-group">
+
             <label class="manual-toggle">
+
               <input
                 type="checkbox"
                 id="useManualDistance"
@@ -624,12 +722,16 @@
                 @checked(old('use_manual_distance'))
               >
 
-              <span>Use manual distance instead</span>
+              <span>
+                Use manual distance instead
+              </span>
+
             </label>
 
             <small>
               Use this only when no valid processed GPS record is available.
             </small>
+
           </div>
 
           <div
@@ -637,14 +739,17 @@
             id="manualDistanceFields"
             hidden
           >
+
             <div class="fuel-form-grid nested-grid">
 
               <div class="form-group">
+
                 <label for="fuelDistanceKm">
                   Manual Distance
                 </label>
 
                 <div class="fuel-input-with-unit">
+
                   <input
                     type="number"
                     id="fuelDistanceKm"
@@ -655,11 +760,16 @@
                     placeholder="0.00"
                   >
 
-                  <span>km</span>
+                  <span>
+                    km
+                  </span>
+
                 </div>
+
               </div>
 
               <div class="form-group">
+
                 <label for="manualDistanceReason">
                   Reason
                 </label>
@@ -671,21 +781,34 @@
                   value="{{ old('manual_distance_reason') }}"
                   placeholder="Example: GPS device unavailable"
                 >
+
               </div>
 
             </div>
+
           </div>
 
           <div class="form-group full-width">
-            <label>Fuel Efficiency Preview</label>
+
+            <label>
+              Fuel Efficiency Preview
+            </label>
 
             <div
               class="efficiency-preview"
               id="efficiencyPreview"
             >
+
               <div>
-                <span>Calculated KM/L</span>
-                <strong id="efficiencyValue">0.00</strong>
+
+                <span>
+                  Calculated KM/L
+                </span>
+
+                <strong id="efficiencyValue">
+                  0.00
+                </strong>
+
               </div>
 
               <span
@@ -694,11 +817,16 @@
               >
                 No Data
               </span>
+
             </div>
+
           </div>
 
           <div class="form-group full-width">
-            <label for="fuelRemarks">Remarks</label>
+
+            <label for="fuelRemarks">
+              Remarks
+            </label>
 
             <textarea
               id="fuelRemarks"
@@ -706,11 +834,13 @@
               rows="3"
               placeholder="Optional remarks"
             >{{ old('remarks') }}</textarea>
+
           </div>
 
         </div>
 
         <div class="fuel-modal-actions">
+
           <button
             type="button"
             class="secondary-btn fuel-cancel-btn"
@@ -724,34 +854,53 @@
             class="primary-btn"
             id="saveFuelRecord"
           >
+
             <i class="fa-solid fa-floppy-disk"></i>
-            <span id="saveFuelText">Save Fuel Record</span>
+
+            <span id="saveFuelText">
+              Save Fuel Record
+            </span>
+
           </button>
+
         </div>
 
       </form>
 
     </div>
+
   </div>
 
-  {{-- VIEW FUEL RECORD MODAL --}}
-  <div class="fuel-modal-overlay" id="fuelViewModal">
+  {{-- =========================================================
+      VIEW FUEL RECORD
+  ========================================================== --}}
+  <div
+    class="fuel-modal-overlay"
+    id="fuelViewModal"
+  >
+
     <div class="fuel-modal fuel-view-modal">
 
       <div class="fuel-modal-header">
+
         <div>
-          <h2>Fuel Record Details</h2>
-          <p>Complete fuel efficiency and distance information.</p>
+          <h2>
+            Fuel Record Details
+          </h2>
+
+          <p>
+            Complete fuel efficiency and distance information.
+          </p>
         </div>
 
         <button
           type="button"
           class="fuel-modal-close"
           id="closeFuelViewModal"
-          aria-label="Close modal"
         >
           <i class="fa-solid fa-xmark"></i>
         </button>
+
       </div>
 
       <div class="fuel-view-grid">
@@ -819,6 +968,7 @@
       </div>
 
       <div class="fuel-modal-actions">
+
         <button
           type="button"
           class="primary-btn"
@@ -826,9 +976,11 @@
         >
           Close
         </button>
+
       </div>
 
     </div>
+
   </div>
 
   {{-- CHART DATA --}}

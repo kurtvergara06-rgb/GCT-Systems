@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Maintenance;
 
 use App\Http\Controllers\Controller;
-use App\Models\Maintenance\Bus;
 use App\Models\Admin\GpsTripRecord;
+use App\Models\Maintenance\Bus;
 use App\Models\Maintenance\JobOrder;
-use App\Models\Maintenance\PurchaseRequest;
 use App\Models\Maintenance\PmsSchedule;
+use App\Models\Maintenance\PurchaseRequest;
 use App\Models\Operation\MechanicAttendance;
 use App\Services\PartParser;
 use App\Traits\SystemDataUpdateBroadcaster;
@@ -23,6 +23,10 @@ class JobOrderController extends Controller
     {
         $this->partParser = $partParser;
     }
+
+    /* =========================================================
+       INDEX
+    ========================================================= */
 
     public function index(Request $request)
     {
@@ -44,25 +48,34 @@ class JobOrderController extends Controller
         }
 
         if (
-            $request->filled('part_status') &&
-            $request->part_status !== 'All Part Statuses'
+            $request->filled('part_status')
+            && $request->part_status !== 'All Part Statuses'
         ) {
             if ($request->part_status === 'No Parts Needed') {
                 $query->where(function ($q) {
                     $q->whereNull('part_needed')
                         ->orWhere('part_needed', '')
-                        ->orWhere('part_status', 'No Parts Needed');
+                        ->orWhere(
+                            'part_status',
+                            'No Parts Needed'
+                        );
                 });
             } else {
-                $query->where('part_status', $request->part_status);
+                $query->where(
+                    'part_status',
+                    $request->part_status
+                );
             }
         }
 
         if (
-            $request->filled('maintenance_type') &&
-            $request->maintenance_type !== 'All Types'
+            $request->filled('maintenance_type')
+            && $request->maintenance_type !== 'All Types'
         ) {
-            $query->where('maintenance_type', $request->maintenance_type);
+            $query->where(
+                'maintenance_type',
+                $request->maintenance_type
+            );
         }
 
         $jobOrders = $query
@@ -70,11 +83,20 @@ class JobOrderController extends Controller
             ->paginate(8)
             ->withQueryString();
 
-        $onHold = JobOrder::where('status', 'On Hold')->count();
+        $onHold = JobOrder::where(
+            'status',
+            'On Hold'
+        )->count();
 
-        $onGoing = JobOrder::where('status', 'On Going')->count();
+        $onGoing = JobOrder::where(
+            'status',
+            'On Going'
+        )->count();
 
-        $completed = JobOrder::where('status', 'Completed')->count();
+        $completed = JobOrder::where(
+            'status',
+            'Completed'
+        )->count();
 
         $needParts = JobOrder::query()
             ->whereNotNull('part_needed')
@@ -83,203 +105,440 @@ class JobOrderController extends Controller
             ->whereNotIn('part_status', ['Issued'])
             ->count();
 
-        $nextJobOrderNo = $this->generateJobOrderNo();
+        $nextJobOrderNo =
+            $this->generateJobOrderNo();
 
-        $assignedActiveMechanics = JobOrder::query()
-            ->where('status', '!=', 'Completed')
-            ->whereNotNull('assigned_mechanic')
-            ->where('assigned_mechanic', '!=', '')
-            ->pluck('assigned_mechanic')
-            ->filter()
-            ->unique()
-            ->values();
+        /* =====================================================
+           AVAILABLE MECHANICS
+        ====================================================== */
 
-        $availableMechanics = MechanicAttendance::query()
-            ->where('status', 'Present')
-            ->whereNotIn('mechanic_name', $assignedActiveMechanics)
-            ->orderBy('mechanic_name')
-            ->get();
+        $assignedActiveMechanics =
+            JobOrder::query()
+                ->where(
+                    'status',
+                    '!=',
+                    'Completed'
+                )
+                ->whereNotNull(
+                    'assigned_mechanic'
+                )
+                ->where(
+                    'assigned_mechanic',
+                    '!=',
+                    ''
+                )
+                ->pluck(
+                    'assigned_mechanic'
+                )
+                ->filter()
+                ->unique()
+                ->values();
 
-        $allMechanics = MechanicAttendance::query()
-            ->orderBy('mechanic_name')
-            ->get();
+        $availableMechanics =
+            MechanicAttendance::query()
+                ->where(
+                    'status',
+                    'Present'
+                )
+                ->whereNotIn(
+                    'mechanic_name',
+                    $assignedActiveMechanics
+                )
+                ->orderBy(
+                    'mechanic_name'
+                )
+                ->get();
 
-        /*
-        |--------------------------------------------------------------------------
-        | Bus Master List
-        |--------------------------------------------------------------------------
-        | Only Active buses can be selected when creating or editing
-        | a Job Order.
-        */
+        $allMechanics =
+            MechanicAttendance::query()
+                ->orderBy(
+                    'mechanic_name'
+                )
+                ->get();
+
+        /* =====================================================
+           BUSES
+        ====================================================== */
+
         $buses = Bus::query()
-            ->where('status', 'Active')
-            ->orderBy('bus_no')
+            ->where(
+                'status',
+                'Active'
+            )
+            ->orderBy(
+                'bus_no'
+            )
             ->get();
 
-        $activeBusNumbers = JobOrder::query()
-            ->where('status', '!=', 'Completed')
-            ->pluck('bus_no')
-            ->filter()
-            ->unique()
-            ->values();
+        $activeBusNumbers =
+            JobOrder::query()
+                ->where(
+                    'status',
+                    '!=',
+                    'Completed'
+                )
+                ->pluck(
+                    'bus_no'
+                )
+                ->filter()
+                ->unique()
+                ->values();
 
-        $availableBuses = $buses
-            ->reject(fn ($bus) => $activeBusNumbers->contains($bus->bus_no))
-            ->values();
+        $availableBuses =
+            $buses
+                ->reject(
+                    fn ($bus) =>
+                        $activeBusNumbers
+                            ->contains(
+                                $bus->bus_no
+                            )
+                )
+                ->values();
+
+        /* =====================================================
+           PMS CREATE
+        ====================================================== */
 
         $pmsCreate = null;
 
-        if ($request->boolean('create_pms') && $request->filled('pms_schedule_id')) {
-            $pmsCreate = PmsSchedule::find($request->integer('pms_schedule_id'));
+        if (
+            $request->boolean('create_pms')
+            && $request->filled(
+                'pms_schedule_id'
+            )
+        ) {
+            $pmsCreate =
+                PmsSchedule::find(
+                    $request->integer(
+                        'pms_schedule_id'
+                    )
+                );
         }
 
-        return view('Maintenance.job-order', compact(
-            'jobOrders',
-            'onHold',
-            'onGoing',
-            'completed',
-            'needParts',
-            'nextJobOrderNo',
-            'availableMechanics',
-            'allMechanics',
-            'buses',
-            'availableBuses',
-            'pmsCreate'
-        ));
+        return view(
+            'Maintenance.job-order',
+            compact(
+                'jobOrders',
+                'onHold',
+                'onGoing',
+                'completed',
+                'needParts',
+                'nextJobOrderNo',
+                'availableMechanics',
+                'allMechanics',
+                'buses',
+                'availableBuses',
+                'pmsCreate'
+            )
+        );
     }
+
+    /* =========================================================
+       AVAILABLE MECHANICS
+    ========================================================= */
 
     public function availableMechanics()
     {
-        $assignedActiveMechanics = JobOrder::query()
-            ->where('status', '!=', 'Completed')
-            ->whereNotNull('assigned_mechanic')
-            ->where('assigned_mechanic', '!=', '')
-            ->pluck('assigned_mechanic')
-            ->filter()
-            ->unique()
-            ->values();
+        $assignedActiveMechanics =
+            JobOrder::query()
+                ->where(
+                    'status',
+                    '!=',
+                    'Completed'
+                )
+                ->whereNotNull(
+                    'assigned_mechanic'
+                )
+                ->where(
+                    'assigned_mechanic',
+                    '!=',
+                    ''
+                )
+                ->pluck(
+                    'assigned_mechanic'
+                )
+                ->filter()
+                ->unique()
+                ->values();
 
-        $mechanics = MechanicAttendance::query()
-            ->where('status', 'Present')
-            ->whereNotIn('mechanic_name', $assignedActiveMechanics)
-            ->orderBy('mechanic_name')
-            ->get([
-                'id',
-                'mechanic_name',
-            ]);
+        $mechanics =
+            MechanicAttendance::query()
+                ->where(
+                    'status',
+                    'Present'
+                )
+                ->whereNotIn(
+                    'mechanic_name',
+                    $assignedActiveMechanics
+                )
+                ->orderBy(
+                    'mechanic_name'
+                )
+                ->get([
+                    'id',
+                    'mechanic_name',
+                ]);
 
-        return response()->json($mechanics);
+        return response()->json(
+            $mechanics
+        );
     }
+
+    /* =========================================================
+       STORE JOB ORDER
+    ========================================================= */
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'bus_no' => 'required|string|exists:buses,bus_no',
-            'problem_issue' => 'required|string',
-            'maintenance_type' => 'required|string|max:255',
-            'assigned_mechanic' => 'nullable|string|max:255',
-            'parts' => 'nullable|array',
-            'parts.*.name' => 'nullable|string|max:255',
-            'parts.*.quantity' => 'nullable|integer|min:1',
-            'parts.*.unit' => 'nullable|string|max:50',
-            'pms_schedule_id' => 'nullable|integer|exists:pms_schedules,id',
-        ]);
+        $validated =
+            $request->validate([
+                'bus_no' =>
+                    'required|string|exists:buses,bus_no',
 
-        $assignedMechanic = $validated['assigned_mechanic'] ?? null;
+                'problem_issue' =>
+                    'required|string',
+
+                'maintenance_type' =>
+                    'required|string|max:255',
+
+                'assigned_mechanic' =>
+                    'nullable|string|max:255',
+
+                'parts' =>
+                    'nullable|array',
+
+                'parts.*.name' =>
+                    'nullable|string|max:255',
+
+                'parts.*.quantity' =>
+                    'nullable|integer|min:1',
+
+                'parts.*.unit' =>
+                    'nullable|string|max:50',
+
+                'pms_schedule_id' =>
+                    'nullable|integer|exists:pms_schedules,id',
+            ]);
+
+        $assignedMechanic =
+            $validated['assigned_mechanic']
+            ?? null;
+
+        /* =====================================================
+           PMS VALIDATION
+        ====================================================== */
 
         $pmsSchedule = null;
 
-        if (! empty($validated['pms_schedule_id'])) {
-            $pmsSchedule = PmsSchedule::findOrFail($validated['pms_schedule_id']);
+        if (
+            ! empty(
+                $validated[
+                    'pms_schedule_id'
+                ]
+            )
+        ) {
+            $pmsSchedule =
+                PmsSchedule::findOrFail(
+                    $validated[
+                        'pms_schedule_id'
+                    ]
+                );
 
-            if ($validated['bus_no'] !== $pmsSchedule->bus_no) {
+            if (
+                $validated['bus_no']
+                !== $pmsSchedule->bus_no
+            ) {
                 return redirect()
                     ->back()
                     ->withInput()
-                    ->with('error', 'The selected bus does not match the PMS schedule.');
+                    ->with(
+                        'error',
+                        'The selected bus does not match the PMS schedule.'
+                    );
             }
 
-            if ($validated['maintenance_type'] !== 'PMS') {
+            if (
+                $validated[
+                    'maintenance_type'
+                ] !== 'PMS'
+            ) {
                 return redirect()
                     ->back()
                     ->withInput()
-                    ->with('error', 'A PMS schedule can only create a PMS Job Order.');
+                    ->with(
+                        'error',
+                        'A PMS schedule can only create a PMS Job Order.'
+                    );
             }
 
-            $hasActivePmsJobOrder = JobOrder::query()
-                ->where('pms_schedule_id', $pmsSchedule->id)
-                ->where('status', '!=', 'Completed')
-                ->exists();
+            $hasActivePmsJobOrder =
+                JobOrder::query()
+                    ->where(
+                        'pms_schedule_id',
+                        $pmsSchedule->id
+                    )
+                    ->where(
+                        'status',
+                        '!=',
+                        'Completed'
+                    )
+                    ->exists();
 
-            if ($hasActivePmsJobOrder) {
+            if (
+                $hasActivePmsJobOrder
+            ) {
                 return redirect()
-                    ->route('PMS-Scheduling')
-                    ->with('error', 'This PMS schedule already has an active Job Order.');
+                    ->route(
+                        'PMS-Scheduling'
+                    )
+                    ->with(
+                        'error',
+                        'This PMS schedule already has an active Job Order.'
+                    );
             }
         }
 
-        $parts = $this->partParser->normalizePartsInput(
-            $request->parts ?? []
-        );
+        /* =====================================================
+           STATUS
 
-        $partNeeded = count($parts) > 0
-            ? $this->partParser->formatParts($parts)
-            : null;
+           NO MECHANIC = ON HOLD
+        ====================================================== */
 
         $status = 'On Hold';
 
+        /* =====================================================
+           MECHANIC VALIDATION
+        ====================================================== */
+
         if ($assignedMechanic) {
-            $mechanic = MechanicAttendance::where(
-                'mechanic_name',
-                $assignedMechanic
-            )->first();
+            $mechanic =
+                MechanicAttendance::where(
+                    'mechanic_name',
+                    $assignedMechanic
+                )->first();
 
             if (! $mechanic) {
                 return redirect()
                     ->back()
                     ->withInput()
-                    ->with('error', 'Selected mechanic was not found.');
+                    ->with(
+                        'error',
+                        'Selected mechanic was not found.'
+                    );
             }
 
-            $hasActiveJobOrder = JobOrder::where(
-                'assigned_mechanic',
-                $assignedMechanic
-            )
-                ->where('status', '!=', 'Completed')
-                ->exists();
+            $hasActiveJobOrder =
+                JobOrder::where(
+                    'assigned_mechanic',
+                    $assignedMechanic
+                )
+                    ->where(
+                        'status',
+                        '!=',
+                        'Completed'
+                    )
+                    ->exists();
 
-            if ($mechanic->status !== 'Present' || $hasActiveJobOrder) {
+            if (
+                $mechanic->status
+                    !== 'Present'
+                || $hasActiveJobOrder
+            ) {
                 return redirect()
                     ->back()
                     ->withInput()
-                    ->with('error', 'Selected mechanic is not available.');
+                    ->with(
+                        'error',
+                        'Selected mechanic is not available.'
+                    );
             }
 
             $status = 'On Going';
         }
 
-        $jobOrder = JobOrder::create([
-            'job_order_no' => $this->generateJobOrderNo(),
-            'bus_no' => $validated['bus_no'],
-            'problem_issue' => $validated['problem_issue'],
-            'maintenance_type' => $validated['maintenance_type'],
-            'assigned_mechanic' => $assignedMechanic,
-            'part_needed' => $partNeeded,
-            'start_date' => now(),
-            'completion_date' => null,
-            'status' => $status,
-            'part_status' => $partNeeded
+        /* =====================================================
+           REQUESTED PARTS
+
+           NO MECHANIC = NO PARTS
+        ====================================================== */
+
+        $parts = [];
+
+        if ($assignedMechanic) {
+            $parts =
+                $this->partParser
+                    ->normalizePartsInput(
+                        $request->parts ?? []
+                    );
+        }
+
+        $partNeeded =
+            count($parts) > 0
+                ? $this->partParser
+                    ->formatParts(
+                        $parts
+                    )
+                : null;
+
+        $partStatus =
+            $partNeeded
                 ? 'Not Requested'
-                : 'No Parts Needed',
-        ]);
+                : 'No Parts Needed';
+
+        /* =====================================================
+           CREATE JOB ORDER
+        ====================================================== */
+
+        $jobOrder =
+            JobOrder::create([
+                'job_order_no' =>
+                    $this
+                        ->generateJobOrderNo(),
+
+                'bus_no' =>
+                    $validated['bus_no'],
+
+                'problem_issue' =>
+                    $validated[
+                        'problem_issue'
+                    ],
+
+                'maintenance_type' =>
+                    $validated[
+                        'maintenance_type'
+                    ],
+
+                'assigned_mechanic' =>
+                    $assignedMechanic,
+
+                'part_needed' =>
+                    $partNeeded,
+
+                'start_date' =>
+                    now(),
+
+                'completion_date' =>
+                    null,
+
+                'status' =>
+                    $status,
+
+                'part_status' =>
+                    $partStatus,
+            ]);
 
         if ($pmsSchedule) {
-            $jobOrder->pms_schedule_id = $pmsSchedule->id;
+            $jobOrder->pms_schedule_id =
+                $pmsSchedule->id;
+
             $jobOrder->save();
         }
 
         if ($assignedMechanic) {
-            $this->setMechanicStatus($assignedMechanic, 'On Duty');
+            $this->setMechanicStatus(
+                $assignedMechanic,
+                'On Duty'
+            );
         }
 
         $this->broadcastSystemDataUpdated(
@@ -294,30 +553,53 @@ class JobOrderController extends Controller
             ->route('job-orders')
             ->with(
                 'success',
-                $jobOrder->status === 'On Hold'
+                $jobOrder->status
+                    === 'On Hold'
                     ? 'Job order created and placed on hold because no mechanic was assigned.'
                     : 'Job order created successfully.'
             );
     }
 
-    public function update(Request $request, JobOrder $jobOrder)
-    {
-        if ($jobOrder->status === 'Completed') {
+    /* =========================================================
+       UPDATE JOB ORDER
+    ========================================================= */
+
+    public function update(
+        Request $request,
+        JobOrder $jobOrder
+    ) {
+        if (
+            $jobOrder->status
+            === 'Completed'
+        ) {
             return redirect()
                 ->back()
-                ->with('error', 'Completed job orders can only be viewed.');
+                ->with(
+                    'error',
+                    'Completed job orders can only be viewed.'
+                );
         }
 
-        if (in_array($jobOrder->part_status, [
-            'Approved',
-            'For Purchase',
-            'Ordered',
-            'For Pick-up',
-            'For Delivery',
-            'Delivered',
-            'Picked Up',
-            'Issued',
-        ], true)) {
+        /* =====================================================
+           PURCHASE PROCESS LOCK
+        ====================================================== */
+
+        if (
+            in_array(
+                $jobOrder->part_status,
+                [
+                    'Approved',
+                    'For Purchase',
+                    'Ordered',
+                    'For Pick-up',
+                    'For Delivery',
+                    'Delivered',
+                    'Picked Up',
+                    'Issued',
+                ],
+                true
+            )
+        ) {
             return redirect()
                 ->back()
                 ->with(
@@ -326,88 +608,240 @@ class JobOrderController extends Controller
                 );
         }
 
-        $validated = $request->validate([
-            'job_order_no' => 'required|string|max:255|unique:job_orders,job_order_no,' . $jobOrder->id,
-            'bus_no' => 'required|string|exists:buses,bus_no',
-            'problem_issue' => 'required|string',
-            'maintenance_type' => 'required|string|max:255',
-            'assigned_mechanic' => 'nullable|string|max:255',
-            'status' => 'nullable|string|in:On Hold,On Going',
-            'parts' => 'nullable|array',
-            'parts.*.name' => 'nullable|string|max:255',
-            'parts.*.quantity' => 'nullable|integer|min:1',
-            'parts.*.unit' => 'nullable|string|max:50',
-        ]);
+        $validated =
+            $request->validate([
+                'job_order_no' =>
+                    'required|string|max:255|unique:job_orders,job_order_no,'
+                    . $jobOrder->id,
 
-        $oldMechanic = $jobOrder->assigned_mechanic;
-        $newMechanic = $validated['assigned_mechanic'] ?? null;
+                'bus_no' =>
+                    'required|string|exists:buses,bus_no',
 
-        if ($newMechanic && $oldMechanic !== $newMechanic) {
-            $mechanic = MechanicAttendance::where(
-                'mechanic_name',
-                $newMechanic
-            )->first();
+                'problem_issue' =>
+                    'required|string',
+
+                'maintenance_type' =>
+                    'required|string|max:255',
+
+                'assigned_mechanic' =>
+                    'nullable|string|max:255',
+
+                'status' =>
+                    'nullable|string|in:On Hold,On Going',
+
+                'parts' =>
+                    'nullable|array',
+
+                'parts.*.name' =>
+                    'nullable|string|max:255',
+
+                'parts.*.quantity' =>
+                    'nullable|integer|min:1',
+
+                'parts.*.unit' =>
+                    'nullable|string|max:50',
+            ]);
+
+        $oldMechanic =
+            $jobOrder
+                ->assigned_mechanic;
+
+        $newMechanic =
+            $validated[
+                'assigned_mechanic'
+            ] ?? null;
+
+        /* =====================================================
+           NEW MECHANIC VALIDATION
+        ====================================================== */
+
+        if (
+            $newMechanic
+            && $oldMechanic
+                !== $newMechanic
+        ) {
+            $mechanic =
+                MechanicAttendance::where(
+                    'mechanic_name',
+                    $newMechanic
+                )->first();
 
             if (! $mechanic) {
                 return redirect()
                     ->back()
                     ->withInput()
-                    ->with('error', 'Selected mechanic was not found.');
+                    ->with(
+                        'error',
+                        'Selected mechanic was not found.'
+                    );
             }
 
-            $hasActiveJobOrder = JobOrder::where(
-                'assigned_mechanic',
-                $newMechanic
-            )
-                ->where('status', '!=', 'Completed')
-                ->where('id', '!=', $jobOrder->id)
-                ->exists();
+            $hasActiveJobOrder =
+                JobOrder::where(
+                    'assigned_mechanic',
+                    $newMechanic
+                )
+                    ->where(
+                        'status',
+                        '!=',
+                        'Completed'
+                    )
+                    ->where(
+                        'id',
+                        '!=',
+                        $jobOrder->id
+                    )
+                    ->exists();
 
-            if ($mechanic->status !== 'Present' || $hasActiveJobOrder) {
+            if (
+                $mechanic->status
+                    !== 'Present'
+                || $hasActiveJobOrder
+            ) {
                 return redirect()
                     ->back()
                     ->withInput()
-                    ->with('error', 'Selected mechanic is already on duty.');
+                    ->with(
+                        'error',
+                        'Selected mechanic is already on duty.'
+                    );
             }
         }
 
-        $parts = $this->partParser->normalizePartsInput(
-            $request->parts ?? []
-        );
+        /* =====================================================
+           AUTOMATIC JO STATUS
+        ====================================================== */
 
-        $partNeeded = count($parts) > 0
-            ? $this->partParser->formatParts($parts)
-            : null;
+        $status =
+            $newMechanic
+                ? 'On Going'
+                : 'On Hold';
 
-        $partStatus = $jobOrder->part_status;
+        /* =====================================================
+           REQUESTED PARTS
 
-        if (! $partNeeded) {
-            $partStatus = 'No Parts Needed';
-        } elseif (
-            ! $partStatus ||
-            in_array($partStatus, ['Unknown', 'No Parts Needed'], true)
-        ) {
-            $partStatus = 'Not Requested';
+           NO MECHANIC = NO PARTS
+        ====================================================== */
+
+        $parts = [];
+
+        if ($newMechanic) {
+            $parts =
+                $this->partParser
+                    ->normalizePartsInput(
+                        $request->parts ?? []
+                    );
         }
 
-        $status = $validated['status'] ?? $jobOrder->status;
+        $partNeeded =
+            count($parts) > 0
+                ? $this->partParser
+                    ->formatParts(
+                        $parts
+                    )
+                : null;
+
+        $partStatus =
+            $jobOrder->part_status;
 
         if (! $newMechanic) {
-            $status = 'On Hold';
-        } elseif ($status === 'On Hold') {
-            $status = 'On Going';
+            $partNeeded = null;
+
+            $partStatus =
+                'No Parts Needed';
+        } elseif (! $partNeeded) {
+            $partStatus =
+                'No Parts Needed';
+        } elseif (
+            ! $partStatus
+            || in_array(
+                $partStatus,
+                [
+                    'Unknown',
+                    'No Parts Needed',
+                ],
+                true
+            )
+        ) {
+            $partStatus =
+                'Not Requested';
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | REJECTED PR
+        |--------------------------------------------------------------------------
+        | Do not turn a rejected PR back into Not Requested.
+        | The same PR must be revised and resubmitted.
+        */
+
+        if (
+            $jobOrder->part_status
+            === 'Rejected'
+        ) {
+            $partStatus =
+                'Rejected';
         }
 
         $jobOrder->update([
-            'job_order_no' => $validated['job_order_no'],
-            'bus_no' => $validated['bus_no'],
-            'problem_issue' => $validated['problem_issue'],
-            'maintenance_type' => $validated['maintenance_type'],
-            'assigned_mechanic' => $newMechanic,
-            'status' => $status,
-            'part_needed' => $partNeeded,
-            'part_status' => $partStatus,
+            'job_order_no' =>
+                $validated[
+                    'job_order_no'
+                ],
+
+            'bus_no' =>
+                $validated[
+                    'bus_no'
+                ],
+
+            'problem_issue' =>
+                $validated[
+                    'problem_issue'
+                ],
+
+            'maintenance_type' =>
+                $validated[
+                    'maintenance_type'
+                ],
+
+            'assigned_mechanic' =>
+                $newMechanic,
+
+            'status' =>
+                $status,
+
+            'part_needed' =>
+                $partNeeded,
+
+            'part_status' =>
+                $partStatus,
         ]);
+
+        /* =====================================================
+           MECHANIC STATUS
+        ====================================================== */
+
+        if (
+            $oldMechanic
+            && $oldMechanic
+                !== $newMechanic
+        ) {
+            $this->setMechanicStatus(
+                $oldMechanic,
+                'Present'
+            );
+        }
+
+        if (
+            $newMechanic
+            && $oldMechanic
+                !== $newMechanic
+        ) {
+            $this->setMechanicStatus(
+                $newMechanic,
+                'On Duty'
+            );
+        }
 
         $this->broadcastSystemDataUpdated(
             'Maintenance',
@@ -417,88 +851,209 @@ class JobOrderController extends Controller
             'A job order was updated.'
         );
 
-        if ($oldMechanic && $oldMechanic !== $newMechanic) {
-            $this->setMechanicStatus($oldMechanic, 'Present');
-        }
-
-        if ($newMechanic && $oldMechanic !== $newMechanic) {
-            $this->setMechanicStatus($newMechanic, 'On Duty');
-        }
-
         return redirect()
             ->route('job-orders')
-            ->with('success', 'Job order updated successfully.');
+            ->with(
+                'success',
+                'Job order updated successfully.'
+            );
     }
 
-    public function createPurchaseRequest(JobOrder $jobOrder)
-    {
-        if (empty($jobOrder->part_needed)) {
+    /* =========================================================
+       CREATE PURCHASE REQUEST
+    ========================================================= */
+
+    public function createPurchaseRequest(
+        JobOrder $jobOrder
+    ) {
+        /* =====================================================
+           MECHANIC REQUIRED
+        ====================================================== */
+
+        if (
+            empty(
+                $jobOrder
+                    ->assigned_mechanic
+            )
+        ) {
             return redirect()
                 ->back()
                 ->with(
                     'error',
-                    'Cannot create PR because this job order has no parts needed.'
+                    'Assign a mechanic before creating a Purchase Request.'
                 );
         }
 
-        if ($jobOrder->status === 'Completed') {
+        /* =====================================================
+           PARTS REQUIRED
+        ====================================================== */
+
+        if (
+            empty(
+                $jobOrder
+                    ->part_needed
+            )
+        ) {
             return redirect()
                 ->back()
                 ->with(
                     'error',
-                    'Cannot create PR because this job order is already completed.'
+                    'Cannot create PR because this Job Order has no requested parts.'
                 );
         }
 
-        if (! in_array(
-            $jobOrder->part_status,
-            [null, 'Not Requested', 'Rejected'],
-            true
-        )) {
+        if (
+            $jobOrder->status
+            === 'Completed'
+        ) {
             return redirect()
                 ->back()
                 ->with(
                     'error',
-                    'This job order already has an active purchase request.'
+                    'Cannot create PR because this Job Order is already completed.'
                 );
         }
 
-        $hasActivePr = PurchaseRequest::where(
-            'job_order_no',
-            $jobOrder->job_order_no
-        )
-            ->whereNotIn('status', ['Rejected', 'Issued'])
-            ->exists();
+        /* =====================================================
+           REJECTED = REVISE EXISTING PR
+        ====================================================== */
 
-        if ($hasActivePr) {
+        if (
+            $jobOrder->part_status
+            === 'Rejected'
+        ) {
+            return redirect()
+                ->route(
+                    'purchase-requests',
+                    [
+                        'search' =>
+                            $jobOrder
+                                ->job_order_no,
+                    ]
+                )
+                ->with(
+                    'error',
+                    'The existing Purchase Request was rejected. Revise and resubmit the same PR instead of creating a new one.'
+                );
+        }
+
+        /* =====================================================
+           ONLY NOT REQUESTED CAN CREATE
+        ====================================================== */
+
+        if (
+            ! in_array(
+                $jobOrder->part_status,
+                [
+                    null,
+                    'Not Requested',
+                ],
+                true
+            )
+        ) {
             return redirect()
                 ->back()
                 ->with(
                     'error',
-                    'This job order already has an active purchase request.'
+                    'This Job Order already has a Purchase Request.'
                 );
         }
 
-        $parts = $this->partParser->parsePartText($jobOrder->part_needed);
+        /* =====================================================
+           ANY EXISTING MAINTENANCE PR BLOCKS NEW PR
+        ====================================================== */
 
-        $parsedParts = [
-            'item' => $this->partParser->formatParts($parts),
-            'quantity' => $this->partParser->calculateTotalQuantity($parts),
-        ];
+        $existingPr =
+            $this
+                ->maintenancePurchaseRequestForJobOrder(
+                    $jobOrder
+                        ->job_order_no
+                )
+                ->latest()
+                ->first();
 
-        $purchaseRequest = PurchaseRequest::create([
-            'pr_no' => $this->generatePrNo(),
-            'job_order_no' => $jobOrder->job_order_no,
-            'bus_no' => $jobOrder->bus_no,
-            'item' => $parsedParts['item'],
-            'quantity' => $parsedParts['quantity'],
-            'status' => 'Submitted',
-            'remarks' => 'Created from Job Order ' . $jobOrder->job_order_no,
-            'date_requested' => now(),
-        ]);
+        if ($existingPr) {
+            return redirect()
+                ->route(
+                    'purchase-requests',
+                    [
+                        'search' =>
+                            $jobOrder
+                                ->job_order_no,
+                    ]
+                )
+                ->with(
+                    'error',
+                    $existingPr->status
+                        === 'Rejected'
+                        ? 'The existing Purchase Request is rejected. Revise and resubmit it.'
+                        : 'This Job Order already has a Purchase Request.'
+                );
+        }
+
+        /* =====================================================
+           PARSE PARTS
+        ====================================================== */
+
+        $parts =
+            $this->partParser
+                ->parsePartText(
+                    $jobOrder
+                        ->part_needed
+                );
+
+        if (count($parts) === 0) {
+            return redirect()
+                ->back()
+                ->with(
+                    'error',
+                    'No valid requested parts were found for this Job Order.'
+                );
+        }
+
+        $purchaseRequest =
+            PurchaseRequest::create([
+                'pr_no' =>
+                    $this->generatePrNo(),
+
+                'job_order_no' =>
+                    $jobOrder
+                        ->job_order_no,
+
+                'bus_no' =>
+                    $jobOrder
+                        ->bus_no,
+
+                'item' =>
+                    $this->partParser
+                        ->formatParts(
+                            $parts
+                        ),
+
+                'quantity' =>
+                    $this->partParser
+                        ->calculateTotalQuantity(
+                            $parts
+                        ),
+
+                'status' =>
+                    'Submitted',
+
+                'source_type' =>
+                    'Maintenance Request',
+
+                'remarks' =>
+                    'Created from Job Order '
+                    . $jobOrder
+                        ->job_order_no,
+
+                'date_requested' =>
+                    now(),
+            ]);
 
         $jobOrder->update([
-            'part_status' => 'Submitted',
+            'part_status' =>
+                'Submitted',
         ]);
 
         $this->broadcastSystemDataUpdated(
@@ -519,18 +1074,35 @@ class JobOrderController extends Controller
 
         return redirect()
             ->route('job-orders')
-            ->with('success', 'Purchase request created successfully.');
+            ->with(
+                'success',
+                'Purchase request created successfully.'
+            );
     }
 
-    public function finish(JobOrder $jobOrder)
-    {
-        if ($jobOrder->status === 'Completed') {
+    /* =========================================================
+       FINISH JOB ORDER
+    ========================================================= */
+
+    public function finish(
+        JobOrder $jobOrder
+    ) {
+        if (
+            $jobOrder->status
+            === 'Completed'
+        ) {
             return redirect()
                 ->back()
-                ->with('error', 'Job order is already completed.');
+                ->with(
+                    'error',
+                    'Job order is already completed.'
+                );
         }
 
-        if ($jobOrder->status === 'On Hold') {
+        if (
+            $jobOrder->status
+            === 'On Hold'
+        ) {
             return redirect()
                 ->back()
                 ->with(
@@ -539,7 +1111,12 @@ class JobOrderController extends Controller
                 );
         }
 
-        if (! $this->canFinishWithPartStatus($jobOrder)) {
+        if (
+            ! $this
+                ->canFinishWithPartStatus(
+                    $jobOrder
+                )
+        ) {
             return redirect()
                 ->back()
                 ->with(
@@ -548,17 +1125,19 @@ class JobOrderController extends Controller
                 );
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | PMS RESET AFTER COMPLETION
-        |--------------------------------------------------------------------------
-        | A PMS Job Order updates both:
-        | - pms_schedules
-        | - buses (Bus Master List)
-        |--------------------------------------------------------------------------
-        */
-        if ($jobOrder->maintenance_type === 'PMS') {
-            if (! $jobOrder->pms_schedule_id) {
+        /* =====================================================
+           PMS RESET AFTER COMPLETION
+        ====================================================== */
+
+        if (
+            $jobOrder
+                ->maintenance_type
+            === 'PMS'
+        ) {
+            if (
+                ! $jobOrder
+                    ->pms_schedule_id
+            ) {
                 return redirect()
                     ->back()
                     ->with(
@@ -567,7 +1146,11 @@ class JobOrderController extends Controller
                     );
             }
 
-            $pmsSchedule = PmsSchedule::find($jobOrder->pms_schedule_id);
+            $pmsSchedule =
+                PmsSchedule::find(
+                    $jobOrder
+                        ->pms_schedule_id
+                );
 
             if (! $pmsSchedule) {
                 return redirect()
@@ -578,10 +1161,18 @@ class JobOrderController extends Controller
                     );
             }
 
-            $bus = Bus::whereRaw(
-                'UPPER(TRIM(bus_no)) = ?',
-                [strtoupper(trim($jobOrder->bus_no))]
-            )->first();
+            $bus =
+                Bus::whereRaw(
+                    'UPPER(TRIM(bus_no)) = ?',
+                    [
+                        strtoupper(
+                            trim(
+                                $jobOrder
+                                    ->bus_no
+                            )
+                        ),
+                    ]
+                )->first();
 
             if (! $bus) {
                 return redirect()
@@ -592,59 +1183,107 @@ class JobOrderController extends Controller
                     );
             }
 
-            /*
-            |--------------------------------------------------------------------------
-            | Get the latest PROCESSED GPS mileage directly.
-            |--------------------------------------------------------------------------
-            | Bus Master List may not yet have latest_gps_km, so PMS must not
-            | fall back to 0.00 when the Job Order is completed.
-            */
-            $latestGps = GpsTripRecord::query()
-                ->whereRaw(
-                    'UPPER(TRIM(bus_no)) = ?',
-                    [strtoupper(trim($jobOrder->bus_no))]
-                )
-                ->whereNotNull('mileage_km')
-                ->whereHas('batchUpload', function ($query) {
-                    $query->where('status', 'Processed');
-                })
-                ->orderByDesc('beginning_at')
-                ->orderByDesc('id')
-                ->first();
+            $latestGps =
+                GpsTripRecord::query()
+                    ->whereRaw(
+                        'UPPER(TRIM(bus_no)) = ?',
+                        [
+                            strtoupper(
+                                trim(
+                                    $jobOrder
+                                        ->bus_no
+                                )
+                            ),
+                        ]
+                    )
+                    ->whereNotNull(
+                        'mileage_km'
+                    )
+                    ->whereHas(
+                        'batchUpload',
+                        function ($query) {
+                            $query->where(
+                                'status',
+                                'Processed'
+                            );
+                        }
+                    )
+                    ->orderByDesc(
+                        'beginning_at'
+                    )
+                    ->orderByDesc(
+                        'id'
+                    )
+                    ->first();
 
-            $completedPmsKm = $latestGps
-                ? (float) $latestGps->mileage_km
-                : ($bus->latest_gps_km !== null
-                    ? (float) $bus->latest_gps_km
-                    : (float) $pmsSchedule->last_pms_km);
+            $completedPmsKm =
+                $latestGps
+                    ? (float)
+                        $latestGps
+                            ->mileage_km
+                    : (
+                        $bus->latest_gps_km
+                            !== null
+                            ? (float)
+                                $bus
+                                    ->latest_gps_km
+                            : (float)
+                                $pmsSchedule
+                                    ->last_pms_km
+                    );
 
-            $intervalKm = (float) $pmsSchedule->pms_interval_km;
+            $intervalKm =
+                (float)
+                    $pmsSchedule
+                        ->pms_interval_km;
 
             if ($intervalKm <= 0) {
                 $intervalKm = 5000;
             }
 
-            $nextPmsKm = $completedPmsKm + $intervalKm;
+            $nextPmsKm =
+                $completedPmsKm
+                + $intervalKm;
 
             $pmsSchedule->update([
-                'last_pms_km' => $completedPmsKm,
-                'pms_interval_km' => $intervalKm,
-                'next_pms_km' => $nextPmsKm,
+                'last_pms_km' =>
+                    $completedPmsKm,
+
+                'pms_interval_km' =>
+                    $intervalKm,
+
+                'next_pms_km' =>
+                    $nextPmsKm,
             ]);
 
             $busUpdateData = [
-                'last_pms_km' => $completedPmsKm,
-                'pms_interval_km' => $intervalKm,
-                'next_pms_km' => $nextPmsKm,
+                'last_pms_km' =>
+                    $completedPmsKm,
+
+                'pms_interval_km' =>
+                    $intervalKm,
+
+                'next_pms_km' =>
+                    $nextPmsKm,
             ];
 
             if ($latestGps) {
-                $busUpdateData['latest_gps_km'] = $completedPmsKm;
-                $busUpdateData['latest_gps_at'] = $latestGps->beginning_at
-                    ?? $latestGps->created_at;
+                $busUpdateData[
+                    'latest_gps_km'
+                ] = $completedPmsKm;
+
+                $busUpdateData[
+                    'latest_gps_at'
+                ] =
+                    $latestGps
+                        ->beginning_at
+                    ?? $latestGps
+                        ->created_at;
             }
 
-            $bus->update($busUpdateData);
+            $bus->update(
+                $busUpdateData
+            );
 
             $this->broadcastSystemDataUpdated(
                 'Operation',
@@ -655,13 +1294,21 @@ class JobOrderController extends Controller
             );
         }
 
+        /* =====================================================
+           COMPLETE JO
+        ====================================================== */
+
         $jobOrder->update([
-            'completion_date' => now(),
-            'status' => 'Completed',
+            'completion_date' =>
+                now(),
+
+            'status' =>
+                'Completed',
         ]);
 
         $this->setMechanicStatus(
-            $jobOrder->assigned_mechanic,
+            $jobOrder
+                ->assigned_mechanic,
             'Present'
         );
 
@@ -675,18 +1322,58 @@ class JobOrderController extends Controller
 
         return redirect()
             ->route('job-orders')
-            ->with('success', 'Job order marked as completed.');
+            ->with(
+                'success',
+                'Job order marked as completed.'
+            );
     }
 
-    public function destroy(JobOrder $jobOrder)
-    {
-        $jobOrderId = $jobOrder->id;
-        $assignedMechanic = $jobOrder->assigned_mechanic;
+    /* =========================================================
+       DELETE JOB ORDER
+    ========================================================= */
+
+    public function destroy(
+        JobOrder $jobOrder
+    ) {
+        /*
+        |--------------------------------------------------------------------------
+        | Once a Purchase Request exists, the Job Order becomes
+        | part of the transaction history and cannot be deleted.
+        */
+
+        $hasLinkedPurchaseRequest =
+            $this
+                ->maintenancePurchaseRequestForJobOrder(
+                    $jobOrder
+                        ->job_order_no
+                )
+                ->exists();
+
+        if (
+            $hasLinkedPurchaseRequest
+        ) {
+            return redirect()
+                ->back()
+                ->with(
+                    'error',
+                    'This Job Order cannot be deleted because it already has a linked Purchase Request.'
+                );
+        }
+
+        $jobOrderId =
+            $jobOrder->id;
+
+        $assignedMechanic =
+            $jobOrder
+                ->assigned_mechanic;
 
         $jobOrder->delete();
 
         if ($assignedMechanic) {
-            $this->setMechanicStatus($assignedMechanic, 'Present');
+            $this->setMechanicStatus(
+                $assignedMechanic,
+                'Present'
+            );
         }
 
         $this->broadcastSystemDataUpdated(
@@ -699,8 +1386,44 @@ class JobOrderController extends Controller
 
         return redirect()
             ->route('job-orders')
-            ->with('success', 'Job order deleted successfully.');
+            ->with(
+                'success',
+                'Job order deleted successfully.'
+            );
     }
+
+    /* =========================================================
+       MAINTENANCE PR QUERY FOR JO
+    ========================================================= */
+
+    private function maintenancePurchaseRequestForJobOrder(
+        string $jobOrderNo
+    ) {
+        return PurchaseRequest::query()
+            ->where(
+                'job_order_no',
+                $jobOrderNo
+            )
+            ->where(
+                'pr_no',
+                'not like',
+                '%-P'
+            )
+            ->where(function ($query) {
+                $query
+                    ->whereNull(
+                        'source_type'
+                    )
+                    ->orWhere(
+                        'source_type',
+                        'Maintenance Request'
+                    );
+            });
+    }
+
+    /* =========================================================
+       MECHANIC STATUS
+    ========================================================= */
 
     private function setMechanicStatus(
         ?string $mechanicName,
@@ -714,108 +1437,185 @@ class JobOrderController extends Controller
             'mechanic_name',
             $mechanicName
         )->update([
-            'status' => $status,
+            'status' =>
+                $status,
         ]);
     }
 
-    private function canFinishWithPartStatus(JobOrder $jobOrder): bool
-    {
-        if (empty($jobOrder->part_needed)) {
+    /* =========================================================
+       FINISH RULE
+    ========================================================= */
+
+    private function canFinishWithPartStatus(
+        JobOrder $jobOrder
+    ): bool {
+        if (
+            empty(
+                $jobOrder
+                    ->part_needed
+            )
+        ) {
             return true;
         }
 
         return in_array(
-            $jobOrder->part_status,
-            ['Issued', 'Rejected'],
+            $jobOrder
+                ->part_status,
+            [
+                'Issued',
+                'Rejected',
+            ],
             true
         );
     }
 
+    /* =========================================================
+       GENERATE JO NUMBER
+    ========================================================= */
+
     private function generateJobOrderNo(): string
     {
-        $year = now()->format('Y');
+        $year =
+            now()->format('Y');
 
-        $lastJobOrder = JobOrder::where(
-            'job_order_no',
-            'like',
-            "JO-{$year}-%"
-        )
-            ->orderByDesc('id')
-            ->first();
+        $lastJobOrder =
+            JobOrder::where(
+                'job_order_no',
+                'like',
+                "JO-{$year}-%"
+            )
+                ->orderByDesc(
+                    'id'
+                )
+                ->first();
 
         if (! $lastJobOrder) {
             return "JO-{$year}-0001";
         }
 
         preg_match(
-            '/JO-' . $year . '-(\d+)/',
-            $lastJobOrder->job_order_no,
+            '/JO-'
+            . $year
+            . '-(\d+)/',
+            $lastJobOrder
+                ->job_order_no,
             $matches
         );
 
-        $nextNumber = (isset($matches[1]) ? (int) $matches[1] : 0) + 1;
+        $nextNumber =
+            (
+                isset($matches[1])
+                    ? (int)
+                        $matches[1]
+                    : 0
+            ) + 1;
 
-        $newJobOrderNo = 'JO-' . $year . '-' . str_pad(
-            $nextNumber,
-            4,
-            '0',
-            STR_PAD_LEFT
-        );
-
-        while (JobOrder::where('job_order_no', $newJobOrderNo)->exists()) {
-            $nextNumber++;
-
-            $newJobOrderNo = 'JO-' . $year . '-' . str_pad(
+        $newJobOrderNo =
+            'JO-'
+            . $year
+            . '-'
+            . str_pad(
                 $nextNumber,
                 4,
                 '0',
                 STR_PAD_LEFT
             );
+
+        while (
+            JobOrder::where(
+                'job_order_no',
+                $newJobOrderNo
+            )->exists()
+        ) {
+            $nextNumber++;
+
+            $newJobOrderNo =
+                'JO-'
+                . $year
+                . '-'
+                . str_pad(
+                    $nextNumber,
+                    4,
+                    '0',
+                    STR_PAD_LEFT
+                );
         }
 
         return $newJobOrderNo;
     }
 
+    /* =========================================================
+       GENERATE PR NUMBER
+    ========================================================= */
+
     private function generatePrNo(): string
     {
-        $year = now()->format('Y');
+        $year =
+            now()->format('Y');
 
-        $lastPr = PurchaseRequest::where(
-            'pr_no',
-            'like',
-            "PR-{$year}-%"
-        )
-            ->orderByDesc('id')
-            ->first();
+        $lastPr =
+            PurchaseRequest::where(
+                'pr_no',
+                'like',
+                "PR-{$year}-%"
+            )
+                ->where(
+                    'pr_no',
+                    'not like',
+                    '%-P'
+                )
+                ->orderByDesc(
+                    'id'
+                )
+                ->first();
 
         if (! $lastPr) {
             return "PR-{$year}-0001";
         }
 
         preg_match(
-            '/PR-' . $year . '-(\d+)/',
+            '/PR-'
+            . $year
+            . '-(\d+)/',
             $lastPr->pr_no,
             $matches
         );
 
-        $nextNumber = (isset($matches[1]) ? (int) $matches[1] : 0) + 1;
+        $nextNumber =
+            isset($matches[1])
+                ? (int)
+                    $matches[1] + 1
+                : 1;
 
-        $newPrNo = 'PR-' . $year . '-' . str_pad(
-            $nextNumber,
-            4,
-            '0',
-            STR_PAD_LEFT
-        );
-
-        while (PurchaseRequest::where('pr_no', $newPrNo)->exists()) {
-            $nextNumber++;
-
-            $newPrNo = 'PR-' . $year . '-' . str_pad(
+        $newPrNo =
+            'PR-'
+            . $year
+            . '-'
+            . str_pad(
                 $nextNumber,
                 4,
                 '0',
                 STR_PAD_LEFT
             );
+
+        while (
+            PurchaseRequest::where(
+                'pr_no',
+                $newPrNo
+            )->exists()
+        ) {
+            $nextNumber++;
+
+            $newPrNo =
+                'PR-'
+                . $year
+                . '-'
+                . str_pad(
+                    $nextNumber,
+                    4,
+                    '0',
+                    STR_PAD_LEFT
+                );
         }
 
         return $newPrNo;
