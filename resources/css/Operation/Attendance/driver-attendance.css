@@ -395,9 +395,33 @@
   color: #0b40b5;
 }
 
+.badge.leave,
+.badge.on-leave {
+  background: #ede9fe;
+
+  border: 1px solid #d8b4fe;
+
+  color: #7c3aed;
+}
+
+/* Prevent decorative dots from appearing on attendance badges. */
+
+.badge::before,
+.badge.present::before,
+.badge.late::before,
+.badge.absent::before,
+.badge.duty::before,
+.badge.on-duty::before,
+.badge.leave::before,
+.badge.on-leave::before {
+  content: none !important;
+
+  display: none !important;
+}
+
 
 /* =========================================================
-   ACTIONS
+   ACTION BUTTONS
 ========================================================= */
 
 .actions {
@@ -410,7 +434,15 @@
   white-space: nowrap;
 }
 
-.actions button {
+
+.actions form {
+  margin: 0;
+
+  display: inline-flex;
+}
+
+
+.actions .action-btn {
   width: 34px;
   min-width: 34px;
 
@@ -427,30 +459,43 @@
   border-radius: 8px;
 
   font-size: 13px;
+  line-height: 1;
 
   cursor: pointer;
 
   transition:
     transform 0.18s ease,
     background-color 0.18s ease,
+    border-color 0.18s ease,
     color 0.18s ease;
 }
 
+
+/* VIEW AND EDIT */
+
+.actions .view,
 .actions .edit {
   background: #eaf2ff;
 
-  border-color: #d4e3ff;
+  border-color: #cfe0ff;
 
   color: #0b40b5;
 }
 
+
+.actions .view:hover,
 .actions .edit:hover {
   background: #0b40b5;
+
+  border-color: #0b40b5;
 
   color: #ffffff;
 
   transform: translateY(-1px);
 }
+
+
+/* DELETE */
 
 .actions .delete {
   background: #fff0f0;
@@ -460,8 +505,11 @@
   color: #dc2626;
 }
 
+
 .actions .delete:hover {
   background: #dc2626;
+
+  border-color: #dc2626;
 
   color: #ffffff;
 
@@ -531,29 +579,555 @@
 
 }
 
-/* Driver Attendance status badge patch */
+/* =========================================================
+   DRIVER ATTENDANCE FORM COMPONENT INTEGRATION
+========================================================= */
 
-.badge.leave,
-.badge.on-leave {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 78px;
-    padding: 6px 12px;
-    border: 1px solid #c4b5fd;
-    border-radius: 999px;
-    background: #ede9fe;
-    color: #6d28d9;
-    font-weight: 700;
-    line-height: 1;
+#driverAttendanceModal.ui-form-overlay {
+  z-index: 3000;
 }
 
-.badge.leave::before,
-.badge.on-leave::before {
-    content: "";
-    width: 6px;
-    height: 6px;
-    margin-right: 6px;
-    border-radius: 50%;
-    background: currentColor;
+
+#driverAttendanceModal.ui-form-overlay.show,
+#driverAttendanceModal.ui-form-overlay.active {
+  display: flex;
 }
+
+
+#driverAttendanceModal .ui-form-modal {
+  width: min(760px, calc(100vw - 32px));
+  max-height: calc(100vh - 32px);
+}
+
+
+#driverAttendanceModal .ui-form-modal,
+#driverAttendanceModal .ui-form-modal-body {
+  overflow: visible;
+}
+
+
+.driver-attendance-form-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 16px;
+}
+
+
+.attendance-form-note {
+  margin-top: 18px;
+
+  padding: 13px 14px;
+
+  display: flex;
+  align-items: flex-start;
+
+  gap: 10px;
+
+  background: #eff6ff;
+
+  border: 1px solid #bfdbfe;
+  border-radius: 10px;
+}
+
+
+.attendance-form-note > i {
+  margin-top: 2px;
+
+  color: var(--blue);
+
+  font-size: 14px;
+}
+
+
+.attendance-form-note > div {
+  display: flex;
+  flex-direction: column;
+
+  gap: 3px;
+}
+
+
+.attendance-form-note strong {
+  color: var(--blue);
+
+  font-size: 12px;
+  font-weight: 700;
+}
+
+
+.attendance-form-note span,
+.attendance-bus-help {
+  color: var(--muted);
+
+  font-size: 11px;
+
+  line-height: 1.5;
+}
+
+
+/* =========================================================
+   SEARCHABLE BUS COMBOBOX
+========================================================= */
+
+.attendance-combobox {
+  position: relative;
+
+  width: 100%;
+}
+
+
+.attendance-combobox-trigger {
+  width: 100%;
+  height: 42px;
+
+  padding: 0 12px;
+
+  display: grid;
+
+  grid-template-columns:
+    24px minmax(0, 1fr) 16px;
+
+  align-items: center;
+
+  gap: 8px;
+
+  background: #ffffff;
+
+  border: 1px solid var(--border);
+  border-radius: 9px;
+
+  color: var(--text);
+
+  font: inherit;
+
+  text-align: left;
+
+  cursor: pointer;
+}
+
+
+.attendance-combobox-trigger:focus {
+  border-color: var(--blue);
+
+  outline: none;
+
+  box-shadow:
+    0 0 0 3px rgba(11, 64, 181, 0.1);
+}
+
+
+.attendance-combobox-trigger:disabled {
+  background: #f8fafc;
+
+  color: #94a3b8;
+
+  cursor: not-allowed;
+}
+
+
+.attendance-combobox-icon {
+  color: var(--blue);
+
+  text-align: center;
+}
+
+
+.attendance-combobox-trigger:disabled
+.attendance-combobox-icon {
+  color: #94a3b8;
+}
+
+
+.attendance-combobox-label {
+  min-width: 0;
+
+  overflow: hidden;
+
+  color: var(--text);
+
+  font-size: 13px;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+.attendance-combobox-label.placeholder {
+  color: #8a98ac;
+}
+
+
+.attendance-combobox-trigger
+> .fa-chevron-down {
+  color: var(--muted);
+
+  font-size: 11px;
+
+  transition:
+    transform 0.18s ease;
+}
+
+
+.attendance-combobox-trigger[
+  aria-expanded="true"
+]
+> .fa-chevron-down {
+  transform: rotate(180deg);
+}
+
+
+.attendance-combobox-menu {
+  position: absolute;
+
+  top: calc(100% + 6px);
+  right: 0;
+  left: 0;
+
+  z-index: 5000;
+
+  display: none;
+
+  padding: 8px;
+
+  background: #ffffff;
+
+  border: 1px solid var(--border);
+  border-radius: 10px;
+
+  box-shadow:
+    0 14px 35px rgba(6, 31, 61, 0.18);
+}
+
+
+.attendance-combobox-menu.show {
+  display: block;
+}
+
+
+.attendance-combobox-search {
+  position: relative;
+
+  margin-bottom: 7px;
+}
+
+
+.attendance-combobox-search i {
+  position: absolute;
+
+  top: 50%;
+  left: 12px;
+
+  transform: translateY(-50%);
+
+  color: var(--blue);
+
+  font-size: 12px;
+
+  pointer-events: none;
+}
+
+
+.attendance-combobox-search input {
+  width: 100%;
+  height: 38px;
+
+  padding: 0 12px 0 34px;
+
+  background: #ffffff;
+
+  border: 1px solid var(--border);
+  border-radius: 8px;
+
+  color: var(--text);
+
+  font-size: 12px;
+
+  outline: none;
+}
+
+
+.attendance-combobox-search input:focus {
+  border-color: var(--blue);
+
+  box-shadow:
+    0 0 0 3px rgba(11, 64, 181, 0.1);
+}
+
+
+.attendance-combobox-options {
+  max-height: 240px;
+
+  overflow-y: auto;
+
+  overscroll-behavior: contain;
+}
+
+
+.attendance-combobox-option {
+  width: 100%;
+
+  padding: 9px 10px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 10px;
+
+  background: transparent;
+
+  border: 0;
+  border-radius: 8px;
+
+  color: var(--text);
+
+  text-align: left;
+
+  cursor: pointer;
+}
+
+
+.attendance-combobox-option:hover {
+  background: #f1f6ff;
+}
+
+
+.attendance-combobox-option.selected {
+  background: #eaf2ff;
+
+  color: var(--blue);
+}
+
+
+.attendance-combobox-option > span {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 2px;
+}
+
+
+.attendance-combobox-option strong {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+
+.attendance-combobox-option small {
+  overflow: hidden;
+
+  color: var(--muted);
+
+  font-size: 10px;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+.attendance-combobox-option > i {
+  display: none;
+
+  color: var(--blue);
+
+  font-size: 11px;
+}
+
+
+.attendance-combobox-option.selected > i {
+  display: inline-block;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 700px) {
+
+  .driver-attendance-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+
+  #driverAttendanceModal .ui-form-modal {
+    width:
+      min(
+        100%,
+        calc(100vw - 20px)
+      );
+
+    max-height:
+      calc(100vh - 20px);
+  }
+
+}
+
+
+/* =========================================================
+   VIEW DRIVER ATTENDANCE MODAL
+========================================================= */
+
+#viewDriverAttendanceModal.ui-form-overlay {
+  z-index: 3000;
+}
+
+
+#viewDriverAttendanceModal.ui-form-overlay.show,
+#viewDriverAttendanceModal.ui-form-overlay.active {
+  display: flex;
+}
+
+
+#viewDriverAttendanceModal .ui-form-modal {
+  width: min(700px, calc(100vw - 32px));
+  max-height: calc(100vh - 32px);
+}
+
+
+.attendance-details-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 14px;
+}
+
+
+.attendance-detail-card {
+  min-width: 0;
+
+  padding: 14px;
+
+  background: #f8fafc;
+
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+
+.attendance-detail-card label {
+  display: block;
+
+  margin-bottom: 5px;
+
+  color: #64748b;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  text-transform: uppercase;
+
+  letter-spacing: 0.04em;
+}
+
+
+.attendance-detail-value {
+  color: var(--text);
+
+  font-size: 13px;
+  font-weight: 700;
+
+  line-height: 1.45;
+
+  overflow-wrap: anywhere;
+}
+
+
+.attendance-detail-status {
+  min-width: 86px;
+  min-height: 28px;
+
+  padding: 0 11px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 999px;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  line-height: 1;
+}
+
+
+.attendance-detail-status.present {
+  background: #dcfce7;
+
+  border: 1px solid #b7efca;
+
+  color: #15803d;
+}
+
+
+.attendance-detail-status.late {
+  background: #fff4c7;
+
+  border: 1px solid #f8dd82;
+
+  color: #9a6700;
+}
+
+
+.attendance-detail-status.absent {
+  background: #fee2e2;
+
+  border: 1px solid #fecaca;
+
+  color: #dc2626;
+}
+
+
+.attendance-detail-status.duty {
+  background: #e0ecff;
+
+  border: 1px solid #bfd4ff;
+
+  color: #0b40b5;
+}
+
+
+.attendance-detail-status.leave {
+  background: #ede9fe;
+
+  border: 1px solid #d8b4fe;
+
+  color: #7c3aed;
+}
+
+
+#viewDriverAttendanceModal .ui-form-actions {
+  margin-top: 20px;
+}
+
+
+@media (max-width: 700px) {
+
+  .attendance-details-grid {
+    grid-template-columns: 1fr;
+  }
+
+}
+
+
+/* Remove decorative dots from status badges inside the view modal. */
+
+.attendance-detail-status::before,
+.attendance-detail-status.present::before,
+.attendance-detail-status.late::before,
+.attendance-detail-status.absent::before,
+.attendance-detail-status.duty::before,
+.attendance-detail-status.leave::before {
+  content: none !important;
+
+  display: none !important;
+}
+

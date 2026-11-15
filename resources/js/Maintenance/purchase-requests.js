@@ -2063,51 +2063,8 @@ document.addEventListener(
       }
     );
 
-/* =========================================================
-   SUCCESS NOTIFICATION
-========================================================= */
 
-const successNotification =
-  document.getElementById(
-    'successNotification'
-  );
-
-const closeSuccessNotification =
-  document.getElementById(
-    'closeSuccessNotification'
-  );
-
-function hideSuccessNotification() {
-
-  if (!successNotification) {
-    return;
-  }
-
-  successNotification.classList.add(
-    'is-hiding'
-  );
-
-  window.setTimeout(
-    () => {
-      successNotification.remove();
-    },
-    300
-  );
-}
-
-closeSuccessNotification
-  ?.addEventListener(
-    'click',
-    hideSuccessNotification
-  );
-
-if (successNotification) {
-
-  window.setTimeout(
-    hideSuccessNotification,
-    4000
-  );
-}
-
+    
   }
 );
+

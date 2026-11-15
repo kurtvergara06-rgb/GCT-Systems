@@ -3,27 +3,13 @@
   :assets="[
     'resources/css/Main-styles/main.css',
     'resources/css/Main-styles/sidebar.css',
+    'resources/css/Main-styles/form-components.css',
     'resources/css/Operation/Attendance/driver-attendance.css',
+    'resources/css/Operation/Attendance/driver-attendance-bus-combobox.css',
     'resources/js/Main-js/sidebar.js',
     'resources/js/Operation/Attendance/driver-attendance.js'
   ]"
 >
-
-  <style>
-    .badge.leave {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-width: 78px;
-      padding: 6px 12px;
-      border: 1px solid #c4b5fd;
-      border-radius: 999px;
-      background: #ede9fe;
-      color: #6d28d9;
-      font-weight: 700;
-      line-height: 1;
-    }
-  </style>
 
   <div class="app">
 
@@ -448,6 +434,24 @@
 
                     <div class="actions">
 
+                      {{-- VIEW --}}
+                      <button
+                        type="button"
+                        class="action-btn view open-view-driver-attendance-modal"
+                        title="View"
+                        data-driver-id="{{ $attendance->driver_id }}"
+                        data-driver-name="{{ $attendance->driver_name }}"
+                        data-shift="{{ $attendance->shift }}"
+                        data-bus-assignment="{{ $attendance->bus_assignment ?: 'Unassigned' }}"
+                        data-attendance-date="{{ $attendance->attendance_date ? $attendance->attendance_date->format('M d, Y') : '—' }}"
+                        data-time-in="{{ $attendance->time_in ? date('h:i A', strtotime($attendance->time_in)) : '--:--' }}"
+                        data-time-out="{{ $attendance->time_out ? date('h:i A', strtotime($attendance->time_out)) : '--:--' }}"
+                        data-status="{{ $attendance->status }}"
+                      >
+                        <i class="fa-solid fa-eye"></i>
+                      </button>
+
+
                       {{-- EDIT --}}
                       <button
                         type="button"
@@ -464,23 +468,18 @@
                         data-status="{{ $attendance->status }}"
                         data-update-url="{{ route('driver-attendance.update', $attendance->id, false) }}"
                       >
-
-                        <i class="fa-solid fa-pen"></i>
-
+                        <i class="fa-solid fa-pen-to-square"></i>
                       </button>
 
 
-                      {{-- DELETE FORM --}}
+                      {{-- DELETE --}}
                       <form
                         id="deleteDriverAttendanceForm-{{ $attendance->id }}"
                         action="{{ route('driver-attendance.destroy', $attendance->id, false) }}"
                         method="POST"
                       >
-
                         @csrf
-
                         @method('DELETE')
-
 
                         <button
                           type="button"
@@ -490,11 +489,8 @@
                           data-driver-id="{{ $attendance->driver_id }}"
                           data-driver-name="{{ $attendance->driver_name }}"
                         >
-
                           <i class="fa-solid fa-trash"></i>
-
                         </button>
-
                       </form>
 
                     </div>
@@ -663,539 +659,284 @@
 
 
   {{-- =========================================================
-      NEW DRIVER ATTENDANCE MODAL
+      ADD / EDIT DRIVER ATTENDANCE MODAL
   ========================================================== --}}
-  <div
+  <x-ui.form-modal
     id="driverAttendanceModal"
-    class="modal-overlay"
+    title="Add New Driver Attendance"
+    title-id="driverAttendanceModalTitle"
+    description="Enter driver attendance information."
+    icon="fa-id-card"
+    size="large"
+    form-id="driverAttendanceForm"
+    :action="route('driver-attendance.store', [], false)"
+    method="POST"
+    submit-text="Save Record"
+    submit-text-id="driverAttendanceSubmitText"
+    submit-icon="fa-floppy-disk"
+    cancel-text="Cancel"
+    cancel-id="cancelDriverAttendanceModal"
+    close-id="closeDriverAttendanceModal"
+    :confirm="true"
+    confirm-title="Save Driver Attendance?"
+    confirm-message="Are you sure you want to save this driver attendance record?"
+    confirm-button="Yes, Save Record"
+    confirm-type="create"
   >
+    <input
+      type="hidden"
+      name="_method"
+      id="driverAttendanceFormMethod"
+      value="PUT"
+      disabled
+    >
 
-    <div class="modal-box wide-modal">
+    <div class="ui-form-grid driver-attendance-form-grid">
+      <x-ui.form-field
+        label="Driver ID"
+        name="driver_id_display"
+        id="driverAttendanceDriverId"
+        :value="$nextDriverId"
+        icon="fa-hashtag"
+        :readonly="true"
+      />
 
-      <div class="modal-header">
+      <x-ui.form-field
+        label="Driver Name"
+        name="driver_name"
+        id="driverAttendanceDriverName"
+        :value="old('driver_name')"
+        placeholder="Example: Rowell Amano"
+        icon="fa-user"
+        :required="true"
+      />
 
-        <h2>
-          Add New Driver Attendance
-        </h2>
+      <x-ui.form-select
+        label="Shift"
+        name="shift"
+        id="driverAttendanceShift"
+        :options="[
+          'Morning' => 'Morning',
+          'Afternoon' => 'Afternoon',
+          'Night' => 'Night',
+        ]"
+        :selected="old('shift', 'Morning')"
+        icon="fa-business-time"
+        :required="true"
+      />
 
+      <div class="ui-form-group">
+        <label for="driverBusTrigger">
+          Bus / Assignment
+        </label>
 
-        <button
-          type="button"
-          id="closeDriverAttendanceModal"
-          class="close-btn"
+        <div
+          class="attendance-combobox"
+          id="driverBusCombobox"
         >
-
-          &times;
-
-        </button>
-
-      </div>
-
-
-      <form
-        action="{{ route('driver-attendance.store', [], false) }}"
-        method="POST"
-        class="job-form wide-form"
-        data-confirm-form
-        data-confirm-title="Save Driver Attendance?"
-        data-confirm-message="Are you sure you want to save this driver attendance record?"
-        data-confirm-button="Yes, Save Record"
-        data-confirm-type="create"
-      >
-
-        @csrf
-
-
-        <div class="form-section-title full-width">
-
-          <h3>
-            Attendance Details
-          </h3>
-
-          <p>
-            Enter driver attendance information.
-          </p>
-
-        </div>
-
-
-        {{-- DRIVER ID --}}
-        <div class="form-group">
-
-          <label>
-            Driver ID
-          </label>
-
           <input
-            type="text"
-            value="{{ $nextDriverId }}"
-            readonly
-          >
-
-        </div>
-
-
-        {{-- DRIVER NAME --}}
-        <div class="form-group">
-
-          <label>
-            Driver Name
-          </label>
-
-          <input
-            type="text"
-            name="driver_name"
-            value="{{ old('driver_name') }}"
-            placeholder="Example: Rowell Amano"
-            required
-          >
-
-        </div>
-
-
-        {{-- SHIFT --}}
-        <div class="form-group">
-
-          <label>
-            Shift
-          </label>
-
-          <select
-            name="shift"
-            required
-          >
-
-            <option
-              value="Morning"
-              {{ old('shift') === 'Morning' ? 'selected' : '' }}
-            >
-              Morning
-            </option>
-
-            <option
-              value="Afternoon"
-              {{ old('shift') === 'Afternoon' ? 'selected' : '' }}
-            >
-              Afternoon
-            </option>
-
-            <option
-              value="Night"
-              {{ old('shift') === 'Night' ? 'selected' : '' }}
-            >
-              Night
-            </option>
-
-          </select>
-
-        </div>
-
-
-        {{-- BUS ASSIGNMENT --}}
-        <div class="form-group">
-
-          <label>
-            Bus / Assignment
-          </label>
-
-          <input
-            type="text"
+            type="hidden"
             name="bus_assignment"
+            id="driverBusAssignment"
             value="{{ old('bus_assignment') }}"
-            placeholder="Example: BUS-001"
           >
-
-        </div>
-
-
-        {{-- ATTENDANCE DATE --}}
-        <div class="form-group">
-
-          <label>
-            Date
-          </label>
-
-          <input
-            type="date"
-            name="attendance_date"
-            value="{{ old('attendance_date', now()->format('Y-m-d')) }}"
-            required
-          >
-
-        </div>
-
-
-        {{-- TIME IN --}}
-        <div class="form-group">
-
-          <label>
-            Time-in
-          </label>
-
-          <input
-            type="time"
-            name="time_in"
-            value="{{ old('time_in') }}"
-          >
-
-        </div>
-
-
-        {{-- TIME OUT --}}
-        <div class="form-group">
-
-          <label>
-            Time-out
-          </label>
-
-          <input
-            type="time"
-            name="time_out"
-            value="{{ old('time_out') }}"
-          >
-
-        </div>
-
-
-        {{-- STATUS --}}
-        <div class="form-group">
-
-          <label>
-            Status
-          </label>
-
-          <select
-            name="status"
-            required
-          >
-
-            <option
-              value="Present"
-              {{ old('status') === 'Present' ? 'selected' : '' }}
-            >
-              Present
-            </option>
-
-            <option
-              value="Late"
-              {{ old('status') === 'Late' ? 'selected' : '' }}
-            >
-              Late
-            </option>
-
-            <option
-              value="Absent"
-              {{ old('status') === 'Absent' ? 'selected' : '' }}
-            >
-              Absent
-            </option>
-
-            <option
-              value="On Leave"
-              {{ old('status') === 'On Leave' ? 'selected' : '' }}
-            >
-              On Leave
-            </option>
-
-            <option
-              value="On Duty"
-              {{ old('status') === 'On Duty' ? 'selected' : '' }}
-            >
-              On Duty
-            </option>
-
-          </select>
-
-        </div>
-
-
-        <div class="modal-actions full-width">
 
           <button
             type="button"
-            id="cancelDriverAttendanceModal"
-            class="cancel-btn"
+            class="attendance-combobox-trigger"
+            id="driverBusTrigger"
+            aria-expanded="false"
           >
+            <span class="attendance-combobox-icon">
+              <i class="fa-solid fa-bus"></i>
+            </span>
 
-            Cancel
+            <span
+              class="attendance-combobox-label placeholder"
+              id="driverBusLabel"
+            >
+              Select active bus
+            </span>
 
+            <i class="fa-solid fa-chevron-down"></i>
           </button>
 
-
-          <button
-            type="submit"
-            class="save-btn"
+          <div
+            class="attendance-combobox-menu"
+            id="driverBusMenu"
           >
+            <div class="attendance-combobox-search">
+              <i class="fa-solid fa-magnifying-glass"></i>
 
-            Save Record
+              <input
+                type="search"
+                id="driverBusSearch"
+                placeholder="Search bus number, model, or plate..."
+                autocomplete="off"
+              >
+            </div>
 
-          </button>
+            <div class="attendance-combobox-options">
+              <button
+                type="button"
+                class="attendance-combobox-option"
+                data-value=""
+                data-label="No bus assigned"
+                data-search="no bus unassigned"
+              >
+                <span>
+                  <strong>No bus assigned</strong>
+                  <small>Leave the driver without a bus</small>
+                </span>
 
+                <i class="fa-solid fa-check"></i>
+              </button>
+
+              @foreach($activeBuses as $bus)
+                @php
+                  $busLabel = $bus->bus_no
+                    . (
+                      $bus->bus_model
+                        ? ' — ' . $bus->bus_model
+                        : ''
+                    );
+                @endphp
+
+                <button
+                  type="button"
+                  class="attendance-combobox-option"
+                  data-value="{{ $bus->bus_no }}"
+                  data-label="{{ $busLabel }}"
+                  data-search="{{ strtolower(
+                    $bus->bus_no
+                    . ' '
+                    . ($bus->bus_model ?? '')
+                    . ' '
+                    . ($bus->plate_no ?? '')
+                  ) }}"
+                >
+                  <span>
+                    <strong>{{ $bus->bus_no }}</strong>
+                    <small>
+                      {{ $bus->bus_model ?: 'Operational bus' }}
+                      @if($bus->plate_no)
+                        — {{ $bus->plate_no }}
+                      @endif
+                    </small>
+                  </span>
+
+                  <i class="fa-solid fa-check"></i>
+                </button>
+              @endforeach
+            </div>
+          </div>
         </div>
 
-      </form>
+        <small
+          class="attendance-bus-help"
+          id="driverBusHelp"
+        >
+          Only active buses from Bus Master List are shown.
+        </small>
 
+        @error('bus_assignment')
+          <span class="ui-field-error">
+            {{ $message }}
+          </span>
+        @enderror
+      </div>
+
+      <x-ui.form-field
+        label="Date"
+        name="attendance_date"
+        id="driverAttendanceDate"
+        type="date"
+        :value="old('attendance_date', now()->format('Y-m-d'))"
+        icon="fa-calendar-day"
+        :required="true"
+      />
+
+      <x-ui.form-field
+        label="Time-in"
+        name="time_in"
+        id="driverAttendanceTimeIn"
+        type="time"
+        :value="old('time_in')"
+        icon="fa-clock"
+      />
+
+      <x-ui.form-field
+        label="Time-out"
+        name="time_out"
+        id="driverAttendanceTimeOut"
+        type="time"
+        :value="old('time_out')"
+        icon="fa-clock-rotate-left"
+      />
+
+      <x-ui.form-select
+        label="Status"
+        name="status"
+        id="driverAttendanceStatus"
+        :options="[
+          'Present' => 'Present',
+          'Late' => 'Late',
+          'Absent' => 'Absent',
+          'On Leave' => 'On Leave',
+          'On Duty' => 'On Duty',
+        ]"
+        :selected="old('status', 'Present')"
+        icon="fa-circle-check"
+        :required="true"
+      />
     </div>
 
-  </div>
+    <div class="attendance-form-note">
+      <i class="fa-solid fa-circle-info"></i>
 
+      <div>
+        <strong>Bus assignment rule</strong>
+        <span>
+          The bus field is cleared automatically when the driver is
+          Absent or On Leave.
+        </span>
+      </div>
+    </div>
+  </x-ui.form-modal>
 
 
   {{-- =========================================================
-      EDIT DRIVER ATTENDANCE MODAL
+      VIEW DRIVER ATTENDANCE MODAL
   ========================================================== --}}
-  <div
-    id="editDriverAttendanceModal"
-    class="modal-overlay"
+  <x-ui.form-modal
+    id="viewDriverAttendanceModal"
+    title="Driver Attendance Details"
+    description="Complete driver attendance information."
+    icon="fa-id-card"
+    size="large"
+    form-id="viewDriverAttendanceForm"
+    action="#"
+    method="POST"
+    :show-actions="false"
+    close-id="closeViewDriverAttendanceModal"
   >
+    <div
+      class="attendance-details-grid"
+      id="viewDriverAttendanceContent"
+    ></div>
 
-    <div class="modal-box wide-modal">
-
-      <div class="modal-header">
-
-        <h2>
-          Edit Driver Attendance
-        </h2>
-
-
-        <button
-          type="button"
-          id="closeEditDriverAttendanceModal"
-          class="close-btn"
-        >
-
-          &times;
-
-        </button>
-
-      </div>
-
-
-      <form
-        id="editDriverAttendanceForm"
-        method="POST"
-        class="job-form wide-form"
-        data-confirm-form
-        data-confirm-title="Update Driver Attendance?"
-        data-confirm-message="Are you sure you want to update this driver attendance record?"
-        data-confirm-button="Yes, Update Record"
-        data-confirm-type="update"
+    <div class="ui-form-actions">
+      <button
+        type="button"
+        id="closeViewDriverAttendanceButton"
+        class="ui-form-btn ui-form-btn-primary"
       >
+        <i class="fa-solid fa-check"></i>
 
-        @csrf
-
-        @method('PUT')
-
-
-        <div class="form-section-title full-width">
-
-          <h3>
-            Attendance Details
-          </h3>
-
-          <p>
-            Update driver attendance information.
-          </p>
-
-        </div>
-
-
-        {{-- DRIVER ID --}}
-        <div class="form-group">
-
-          <label>
-            Driver ID
-          </label>
-
-          <input
-            type="text"
-            id="edit_driver_id"
-            readonly
-          >
-
-        </div>
-
-
-        {{-- DRIVER NAME --}}
-        <div class="form-group">
-
-          <label>
-            Driver Name
-          </label>
-
-          <input
-            type="text"
-            name="driver_name"
-            id="edit_driver_name"
-            required
-          >
-
-        </div>
-
-
-        {{-- SHIFT --}}
-        <div class="form-group">
-
-          <label>
-            Shift
-          </label>
-
-          <select
-            name="shift"
-            id="edit_shift"
-            required
-          >
-
-            <option value="Morning">
-              Morning
-            </option>
-
-            <option value="Afternoon">
-              Afternoon
-            </option>
-
-            <option value="Night">
-              Night
-            </option>
-
-          </select>
-
-        </div>
-
-
-        {{-- BUS ASSIGNMENT --}}
-        <div class="form-group">
-
-          <label>
-            Bus / Assignment
-          </label>
-
-          <input
-            type="text"
-            name="bus_assignment"
-            id="edit_bus_assignment"
-          >
-
-        </div>
-
-
-        {{-- DATE --}}
-        <div class="form-group">
-
-          <label>
-            Date
-          </label>
-
-          <input
-            type="date"
-            name="attendance_date"
-            id="edit_attendance_date"
-            required
-          >
-
-        </div>
-
-
-        {{-- TIME-IN --}}
-        <div class="form-group">
-
-          <label>
-            Time-in
-          </label>
-
-          <input
-            type="time"
-            name="time_in"
-            id="edit_time_in"
-          >
-
-        </div>
-
-
-        {{-- TIME-OUT --}}
-        <div class="form-group">
-
-          <label>
-            Time-out
-          </label>
-
-          <input
-            type="time"
-            name="time_out"
-            id="edit_time_out"
-          >
-
-        </div>
-
-
-        {{-- STATUS --}}
-        <div class="form-group">
-
-          <label>
-            Status
-          </label>
-
-          <select
-            name="status"
-            id="edit_status"
-            required
-          >
-
-            <option value="Present">
-              Present
-            </option>
-
-            <option value="Late">
-              Late
-            </option>
-
-            <option value="Absent">
-              Absent
-            </option>
-
-            <option value="On Leave">
-              On Leave
-            </option>
-
-            <option value="On Duty">
-              On Duty
-            </option>
-
-          </select>
-
-        </div>
-
-
-        <div class="modal-actions full-width">
-
-          <button
-            type="button"
-            id="cancelEditDriverAttendanceModal"
-            class="cancel-btn"
-          >
-
-            Cancel
-
-          </button>
-
-
-          <button
-            type="submit"
-            class="save-btn"
-          >
-
-            Update Record
-
-          </button>
-
-        </div>
-
-      </form>
-
+        <span>Close</span>
+      </button>
     </div>
-
-  </div>
-
+  </x-ui.form-modal>
 
 
   {{-- =========================================================

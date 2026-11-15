@@ -1,37 +1,65 @@
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', () => {
+  const createAction = '/driver-attendance';
 
-  function normalizeDriverAttendancePath(value, fallback = '/driver-attendance') {
+
+  /*
+  |--------------------------------------------------------------------------
+  | URL Helper
+  |--------------------------------------------------------------------------
+  */
+
+  function normalizeDriverAttendancePath(
+    value,
+    fallback = '/driver-attendance'
+  ) {
     const rawValue = String(value || '').trim();
 
     if (!rawValue) {
       return fallback;
     }
 
-    if (rawValue.startsWith('/') && !rawValue.startsWith('//')) {
+    if (
+      rawValue.startsWith('/')
+      && !rawValue.startsWith('//')
+    ) {
       return rawValue;
     }
 
     try {
-      const parsed = new URL(rawValue, window.location.origin);
+      const parsed = new URL(
+        rawValue,
+        window.location.origin
+      );
 
-      if (parsed.origin === window.location.origin) {
-        return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+      if (
+        parsed.origin
+        === window.location.origin
+      ) {
+        return (
+          parsed.pathname
+          + parsed.search
+          + parsed.hash
+        );
       }
     } catch (error) {
-      // Continue with malformed URL cleanup.
+      console.warn(
+        'Unable to parse Driver Attendance URL.',
+        error
+      );
     }
 
     const withoutScheme = rawValue
       .replace(/^https?:\/+/i, '')
       .replace(/^\/+/, '');
 
-    const pathIndex = withoutScheme.indexOf('driver-attendance');
+    const pathIndex =
+      withoutScheme.indexOf(
+        'driver-attendance'
+      );
 
-    if (pathIndex >= 0) {
-      return `/${withoutScheme.slice(pathIndex)}`;
-    }
-
-    return fallback;
+    return pathIndex >= 0
+      ? `/${withoutScheme.slice(pathIndex)}`
+      : fallback;
   }
 
 
@@ -42,373 +70,888 @@ document.addEventListener('DOMContentLoaded', function () {
   */
 
   function openModal(modal) {
-    if (modal) {
-      modal.classList.add('show');
-    }
+    modal?.classList.add(
+      'show',
+      'active'
+    );
   }
 
+
   function closeModal(modal) {
-    if (modal) {
-      modal.classList.remove('show');
-    }
+    modal?.classList.remove(
+      'show',
+      'active'
+    );
   }
 
 
   /*
   |--------------------------------------------------------------------------
-  | Import Driver Attendance Modal
+  | Import Modal
   |--------------------------------------------------------------------------
   */
 
-  const importDriverAttendanceModal =
+  const importModal =
     document.getElementById(
       'importDriverAttendanceModal'
     );
 
-  const openImportDriverAttendanceModal =
-    document.getElementById(
+
+  document
+    .getElementById(
       'openImportDriverAttendanceModal'
+    )
+    ?.addEventListener(
+      'click',
+      () => {
+        openModal(importModal);
+      }
     );
 
-  const closeImportDriverAttendanceModal =
+
+  [
     document.getElementById(
       'closeImportDriverAttendanceModal'
-    );
+    ),
 
-  const cancelImportDriverAttendanceModal =
     document.getElementById(
       'cancelImportDriverAttendanceModal'
-    );
-
-
-  if (
-    openImportDriverAttendanceModal
-  ) {
-    openImportDriverAttendanceModal
-      .addEventListener(
+    ),
+  ]
+    .filter(Boolean)
+    .forEach((button) => {
+      button.addEventListener(
         'click',
-        function () {
-          openModal(
-            importDriverAttendanceModal
-          );
+        () => {
+          closeModal(importModal);
         }
       );
-  }
-
-
-  if (
-    closeImportDriverAttendanceModal
-  ) {
-    closeImportDriverAttendanceModal
-      .addEventListener(
-        'click',
-        function () {
-          closeModal(
-            importDriverAttendanceModal
-          );
-        }
-      );
-  }
-
-
-  if (
-    cancelImportDriverAttendanceModal
-  ) {
-    cancelImportDriverAttendanceModal
-      .addEventListener(
-        'click',
-        function () {
-          closeModal(
-            importDriverAttendanceModal
-          );
-        }
-      );
-  }
+    });
 
 
   /*
   |--------------------------------------------------------------------------
-  | Add Driver Attendance Modal
+  | Shared Add / Edit Attendance Modal
   |--------------------------------------------------------------------------
   */
 
-  const driverAttendanceModal =
+  const attendanceModal =
     document.getElementById(
       'driverAttendanceModal'
     );
 
-  const openDriverAttendanceModal =
+  const attendanceForm =
     document.getElementById(
-      'openDriverAttendanceModal'
+      'driverAttendanceForm'
     );
 
-  const closeDriverAttendanceModal =
+  const attendanceFormMethod =
     document.getElementById(
-      'closeDriverAttendanceModal'
+      'driverAttendanceFormMethod'
     );
 
-  const cancelDriverAttendanceModal =
+  const modalTitle =
     document.getElementById(
-      'cancelDriverAttendanceModal'
+      'driverAttendanceModalTitle'
+    );
+
+  const submitText =
+    document.getElementById(
+      'driverAttendanceSubmitText'
+    );
+
+  const driverId =
+    document.getElementById(
+      'driverAttendanceDriverId'
+    );
+
+  const driverName =
+    document.getElementById(
+      'driverAttendanceDriverName'
+    );
+
+  const shift =
+    document.getElementById(
+      'driverAttendanceShift'
+    );
+
+  const attendanceDate =
+    document.getElementById(
+      'driverAttendanceDate'
+    );
+
+  const timeIn =
+    document.getElementById(
+      'driverAttendanceTimeIn'
+    );
+
+  const timeOut =
+    document.getElementById(
+      'driverAttendanceTimeOut'
+    );
+
+  const status =
+    document.getElementById(
+      'driverAttendanceStatus'
     );
 
 
-  if (
-    openDriverAttendanceModal
-  ) {
-    openDriverAttendanceModal
-      .addEventListener(
-        'click',
-        function () {
-          openModal(
-            driverAttendanceModal
-          );
-        }
-      );
+  /*
+  |--------------------------------------------------------------------------
+  | Searchable Bus Dropdown
+  |--------------------------------------------------------------------------
+  */
+
+  const busCombobox =
+    document.getElementById(
+      'driverBusCombobox'
+    );
+
+  const busInput =
+    document.getElementById(
+      'driverBusAssignment'
+    );
+
+  const busTrigger =
+    document.getElementById(
+      'driverBusTrigger'
+    );
+
+  const busMenu =
+    document.getElementById(
+      'driverBusMenu'
+    );
+
+  const busLabel =
+    document.getElementById(
+      'driverBusLabel'
+    );
+
+  const busSearch =
+    document.getElementById(
+      'driverBusSearch'
+    );
+
+  const busHelp =
+    document.getElementById(
+      'driverBusHelp'
+    );
+
+  const busOptions =
+    document.querySelectorAll(
+      '.attendance-combobox-option'
+    );
+
+
+  function openBusDropdown() {
+    if (
+      !busMenu
+      || !busTrigger
+      || busTrigger.disabled
+    ) {
+      return;
+    }
+
+    busMenu.classList.add('show');
+
+    busTrigger.setAttribute(
+      'aria-expanded',
+      'true'
+    );
+
+    window.setTimeout(() => {
+      busSearch?.focus();
+    }, 50);
   }
 
 
-  if (
-    closeDriverAttendanceModal
-  ) {
-    closeDriverAttendanceModal
-      .addEventListener(
-        'click',
-        function () {
-          closeModal(
-            driverAttendanceModal
-          );
-        }
-      );
+  function closeBusDropdown() {
+    busMenu?.classList.remove('show');
+
+    busTrigger?.setAttribute(
+      'aria-expanded',
+      'false'
+    );
   }
 
 
-  if (
-    cancelDriverAttendanceModal
-  ) {
-    cancelDriverAttendanceModal
-      .addEventListener(
-        'click',
-        function () {
-          closeModal(
-            driverAttendanceModal
-          );
-        }
+  function filterBusOptions(value) {
+    const searchValue =
+      String(value || '')
+        .trim()
+        .toLowerCase();
+
+    busOptions.forEach((option) => {
+      const searchableText =
+        String(
+          option.dataset.search || ''
+        ).toLowerCase();
+
+      option.hidden =
+        Boolean(searchValue)
+        && !searchableText.includes(
+          searchValue
+        );
+    });
+  }
+
+
+  function selectBus(value, label) {
+    const normalizedValue =
+      String(value || '');
+
+    if (busInput) {
+      busInput.value =
+        normalizedValue;
+    }
+
+    if (busLabel) {
+      busLabel.textContent =
+        label || 'No bus assigned';
+
+      busLabel.classList.toggle(
+        'placeholder',
+        !normalizedValue
       );
+    }
+
+    busOptions.forEach((option) => {
+      const optionValue =
+        String(
+          option.dataset.value || ''
+        );
+
+      option.classList.toggle(
+        'selected',
+        optionValue === normalizedValue
+      );
+    });
+
+    closeBusDropdown();
+  }
+
+
+  function selectBusByValue(value) {
+    const normalizedValue =
+      String(value || '').trim();
+
+    const matchingOption =
+      Array.from(busOptions)
+        .find((option) => {
+          const optionValue =
+            String(
+              option.dataset.value || ''
+            ).trim();
+
+          return (
+            optionValue
+            === normalizedValue
+          );
+        });
+
+    if (matchingOption) {
+      selectBus(
+        matchingOption.dataset.value,
+        matchingOption.dataset.label
+      );
+
+      return;
+    }
+
+    /*
+     * Old records may contain BUS-001,
+     * BUS-002, and similar values that
+     * are no longer in Bus Master List.
+     */
+
+    if (normalizedValue) {
+      if (busInput) {
+        busInput.value = '';
+      }
+
+      if (busLabel) {
+        busLabel.textContent =
+          `${normalizedValue} — not found in Bus Master List`;
+
+        busLabel.classList.remove(
+          'placeholder'
+        );
+      }
+
+      busOptions.forEach((option) => {
+        option.classList.remove(
+          'selected'
+        );
+      });
+
+      return;
+    }
+
+    selectBus(
+      '',
+      'No bus assigned'
+    );
+  }
+
+
+  function resetBusSearch() {
+    if (busSearch) {
+      busSearch.value = '';
+    }
+
+    filterBusOptions('');
+  }
+
+
+  function syncBusAvailability() {
+    const unavailableStatuses = [
+      'Absent',
+      'On Leave',
+    ];
+
+    const unavailable =
+      unavailableStatuses.includes(
+        status?.value
+      );
+
+    if (busTrigger) {
+      busTrigger.disabled =
+        unavailable;
+    }
+
+    if (unavailable) {
+      selectBus(
+        '',
+        'No bus assigned'
+      );
+
+      closeBusDropdown();
+
+      if (busHelp) {
+        busHelp.textContent =
+          'Bus selection is disabled for Absent or On Leave drivers.';
+      }
+
+      return;
+    }
+
+    if (busHelp) {
+      busHelp.textContent =
+        'Only active buses from Bus Master List are shown.';
+    }
+  }
+
+
+  busTrigger?.addEventListener(
+    'click',
+    () => {
+      const isOpen =
+        busMenu
+          ?.classList
+          .contains('show');
+
+      if (isOpen) {
+        closeBusDropdown();
+      } else {
+        openBusDropdown();
+      }
+    }
+  );
+
+
+  busSearch?.addEventListener(
+    'input',
+    () => {
+      filterBusOptions(
+        busSearch.value
+      );
+    }
+  );
+
+
+  busOptions.forEach((option) => {
+    option.addEventListener(
+      'click',
+      () => {
+        selectBus(
+          option.dataset.value,
+          option.dataset.label
+        );
+      }
+    );
+  });
+
+
+  document.addEventListener(
+    'click',
+    (event) => {
+      if (
+        busCombobox
+        && !busCombobox.contains(
+          event.target
+        )
+      ) {
+        closeBusDropdown();
+      }
+    }
+  );
+
+
+  status?.addEventListener(
+    'change',
+    syncBusAvailability
+  );
+
+
+  /*
+  |--------------------------------------------------------------------------
+  | Date Helper
+  |--------------------------------------------------------------------------
+  */
+
+  function getLocalDate() {
+    const now = new Date();
+
+    const year =
+      now.getFullYear();
+
+    const month =
+      String(
+        now.getMonth() + 1
+      ).padStart(2, '0');
+
+    const day =
+      String(
+        now.getDate()
+      ).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
   }
 
 
   /*
   |--------------------------------------------------------------------------
-  | Edit Driver Attendance Modal
+  | Reset Form for Create
   |--------------------------------------------------------------------------
   */
 
-  const editDriverAttendanceModal =
-    document.getElementById(
-      'editDriverAttendanceModal'
+  function resetCreateForm() {
+    attendanceForm?.reset();
+
+    attendanceForm?.setAttribute(
+      'action',
+      createAction
     );
 
-  const editDriverAttendanceForm =
-    document.getElementById(
-      'editDriverAttendanceForm'
+    if (attendanceFormMethod) {
+      attendanceFormMethod.disabled =
+        true;
+    }
+
+    if (modalTitle) {
+      modalTitle.textContent =
+        'Add New Driver Attendance';
+    }
+
+    if (submitText) {
+      submitText.textContent =
+        'Save Record';
+    }
+
+    if (attendanceForm) {
+      attendanceForm.dataset.confirmTitle =
+        'Save Driver Attendance?';
+
+      attendanceForm.dataset.confirmMessage =
+        'Are you sure you want to save this driver attendance record?';
+
+      attendanceForm.dataset.confirmButton =
+        'Yes, Save Record';
+
+      attendanceForm.dataset.confirmType =
+        'create';
+    }
+
+    if (attendanceDate) {
+      attendanceDate.value =
+        getLocalDate();
+    }
+
+    if (status) {
+      status.value =
+        'Present';
+    }
+
+    selectBus(
+      '',
+      'No bus assigned'
     );
 
-  const closeEditDriverAttendanceModal =
-    document.getElementById(
-      'closeEditDriverAttendanceModal'
+    resetBusSearch();
+    syncBusAvailability();
+  }
+
+
+  /*
+  |--------------------------------------------------------------------------
+  | Open Create Modal
+  |--------------------------------------------------------------------------
+  */
+
+  document
+    .getElementById(
+      'openDriverAttendanceModal'
+    )
+    ?.addEventListener(
+      'click',
+      () => {
+        resetCreateForm();
+        openModal(attendanceModal);
+      }
     );
 
-  const cancelEditDriverAttendanceModal =
+
+  /*
+  |--------------------------------------------------------------------------
+  | Close Add / Edit Modal
+  |--------------------------------------------------------------------------
+  */
+
+  [
     document.getElementById(
-      'cancelEditDriverAttendanceModal'
-    );
+      'closeDriverAttendanceModal'
+    ),
 
-
-  const editDriverId =
     document.getElementById(
-      'edit_driver_id'
-    );
+      'cancelDriverAttendanceModal'
+    ),
+  ]
+    .filter(Boolean)
+    .forEach((button) => {
+      button.addEventListener(
+        'click',
+        () => {
+          closeBusDropdown();
+          closeModal(attendanceModal);
+        }
+      );
+    });
 
-  const editDriverName =
-    document.getElementById(
-      'edit_driver_name'
-    );
 
-  const editShift =
-    document.getElementById(
-      'edit_shift'
-    );
-
-  const editBusAssignment =
-    document.getElementById(
-      'edit_bus_assignment'
-    );
-
-  const editAttendanceDate =
-    document.getElementById(
-      'edit_attendance_date'
-    );
-
-  const editTimeIn =
-    document.getElementById(
-      'edit_time_in'
-    );
-
-  const editTimeOut =
-    document.getElementById(
-      'edit_time_out'
-    );
-
-  const editStatus =
-    document.getElementById(
-      'edit_status'
-    );
-
+  /*
+  |--------------------------------------------------------------------------
+  | Edit Attendance
+  |--------------------------------------------------------------------------
+  */
 
   document
     .querySelectorAll(
       '.open-edit-driver-attendance-modal'
     )
-    .forEach(function (button) {
-
+    .forEach((button) => {
       button.addEventListener(
         'click',
-        function () {
-
-          if (
-            editDriverAttendanceForm
-          ) {
-            editDriverAttendanceForm.setAttribute(
-              'action',
-              normalizeDriverAttendancePath(
-                button.dataset.updateUrl,
-                `/driver-attendance/${button.dataset.id}`
-              )
-            );
+        () => {
+          if (!attendanceForm) {
+            return;
           }
 
+          const attendanceId =
+            button.dataset.id;
 
-          if (editDriverId) {
-            editDriverId.value =
+          const fallbackUrl =
+            `/driver-attendance/${attendanceId}`;
+
+          attendanceForm.setAttribute(
+            'action',
+            normalizeDriverAttendancePath(
+              button.dataset.updateUrl,
+              fallbackUrl
+            )
+          );
+
+          if (attendanceFormMethod) {
+            attendanceFormMethod.disabled =
+              false;
+
+            attendanceFormMethod.value =
+              'PUT';
+          }
+
+          if (modalTitle) {
+            modalTitle.textContent =
+              'Edit Driver Attendance';
+          }
+
+          if (submitText) {
+            submitText.textContent =
+              'Update Record';
+          }
+
+          attendanceForm.dataset.confirmTitle =
+            'Update Driver Attendance?';
+
+          attendanceForm.dataset.confirmMessage =
+            'Are you sure you want to update this driver attendance record?';
+
+          attendanceForm.dataset.confirmButton =
+            'Yes, Update Record';
+
+          attendanceForm.dataset.confirmType =
+            'update';
+
+          if (driverId) {
+            driverId.value =
               button.dataset.driverId
               || '';
           }
 
-
-          if (editDriverName) {
-            editDriverName.value =
+          if (driverName) {
+            driverName.value =
               button.dataset.driverName
               || '';
           }
 
-
-          if (editShift) {
-            editShift.value =
+          if (shift) {
+            shift.value =
               button.dataset.shift
               || 'Morning';
           }
 
-
-          if (editBusAssignment) {
-            editBusAssignment.value =
-              button.dataset.busAssignment
-              || '';
-          }
-
-
-          if (editAttendanceDate) {
-            editAttendanceDate.value =
+          if (attendanceDate) {
+            attendanceDate.value =
               button.dataset.attendanceDate
               || '';
           }
 
-
-          if (editTimeIn) {
-            editTimeIn.value =
+          if (timeIn) {
+            timeIn.value =
               button.dataset.timeIn
               || '';
           }
 
-
-          if (editTimeOut) {
-            editTimeOut.value =
+          if (timeOut) {
+            timeOut.value =
               button.dataset.timeOut
               || '';
           }
 
-
-          if (editStatus) {
-            editStatus.value =
+          if (status) {
+            status.value =
               button.dataset.status
               || 'Present';
           }
 
+          selectBusByValue(
+            button.dataset.busAssignment
+            || ''
+          );
+
+          resetBusSearch();
+          syncBusAvailability();
+          openModal(attendanceModal);
+        }
+      );
+    });
+
+
+  /*
+  |--------------------------------------------------------------------------
+  | View Attendance Modal
+  |--------------------------------------------------------------------------
+  */
+
+  const viewAttendanceModal =
+    document.getElementById(
+      'viewDriverAttendanceModal'
+    );
+
+  const viewAttendanceContent =
+    document.getElementById(
+      'viewDriverAttendanceContent'
+    );
+
+
+  document
+    .querySelectorAll(
+      '.open-view-driver-attendance-modal'
+    )
+    .forEach((button) => {
+      button.addEventListener(
+        'click',
+        () => {
+          const statusValue =
+            button.dataset.status
+            || 'Present';
+
+          const statusClass =
+            getAttendanceStatusClass(
+              statusValue
+            );
+
+          const details = [
+            [
+              'Driver ID',
+              button.dataset.driverId,
+            ],
+            [
+              'Driver Name',
+              button.dataset.driverName,
+            ],
+            [
+              'Role',
+              'Driver',
+            ],
+            [
+              'Shift',
+              button.dataset.shift,
+            ],
+            [
+              'Bus / Assignment',
+              button.dataset.busAssignment
+              || 'Unassigned',
+            ],
+            [
+              'Date',
+              button.dataset.attendanceDate,
+            ],
+            [
+              'Time-in',
+              button.dataset.timeIn,
+            ],
+            [
+              'Time-out',
+              button.dataset.timeOut,
+            ],
+          ];
+
+          if (viewAttendanceContent) {
+            viewAttendanceContent.innerHTML =
+              details
+                .map(
+                  ([label, value]) => `
+                    <div class="attendance-detail-card">
+                      <label>
+                        ${escapeAttendanceHtml(label)}
+                      </label>
+
+                      <div class="attendance-detail-value">
+                        ${escapeAttendanceHtml(value || '—')}
+                      </div>
+                    </div>
+                  `
+                )
+                .join('')
+              + `
+                <div class="attendance-detail-card">
+                  <label>Status</label>
+
+                  <div>
+                    <span class="attendance-detail-status ${statusClass}">
+                      ${escapeAttendanceHtml(statusValue)}
+                    </span>
+                  </div>
+                </div>
+              `;
+          }
 
           openModal(
-            editDriverAttendanceModal
+            viewAttendanceModal
           );
         }
       );
     });
 
 
-  if (
-    closeEditDriverAttendanceModal
-  ) {
-    closeEditDriverAttendanceModal
-      .addEventListener(
+  [
+    document.getElementById(
+      'closeViewDriverAttendanceModal'
+    ),
+
+    document.getElementById(
+      'closeViewDriverAttendanceButton'
+    ),
+  ]
+    .filter(Boolean)
+    .forEach((button) => {
+      button.addEventListener(
         'click',
-        function () {
+        () => {
           closeModal(
-            editDriverAttendanceModal
+            viewAttendanceModal
           );
         }
       );
+    });
+
+
+  function getAttendanceStatusClass(
+    value
+  ) {
+    const normalizedValue =
+      String(value || '')
+        .trim()
+        .toLowerCase();
+
+    switch (normalizedValue) {
+      case 'late':
+        return 'late';
+
+      case 'absent':
+        return 'absent';
+
+      case 'on duty':
+        return 'duty';
+
+      case 'on leave':
+        return 'leave';
+
+      default:
+        return 'present';
+    }
   }
 
 
-  if (
-    cancelEditDriverAttendanceModal
-  ) {
-    cancelEditDriverAttendanceModal
-      .addEventListener(
-        'click',
-        function () {
-          closeModal(
-            editDriverAttendanceModal
-          );
-        }
+  function escapeAttendanceHtml(value) {
+    return String(value)
+      .replaceAll(
+        '&',
+        '&amp;'
+      )
+      .replaceAll(
+        '<',
+        '&lt;'
+      )
+      .replaceAll(
+        '>',
+        '&gt;'
+      )
+      .replaceAll(
+        '"',
+        '&quot;'
+      )
+      .replaceAll(
+        "'",
+        '&#039;'
       );
   }
 
 
   /*
   |--------------------------------------------------------------------------
-  | Delete Driver Attendance Modal
+  | Delete Attendance Modal
   |--------------------------------------------------------------------------
   */
 
-  const deleteDriverAttendanceModal =
+  const deleteModal =
     document.getElementById(
       'deleteDriverAttendanceModal'
     );
 
-  const deleteDriverAttendanceName =
+  const deleteName =
     document.getElementById(
       'deleteDriverAttendanceName'
     );
-
-  const cancelDeleteDriverAttendance =
-    document.getElementById(
-      'cancelDeleteDriverAttendance'
-    );
-
-  const confirmDeleteDriverAttendance =
-    document.getElementById(
-      'confirmDeleteDriverAttendance'
-    );
-
 
   let selectedDeleteForm = null;
 
@@ -417,100 +960,81 @@ document.addEventListener('DOMContentLoaded', function () {
     .querySelectorAll(
       '.open-delete-driver-attendance-modal'
     )
-    .forEach(function (button) {
-
+    .forEach((button) => {
       button.addEventListener(
         'click',
-        function (event) {
-
+        (event) => {
           event.preventDefault();
 
           const attendanceId =
             button.dataset.id;
-
 
           selectedDeleteForm =
             document.getElementById(
               `deleteDriverAttendanceForm-${attendanceId}`
             );
 
-
-          if (
-            deleteDriverAttendanceName
-          ) {
-            deleteDriverAttendanceName.textContent =
+          if (deleteName) {
+            deleteName.textContent =
               button.dataset.driverName
-              ||
-              button.dataset.driverId
-              ||
-              'this driver attendance record';
+              || button.dataset.driverId
+              || 'this driver attendance record';
           }
 
-
-          openModal(
-            deleteDriverAttendanceModal
-          );
+          openModal(deleteModal);
         }
       );
     });
 
 
-  if (
-    cancelDeleteDriverAttendance
-  ) {
-    cancelDeleteDriverAttendance
-      .addEventListener(
-        'click',
-        function () {
-
-          selectedDeleteForm = null;
-
-          closeModal(
-            deleteDriverAttendanceModal
-          );
-        }
-      );
-  }
+  document
+    .getElementById(
+      'cancelDeleteDriverAttendance'
+    )
+    ?.addEventListener(
+      'click',
+      () => {
+        selectedDeleteForm = null;
+        closeModal(deleteModal);
+      }
+    );
 
 
-  if (
-    confirmDeleteDriverAttendance
-  ) {
-    confirmDeleteDriverAttendance
-      .addEventListener(
-        'click',
-        function () {
-
-          if (
-            selectedDeleteForm
-          ) {
-            selectedDeleteForm
-              .requestSubmit();
-          }
-        }
-      );
-  }
+  document
+    .getElementById(
+      'confirmDeleteDriverAttendance'
+    )
+    ?.addEventListener(
+      'click',
+      () => {
+        selectedDeleteForm
+          ?.requestSubmit();
+      }
+    );
 
 
   /*
   |--------------------------------------------------------------------------
-  | Close Modal When Clicking Outside
+  | Close Modal by Clicking Overlay
   |--------------------------------------------------------------------------
   */
 
   document
     .querySelectorAll(
-      '.modal-overlay, .delete-modal-overlay, .success-modal-overlay'
+      '.modal-overlay, '
+      + '.ui-form-overlay, '
+      + '.delete-modal-overlay, '
+      + '.success-modal-overlay'
     )
-    .forEach(function (modal) {
-
+    .forEach((modal) => {
       modal.addEventListener(
         'click',
-        function (event) {
-
+        (event) => {
           if (
-            event.target === modal
+            event.target
+            === modal
           ) {
+            closeBusDropdown();
             closeModal(modal);
           }
         }
@@ -526,28 +1050,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
   document.addEventListener(
     'keydown',
-    function (event) {
-
+    (event) => {
       if (
-        event.key === 'Escape'
+        event.key
+        !== 'Escape'
       ) {
-        closeModal(
-          importDriverAttendanceModal
-        );
-
-        closeModal(
-          driverAttendanceModal
-        );
-
-        closeModal(
-          editDriverAttendanceModal
-        );
-
-        closeModal(
-          deleteDriverAttendanceModal
-        );
+        return;
       }
+
+      closeBusDropdown();
+      closeModal(importModal);
+      closeModal(attendanceModal);
+      closeModal(viewAttendanceModal);
+      closeModal(deleteModal);
     }
   );
-
 });

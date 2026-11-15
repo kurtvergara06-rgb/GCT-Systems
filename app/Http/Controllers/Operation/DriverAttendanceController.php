@@ -4,10 +4,12 @@ namespace App\Http\Controllers\Operation;
 
 use App\Http\Controllers\Controller;
 use App\Models\Operation\DriverAttendance;
+use App\Models\Operation\Bus;
 use App\Traits\SystemDataUpdateBroadcaster;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Validation\Rule;
 use Throwable;
 
 class DriverAttendanceController extends Controller
@@ -66,7 +68,7 @@ class DriverAttendanceController extends Controller
 
         $driverAttendances = $query
             ->latest()
-            ->paginate(8)
+            ->paginate(10)
             ->withQueryString();
 
         /*
@@ -104,6 +106,11 @@ class DriverAttendanceController extends Controller
         $nextDriverId =
             $this->generateDriverId();
 
+        $activeBuses = Bus::query()
+            ->where('status', 'Active')
+            ->orderBy('bus_no')
+            ->get();
+
         return view(
             'Operation.Attendance.driver-attendance',
             compact(
@@ -112,7 +119,8 @@ class DriverAttendanceController extends Controller
                 'absent',
                 'late',
                 'onDuty',
-                'nextDriverId'
+                'nextDriverId',
+                'activeBuses'
             )
         );
     }
@@ -128,12 +136,24 @@ class DriverAttendanceController extends Controller
         $validated = $request->validate([
             'driver_name' => 'required|string|max:255',
             'shift' => 'required|string|max:255',
-            'bus_assignment' => 'nullable|string|max:255',
+            'bus_assignment' => [
+                'nullable',
+                Rule::exists('buses', 'bus_no')
+                    ->where('status', 'Active'),
+            ],
             'attendance_date' => 'required|date',
             'time_in' => 'nullable',
             'time_out' => 'nullable',
             'status' => 'required|string|in:Present,Late,Absent,On Leave,On Duty',
         ]);
+
+        if (in_array(
+            $validated['status'],
+            ['Absent', 'On Leave'],
+            true
+        )) {
+            $validated['bus_assignment'] = null;
+        }
 
         $validated['driver_id'] =
             $this->generateDriverId();
@@ -172,12 +192,24 @@ class DriverAttendanceController extends Controller
         $validated = $request->validate([
             'driver_name' => 'required|string|max:255',
             'shift' => 'required|string|max:255',
-            'bus_assignment' => 'nullable|string|max:255',
+            'bus_assignment' => [
+                'nullable',
+                Rule::exists('buses', 'bus_no')
+                    ->where('status', 'Active'),
+            ],
             'attendance_date' => 'required|date',
             'time_in' => 'nullable',
             'time_out' => 'nullable',
             'status' => 'required|string|in:Present,Late,Absent,On Leave,On Duty',
         ]);
+
+        if (in_array(
+            $validated['status'],
+            ['Absent', 'On Leave'],
+            true
+        )) {
+            $validated['bus_assignment'] = null;
+        }
 
         $driverAttendance->update(
             $validated
