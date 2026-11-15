@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function () {
+window.GCTPartialNavigation.registerInitializer('purchase-inventory-restock', '.inventory-restock-page', function () {
   function openModal(modal) {
     if (!modal) return;
 

@@ -1,6 +1,7 @@
 @props([
   'title' => 'GCT System',
-  'assets' => []
+  'assets' => [],
+  'partialNavigation' => true,
 ])
 
 @php
@@ -8,7 +9,17 @@
     'resources/css/Main-styles/theme.css',
     'resources/css/Main-styles/main.css',
     'resources/css/Main-styles/sidebar.css',
+    'resources/css/Main-styles/sidebar-state.css',
+    'resources/css/Main-styles/identifier-text.css',
     'resources/css/Main-styles/admin-records.css',
+    /*
+     * Load the partial-navigation runtime as its own early Vite entry.
+     * Maintenance page scripts register their modal/button initializers against
+     * window.GCTPartialNavigation, so it must exist before independent page
+     * entry modules such as job-order.js, pms-scheduling.js, fuel-reports.js,
+     * and purchase-requests.js execute.
+     */
+    'resources/js/Main-js/partial-navigation.js',
     'resources/js/Main-js/sidebar.js',
     'resources/js/Main-js/confirmation-modal.js',
     'resources/js/app.js',
@@ -38,6 +49,8 @@
   @endauth
 
   <title>{{ $title }}</title>
+
+  <meta name="gct-partial-navigation" content="{{ $partialNavigation ? 'enabled' : 'disabled' }}">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

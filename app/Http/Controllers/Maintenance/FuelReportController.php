@@ -280,7 +280,7 @@ class FuelReportController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request): RedirectResponse|JsonResponse
     {
         if ($request->boolean('daily_monitoring')) {
             return $this->storeDailyMonitoring($request);
@@ -291,6 +291,13 @@ class FuelReportController extends Controller
         $resolved = $this->resolveDistance($validated);
 
         if (!$resolved['success']) {
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $resolved['message'],
+                ], 422);
+            }
+
             return back()
                 ->withInput()
                 ->with('error', $resolved['message']);
@@ -303,7 +310,7 @@ class FuelReportController extends Controller
             ? $distanceKm / $fuelLiters
             : 0;
 
-        FuelReport::create([
+        $record = FuelReport::create([
             'report_date' => $validated['report_date'],
             'bus_no' => $validated['bus_no'],
             'driver_name' => $validated['driver_name'] ?? null,
@@ -317,6 +324,14 @@ class FuelReportController extends Controller
             'manual_distance_reason' => $validated['manual_distance_reason'] ?? null,
         ]);
 
+        if ($request->ajax() || $request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Fuel record saved successfully.',
+                'data' => $record,
+            ]);
+        }
+
         return redirect()
             ->to(route('fuel-reports', [], false))
             ->with('success', 'Fuel record saved successfully.');
@@ -325,12 +340,19 @@ class FuelReportController extends Controller
     public function update(
         Request $request,
         FuelReport $fuelReport
-    ): RedirectResponse {
+    ): RedirectResponse|JsonResponse {
         $validated = $this->validateFuelReport($request);
 
         $resolved = $this->resolveDistance($validated);
 
         if (!$resolved['success']) {
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $resolved['message'],
+                ], 422);
+            }
+
             return back()
                 ->withInput()
                 ->with('error', $resolved['message']);
@@ -357,21 +379,36 @@ class FuelReportController extends Controller
             'manual_distance_reason' => $validated['manual_distance_reason'] ?? null,
         ]);
 
+        if ($request->ajax() || $request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Fuel record updated successfully.',
+                'data' => $fuelReport,
+            ]);
+        }
+
         return redirect()
             ->to(route('fuel-reports', [], false))
             ->with('success', 'Fuel record updated successfully.');
     }
 
-    public function destroy(FuelReport $fuelReport): RedirectResponse
+    public function destroy(FuelReport $fuelReport): RedirectResponse|JsonResponse
     {
         $fuelReport->delete();
+
+        if (request()->ajax() || request()->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Fuel record deleted successfully.',
+            ]);
+        }
 
         return redirect()
             ->to(route('fuel-reports', [], false))
             ->with('success', 'Fuel record deleted successfully.');
     }
 
-    private function storeDailyMonitoring(Request $request): RedirectResponse
+    private function storeDailyMonitoring(Request $request): RedirectResponse|JsonResponse
     {
         $validated = $request->validate([
             'monitor_date' => ['required', 'date'],
@@ -472,6 +509,13 @@ class FuelReportController extends Controller
 
         if ($skipped > 0) {
             $message .= " {$skipped} row(s) were skipped because GPS data was missing.";
+        }
+
+        if ($request->ajax() || $request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+            ]);
         }
 
         return redirect()

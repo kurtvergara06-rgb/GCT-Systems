@@ -1,0 +1,44 @@
+/* =========================================================
+   SHARED SIDEBAR OPEN / ACTIVE STATE
+   Keep expanded dropdown parents visually neutral so only
+   the actual current page/submenu item carries active emphasis.
+========================================================= */
+
+#appSidebar .menu-dropdown.open > .dropdown-toggle,
+#appSidebar .menu-dropdown.active > .dropdown-toggle {
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: #e2e8f0 !important;
+  box-shadow: none !important;
+}
+
+#appSidebar .menu-dropdown.open > .dropdown-toggle i,
+#appSidebar .menu-dropdown.open > .dropdown-toggle span,
+#appSidebar .menu-dropdown.active > .dropdown-toggle i,
+#appSidebar .menu-dropdown.active > .dropdown-toggle span {
+  color: inherit !important;
+}
+
+#appSidebar .menu-dropdown.open > .dropdown-toggle:hover,
+#appSidebar .menu-dropdown.active > .dropdown-toggle:hover {
+  background: rgba(255, 196, 0, 0.12) !important;
+  color: #ffffff !important;
+}
+
+/* The actual current submenu page gets the same strong yellow
+   emphasis as a top-level active page. */
+#appSidebar .submenu-item.active,
+#appSidebar .menu-dropdown.open .submenu-item.active,
+#appSidebar .menu-dropdown.active .submenu-item.active {
+  background: #ffc400 !important;
+  color: #061f3d !important;
+  box-shadow: 0 8px 20px rgba(255, 196, 0, 0.16) !important;
+}
+
+#appSidebar .submenu-item.active i,
+#appSidebar .submenu-item.active span,
+#appSidebar .menu-dropdown.open .submenu-item.active i,
+#appSidebar .menu-dropdown.open .submenu-item.active span,
+#appSidebar .menu-dropdown.active .submenu-item.active i,
+#appSidebar .menu-dropdown.active .submenu-item.active span {
+  color: #061f3d !important;
+}

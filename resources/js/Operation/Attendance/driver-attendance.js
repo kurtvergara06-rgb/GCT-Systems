@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+window.GCTPartialNavigation.registerInitializer('operation-driver-attendance', '.driver-attendance-page', () => {
   function normalizeDriverAttendancePath(
     value,
     fallback = '/driver-attendance'

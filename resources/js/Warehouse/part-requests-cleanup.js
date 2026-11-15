@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function () {
+window.GCTPartialNavigation.registerInitializer('warehouse-part-requests-cleanup', '.warehouse-part-main', function () {
   function setField(id, value, fallback = '—') {
     const element = document.getElementById(id);
     if (!element) return;

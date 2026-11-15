@@ -126,8 +126,8 @@ function initDataHistoryPage() {
     });
 }
 
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initDataHistoryPage, { once: true });
-} else {
-    initDataHistoryPage();
-}
+window.GCTPartialNavigation.registerInitializer(
+    'admin-data-history',
+    '.data-history-page',
+    initDataHistoryPage,
+);

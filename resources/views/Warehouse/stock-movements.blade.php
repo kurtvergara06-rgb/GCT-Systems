@@ -32,7 +32,7 @@
           </div>
         </div>
 
-        <form action="{{ route('stock-movements') }}" method="GET" class="toolbar stock-movement-toolbar">
+        <form action="{{ route('stock-movements') }}" method="GET" class="toolbar stock-movement-toolbar" data-server-filter="true">
           <div class="search-box">
             <i class="fa-solid fa-magnifying-glass"></i>
             <input type="text" name="search" value="{{ request('search') }}" placeholder="Search item, reference no., or movement...">
@@ -150,7 +150,7 @@
           </table>
         </div>
 
-        <x-ui.table-footer :items="$stockMovements" />
+        <x-ui.table-footer :items="$stockMovements" data-lazy-pagination="true" />
       </section>
     </main>
   </div>

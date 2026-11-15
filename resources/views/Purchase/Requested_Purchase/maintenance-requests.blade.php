@@ -10,7 +10,7 @@
   <div class="app">
     <x-layout.sidebar department="Purchase" />
 
-    <main class="main">
+    <main class="main purchase-maintenance-requests-page">
       <x-layout.topbar
         title="Requested Purchases"
         subtitle="Purchase Department request inbox from Warehouse"

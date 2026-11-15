@@ -14,7 +14,7 @@
 
   <x-layout.sidebar department="Operation" />
 
-        <main class="main">
+        <main class="main bus-master-list-page">
 
             <x-layout.topbar
                 title="Bus Master List"

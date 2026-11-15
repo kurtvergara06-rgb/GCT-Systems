@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+window.GCTPartialNavigation.registerInitializer('maintenance-pms-scheduling', '.pms-page', () => {
 
     const DEFAULT_AVERAGE_DAILY_KM = 250;
 

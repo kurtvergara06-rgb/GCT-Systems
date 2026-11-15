@@ -15,14 +15,20 @@ class MaintenanceWarehousePartsWorkflowTest extends TestCase
 
     public function test_job_order_parts_flow_from_purchase_request_creation_to_warehouse_issue(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create([
+            'department' => 'Maintenance',
+            'role' => 'staff',
+            'status' => 'Active',
+        ]);
         $warehouseHead = User::factory()->create([
             'department' => 'Warehouse',
             'role' => 'head',
+            'status' => 'Active',
         ]);
         $warehouseStaff = User::factory()->create([
             'department' => 'Warehouse',
             'role' => 'staff',
+            'status' => 'Active',
         ]);
 
         $jobOrder = JobOrder::create([
@@ -97,8 +103,8 @@ class MaintenanceWarehousePartsWorkflowTest extends TestCase
 
     public function test_warehouse_roles_are_enforced_for_approval_preparation_and_issue(): void
     {
-        $head = User::factory()->create(['department' => 'Warehouse', 'role' => 'head']);
-        $staff = User::factory()->create(['department' => 'Warehouse', 'role' => 'staff']);
+        $head = User::factory()->create(['department' => 'Warehouse', 'role' => 'head', 'status' => 'Active']);
+        $staff = User::factory()->create(['department' => 'Warehouse', 'role' => 'staff', 'status' => 'Active']);
         $item = InventoryItem::create([
             'item_code' => 'FILTER-01',
             'item_name' => 'Oil Filter',
@@ -141,6 +147,7 @@ class MaintenanceWarehousePartsWorkflowTest extends TestCase
         $warehouseStaff = User::factory()->create([
             'department' => 'Warehouse',
             'role' => 'staff',
+            'status' => 'Active',
         ]);
 
         $itemA = InventoryItem::create([

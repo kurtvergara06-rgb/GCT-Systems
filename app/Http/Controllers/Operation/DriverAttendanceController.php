@@ -7,6 +7,7 @@ use App\Models\Operation\Driver;
 use App\Models\Operation\DriverAttendance;
 use App\Traits\SystemDataUpdateBroadcaster;
 use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Throwable;
@@ -89,6 +90,15 @@ class DriverAttendanceController extends Controller
             ->first();
 
         if (! $driver) {
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Select an existing driver from the Driver Master List.',
+                    'errors' => [
+                        'driver_name' => ['Select an existing driver from the Driver Master List.'],
+                    ],
+                ], 422);
+            }
+
             return back()->withInput()->with('error', 'Select an existing driver from the Driver Master List.');
         }
 
@@ -106,11 +116,19 @@ class DriverAttendanceController extends Controller
             'A driver attendance record was created.'
         );
 
+        if ($request->ajax() || $request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Driver attendance record created successfully.',
+                'attendance' => $attendance,
+            ]);
+        }
+
         return redirect()->route('driver-attendance')
             ->with('success', 'Driver attendance record created successfully.');
     }
 
-    public function update(Request $request, DriverAttendance $driverAttendance): RedirectResponse
+    public function update(Request $request, DriverAttendance $driverAttendance): JsonResponse|RedirectResponse
     {
         $validated = $request->validate([
             'driver_name' => 'required|string|max:255',
@@ -126,6 +144,15 @@ class DriverAttendanceController extends Controller
             ->first();
 
         if (! $driver) {
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Select an existing driver from the Driver Master List.',
+                    'errors' => [
+                        'driver_name' => ['Select an existing driver from the Driver Master List.'],
+                    ],
+                ], 422);
+            }
+
             return back()->withInput()->with('error', 'Select an existing driver from the Driver Master List.');
         }
 
@@ -143,13 +170,27 @@ class DriverAttendanceController extends Controller
             'A driver attendance record was updated.'
         );
 
+        if ($request->ajax() || $request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Driver attendance record updated successfully.',
+                'attendance' => $driverAttendance,
+            ]);
+        }
+
         return redirect()->route('driver-attendance')
             ->with('success', 'Driver attendance record updated successfully.');
     }
 
-    public function destroy(DriverAttendance $driverAttendance): RedirectResponse
+    public function destroy(Request $request, DriverAttendance $driverAttendance): JsonResponse|RedirectResponse
     {
         if ($driverAttendance->tripAssignments()->exists()) {
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json([
+                    'message' => 'This attendance record cannot be deleted because it has a trip assignment.',
+                ], 422);
+            }
+
             return redirect()->route('driver-attendance')
                 ->with('error', 'This attendance record cannot be deleted because it has a trip assignment.');
         }
@@ -164,6 +205,13 @@ class DriverAttendanceController extends Controller
             $attendanceId,
             'A driver attendance record was deleted.'
         );
+
+        if ($request->ajax() || $request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Driver attendance record deleted successfully.',
+            ]);
+        }
 
         return redirect()->route('driver-attendance')
             ->with('success', 'Driver attendance record deleted successfully.');

@@ -15,7 +15,7 @@ class UserFactory extends Factory
     /**
      * The name of the factory's corresponding model.
      *
-     * @var class-string<\App\Models\Admin\User>
+     * @var class-string<User>
      */
     protected $model = User::class;
 
@@ -41,9 +41,12 @@ class UserFactory extends Factory
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
+            'department' => 'Admin',
+            'role' => 'head',
             'must_change_password' => false,
             'onboarding_completed' => true,
             'onboarding_completed_at' => now(),
+            'status' => 'Active',
         ];
     }
 

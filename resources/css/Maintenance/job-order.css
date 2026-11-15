@@ -1941,3 +1941,1273 @@ textarea[readonly] {
     max-height: 45vh;
   }
 }
+
+
+/* =========================================================
+   JOB ORDER ACTIVE / HISTORY TABS
+========================================================= */
+
+.jo-page .maintenance-record-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.jo-page .maintenance-record-tabs {
+    display: inline-flex;
+    flex: 0 0 auto;
+    gap: 6px;
+    padding: 5px;
+    margin-left: auto;
+    border: 1px solid #dbe4f0;
+    border-radius: 12px;
+    background: #f6f8fb;
+}
+
+.jo-page .maintenance-record-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-height: 36px;
+    padding: 8px 14px;
+    border-radius: 9px;
+    color: #5a6678;
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background-color .18s ease, color .18s ease, box-shadow .18s ease;
+}
+
+.jo-page .maintenance-record-tab:hover {
+    background: #ffffff;
+    color: #102a56;
+}
+
+.jo-page .maintenance-record-tab.is-active {
+    background: #ffffff;
+    color: #102a56;
+    box-shadow: 0 2px 8px rgba(16, 42, 86, .09);
+}
+
+.jo-page .maintenance-history-note {
+    margin: 4px 0 12px;
+    color: #7b8798;
+    font-size: 11px;
+}
+
+@media (max-width: 760px) {
+    .jo-page .maintenance-record-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .jo-page .maintenance-record-tabs {
+        margin-left: 0;
+    }
+}
+
+
+/* =========================================================
+   NEW JOB ORDER MODAL - STRUCTURED GCT LAYOUT
+========================================================= */
+
+#jobModal.jo-create-modal-overlay {
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 28px !important;
+}
+
+#jobModal.jo-create-modal-overlay > .ui-form-modal {
+  width: min(920px, calc(100vw - 56px)) !important;
+  max-width: 920px !important;
+  max-height: calc(100vh - 56px);
+  margin: auto !important;
+  border: 1px solid #dce5f2;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 26px 74px rgba(6, 31, 61, .24);
+  overflow: hidden;
+}
+
+#jobModal .ui-form-modal-header {
+  padding: 20px 24px 17px;
+  border-bottom: 1px solid #e4ebf4;
+  background: #ffffff;
+}
+
+#jobModal .ui-form-title-wrap {
+  gap: 13px;
+}
+
+#jobModal .ui-form-title-icon {
+  width: 50px;
+  height: 50px;
+  flex: 0 0 50px;
+  border: 1px solid #f7d66a;
+  border-radius: 14px;
+  background: #fff5d6;
+  color: #e5a400;
+  font-size: 19px;
+}
+
+#jobModal .ui-form-heading h2 {
+  color: #061f3d;
+  font-size: 23px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+#jobModal .ui-form-heading p {
+  margin-top: 4px;
+  color: #64748b;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+#jobModal .ui-form-close {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  border: 1px solid #dce5f2;
+  border-radius: 11px;
+  background: #f8fafc;
+  color: #061f3d;
+}
+
+#jobModal .ui-form-modal-body {
+  padding: 18px 20px 20px;
+}
+
+#jobModal .ui-form-modal-scrollable {
+  max-height: calc(100vh - 190px);
+  padding-right: 4px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+
+#jobModal .jo-create-section {
+  margin-bottom: 15px;
+  overflow: hidden;
+  border: 1px solid #dce5f2;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 7px 20px rgba(6, 31, 61, .035);
+}
+
+#jobModal .jo-create-section:last-child {
+  margin-bottom: 0;
+}
+
+#jobModal .jo-create-section-header {
+  min-height: 58px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  border-bottom: 1px solid #e9eef5;
+  background: linear-gradient(180deg, #fbfdff 0%, #f8fbff 100%);
+}
+
+#jobModal .jo-create-section-icon {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  border: 1px solid #d5e5ff;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #eaf2ff;
+  color: #0b40b5;
+  font-size: 14px;
+}
+
+#jobModal .jo-create-section-header h3 {
+  margin: 0;
+  color: #061f3d;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+#jobModal .jo-create-section-header p {
+  margin: 3px 0 0;
+  color: #64748b;
+  font-size: 11.5px;
+  line-height: 1.4;
+}
+
+#jobModal .jo-create-basic-grid {
+  padding: 14px;
+  gap: 14px;
+}
+
+#jobModal .jo-create-basic-grid .ui-form-group,
+#jobModal .jo-create-details-grid .ui-form-group {
+  margin: 0;
+}
+
+#jobModal .jo-create-basic-grid label,
+#jobModal .jo-create-details-grid label {
+  margin-bottom: 7px;
+  color: #1e293b;
+  font-size: 11.5px;
+  font-weight: 750;
+}
+
+#jobModal .jo-create-basic-grid input,
+#jobModal .jo-create-basic-grid select,
+#jobModal .jo-create-basic-grid textarea,
+#jobModal .jo-create-details-grid input,
+#jobModal .jo-create-details-grid select {
+  min-height: 42px;
+  border: 1px solid #d5e0ed;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #1e293b;
+  font-size: 12.5px;
+}
+
+#jobModal .jo-create-basic-grid textarea {
+  min-height: 96px;
+  padding: 12px 13px;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+#jobModal .jo-create-basic-grid input:focus,
+#jobModal .jo-create-basic-grid select:focus,
+#jobModal .jo-create-basic-grid textarea:focus,
+#jobModal .jo-create-details-grid input:focus,
+#jobModal .jo-create-details-grid select:focus {
+  border-color: #6f9de8;
+  box-shadow: 0 0 0 3px rgba(11, 64, 181, .09);
+}
+
+#jobModal .jo-create-details-grid {
+  padding: 14px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(250px, 1.1fr) minmax(0, 1fr);
+  gap: 14px;
+  align-items: end;
+}
+
+#jobModal .jo-create-details-grid > * {
+  min-width: 0;
+}
+
+#jobModal .jo-duration-control {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 106px;
+  gap: 8px;
+}
+
+#jobModal .jo-duration-control .ui-input-wrap,
+#jobModal .jo-duration-control input,
+#jobModal .jo-duration-control select {
+  width: 100%;
+}
+
+#jobModal .jo-create-parts-header {
+  position: relative;
+}
+
+#jobModal .jo-create-add-part-btn {
+  margin-left: auto;
+  height: 36px;
+  padding: 0 13px;
+  border: 1px solid #f1ca55;
+  border-radius: 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  background: #fff8dc;
+  color: #8a6200;
+  font-size: 11.5px;
+  font-weight: 800;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color .18s ease,
+    border-color .18s ease,
+    transform .18s ease,
+    box-shadow .18s ease;
+}
+
+#jobModal .jo-create-add-part-btn:not(:disabled):hover {
+  background: #ffefb0;
+  border-color: #e8bd35;
+  transform: translateY(-1px);
+  box-shadow: 0 7px 16px rgba(245, 168, 0, .14);
+}
+
+#jobModal .jo-create-add-part-btn:disabled {
+  border-color: #dce5f2;
+  background: #f8fafc;
+  color: #94a3b8;
+  cursor: not-allowed;
+  opacity: 1;
+}
+
+#jobModal .jo-parts-locked-notice {
+  margin: 12px 14px;
+  padding: 12px 13px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid #cfe0fb;
+  border-radius: 11px;
+  background: #f1f7ff;
+  color: #334155;
+}
+
+#jobModal .jo-parts-lock-icon {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  border-radius: 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #e1edff;
+  color: #0b40b5;
+}
+
+#jobModal .jo-parts-locked-notice strong,
+#jobModal .jo-parts-locked-notice span {
+  display: block;
+}
+
+#jobModal .jo-parts-locked-notice strong {
+  color: #061f3d;
+  font-size: 11.5px;
+  font-weight: 800;
+}
+
+#jobModal .jo-parts-locked-notice div > span {
+  margin-top: 2px;
+  color: #64748b;
+  font-size: 10.5px;
+  line-height: 1.4;
+}
+
+#jobModal .jo-create-parts-table {
+  margin: 0 14px 14px;
+  overflow: hidden;
+  border: 1px solid #dce5f2;
+  border-radius: 11px;
+  background: #ffffff;
+}
+
+#jobModal .jo-create-parts-table-head {
+  min-height: 36px;
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) 96px 120px 58px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 9px;
+  border-bottom: 1px solid #dce5f2;
+  background: #f5f8fc;
+  color: #526177;
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+#jobModal .jo-create-parts-table-head span:first-child,
+#jobModal .jo-create-parts-table-head span:nth-child(3),
+#jobModal .jo-create-parts-table-head span:nth-child(5) {
+  text-align: center;
+}
+
+#jobModal .jo-create-parts-repeater {
+  counter-reset: jo-create-part;
+}
+
+#jobModal .jo-create-parts-repeater .jo-part-row {
+  counter-increment: jo-create-part;
+  min-height: 54px;
+  padding: 8px 9px;
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) 96px 120px 58px;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid #e8eef5;
+}
+
+#jobModal .jo-create-parts-repeater .jo-part-row:last-child {
+  border-bottom: 0;
+}
+
+#jobModal .jo-create-parts-repeater .jo-part-row::before {
+  content: counter(jo-create-part);
+  color: #475569;
+  font-size: 11px;
+  font-weight: 750;
+  text-align: center;
+}
+
+#jobModal .jo-create-parts-repeater .jo-part-row input,
+#jobModal .jo-create-parts-repeater .jo-part-row select {
+  width: 100%;
+  min-width: 0;
+  height: 38px;
+  padding: 0 10px;
+  border: 1px solid #d7e2ef;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #1e293b;
+  font-size: 11.5px;
+}
+
+#jobModal .jo-create-parts-repeater .jo-part-row input:disabled,
+#jobModal .jo-create-parts-repeater .jo-part-row select:disabled {
+  background: #f8fafc;
+  color: #94a3b8;
+}
+
+#jobModal .jo-create-parts-repeater .remove-part-btn {
+  width: 34px;
+  height: 34px;
+  justify-self: center;
+  border: 1px solid #fecdd3;
+  border-radius: 8px;
+  background: #fff1f2;
+  color: #dc2626;
+}
+
+#jobModal .jo-create-parts-repeater .remove-part-btn:disabled {
+  border-color: #e2e8f0;
+  background: #f8fafc;
+  color: #a8b3c3;
+}
+
+#jobModal .ui-form-actions {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e4ebf4;
+}
+
+#jobModal .ui-form-actions .ui-form-btn {
+  height: 40px;
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+#jobModal .ui-form-actions .ui-form-btn-cancel {
+  background: #ffffff;
+  border: 1px solid #d5e0ed;
+  color: #334155;
+}
+
+#jobModal #saveJobOrderBtn {
+  min-width: 142px;
+  background: linear-gradient(135deg, #ffc400, #f5a800);
+  border: 1px solid #f5a800;
+  color: #061f3d;
+  box-shadow: 0 5px 12px rgba(255, 196, 0, .22);
+}
+
+#jobModal #saveJobOrderBtn i,
+#jobModal #saveJobOrderBtn span {
+  color: #061f3d;
+}
+
+#jobModal #saveJobOrderBtn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(255, 196, 0, .30);
+}
+
+@media (max-width: 860px) {
+  #jobModal .jo-create-details-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  #jobModal .jo-create-details-grid > :last-child {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 700px) {
+  #jobModal.jo-create-modal-overlay {
+    align-items: flex-start !important;
+    padding: 10px !important;
+  }
+
+  #jobModal.jo-create-modal-overlay > .ui-form-modal {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: calc(100vh - 20px);
+  }
+
+  #jobModal .ui-form-modal-header {
+    padding: 16px;
+  }
+
+  #jobModal .ui-form-modal-body {
+    padding: 14px;
+  }
+
+  #jobModal .jo-create-basic-grid,
+  #jobModal .jo-create-details-grid {
+    grid-template-columns: 1fr;
+  }
+
+  #jobModal .jo-create-details-grid > :last-child {
+    grid-column: auto;
+  }
+
+  #jobModal .jo-create-parts-header {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  #jobModal .jo-create-add-part-btn {
+    width: 100%;
+    margin-left: 49px;
+  }
+
+  #jobModal .jo-create-parts-table {
+    overflow-x: auto;
+  }
+
+  #jobModal .jo-create-parts-table-head,
+  #jobModal .jo-create-parts-repeater .jo-part-row {
+    min-width: 650px;
+  }
+
+  #jobModal .ui-form-actions {
+    align-items: stretch;
+    flex-direction: column-reverse;
+  }
+
+  #jobModal .ui-form-actions .ui-form-btn {
+    width: 100%;
+  }
+}
+
+
+/* =========================================================
+   NEW JOB ORDER MODAL - VISIBLE FOOTER / INTERNAL SCROLL
+   Keep action buttons fully visible while only the form
+   content scrolls inside the modal.
+========================================================= */
+
+#jobModal.jo-create-modal-overlay > .ui-form-modal {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#jobModal .ui-form-modal-header {
+  flex: 0 0 auto;
+}
+
+#jobModal .ui-form-content {
+  min-height: 0;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#jobModal .ui-form-modal-body {
+  min-height: 0;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#jobModal .ui-form-modal-scrollable {
+  min-height: 0;
+  max-height: none;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 5px;
+  padding-bottom: 4px;
+}
+
+#jobModal .ui-form-actions {
+  flex: 0 0 auto;
+  margin-top: 14px;
+  padding: 15px 0 0;
+  background: #ffffff;
+}
+
+@media (max-height: 760px) and (min-width: 701px) {
+  #jobModal.jo-create-modal-overlay {
+    padding-top: 14px !important;
+    padding-bottom: 14px !important;
+  }
+
+  #jobModal.jo-create-modal-overlay > .ui-form-modal {
+    max-height: calc(100vh - 28px);
+  }
+
+  #jobModal .ui-form-modal-header {
+    padding-top: 16px;
+    padding-bottom: 14px;
+  }
+
+  #jobModal .ui-form-modal-body {
+    padding-top: 14px;
+    padding-bottom: 14px;
+  }
+}
+
+
+/* =========================================================
+   NEW JOB ORDER - DROPDOWN LAYERING FIX
+   Allow the searchable mechanic menu to escape the Job
+   Details card and keep Estimated Time controls clickable.
+========================================================= */
+
+#jobModal .jo-create-section.jo-create-details {
+  position: relative;
+  overflow: visible;
+  z-index: 6;
+}
+
+#jobModal .jo-create-details .jo-create-section-header {
+  position: relative;
+  z-index: 1;
+  border-top-left-radius: 14px;
+  border-top-right-radius: 14px;
+}
+
+#jobModal .jo-create-details-grid {
+  position: relative;
+  z-index: 2;
+  overflow: visible;
+  border-bottom-left-radius: 14px;
+  border-bottom-right-radius: 14px;
+  background: #ffffff;
+}
+
+#jobModal .jo-create-details-grid .ui-form-group {
+  position: relative;
+  min-width: 0;
+}
+
+#jobModal .jo-create-details-grid .jo-mechanic-combobox {
+  position: relative;
+  z-index: 20;
+}
+
+#jobModal .jo-create-details-grid .jo-mechanic-combobox.is-open {
+  z-index: 120;
+}
+
+#jobModal .jo-create-details-grid .jo-mechanic-combobox-menu {
+  z-index: 130;
+  max-height: 260px;
+  overflow: hidden;
+}
+
+#jobModal .jo-create-details-grid .jo-mechanic-combobox-options {
+  max-height: 190px;
+  overflow-y: auto;
+}
+
+#jobModal .jo-estimated-duration-field,
+#jobModal .jo-duration-control {
+  position: relative;
+  z-index: 10;
+}
+
+#jobModal .jo-duration-control .jo-duration-unit-select {
+  position: relative;
+  z-index: 11;
+  pointer-events: auto;
+  cursor: pointer;
+  appearance: auto;
+  -webkit-appearance: menulist;
+}
+
+#jobModal .jo-duration-control .jo-duration-unit-select:disabled {
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+#jobModal .jo-duration-control .ui-input-wrap {
+  position: relative;
+  z-index: 10;
+}
+
+#jobModal .jo-duration-control .ui-input-icon {
+  pointer-events: none;
+}
+
+@media (max-width: 860px) {
+  #jobModal .jo-create-section.jo-create-details {
+    z-index: 8;
+  }
+}
+
+
+/* =========================================================
+   EDIT JOB ORDER MODAL - MATCH NEW JO GCT LAYOUT
+========================================================= */
+
+#editJobModal.jo-edit-modal-overlay {
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 28px !important;
+}
+
+#editJobModal.jo-edit-modal-overlay > .ui-form-modal {
+  width: min(920px, calc(100vw - 56px)) !important;
+  max-width: 920px !important;
+  max-height: calc(100vh - 56px);
+  margin: auto !important;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #dce5f2;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 26px 74px rgba(6, 31, 61, .24);
+}
+
+#editJobModal .ui-form-modal-header {
+  flex: 0 0 auto;
+  padding: 20px 24px 17px;
+  border-bottom: 1px solid #e4ebf4;
+  background: #ffffff;
+}
+
+#editJobModal .ui-form-title-wrap {
+  gap: 13px;
+}
+
+#editJobModal .ui-form-title-icon {
+  width: 50px;
+  height: 50px;
+  flex: 0 0 50px;
+  border: 1px solid #f7d66a;
+  border-radius: 14px;
+  background: #fff5d6;
+  color: #e5a400;
+  font-size: 19px;
+}
+
+#editJobModal .ui-form-heading h2 {
+  color: #061f3d;
+  font-size: 23px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+#editJobModal .ui-form-heading p {
+  margin-top: 4px;
+  color: #64748b;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+#editJobModal .ui-form-close {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  border: 1px solid #dce5f2;
+  border-radius: 11px;
+  background: #f8fafc;
+  color: #061f3d;
+}
+
+#editJobModal .ui-form-content {
+  min-height: 0;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#editJobModal .ui-form-modal-body {
+  min-height: 0;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 18px 20px 20px;
+}
+
+#editJobModal .ui-form-modal-scrollable {
+  min-height: 0;
+  max-height: none;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 5px;
+  padding-bottom: 4px;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+
+#editJobModal .jo-edit-section {
+  position: relative;
+  margin-bottom: 15px;
+  border: 1px solid #dce5f2;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 7px 20px rgba(6, 31, 61, .035);
+}
+
+#editJobModal .jo-edit-section:not(.jo-edit-details) {
+  overflow: hidden;
+}
+
+#editJobModal .jo-edit-section:last-of-type {
+  margin-bottom: 0;
+}
+
+#editJobModal .jo-edit-section-header {
+  min-height: 58px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  border-bottom: 1px solid #e9eef5;
+  border-top-left-radius: 14px;
+  border-top-right-radius: 14px;
+  background: linear-gradient(180deg, #fbfdff 0%, #f8fbff 100%);
+}
+
+#editJobModal .jo-edit-section-icon {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  border: 1px solid #d5e5ff;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #eaf2ff;
+  color: #0b40b5;
+  font-size: 14px;
+}
+
+#editJobModal .jo-edit-section-header h3 {
+  margin: 0;
+  color: #061f3d;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+#editJobModal .jo-edit-section-header p {
+  margin: 3px 0 0;
+  color: #64748b;
+  font-size: 11.5px;
+  line-height: 1.4;
+}
+
+#editJobModal .jo-edit-basic-grid {
+  padding: 14px;
+  gap: 14px;
+}
+
+#editJobModal .jo-edit-basic-grid .ui-form-group,
+#editJobModal .jo-edit-details-grid .ui-form-group {
+  margin: 0;
+}
+
+#editJobModal .jo-edit-basic-grid label,
+#editJobModal .jo-edit-details-grid label {
+  margin-bottom: 7px;
+  color: #1e293b;
+  font-size: 11.5px;
+  font-weight: 750;
+}
+
+#editJobModal .jo-edit-basic-grid input,
+#editJobModal .jo-edit-basic-grid select,
+#editJobModal .jo-edit-basic-grid textarea,
+#editJobModal .jo-edit-details-grid input,
+#editJobModal .jo-edit-details-grid select {
+  min-height: 42px;
+  border: 1px solid #d5e0ed;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #1e293b;
+  font-size: 12.5px;
+}
+
+#editJobModal .jo-edit-basic-grid textarea {
+  min-height: 96px;
+  padding: 12px 13px;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+#editJobModal .jo-edit-basic-grid input:focus,
+#editJobModal .jo-edit-basic-grid select:focus,
+#editJobModal .jo-edit-basic-grid textarea:focus,
+#editJobModal .jo-edit-details-grid input:focus,
+#editJobModal .jo-edit-details-grid select:focus {
+  border-color: #6f9de8;
+  box-shadow: 0 0 0 3px rgba(11, 64, 181, .09);
+}
+
+#editJobModal .jo-edit-details {
+  z-index: 8;
+  overflow: visible;
+}
+
+#editJobModal .jo-edit-details-grid {
+  position: relative;
+  z-index: 2;
+  padding: 14px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  align-items: end;
+  overflow: visible;
+  border-bottom-left-radius: 14px;
+  border-bottom-right-radius: 14px;
+  background: #ffffff;
+}
+
+#editJobModal .jo-edit-details-grid > * {
+  min-width: 0;
+}
+
+#editJobModal .jo-duration-control {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 106px;
+  gap: 8px;
+}
+
+#editJobModal .jo-duration-control .ui-input-wrap,
+#editJobModal .jo-duration-control input,
+#editJobModal .jo-duration-control select {
+  width: 100%;
+}
+
+#editJobModal .jo-estimated-duration-field,
+#editJobModal .jo-duration-control {
+  position: relative;
+  z-index: 10;
+}
+
+#editJobModal .jo-duration-control .jo-duration-unit-select {
+  position: relative;
+  z-index: 11;
+  pointer-events: auto;
+  cursor: pointer;
+  appearance: auto;
+  -webkit-appearance: menulist;
+}
+
+#editJobModal .jo-duration-control .jo-duration-unit-select:disabled {
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+#editJobModal .jo-duration-control .ui-input-icon {
+  pointer-events: none;
+}
+
+#editJobModal .jo-edit-details-grid .jo-mechanic-combobox {
+  position: relative;
+  z-index: 20;
+}
+
+#editJobModal .jo-edit-details-grid .jo-mechanic-combobox.is-open {
+  z-index: 140;
+}
+
+#editJobModal .jo-edit-details-grid .jo-mechanic-combobox-menu {
+  z-index: 150;
+  max-height: 260px;
+  overflow: hidden;
+}
+
+#editJobModal .jo-edit-details-grid .jo-mechanic-combobox-options {
+  max-height: 190px;
+  overflow-y: auto;
+}
+
+#editJobModal .jo-edit-parts-header {
+  position: relative;
+}
+
+#editJobModal .jo-edit-add-part-btn {
+  margin-left: auto;
+  height: 36px;
+  padding: 0 13px;
+  border: 1px solid #f1ca55;
+  border-radius: 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  background: #fff8dc;
+  color: #8a6200;
+  font-size: 11.5px;
+  font-weight: 800;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color .18s ease,
+    border-color .18s ease,
+    transform .18s ease,
+    box-shadow .18s ease;
+}
+
+#editJobModal .jo-edit-add-part-btn:not(:disabled):hover {
+  background: #ffefb0;
+  border-color: #e8bd35;
+  transform: translateY(-1px);
+  box-shadow: 0 7px 16px rgba(245, 168, 0, .14);
+}
+
+#editJobModal .jo-edit-add-part-btn:disabled {
+  border-color: #dce5f2;
+  background: #f8fafc;
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
+#editJobModal .jo-parts-locked-notice {
+  margin: 12px 14px;
+}
+
+#editJobModal .jo-edit-parts-table {
+  margin: 0 14px 14px;
+  overflow: hidden;
+  border: 1px solid #dce5f2;
+  border-radius: 11px;
+  background: #ffffff;
+}
+
+#editJobModal .jo-edit-parts-table-head {
+  min-height: 36px;
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) 96px 120px 58px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 9px;
+  border-bottom: 1px solid #dce5f2;
+  background: #f5f8fc;
+  color: #526177;
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+#editJobModal .jo-edit-parts-table-head span:first-child,
+#editJobModal .jo-edit-parts-table-head span:nth-child(3),
+#editJobModal .jo-edit-parts-table-head span:nth-child(5) {
+  text-align: center;
+}
+
+#editJobModal .jo-edit-parts-repeater {
+  counter-reset: jo-edit-part;
+}
+
+#editJobModal .jo-edit-parts-repeater .jo-part-row {
+  counter-increment: jo-edit-part;
+  min-height: 54px;
+  padding: 8px 9px;
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) 96px 120px 58px;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid #e8eef5;
+}
+
+#editJobModal .jo-edit-parts-repeater .jo-part-row:last-child {
+  border-bottom: 0;
+}
+
+#editJobModal .jo-edit-parts-repeater .jo-part-row::before {
+  content: counter(jo-edit-part);
+  color: #475569;
+  font-size: 11px;
+  font-weight: 750;
+  text-align: center;
+}
+
+#editJobModal .jo-edit-parts-repeater .jo-part-row input,
+#editJobModal .jo-edit-parts-repeater .jo-part-row select {
+  width: 100%;
+  min-width: 0;
+  height: 38px;
+  padding: 0 10px;
+  border: 1px solid #d7e2ef;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #1e293b;
+  font-size: 11.5px;
+}
+
+#editJobModal .jo-edit-parts-repeater .remove-part-btn {
+  width: 34px;
+  height: 34px;
+  justify-self: center;
+  border: 1px solid #fecdd3;
+  border-radius: 8px;
+  background: #fff1f2;
+  color: #dc2626;
+}
+
+#editJobModal .jo-edit-footer {
+  flex: 0 0 auto;
+  margin-top: 14px;
+  padding: 15px 0 0;
+  border-top: 1px solid #e4ebf4;
+  background: #ffffff;
+}
+
+#editJobModal .jo-edit-footer .ui-form-btn {
+  height: 40px;
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+#editJobModal #updateJobOrderBtn {
+  min-width: 156px;
+  background: linear-gradient(135deg, #ffc400, #f5a800);
+  border: 1px solid #f5a800;
+  color: #061f3d;
+  box-shadow: 0 5px 12px rgba(255, 196, 0, .22);
+}
+
+#editJobModal #updateJobOrderBtn i,
+#editJobModal #updateJobOrderBtn span {
+  color: #061f3d;
+}
+
+#editJobModal #updateJobOrderBtn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(255, 196, 0, .30);
+}
+
+@media (max-width: 700px) {
+  #editJobModal.jo-edit-modal-overlay {
+    align-items: flex-start !important;
+    padding: 10px !important;
+  }
+
+  #editJobModal.jo-edit-modal-overlay > .ui-form-modal {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: calc(100vh - 20px);
+  }
+
+  #editJobModal .ui-form-modal-header {
+    padding: 16px;
+  }
+
+  #editJobModal .ui-form-modal-body {
+    padding: 14px;
+  }
+
+  #editJobModal .jo-edit-basic-grid,
+  #editJobModal .jo-edit-details-grid {
+    grid-template-columns: 1fr;
+  }
+
+  #editJobModal .jo-edit-parts-header {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  #editJobModal .jo-edit-add-part-btn {
+    width: 100%;
+    margin-left: 49px;
+  }
+
+  #editJobModal .jo-edit-parts-table {
+    overflow-x: auto;
+  }
+
+  #editJobModal .jo-edit-parts-table-head,
+  #editJobModal .jo-edit-parts-repeater .jo-part-row {
+    min-width: 650px;
+  }
+
+  #editJobModal .jo-edit-footer {
+    align-items: stretch;
+    flex-direction: column-reverse;
+  }
+
+  #editJobModal .jo-edit-footer .ui-form-btn {
+    width: 100%;
+  }
+}
+
+@media (max-height: 760px) and (min-width: 701px) {
+  #editJobModal.jo-edit-modal-overlay {
+    padding-top: 14px !important;
+    padding-bottom: 14px !important;
+  }
+
+  #editJobModal.jo-edit-modal-overlay > .ui-form-modal {
+    max-height: calc(100vh - 28px);
+  }
+
+  #editJobModal .ui-form-modal-header {
+    padding-top: 16px;
+    padding-bottom: 14px;
+  }
+
+  #editJobModal .ui-form-modal-body {
+    padding-top: 14px;
+    padding-bottom: 14px;
+  }
+}
+
+
+/* =========================================================
+   EDIT JOB ORDER - STICKY ACTION FOOTER
+   Keep Update/Close actions visible while the form body
+   scrolls inside the modal.
+========================================================= */
+
+#editJobModal .jo-edit-footer {
+  position: sticky;
+  bottom: -4px;
+  z-index: 220;
+  margin-top: 16px;
+  padding: 14px 0 4px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, .94) 0%,
+    #ffffff 22%,
+    #ffffff 100%
+  );
+  border-top: 1px solid #e4ebf4;
+  box-shadow: 0 -8px 18px rgba(6, 31, 61, .045);
+}
+
+#editJobModal #editJobMainActions,
+#editJobModal #viewOnlyJobActions {
+  position: sticky;
+  bottom: -4px;
+}
+
+#editJobModal .ui-form-modal-scrollable {
+  padding-bottom: 0;
+  scroll-padding-bottom: 72px;
+}
+
+@media (max-width: 700px) {
+  #editJobModal .jo-edit-footer {
+    bottom: -2px;
+    padding-bottom: 6px;
+  }
+}

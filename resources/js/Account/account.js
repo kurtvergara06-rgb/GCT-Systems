@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+window.GCTPartialNavigation.registerInitializer('account-management', '.account-main', () => {
     const avatarForm = document.querySelector('[data-avatar-upload-form]');
     const avatarTrigger = avatarForm?.querySelector('[data-avatar-trigger]');
     const avatarInput = avatarForm?.querySelector('[data-avatar-input]');

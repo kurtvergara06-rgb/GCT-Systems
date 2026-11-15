@@ -279,8 +279,8 @@ const scheduleRefinement = () => {
     });
 };
 
-if (document.readyState === 'complete') {
-    window.setTimeout(scheduleRefinement, 0);
-} else {
-    window.addEventListener('load', scheduleRefinement, { once: true });
-}
+window.GCTPartialNavigation.registerInitializer(
+    'maintenance-fuel-report-refinement',
+    '.fuel-page',
+    scheduleRefinement,
+);

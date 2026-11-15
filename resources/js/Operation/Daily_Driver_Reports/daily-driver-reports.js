@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+window.GCTPartialNavigation.registerInitializer('operation-daily-driver-reports', '.ddr-page', () => {
     initSearchableCombos();
     initScheduleContextPanel();
     initDdrEncodeModal();

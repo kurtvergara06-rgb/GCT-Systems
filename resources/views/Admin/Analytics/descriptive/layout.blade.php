@@ -122,14 +122,14 @@
     $pageAssets[] = 'resources/css/Admin/Analytics/design-system.css';
 @endphp
 
-<x-layout.app title="FROMS - Descriptive Analytics" :assets="$pageAssets">
+<x-layout.app title="FROMS - Descriptive Analytics" :assets="$pageAssets" :partial-navigation="false">
     <div class="app">
         <x-layout.sidebar department="Admin" />
 
         <main class="main analytics-stage-page descriptive-analytics-page descriptive-domain-{{ $activeDomain }}{{ $activeDomain === 'fleet-trip' ? ' fleet-trip-page' : '' }}{{ $usesOverviewLayout ? ' descriptive-overview-domain' : '' }}">
             <x-layout.topbar title="Descriptive Analytics" subtitle="What happened based on recorded operational data." />
 
-            <x-analytics.insight-toast stage="descriptive" :domain="$activeDomain" />
+            {{-- Descriptive analytics does not raise alerts by itself. Threshold alerts are emitted only by live diagnostic/predictive findings. --}}
 
             <section class="analytics-domain-toolbar descriptive-toolbar">
                 <nav class="analytics-domain-tabs" aria-label="Descriptive analytics domains">

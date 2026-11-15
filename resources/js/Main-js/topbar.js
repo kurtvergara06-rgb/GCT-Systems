@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function () {
+window.GCTPartialNavigation.registerInitializer('shared-topbar', '.topbar', function () {
   const topbarActions = document.getElementById('topbarActions');
   if (!topbarActions) return;
 

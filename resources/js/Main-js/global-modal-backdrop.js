@@ -90,6 +90,43 @@ function getVisibleOverlays() {
 
 let syncQueued = false;
 let isSyncing = false;
+let scrollLockActive = false;
+
+const supportsStableScrollbarGutter = (
+  typeof CSS !== 'undefined'
+  && typeof CSS.supports === 'function'
+  && CSS.supports('scrollbar-gutter: stable')
+);
+
+function lockBodyScroll() {
+  const body = document.body;
+  if (!body) return;
+
+  if (!scrollLockActive) {
+    const computedPaddingRight = window.getComputedStyle(body).paddingRight || '0px';
+    const scrollbarWidth = supportsStableScrollbarGutter
+      ? 0
+      : Math.max(0, window.innerWidth - document.documentElement.clientWidth);
+
+    body.style.setProperty('--gct-modal-base-padding-right', computedPaddingRight);
+    body.style.setProperty('--gct-modal-scrollbar-compensation', `${scrollbarWidth}px`);
+    scrollLockActive = true;
+  }
+
+  body.classList.add('modal-open');
+  body.style.overflow = 'hidden';
+}
+
+function unlockBodyScroll() {
+  const body = document.body;
+  if (!body) return;
+
+  scrollLockActive = false;
+  body.classList.remove('modal-open');
+  body.style.overflow = '';
+  body.style.removeProperty('--gct-modal-base-padding-right');
+  body.style.removeProperty('--gct-modal-scrollbar-compensation');
+}
 
 /**
  * Synchronizes body scroll lock and stacked modal states based on visible overlays.
@@ -104,10 +141,7 @@ function syncState() {
     const count = visibleOverlays.length;
 
     if (count > 0) {
-      if (!document.body.classList.contains('modal-open')) {
-        document.body.classList.add('modal-open');
-      }
-      document.body.style.overflow = 'hidden';
+      lockBodyScroll();
 
       if (count > 1) {
         document.body.classList.add('has-stacked-modal');
@@ -126,8 +160,8 @@ function syncState() {
         visibleOverlays[0].classList.remove('is-stacked-modal');
       }
     } else {
-      document.body.classList.remove('modal-open', 'has-stacked-modal');
-      document.body.style.overflow = '';
+      unlockBodyScroll();
+      document.body.classList.remove('has-stacked-modal');
 
       document.querySelectorAll('.is-stacked-modal').forEach((el) => {
         el.classList.remove('is-stacked-modal');
@@ -191,16 +225,14 @@ if (document.readyState === 'loading') {
 }
 
 window.addEventListener('load', syncState);
+window.addEventListener('resize', queueSync);
 
 // Public API
 window.GCTModalBackdrop = {
   sync: syncState,
   getVisibleOverlays,
   isOverlayVisible,
-  lock: () => {
-    document.body.classList.add('modal-open');
-    document.body.style.overflow = 'hidden';
-  },
+  lock: lockBodyScroll,
   unlock: () => {
     syncState();
   }

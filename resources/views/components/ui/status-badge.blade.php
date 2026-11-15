@@ -75,6 +75,9 @@
     ];
 
     $statusClass = $statusMap[$statusKey] ?? ($statusKey ?: 'draft');
+    $displayValue = $type === 'purchase' && $statusKey === 'submitted'
+        ? 'Under Review'
+        : ($value ?: 'Unknown');
 
     if ($type === 'user') {
         $userStatuses = ['active', 'inactive', 'pending'];
@@ -103,5 +106,5 @@
     'data-ui-component' => 'status-badge',
     'data-status' => $statusClass,
 ]) }}>
-    {{ $value ?: 'Unknown' }}
+    {{ $displayValue }}
 </span>

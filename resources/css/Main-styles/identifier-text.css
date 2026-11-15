@@ -1,0 +1,80 @@
+/* =========================================================
+   GLOBAL IDENTIFIER TEXT COLOR
+   Keep system identifiers visually consistent across modules.
+   Status badges and semantic state colors are intentionally excluded.
+========================================================= */
+
+body .system-id-badge,
+body .table-bus-chip,
+body .bus-chip,
+body .bus-badge-pill,
+body .bus-tag,
+body .item-code-chip,
+body .table-item-code-chip,
+body .record-id-chip,
+body .batch-id-chip,
+body .personnel-id,
+body .driver-id,
+body .mechanic-id,
+body .bus-id,
+body .route-code,
+body .trip-code,
+body .assignment-reference,
+body .pr-no-pill,
+body .po-no-pill,
+body .jo-no-pill,
+body .jo-badge-number,
+body .request-no-pill,
+body .reference-no-pill {
+  color: #111827 !important;
+}
+
+body .system-id-badge i,
+body .table-bus-chip i,
+body .bus-chip i,
+body .bus-badge-pill i,
+body .bus-tag i,
+body .item-code-chip i,
+body .table-item-code-chip i,
+body .record-id-chip i,
+body .batch-id-chip i,
+body .personnel-id i,
+body .driver-id i,
+body .mechanic-id i,
+body .bus-id i,
+body .route-code i,
+body .trip-code i,
+body .assignment-reference i,
+body .pr-no-pill i,
+body .po-no-pill i,
+body .jo-no-pill i,
+body .jo-badge-number i,
+body .request-no-pill i,
+body .reference-no-pill i {
+  color: #111827 !important;
+}
+
+body .system-id-badge:hover,
+body .table-bus-chip:hover,
+body .bus-chip:hover,
+body .bus-badge-pill:hover,
+body .bus-tag:hover,
+body .item-code-chip:hover,
+body .table-item-code-chip:hover,
+body .record-id-chip:hover,
+body .batch-id-chip:hover,
+body .personnel-id:hover,
+body .driver-id:hover,
+body .mechanic-id:hover,
+body .bus-id:hover,
+body .route-code:hover,
+body .trip-code:hover,
+body .assignment-reference:hover,
+body .pr-no-pill:hover,
+body .po-no-pill:hover,
+body .jo-no-pill:hover,
+body .jo-badge-number:hover,
+body .request-no-pill:hover,
+body .reference-no-pill:hover {
+  color: #111827 !important;
+}

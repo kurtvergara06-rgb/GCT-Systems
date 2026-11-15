@@ -96,18 +96,52 @@
               </section>
 
               <section data-ajax-region="records" class="table-card purchase-request-card">
-                  <div class="section-header">
+                  <div class="section-header maintenance-record-header">
                       <div>
                           <h2>Purchase Request Records</h2>
-                          <p>Track requested parts, approval status, warehouse issuance, and purchasing progress</p>
+                      </div>
+
+                      <div class="maintenance-record-tabs" data-maintenance-record-tabs="true" role="tablist" aria-label="Purchase request record view">
+                          <a
+                              href="{{ route('purchase-requests', array_filter(['search' => request('search'), 'status' => 'All Statuses'])) }}"
+                              class="maintenance-record-tab {{ $recordView === 'active' ? 'is-active' : '' }}"
+                              data-allow-partial-navigation="true"
+                              data-maintenance-record-tab-link="active"
+                              role="tab"
+                              aria-selected="{{ $recordView === 'active' ? 'true' : 'false' }}"
+                          >
+                              <i class="fa-solid fa-list-check"></i>
+                              <span>Active</span>
+                          </a>
+
+                          <a
+                              href="{{ route('purchase-requests', array_filter(['record_view' => 'history', 'search' => request('search')])) }}"
+                              class="maintenance-record-tab {{ $recordView === 'history' ? 'is-active' : '' }}"
+                              data-allow-partial-navigation="true"
+                              data-maintenance-record-tab-link="history"
+                              role="tab"
+                              aria-selected="{{ $recordView === 'history' ? 'true' : 'false' }}"
+                          >
+                              <i class="fa-solid fa-clock-rotate-left"></i>
+                              <span>History</span>
+                          </a>
                       </div>
                   </div>
+
+                  @if($recordView === 'history')
+                      <p class="maintenance-history-note">Issued Purchase Requests are kept here for reference and audit history.</p>
+                  @endif
 
                   <form
                       action="{{ route('purchase-requests') }}"
                       method="GET"
                       class="toolbar purchase-toolbar"
+                      data-server-filter="{{ $recordView === 'history' ? 'true' : 'false' }}"
                   >
+                      @if($recordView === 'history')
+                          <input type="hidden" name="record_view" value="history">
+                      @endif
+
                       <div class="search-box">
                           <i class="fa-solid fa-magnifying-glass"></i>
                           <input
@@ -118,32 +152,36 @@
                           >
                       </div>
 
-                      <div class="filter-group">
-                          <label for="prStatusFilter" class="sr-only"></label>
-                          <select
-                              name="status"
-                              id="prStatusFilter"
-                              class="pr-status-select"
-                              onchange="this.form.requestSubmit()"
-                          >
-                              <option
-                                  value="All Statuses"
-                                  @selected(request('status', 'All Statuses') === 'All Statuses')
+                      @if($recordView !== 'history')
+                          <div class="filter-group">
+                              <label for="prStatusFilter" class="sr-only"></label>
+                              <select
+                                  name="status"
+                                  id="prStatusFilter"
+                                  class="pr-status-select"
+                                  onchange="this.form.requestSubmit()"
                               >
-                                  All Statuses
-                              </option>
-                              @foreach($statuses as $status)
-                                  <option value="{{ $status }}" @selected(request('status') === $status)>
-                                      {{ $status }}
+                                  <option
+                                      value="All Statuses"
+                                      @selected(request('status', 'All Statuses') === 'All Statuses')
+                                  >
+                                      All Statuses
                                   </option>
-                              @endforeach
-                          </select>
-                      </div>
+                                  @foreach($statuses as $status)
+                                      <option value="{{ $status }}" @selected(request('status') === $status)>
+                                          {{ $status }}
+                                      </option>
+                                  @endforeach
+                              </select>
+                          </div>
+                      @endif
 
-                      <button type="button" id="openPrModal" class="primary-btn compact-new-pr-btn">
-                          <i class="fa-solid fa-plus"></i>
-                          New PR
-                      </button>
+                      @if($recordView !== 'history')
+                          <button type="button" id="openPrModal" class="primary-btn compact-new-pr-btn">
+                              <i class="fa-solid fa-plus"></i>
+                              New PR
+                          </button>
+                      @endif
                   </form>
 
                   <div class="table-wrap purchase-table-wrap">
@@ -201,11 +239,11 @@
                                           @endif
                                       </td>
                                       <td>
-                                          <div class="actions">
-                                              <x-ui.action-button
-                                                  type="view"
-                                                  title="View Purchase Request"
-                                                  class="open-view-pr-modal"
+                                          <div class="actions pr-review-action-cell">
+                                              <button
+                                                  type="button"
+                                                  class="pr-review-btn open-view-pr-modal"
+                                                  title="Review Purchase Request"
                                                   data-id="{{ $pr->id }}"
                                                   data-pr-no="{{ $pr->pr_no }}"
                                                   data-job-order-no="{{ $pr->job_order_no }}"
@@ -214,80 +252,32 @@
                                                   data-quantity="{{ $pr->quantity }}"
                                                   data-status="{{ $pr->status }}"
                                                   data-remarks="{{ $pr->remarks }}"
+                                                  data-created-at="{{ $pr->created_at?->format('M d, Y · h:i A') }}"
+                                                  data-source-type="{{ $pr->source_type ?: 'Maintenance Request' }}"
                                                   data-update-url="{{ route('purchase-requests.update', $pr->id, false) }}"
                                                   data-resubmit-url="{{ route('purchase-requests.resubmit', $pr->id, false) }}"
-                                              />
-
-                                              @if($canEdit)
-                                                  <x-ui.action-button
-                                                      type="edit"
-                                                      title="{{ $isRejected ? 'Revise and Resubmit Purchase Request' : 'Edit Purchase Request' }}"
-                                                      class="open-edit-pr-modal {{ $isRejected ? 'revise-pr-action' : '' }}"
-                                                      data-id="{{ $pr->id }}"
-                                                      data-pr-no="{{ $pr->pr_no }}"
-                                                      data-job-order-no="{{ $pr->job_order_no }}"
-                                                      data-bus-no="{{ $pr->bus_no }}"
-                                                      data-item="{{ $pr->item }}"
-                                                      data-quantity="{{ $pr->quantity }}"
-                                                      data-status="{{ $pr->status }}"
-                                                      data-remarks="{{ $pr->remarks }}"
-                                                      data-update-url="{{ route('purchase-requests.update', $pr->id, false) }}"
-                                                      data-resubmit-url="{{ route('purchase-requests.resubmit', $pr->id, false) }}"
-                                                  />
-                                              @else
-                                                  <x-ui.action-button
-                                                      type="edit"
-                                                      title="This Purchase Request can no longer be edited."
-                                                      class="disabled-pr-edit-btn"
-                                                      :disabled="true"
-                                                  />
-                                              @endif
-
-                                              @if($canApproveOrReject)
-                                                  <x-ui.action-button
-                                                      type="approve"
-                                                      title="Approve Purchase Request"
-                                                      class="open-pr-confirmation"
-                                                      data-action="approve"
-                                                      data-pr-no="{{ $pr->pr_no }}"
-                                                      data-action-url="{{ route('purchase-requests.approve', $pr->id) }}"
-                                                  />
-                                                  <x-ui.action-button
-                                                      type="reject"
-                                                      title="Reject Purchase Request"
-                                                      class="open-pr-confirmation"
-                                                      data-action="reject"
-                                                      data-pr-no="{{ $pr->pr_no }}"
-                                                      data-action-url="{{ route('purchase-requests.reject', $pr->id) }}"
-                                                  />
-                                              @endif
-
-                                              <form
-                                                  id="deletePrForm-{{ $pr->id }}"
-                                                  action="{{ route('purchase-requests.destroy', $pr->id) }}"
-                                                  method="POST"
+                                                  data-approve-url="{{ route('purchase-requests.approve', $pr->id, false) }}"
+                                                  data-reject-url="{{ route('purchase-requests.reject', $pr->id, false) }}"
+                                                  data-can-edit="{{ $recordView !== 'history' && $canEdit ? '1' : '0' }}"
+                                                  data-can-approve="{{ $recordView !== 'history' && $canApproveOrReject ? '1' : '0' }}"
+                                                  data-can-delete="{{ $recordView !== 'history' && $canDelete ? '1' : '0' }}"
+                                                  data-history="{{ $recordView === 'history' ? '1' : '0' }}"
                                               >
-                                                  @csrf
-                                                  @method('DELETE')
+                                                  <i class="fa-solid fa-eye"></i>
+                                                  <span>Review</span>
+                                              </button>
 
-                                                  @if($canDelete)
-                                                      <x-ui.action-button
-                                                          type="delete"
-                                                          title="Delete Purchase Request"
-                                                          class="open-delete-pr-modal"
-                                                          data-id="{{ $pr->id }}"
-                                                          data-pr-no="{{ $pr->pr_no }}"
-                                                      />
-                                                  @else
-                                                      <x-ui.action-button
-                                                          type="delete"
-                                                          title="{{ $isRejected
-                                                              ? 'Rejected PR cannot be deleted. Revise and resubmit it.'
-                                                              : 'This PR can no longer be deleted because it is already being processed.' }}"
-                                                          :disabled="true"
-                                                      />
-                                                  @endif
-                                              </form>
+                                              @if($recordView !== 'history' && $canDelete)
+                                                  <form
+                                                      id="deletePrForm-{{ $pr->id }}"
+                                                      action="{{ route('purchase-requests.destroy', $pr->id) }}"
+                                                      method="POST"
+                                                      hidden
+                                                  >
+                                                      @csrf
+                                                      @method('DELETE')
+                                                  </form>
+                                              @endif
                                           </div>
                                       </td>
                                   </tr>
@@ -298,7 +288,10 @@
                       </table>
                   </div>
 
-                  <x-ui.table-footer :items="$purchaseRequests" />
+                  <x-ui.table-footer
+                      :items="$purchaseRequests"
+                      data-lazy-pagination="{{ $recordView === 'history' ? 'true' : 'false' }}"
+                  />
               </section>
           </main>
       </div>
@@ -410,9 +403,8 @@
           id="editPrModal"
           title="Purchase Request Details"
           title-id="editPrModalTitle"
-          description="Review the selected purchase request."
-          icon="fa-file-invoice"
-          size="large"
+          description="Review the purchase request information and take the appropriate action."
+          size="wide"
           form-id="editPrForm"
           action="#"
           method="PUT"
@@ -423,53 +415,223 @@
           confirm-message="Are you sure you want to save these Purchase Request changes?"
           confirm-button="Yes, Save Changes"
           confirm-type="update"
+          class="pr-review-modal-overlay"
       >
-          <x-ui.form-section
-              title="Purchase Request Information"
-              subtitle="Review the source Job Order and PR status."
-              icon="fa-file-lines"
-          >
-              <div class="ui-form-grid">
-                  <x-ui.form-field label="PR No." name="pr_no" id="edit_pr_no" icon="fa-hashtag" readonly />
-                  <x-ui.form-field label="JO No." name="job_order_no" id="edit_job_order_no" icon="fa-clipboard-list" readonly required />
-                  <x-ui.form-field label="Bus #" name="bus_no" id="edit_bus_no" icon="fa-bus" readonly required />
-                  <x-ui.form-field label="Status" name="status_display" id="edit_status_display" icon="fa-circle-info" readonly />
+          <input type="hidden" name="pr_no" id="edit_pr_no">
+          <input type="hidden" name="job_order_no" id="edit_job_order_no">
+          <input type="hidden" name="bus_no" id="edit_bus_no">
+          <input type="hidden" name="status_display" id="edit_status_display">
+
+          <div class="pr-review-summary">
+              <div class="pr-review-summary-main">
+                  <div class="pr-review-doc-icon">
+                      <i class="fa-solid fa-clipboard-list"></i>
+                  </div>
+
+                  <div>
+                      <strong id="reviewPrNo">—</strong>
+                      <span id="reviewPrStatus" class="pr-review-status-pill">—</span>
+                  </div>
               </div>
-          </x-ui.form-section>
 
-          <x-ui.form-section
-              title="Requested Parts"
-              subtitle="Revise the requested parts before resubmitting a rejected PR."
-              icon="fa-gears"
-          >
-              <x-slot:action>
-                  <button type="button" id="addEditPrPartBtn" class="ui-btn-small">
-                      <i class="fa-solid fa-plus"></i>
-                      Add Part
-                  </button>
-              </x-slot:action>
-
-              <p id="editPrDescription" class="pr-edit-description">
-                  Review the purchase request information.
-              </p>
-              <div id="editPrPartsContainer" class="pr-parts-container"></div>
-          </x-ui.form-section>
-
-          <div class="ui-form-group ui-form-full">
-              <label for="edit_remarks">Remarks</label>
-              <textarea name="remarks" id="edit_remarks" placeholder="Optional remarks..."></textarea>
+              <div class="pr-review-created">
+                  <span>
+                      <i class="fa-regular fa-calendar"></i>
+                      Created
+                  </span>
+                  <strong id="reviewPrCreated">—</strong>
+              </div>
           </div>
 
-          <div class="ui-form-actions" id="editPrMainActions">
-              <button type="button" id="cancelEditPrModal" class="ui-form-btn ui-form-btn-cancel">Cancel</button>
+          <section id="prReviewInformation" class="pr-review-information-section">
+              <div class="pr-review-section-heading pr-review-information-heading">
+                  <div class="pr-review-section-title">
+                      <span class="pr-review-section-icon">
+                          <i class="fa-solid fa-file-lines"></i>
+                      </span>
+                      <div>
+                          <h3>Request Information</h3>
+                          <p>Review the source Job Order and request details.</p>
+                      </div>
+                  </div>
+              </div>
+
+              <div class="pr-review-information">
+              <div class="pr-review-information-column">
+                  <div class="pr-review-detail-row">
+                      <span>Job Order No.</span>
+                      <strong id="reviewPrJobOrderNo">—</strong>
+                  </div>
+
+                  <div class="pr-review-detail-row">
+                      <span>Bus No.</span>
+                      <strong id="reviewPrBusNo">—</strong>
+                  </div>
+
+                  <div class="pr-review-detail-row">
+                      <span>Department</span>
+                      <strong>Maintenance</strong>
+                  </div>
+              </div>
+
+              <div class="pr-review-information-column">
+                  <div class="pr-review-detail-row">
+                      <span>Request Date</span>
+                      <strong id="reviewPrRequestDate">—</strong>
+                  </div>
+
+                  <div class="pr-review-detail-row">
+                      <span>Status</span>
+                      <strong id="reviewPrStatusText">—</strong>
+                  </div>
+
+                  <div class="pr-review-detail-row">
+                      <span>Total Quantity</span>
+                      <strong id="reviewPrTotalQuantity">—</strong>
+                  </div>
+              </div>
+
+              <div class="pr-review-detail-row pr-review-detail-full">
+                  <span>Source</span>
+                  <strong id="reviewPrSource">Maintenance Request</strong>
+              </div>
+
+              <div class="pr-review-detail-row pr-review-detail-full">
+                  <span>Remarks</span>
+                  <strong id="reviewPrRemarks">No remarks provided.</strong>
+              </div>
+              </div>
+          </section>
+
+          <section id="prReviewItemsSection" class="pr-review-section">
+              <div class="pr-review-section-heading">
+                  <div class="pr-review-section-title">
+                      <span class="pr-review-section-icon">
+                          <i class="fa-solid fa-clipboard-list"></i>
+                      </span>
+                      <div>
+                          <h3>Requested Items</h3>
+                          <p>Parts included in this purchase request.</p>
+                      </div>
+                  </div>
+
+                  <span id="reviewPrItemCount" class="pr-review-count">0 items</span>
+              </div>
+
+              <div class="pr-review-items-table-wrap">
+                  <table class="pr-review-items-table">
+                      <thead>
+                          <tr>
+                              <th>#</th>
+                              <th>Item / Part</th>
+                              <th>Qty</th>
+                              <th>Unit</th>
+                          </tr>
+                      </thead>
+                      <tbody id="reviewPrItemsBody">
+                          <tr>
+                              <td colspan="4" class="pr-review-empty">No requested items recorded.</td>
+                          </tr>
+                      </tbody>
+                  </table>
+              </div>
+          </section>
+
+          <section id="reviewDecisionBlock" class="pr-review-decision" hidden>
+              <div class="pr-review-section-heading">
+                  <div class="pr-review-section-title">
+                      <span class="pr-review-section-icon">
+                          <i class="fa-solid fa-user-check"></i>
+                      </span>
+                      <div>
+                          <h3>Approval / Rejection</h3>
+                          <p>Optional remarks. Rejection remarks will be saved with the request.</p>
+                      </div>
+                  </div>
+              </div>
+
+              <label for="reviewDecisionRemarks">Remarks / Reason (Optional)</label>
+              <textarea
+                  id="reviewDecisionRemarks"
+                  placeholder="Enter remarks or reason here..."
+              ></textarea>
+          </section>
+
+          <section id="prEditableSection" class="pr-edit-workspace" hidden>
+              <x-ui.form-section
+                  title="Requested Parts"
+                  subtitle="Update the requested items before saving or resubmitting."
+                  icon="fa-gears"
+              >
+                  <x-slot:action>
+                      <button type="button" id="addEditPrPartBtn" class="ui-btn-small">
+                          <i class="fa-solid fa-plus"></i>
+                          Add Part
+                      </button>
+                  </x-slot:action>
+
+                  <p id="editPrDescription" class="pr-edit-description">
+                      Review and update this purchase request.
+                  </p>
+
+                  <div id="editPrPartsContainer" class="pr-parts-container"></div>
+              </x-ui.form-section>
+
+              <div class="ui-form-group ui-form-full pr-edit-remarks">
+                  <label for="edit_remarks">Remarks</label>
+                  <textarea name="remarks" id="edit_remarks" placeholder="Optional remarks..."></textarea>
+              </div>
+          </section>
+
+          <div class="ui-form-actions pr-review-footer" id="viewOnlyActions">
+              <button type="button" id="closeViewOnlyPr" class="ui-form-btn ui-form-btn-cancel">
+                  Close
+              </button>
+
+              <div class="pr-review-footer-actions">
+                  <button
+                      type="button"
+                      id="reviewEditPrBtn"
+                      class="ui-form-btn pr-review-btn-edit"
+                      hidden
+                  >
+                      <i class="fa-solid fa-pen"></i>
+                      <span>Edit</span>
+                  </button>
+
+                  <button
+                      type="button"
+                      id="reviewRejectPrBtn"
+                      class="ui-form-btn pr-review-btn-reject open-pr-confirmation"
+                      data-action="reject"
+                      hidden
+                  >
+                      <i class="fa-solid fa-xmark"></i>
+                      Reject
+                  </button>
+
+                  <button
+                      type="button"
+                      id="reviewApprovePrBtn"
+                      class="ui-form-btn pr-review-btn-approve open-pr-confirmation"
+                      data-action="approve"
+                      hidden
+                  >
+                      <i class="fa-solid fa-check"></i>
+                      Approve
+                  </button>
+              </div>
+          </div>
+
+          <div class="ui-form-actions" id="editPrMainActions" style="display: none;">
+              <button type="button" id="cancelEditPrModal" class="ui-form-btn ui-form-btn-cancel">
+                  Cancel
+              </button>
+
               <button type="submit" id="submitEditPrBtn" class="ui-form-btn ui-form-btn-primary">
                   <i id="submitEditPrIcon" class="fa-solid fa-floppy-disk"></i>
                   <span id="submitEditPrText">Save Changes</span>
               </button>
-          </div>
-
-          <div class="ui-form-actions" id="viewOnlyActions" style="display: none;">
-              <button type="button" id="closeViewOnlyPr" class="ui-form-btn ui-form-btn-cancel">Close</button>
           </div>
       </x-ui.form-modal>
 
@@ -479,7 +641,7 @@
 
       <form id="rejectPrForm" action="#" method="POST" class="hidden">
           @csrf
-          <input type="hidden" name="remarks" value="Rejected by Maintenance Head">
+          <input id="rejectPrRemarks" type="hidden" name="remarks" value="Rejected by Maintenance Head">
       </form>
 
       <x-ui.action-buttom-modal mode="global-confirmation" />

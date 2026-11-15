@@ -60,6 +60,7 @@
           action="{{ route('maintenance-requests', [], false) }}"
           method="GET"
           class="toolbar requested-toolbar"
+          data-server-filter="true"
         >
           <input type="hidden" name="view" value="history">
 
@@ -154,7 +155,7 @@
           </table>
         </div>
 
-        <x-ui.table-footer :items="$historyRecords" />
+        <x-ui.table-footer :items="$historyRecords" data-lazy-pagination="true" />
       </section>
     </main>
   </div>

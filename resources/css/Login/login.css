@@ -460,6 +460,76 @@ input {
 
 .login-footer p { margin: 0; }
 
+.account-status-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(3, 27, 64, 0.48);
+  backdrop-filter: blur(5px);
+}
+
+.account-status-dialog {
+  width: min(100%, 430px);
+  padding: 32px 30px 28px;
+  border: 1px solid #dbe3ef;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 24px 70px rgba(3, 27, 64, 0.24);
+  text-align: center;
+}
+
+.account-status-icon {
+  width: 62px;
+  height: 62px;
+  margin: 0 auto 18px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #b42318;
+  background: #fff0ee;
+  font-size: 25px;
+}
+
+.account-status-dialog h2 {
+  margin: 0;
+  color: var(--gct-ink);
+  font-size: 25px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.account-status-dialog p {
+  margin: 12px 0 24px;
+  color: var(--gct-muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.account-status-confirm {
+  min-width: 132px;
+  min-height: 44px;
+  padding: 10px 24px;
+  border: 0;
+  border-radius: 7px;
+  color: #ffffff;
+  background: var(--gct-blue);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.account-status-confirm:hover,
+.account-status-confirm:focus-visible {
+  background: #06467f;
+}
+
+.account-status-confirm:focus-visible {
+  outline: 3px solid rgba(7, 84, 154, 0.28);
+  outline-offset: 3px;
+}
+
 @keyframes gct-spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }

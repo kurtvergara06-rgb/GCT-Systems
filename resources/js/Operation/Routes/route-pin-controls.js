@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+window.GCTPartialNavigation.registerInitializer('operation-route-pin-controls', '.routes-page', () => {
     const routeModal = document.getElementById('routeModal');
     const routeOrigin = document.getElementById('routeOrigin');
     const routeDestination = document.getElementById('routeDestination');

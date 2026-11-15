@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+window.GCTPartialNavigation.registerInitializer('purchase-orders', '.purchase-orders-page', () => {
   const poModal = document.getElementById('poModal');
   const poForm = document.getElementById('poForm');
   const itemsContainer = document.getElementById('poItemsContainer');

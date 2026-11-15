@@ -47,6 +47,42 @@
 }
 
 /* =========================================================
+   JOB ORDER WORK / REPAIR DETAILS
+========================================================= */
+
+.jo-work-to-perform-field textarea {
+  width: 100%;
+  min-height: 86px;
+  resize: vertical;
+}
+
+.jo-work-help {
+  display: block;
+  margin-top: 5px;
+  color: #64748b;
+  font-size: 10.5px;
+  line-height: 1.45;
+}
+
+.jo-work-inline {
+  display: block;
+  max-width: 250px;
+  margin-top: 5px;
+  overflow: hidden;
+  color: #334155;
+  font-size: 10.5px;
+  font-weight: 600;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.jo-work-inline.is-empty {
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+/* =========================================================
    JOB ORDER ESTIMATED WORK DURATION
 ========================================================= */
 

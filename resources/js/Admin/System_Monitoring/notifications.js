@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+window.GCTPartialNavigation.registerInitializer('admin-notifications', '.notifications-page', () => {
     const form = document.getElementById('notificationFilterForm');
     const list = document.getElementById('notificationList');
     const loading = document.getElementById('notificationListLoading');

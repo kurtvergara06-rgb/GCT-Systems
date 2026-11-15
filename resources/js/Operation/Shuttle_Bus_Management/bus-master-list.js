@@ -1,6 +1,6 @@
 import '../../echo';
 
-document.addEventListener('DOMContentLoaded', () => {
+window.GCTPartialNavigation.registerInitializer('operation-bus-master-list', '.bus-master-list-page', () => {
 
     function normalizeBusPath(
         value,

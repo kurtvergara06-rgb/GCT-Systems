@@ -27,8 +27,8 @@ class RoleMiddleware
             return redirect()
                 ->route('login')
                 ->with(
-                    'error',
-                    'Your account is not active. Please contact the system administrator.'
+                    'blocked_account_status',
+                    ucfirst(strtolower(trim((string) $user->status)))
                 );
         }
 

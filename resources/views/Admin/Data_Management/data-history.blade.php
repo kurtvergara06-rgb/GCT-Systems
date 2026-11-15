@@ -2,7 +2,6 @@
     title="FROMS - Data History"
     :assets="[
         'resources/css/Admin/Data_Management/data-history.css',
-        'resources/js/Admin/Data_Management/data-history.js',
     ]"
 >
     <div class="app">

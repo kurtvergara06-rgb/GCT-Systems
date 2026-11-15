@@ -3,10 +3,8 @@
     :assets="[
         'resources/css/Main-styles/main.css',
         'resources/css/Main-styles/sidebar.css',
-        'resources/css/Main-styles/system-toast.css',
         'resources/css/Admin/Settings/notification-settings.css',
         'resources/js/Main-js/sidebar.js',
-        'resources/js/Main-js/system-toast.js',
         'resources/js/Admin/Settings/notification-settings.js'
     ]"
 >

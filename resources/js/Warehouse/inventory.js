@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function () {
+window.GCTPartialNavigation.registerInitializer('warehouse-inventory', '.warehouse-inventory-page', function () {
   function openModal(modal) {
     if (!modal) {
       return;
@@ -17,11 +17,6 @@ document.addEventListener('DOMContentLoaded', function () {
     modal.classList.remove('show');
     modal.classList.remove('active');
     modal.style.display = 'none';
-
-    if (modal.id === 'movementHistoryModal') {
-      movementHistoryRequest?.abort();
-      modal.setAttribute('aria-hidden', 'true');
-    }
   }
 
   function closeAllModals() {
@@ -57,8 +52,8 @@ document.addEventListener('DOMContentLoaded', function () {
   const inventoryTable = document.querySelector('.inventory-table');
   const inventoryFooter = document.querySelector('.inventory-card [data-scroll-pagination]');
   const searchInput = inventoryToolbar?.querySelector('input[name="search"]');
-  const categorySelect = inventoryToolbar?.querySelector('select[name="category"]');
   const sourceSelect = inventoryToolbar?.querySelector('select[name="source"]');
+  const categorySelect = inventoryToolbar?.querySelector('select[name="category"]');
 
   function inventoryRows() {
     if (!inventoryTable?.tBodies?.[0]) {
@@ -100,6 +95,15 @@ document.addEventListener('DOMContentLoaded', function () {
     body.appendChild(row);
   }
 
+  function requestAllInventoryRows() {
+    if (
+      inventoryFooter?.dataset.lazyPagination === 'true'
+      && inventoryFooter.dataset.hasMore === 'true'
+    ) {
+      inventoryFooter.dispatchEvent(new CustomEvent('gct:load-all-records'));
+    }
+  }
+
   function applyInventoryFilters() {
     if (!inventoryTable) {
       return;
@@ -113,12 +117,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
     inventoryRows().forEach(function (row) {
       const cells = row.cells;
-      const categoryText = String(cells[1]?.textContent || '').trim().toLowerCase();
+      const categoryText = String(cells[2]?.textContent || '').trim().toLowerCase();
       const searchableText = [
         cells[0]?.textContent,
         cells[1]?.textContent,
-        cells[5]?.textContent,
-        cells[6]?.textContent,
+        cells[7]?.textContent,
+        cells[8]?.textContent,
       ].join(' ').toLowerCase();
 
       const matchesSearch = !search || searchableText.includes(search);
@@ -146,13 +150,35 @@ document.addEventListener('DOMContentLoaded', function () {
   if (inventoryToolbar) {
     inventoryToolbar.dataset.clientFilter = 'true';
 
+    if (sourceSelect) {
+      sourceSelect.addEventListener('change', function () {
+        const url = new URL(window.location.href);
+        url.searchParams.set('source', sourceSelect.value || 'app');
+        url.searchParams.delete('page');
+
+        if (window.GCTPartialNavigation?.navigate) {
+          window.GCTPartialNavigation.navigate(url.href);
+          return;
+        }
+
+        window.location.assign(url.href);
+      });
+    }
+
     if (searchInput) {
       searchInput.dataset.autoSearchBound = 'true';
-      searchInput.addEventListener('input', applyInventoryFilters);
-      searchInput.addEventListener('search', applyInventoryFilters);
+      searchInput.addEventListener('input', function () {
+        requestAllInventoryRows();
+        applyInventoryFilters();
+      });
+      searchInput.addEventListener('search', function () {
+        requestAllInventoryRows();
+        applyInventoryFilters();
+      });
       searchInput.addEventListener('keydown', function (event) {
         if (event.key === 'Escape') {
           searchInput.value = '';
+          requestAllInventoryRows();
           applyInventoryFilters();
         }
       });
@@ -160,16 +186,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (categorySelect) {
       categorySelect.removeAttribute('onchange');
-      categorySelect.addEventListener('change', applyInventoryFilters);
-      categorySelect.addEventListener('input', applyInventoryFilters);
-    }
-
-    if (sourceSelect) {
-      sourceSelect.addEventListener('change', function () {
-        const url = new URL(window.location.href);
-        url.searchParams.set('source', sourceSelect.value || 'app');
-        url.searchParams.delete('page');
-        window.location.assign(url.toString());
+      categorySelect.addEventListener('change', function () {
+        requestAllInventoryRows();
+        applyInventoryFilters();
+      });
+      categorySelect.addEventListener('input', function () {
+        requestAllInventoryRows();
+        applyInventoryFilters();
       });
     }
 
@@ -180,123 +203,6 @@ document.addEventListener('DOMContentLoaded', function () {
     if (event.detail?.table === inventoryTable) {
       window.setTimeout(applyInventoryFilters, 0);
     }
-  });
-
-  /*
-  |--------------------------------------------------------------------------
-  | MOVEMENT HISTORY MODAL
-  |--------------------------------------------------------------------------
-  */
-
-  const movementHistoryModal = document.getElementById('movementHistoryModal');
-  const movementHistoryContent = document.getElementById('movementHistoryContent');
-  let movementHistoryRequest = null;
-
-  function movementHistoryUrl(url) {
-    const requestUrl = new URL(url, window.location.origin);
-    requestUrl.searchParams.set('modal', '1');
-
-    return requestUrl.toString();
-  }
-
-  function showMovementHistoryLoading() {
-    if (!movementHistoryContent) {
-      return;
-    }
-
-    movementHistoryContent.innerHTML = `
-      <div class="movement-history-loading">
-        <i class="fa-solid fa-spinner fa-spin"></i>
-        <span>Loading movement history...</span>
-      </div>
-    `;
-  }
-
-  function showMovementHistoryError(url) {
-    if (!movementHistoryContent) {
-      return;
-    }
-
-    movementHistoryContent.innerHTML = `
-      <div class="movement-history-error" role="alert">
-        <i class="fa-solid fa-circle-exclamation"></i>
-        <div>
-          <strong>Movement history could not be loaded.</strong>
-          <a href="${url}">Open the full history page</a>
-        </div>
-      </div>
-    `;
-  }
-
-  async function loadMovementHistory(url) {
-    if (!movementHistoryContent) {
-      window.location.assign(url);
-      return;
-    }
-
-    movementHistoryRequest?.abort();
-    movementHistoryRequest = new AbortController();
-    showMovementHistoryLoading();
-
-    try {
-      const response = await fetch(movementHistoryUrl(url), {
-        headers: {
-          Accept: 'text/html',
-          'X-Requested-With': 'XMLHttpRequest',
-        },
-        credentials: 'same-origin',
-        signal: movementHistoryRequest.signal,
-      });
-
-      if (!response.ok) {
-        throw new Error(`Movement history request failed: ${response.status}`);
-      }
-
-      movementHistoryContent.innerHTML = await response.text();
-      document.dispatchEvent(new CustomEvent('ajax:content-updated'));
-      movementHistoryContent.querySelector('select[name="type"]')?.focus();
-    } catch (error) {
-      if (error.name !== 'AbortError') {
-        console.error('Unable to load movement history.', error);
-        showMovementHistoryError(url);
-      }
-    }
-  }
-
-  document.addEventListener('click', function (event) {
-    const trigger = event.target.closest('.openMovementHistory');
-
-    if (!trigger) {
-      return;
-    }
-
-    event.preventDefault();
-    event.stopPropagation();
-
-    const url = trigger.dataset.url || trigger.getAttribute('href');
-
-    if (!url || !movementHistoryModal) {
-      window.location.assign(url || trigger.href);
-      return;
-    }
-
-    openModal(movementHistoryModal);
-    movementHistoryModal.setAttribute('aria-hidden', 'false');
-    loadMovementHistory(url);
-  });
-
-  movementHistoryModal?.addEventListener('change', function (event) {
-    const form = event.target.closest('[data-movement-history-filter]');
-
-    if (!form || event.target.name !== 'type') {
-      return;
-    }
-
-    const url = new URL(form.action, window.location.origin);
-    new FormData(form).forEach(function (value, key) {
-      url.searchParams.set(key, value);
-    });
-    loadMovementHistory(url.toString());
   });
 
   /*
@@ -314,6 +220,24 @@ document.addEventListener('DOMContentLoaded', function () {
       event.stopPropagation();
 
       openModal(addModal);
+    });
+  }
+
+  /*
+  |--------------------------------------------------------------------------
+  | IMPORT MODAL
+  |--------------------------------------------------------------------------
+  */
+
+  const importModal = document.getElementById('importModal');
+  const openImportModalButton = document.getElementById('openImportModal');
+
+  if (openImportModalButton && importModal) {
+    openImportModalButton.addEventListener('click', function (event) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      openModal(importModal);
     });
   }
 
@@ -376,6 +300,106 @@ document.addEventListener('DOMContentLoaded', function () {
         event.preventDefault();
         console.error('The edit form action is missing.');
       }
+    });
+  }
+
+  /*
+  |--------------------------------------------------------------------------
+  | ISSUE STOCK MODAL
+  |--------------------------------------------------------------------------
+  */
+
+  const issueModal = document.getElementById('issueModal');
+  const issueForm = document.getElementById('issueForm');
+  const issueSelect = document.getElementById('issue_item');
+  const issueSubmitBtn = document.getElementById('issueSubmitBtn');
+  const openIssueModalButton = document.getElementById('openIssueModal');
+
+  function updateIssuePreview() {
+    if (!issueSelect) {
+      return;
+    }
+
+    const selected = issueSelect.selectedOptions?.[0];
+    const nameLabel = document.getElementById('issue_preview_name');
+    const quantityLabel = document.getElementById('issue_preview_quantity');
+    const unitLabel = document.getElementById('issue_preview_unit');
+
+    if (!selected || !selected.value) {
+      if (nameLabel) {
+        nameLabel.textContent = 'Select an item...';
+      }
+      if (quantityLabel) {
+        quantityLabel.textContent = '—';
+      }
+      if (unitLabel) {
+        unitLabel.textContent = '—';
+      }
+
+      return;
+    }
+
+    if (nameLabel) {
+      nameLabel.textContent = selected.textContent;
+    }
+    if (quantityLabel) {
+      quantityLabel.textContent = selected.dataset.quantity ?? '—';
+    }
+    if (unitLabel) {
+      unitLabel.textContent = selected.dataset.unit ?? '—';
+    }
+  }
+
+  function openIssueModalFor(itemId) {
+    if (!issueModal || !issueSelect) {
+      return;
+    }
+
+    if (itemId) {
+      const match = Array.from(issueSelect.options).find(function (option) {
+        return option.value === String(itemId);
+      });
+
+      if (match) {
+        issueSelect.value = match.value;
+      }
+    }
+
+    updateIssuePreview();
+    openModal(issueModal);
+  }
+
+  if (openIssueModalButton && issueModal) {
+    openIssueModalButton.addEventListener('click', function (event) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      openIssueModalFor(null);
+    });
+  }
+
+  if (issueSelect) {
+    issueSelect.addEventListener('change', updateIssuePreview);
+  }
+
+  document.addEventListener('click', function (event) {
+    const issueButton = event.target.closest('.openIssueModal');
+
+    if (!issueButton) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    openIssueModalFor(issueButton.dataset.itemId);
+  });
+
+  if (issueForm && issueSubmitBtn) {
+    issueForm.addEventListener('submit', function () {
+      // Prevent duplicate submission on double-click / repeated enter.
+      issueSubmitBtn.disabled = true;
+      issueSubmitBtn.dataset.processing = 'true';
     });
   }
 

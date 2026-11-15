@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+window.GCTPartialNavigation.registerInitializer('operation-auto-scheduling', '.auto-scheduling-page', () => {
     const form =
         document.getElementById('autoSchedulingForm');
 
@@ -1243,6 +1243,7 @@ function updateMlStatus(conflicts) {
             </div>
         `;
 
+        overlay.dataset.pageOwned = 'true';
         document.body.appendChild(overlay);
         document.body.classList.add('ai-modal-open');
 
@@ -1995,6 +1996,7 @@ function updateMlStatus(conflicts) {
             </div>
         `;
 
+        overlay.dataset.pageOwned = 'true';
         document.body.appendChild(overlay);
         document.body.classList.add('ai-modal-open');
 
@@ -2092,6 +2094,7 @@ function updateMlStatus(conflicts) {
             </div>
         `;
 
+        overlay.dataset.pageOwned = 'true';
         document.body.appendChild(overlay);
         document.body.classList.add('ai-modal-open');
 
@@ -2200,26 +2203,24 @@ function updateMlStatus(conflicts) {
 
     installFetchCapture();
 
-    document.addEventListener('DOMContentLoaded', () => {
-        const content = document.getElementById('autoSchedulingConflictContent');
+    const content = document.getElementById('autoSchedulingConflictContent');
 
-        if (content) {
-            const observer = new MutationObserver(() => {
-                if (
-                    conflicts.length
-                    && !content.querySelector('.gct-conflict-record')
-                ) {
-                    delete content.dataset.gctRedesignSignature;
-                    queueRedesign();
-                }
-            });
+    if (content) {
+        const observer = new MutationObserver(() => {
+            if (
+                conflicts.length
+                && !content.querySelector('.gct-conflict-record')
+            ) {
+                delete content.dataset.gctRedesignSignature;
+                queueRedesign();
+            }
+        });
 
-            observer.observe(content, {
-                childList: true,
-                subtree: false,
-            });
-        }
-    });
+        observer.observe(content, {
+            childList: true,
+            subtree: false,
+        });
+    }
 
     document.addEventListener('click', (event) => {
         const option = event.target.closest('[data-gct-option-type]');

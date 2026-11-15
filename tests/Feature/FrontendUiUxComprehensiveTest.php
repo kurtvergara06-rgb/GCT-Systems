@@ -355,7 +355,7 @@ class FrontendUiUxComprehensiveTest extends TestCase
         $this->assertTrue(str_contains($content, 'Data Import Management'), 'Sidebar should contain the "Data Import Management" menu entry');
     }
 
-    public function test_all_analytics_pages_have_insight_toast_and_view_details(): void
+    public function test_analytics_pages_render_without_forcing_a_notification(): void
     {
         $analyticsPages = [
             'Overview' => route('analytics.overview'),
@@ -370,10 +370,12 @@ class FrontendUiUxComprehensiveTest extends TestCase
             $this->assertSame(200, $resp->status(), "Analytics page {$name} must return 200 OK");
 
             $content = $resp->getContent();
-            $this->assertStringContainsString('data-analytics-insight-toast', $content, "Analytics page {$name} must include the insight toast component");
-            $this->assertStringContainsString('data-toast-action', $content, "Analytics page {$name} must include the View Details/Action button");
-            $this->assertStringContainsString('data-target-selector', $content, "Analytics page {$name} must configure target selector for highlighting");
-            $this->assertStringContainsString('window.gctHighlightTarget', $content, "Analytics page {$name} must include the reusable gctHighlightTarget script");
+
+            if (str_contains($content, 'data-analytics-insight-toast')) {
+                $this->assertStringContainsString('data-toast-action', $content);
+                $this->assertStringContainsString('data-target-selector', $content);
+                $this->assertStringContainsString('window.gctHighlightTarget', $content);
+            }
         }
     }
 

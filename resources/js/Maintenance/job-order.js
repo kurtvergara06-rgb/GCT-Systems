@@ -1,4 +1,217 @@
-document.addEventListener('DOMContentLoaded', () => {
+import gsap from 'gsap';
+
+window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-page', () => {
+
+  /* =========================================================
+     GSAP MOTION HELPERS
+  ========================================================= */
+
+  /*
+   * Demo branch only:
+   * force motion on so the GSAP behavior is visible even when
+   * Windows/Brave reports prefers-reduced-motion.
+   * Do not carry this override into main without review.
+   */
+  const forceGsapDemoMotion =
+    true;
+
+
+  const prefersReducedMotion =
+    forceGsapDemoMotion
+      ? false
+      : (
+          window.matchMedia?.(
+            '(prefers-reduced-motion: reduce)'
+          )?.matches ?? false
+        );
+
+
+  function getModalSurface(modal) {
+
+    return modal
+      ?.querySelector(
+        '.ui-form-modal, ' +
+        '.delete-modal-box, ' +
+        '.modal-card, ' +
+        '.success-modal-box'
+      )
+      || null;
+  }
+
+
+  function resetModalAnimationState(
+    modal,
+    surface = null
+  ) {
+
+    const targets = [
+      modal,
+      surface,
+    ].filter(Boolean);
+
+
+    if (targets.length) {
+
+      gsap.set(
+        targets,
+        {
+          clearProps:
+            'opacity,transform',
+        }
+      );
+    }
+
+
+    if (modal) {
+
+      delete modal.dataset
+        .gsapClosing;
+    }
+  }
+
+
+  function animatePartRowIn(row) {
+
+    if (
+      !row ||
+      prefersReducedMotion
+    ) {
+      return;
+    }
+
+
+    gsap.fromTo(
+      row,
+      {
+        opacity: 0,
+        x: -28,
+        y: -8,
+        scale: 0.96,
+      },
+      {
+        opacity: 1,
+        x: 0,
+        y: 0,
+        scale: 1,
+        duration: 0.28,
+        ease: 'back.out(1.55)',
+        clearProps:
+          'opacity,transform',
+      }
+    );
+  }
+
+
+  function animatePartRowOut(
+    row,
+    onComplete
+  ) {
+
+    if (!row) {
+      onComplete?.();
+      return;
+    }
+
+
+    if (prefersReducedMotion) {
+      onComplete?.();
+      return;
+    }
+
+
+    gsap.killTweensOf(row);
+
+
+    gsap.to(
+      row,
+      {
+        opacity: 0,
+        x: 18,
+        duration: 0.16,
+        ease: 'power2.in',
+        onComplete: () => {
+
+          gsap.set(
+            row,
+            {
+              clearProps:
+                'opacity,transform',
+            }
+          );
+
+
+          onComplete?.();
+        },
+      }
+    );
+  }
+
+
+  function animateJobOrderPageEntrance() {
+
+    if (prefersReducedMotion) {
+      return;
+    }
+
+
+    const summaryCards =
+      document.querySelectorAll(
+        '.jo-page .jo-stats-grid > *'
+      );
+
+
+    const tableCard =
+      document.querySelector(
+        '.jo-page .jo-table-card'
+      );
+
+
+    if (summaryCards.length) {
+
+      gsap.fromTo(
+        summaryCards,
+        {
+          opacity: 0,
+          y: 34,
+          scale: 0.94,
+        },
+        {
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          duration: 0.34,
+          stagger: 0.07,
+          ease: 'back.out(1.25)',
+          clearProps:
+            'opacity,transform',
+        }
+      );
+    }
+
+
+    if (tableCard) {
+
+      gsap.fromTo(
+        tableCard,
+        {
+          opacity: 0,
+          y: 44,
+          scale: 0.985,
+        },
+        {
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          duration: 0.42,
+          delay: 0.10,
+          ease: 'power3.out',
+          clearProps:
+            'opacity,transform',
+        }
+      );
+    }
+  }
+
 
   /* =========================================================
      MODAL HELPERS
@@ -10,9 +223,126 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
+
+    const surface =
+      getModalSurface(modal);
+
+
     modal.classList.add(
       'show',
       'active'
+    );
+
+
+    modal.style.display = '';
+
+
+    delete modal.dataset
+      .gsapClosing;
+
+
+    if (prefersReducedMotion) {
+
+      resetModalAnimationState(
+        modal,
+        surface
+      );
+
+
+      return;
+    }
+
+
+    gsap.killTweensOf(modal);
+
+
+    if (surface) {
+      gsap.killTweensOf(surface);
+    }
+
+
+    const timeline =
+      gsap.timeline();
+
+
+    timeline.fromTo(
+      modal,
+      {
+        opacity: 0,
+      },
+      {
+        opacity: 1,
+        duration: 0.18,
+        ease: 'power2.out',
+      }
+    );
+
+
+    if (surface) {
+
+      timeline.fromTo(
+        surface,
+        {
+          opacity: 0,
+          y: 72,
+          scale: 0.84,
+          rotateX: -5,
+          rotateZ: -0.8,
+          transformOrigin:
+            '50% 20%',
+        },
+        {
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          rotateX: 0,
+          rotateZ: 0,
+          duration: 0.42,
+          ease: 'back.out(1.4)',
+          clearProps:
+            'opacity,transform,transformOrigin',
+        },
+        0.03
+      );
+
+
+      const contentItems =
+        surface.querySelectorAll(
+          '.jo-create-section, ' +
+          '.jo-edit-section, ' +
+          '.jo-edit-footer, ' +
+          '.ui-form-actions'
+        );
+
+
+      if (contentItems.length) {
+
+        timeline.fromTo(
+          contentItems,
+          {
+            opacity: 0,
+            y: 24,
+          },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.24,
+            stagger: 0.05,
+            ease: 'power2.out',
+            clearProps:
+              'opacity,transform',
+          },
+          0.12
+        );
+      }
+    }
+
+
+    timeline.set(
+      modal,
+      {
+        clearProps: 'opacity',
+      }
     );
   }
 
@@ -23,13 +353,106 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    modal.classList.remove(
-      'show',
-      'active'
-    );
 
-    modal.style.display = '';
+    const surface =
+      getModalSurface(modal);
+
+
+    const finishClose = () => {
+
+      modal.classList.remove(
+        'show',
+        'active'
+      );
+
+
+      modal.style.display = '';
+
+
+      resetModalAnimationState(
+        modal,
+        surface
+      );
+    };
+
+
+    if (prefersReducedMotion) {
+
+      finishClose();
+      return;
+    }
+
+
+    if (
+      modal.dataset
+        .gsapClosing ===
+      'true'
+    ) {
+      return;
+    }
+
+
+    modal.dataset.gsapClosing =
+      'true';
+
+
+    gsap.killTweensOf(modal);
+
+
+    if (surface) {
+      gsap.killTweensOf(surface);
+    }
+
+
+    const timeline =
+      gsap.timeline({
+        onComplete:
+          finishClose,
+      });
+
+
+    if (surface) {
+
+      timeline.to(
+        surface,
+        {
+          opacity: 0,
+          y: 34,
+          scale: 0.93,
+          duration: 0.18,
+          ease: 'power2.in',
+        },
+        0
+      );
+    }
+
+
+    timeline.to(
+      modal,
+      {
+        opacity: 0,
+        duration: 0.20,
+        ease: 'power2.in',
+      },
+      0
+    );
   }
+
+
+  console.info(
+    '[JO GSAP demo] GSAP motion is active.',
+    {
+      forcedDemoMotion:
+        forceGsapDemoMotion,
+      browserReducedMotion:
+        window.matchMedia?.(
+          '(prefers-reduced-motion: reduce)'
+        )?.matches ?? false,
+    }
+  );
+
+
+  animateJobOrderPageEntrance();
 
 
   /* =========================================================
@@ -312,13 +735,22 @@ document.addEventListener('DOMContentLoaded', () => {
           ).length;
 
 
+        const row =
+          createPartRow(index);
+
+
         wrapper.appendChild(
-          createPartRow(index)
+          row
         );
 
 
         refreshPartIndexes(
           wrapper
+        );
+
+
+        animatePartRowIn(
+          row
         );
       }
     );
@@ -386,11 +818,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
 
-        row.remove();
+        animatePartRowOut(
+          row,
+          () => {
+
+            row.remove();
 
 
-        refreshPartIndexes(
-          wrapper
+            refreshPartIndexes(
+              wrapper
+            );
+          }
         );
       }
     );
@@ -733,6 +1171,92 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let currentEditIsViewOnly =
     false;
+
+
+  /* =========================================================
+     CURRENT JOB ORDER BUS
+  ========================================================= */
+
+  function setEditBusOption(
+    currentBus = ''
+  ) {
+
+    if (!editBusNo) {
+      return;
+    }
+
+
+    const busValue =
+      String(
+        currentBus || ''
+      ).trim();
+
+
+    editBusNo
+      .querySelectorAll(
+        'option[data-current-job-bus="true"]'
+      )
+      .forEach(
+        option =>
+          option.remove()
+      );
+
+
+    if (!busValue) {
+
+      editBusNo.value = '';
+      return;
+    }
+
+
+    const existingOption =
+      Array.from(
+        editBusNo.options
+      )
+      .find(
+        option =>
+          String(option.value) ===
+          busValue
+      );
+
+
+    if (!existingOption) {
+
+      const currentOption =
+        document.createElement(
+          'option'
+        );
+
+
+      currentOption.value =
+        busValue;
+
+
+      currentOption.textContent =
+        busValue;
+
+
+      currentOption.dataset
+        .currentJobBus =
+        'true';
+
+
+      editBusNo.appendChild(
+        currentOption
+      );
+
+    }
+
+
+    editBusNo.value =
+      busValue;
+
+
+    editBusNo.dataset
+      .lockedValue =
+      busValue;
+
+  }
 
 
   /* =========================================================
@@ -1197,127 +1721,129 @@ document.addEventListener('DOMContentLoaded', () => {
      OPEN EDIT / VIEW
   ========================================================= */
 
-  document
-    .querySelectorAll(
-      '.open-edit-modal'
-    )
-    .forEach((button) => {
+  document.addEventListener(
+    'click',
+    (event) => {
 
-      button.addEventListener(
-        'click',
-        (event) => {
-
-          event.preventDefault();
+      const button =
+        event.target.closest(
+          '.open-edit-modal'
+        );
 
 
-          const id =
-            button.dataset.id;
+      if (!button) {
+        return;
+      }
 
 
-          const status =
-            button.dataset.status ||
-            'On Going';
+      event.preventDefault();
 
 
-          const isCompleted =
-            status === 'Completed';
+      const id =
+        button.dataset.id;
 
 
-          const isViewOnly =
-            button.dataset
-              .viewOnly ===
-            '1';
+      const status =
+        button.dataset.status ||
+        'On Going';
 
 
-          const shouldBeViewOnly =
-            isCompleted ||
-            isViewOnly;
+      const isCompleted =
+        status === 'Completed';
 
 
-          if (editJobForm) {
-
-            editJobForm.action =
-              button.dataset.updateUrl || '';
-          }
-
-
-          if (editJobOrderNo) {
-
-            editJobOrderNo.value =
-              button.dataset
-                .jobOrderNo ||
-              '';
-          }
+      const isViewOnly =
+        button.dataset
+          .viewOnly ===
+        '1';
 
 
-          if (editBusNo) {
-
-            editBusNo.value =
-              button.dataset
-                .busNo ||
-              '';
-          }
+      const shouldBeViewOnly =
+        isCompleted ||
+        isViewOnly;
 
 
-          if (editProblemIssue) {
+      if (editJobForm) {
 
-            editProblemIssue.value =
-              button.dataset
-                .problemIssue ||
-              '';
-          }
+        editJobForm.action =
+          button.dataset.updateUrl || '';
+      }
 
 
-          if (editMaintenanceType) {
+      if (editJobOrderNo) {
 
-            editMaintenanceType.value =
-              button.dataset
-                .maintenanceType ||
-              '';
-          }
-
-
-          if (editStatus) {
-
-            editStatus.value =
-              status;
-          }
+        editJobOrderNo.value =
+          button.dataset
+            .jobOrderNo ||
+          '';
+      }
 
 
-          setEditMechanicOptions(
-            button.dataset
-              .assignedMechanic ||
-            ''
-          );
-
-
-          renderEditParts(
-            button.dataset
-              .partNeeded ||
-            '',
-            shouldBeViewOnly
-          );
-
-
-          setEditModalReadonly(
-            shouldBeViewOnly
-          );
-
-
-          if (!shouldBeViewOnly) {
-
-            updateEditJoPartsState();
-
-          }
-
-
-          openModal(
-            editJobModal
-          );
-
-        }
+      setEditBusOption(
+        button.dataset
+          .busNo ||
+        ''
       );
-    });
+
+
+      if (editProblemIssue) {
+
+        editProblemIssue.value =
+          button.dataset
+            .problemIssue ||
+          '';
+      }
+
+
+      if (editMaintenanceType) {
+
+        editMaintenanceType.value =
+          button.dataset
+            .maintenanceType ||
+          '';
+      }
+
+
+      if (editStatus) {
+
+        editStatus.value =
+          status;
+      }
+
+
+      setEditMechanicOptions(
+        button.dataset
+          .assignedMechanic ||
+        ''
+      );
+
+
+      renderEditParts(
+        button.dataset
+          .partNeeded ||
+        '',
+        shouldBeViewOnly
+      );
+
+
+      setEditModalReadonly(
+        shouldBeViewOnly
+      );
+
+
+      if (!shouldBeViewOnly) {
+
+        updateEditJoPartsState();
+
+      }
+
+
+      openModal(
+        editJobModal
+      );
+
+    }
+  );
 
 
   /* =========================================================
@@ -1348,14 +1874,23 @@ document.addEventListener('DOMContentLoaded', () => {
               ).length;
 
 
+          const row =
+            createPartRow(index);
+
+
           editPartsNeededWrapper
             .appendChild(
-              createPartRow(index)
+              row
             );
 
 
           refreshPartIndexes(
             editPartsNeededWrapper
+          );
+
+
+          animatePartRowIn(
+            row
           );
 
         }
@@ -1434,11 +1969,17 @@ document.addEventListener('DOMContentLoaded', () => {
           }
 
 
-          row.remove();
+          animatePartRowOut(
+            row,
+            () => {
+
+              row.remove();
 
 
-          refreshPartIndexes(
-            editPartsNeededWrapper
+              refreshPartIndexes(
+                editPartsNeededWrapper
+              );
+            }
           );
 
         }
@@ -1530,75 +2071,79 @@ document.addEventListener('DOMContentLoaded', () => {
     null;
 
 
-  document
-    .querySelectorAll(
-      '.open-delete-modal'
-    )
-    .forEach((button) => {
+  document.addEventListener(
+    'click',
+    (event) => {
 
-      button.addEventListener(
-        'click',
-        (event) => {
-
-          event.preventDefault();
-          event.stopPropagation();
+      const button =
+        event.target.closest(
+          '.open-delete-modal'
+        );
 
 
-          if (button.disabled) {
-            return;
-          }
+      if (!button) {
+        return;
+      }
 
 
-          const id =
-            button.dataset.id;
+      event.preventDefault();
+      event.stopPropagation();
 
 
-          const joNo =
-            button.dataset.joNo;
+      if (button.disabled) {
+        return;
+      }
 
 
-          selectedDeleteForm =
-            document.getElementById(
-              `deleteForm-${id}`
-            );
+      const id =
+        button.dataset.id;
 
 
-          if (!selectedDeleteForm) {
-
-            console.error(
-              `Delete form deleteForm-${id} was not found.`
-            );
-
-            return;
-          }
+      const joNo =
+        button.dataset.joNo;
 
 
-          if (deleteJoNo) {
-
-            deleteJoNo.textContent =
-              joNo ||
-              'this job order';
-          }
+      selectedDeleteForm =
+        document.getElementById(
+          `deleteForm-${id}`
+        );
 
 
-          if (confirmDeleteJob) {
+      if (!selectedDeleteForm) {
 
-            confirmDeleteJob.disabled =
-              false;
+        console.error(
+          `Delete form deleteForm-${id} was not found.`
+        );
+
+        return;
+      }
 
 
-            confirmDeleteJob.innerHTML =
-              'Yes, Delete';
-          }
+      if (deleteJoNo) {
+
+        deleteJoNo.textContent =
+          joNo ||
+          'this job order';
+      }
 
 
-          openModal(
-            deleteJobModal
-          );
+      if (confirmDeleteJob) {
 
-        }
+        confirmDeleteJob.disabled =
+          false;
+
+
+        confirmDeleteJob.innerHTML =
+          'Yes, Delete';
+      }
+
+
+      openModal(
+        deleteJobModal
       );
-    });
+
+    }
+  );
 
 
   if (cancelDeleteJob) {
@@ -2211,7 +2756,7 @@ document.addEventListener('DOMContentLoaded', () => {
 /* =========================================================
    CONSOLIDATED: resources/js/Maintenance/job-order-finish-guard.js
 ========================================================= */
-document.addEventListener('DOMContentLoaded', () => {
+window.GCTPartialNavigation.registerInitializer('maintenance-job-order-finish-guard', '.jo-page', () => {
   document
     .querySelectorAll('.job-orders-table tbody tr')
     .forEach((row) => {
@@ -2251,7 +2796,7 @@ document.addEventListener('DOMContentLoaded', () => {
 /* =========================================================
    CONSOLIDATED: resources/js/Maintenance/job-order-edit-combobox.js
 ========================================================= */
-document.addEventListener('DOMContentLoaded', () => {
+window.GCTPartialNavigation.registerInitializer('maintenance-job-order-edit-combobox', '.jo-page', () => {
   const editModal = document.getElementById('editJobModal');
   const editForm = document.getElementById('editJobForm');
   const busSelect = document.getElementById('edit_bus_no');
@@ -2508,14 +3053,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  document.querySelectorAll('.open-edit-modal').forEach((button) => {
-    button.addEventListener('click', () => {
-      window.setTimeout(() => {
-        lockCurrentBus();
-        renderOptions();
-        syncDisabledState();
-      }, 0);
-    });
+  document.addEventListener('click', (event) => {
+    if (!event.target.closest('.open-edit-modal')) {
+      return;
+    }
+
+    window.setTimeout(() => {
+      lockCurrentBus();
+      renderOptions();
+      syncDisabledState();
+    }, 0);
   });
 
   const mechanicObserver = new MutationObserver(() => {
@@ -2538,7 +3085,7 @@ document.addEventListener('DOMContentLoaded', () => {
 /* =========================================================
    CONSOLIDATED: resources/js/Maintenance/job-order-new-combobox.js
 ========================================================= */
-document.addEventListener('DOMContentLoaded', () => {
+window.GCTPartialNavigation.registerInitializer('maintenance-job-order-new-combobox', '.jo-page', () => {
   const modal = document.getElementById('jobModal');
   const busSelect = document.getElementById('jobBusNo');
   const mechanicSelect = document.getElementById('jobAssignedMechanic');

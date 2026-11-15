@@ -39,16 +39,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function openModal() {
-        const openProfileMenu = document.querySelector('.sidebar-profile-menu.show');
-        if (openProfileMenu) {
-            openProfileMenu.classList.remove('show');
-            const toggle = document.querySelector('.sidebar-profile-toggle.active');
-            if (toggle) {
-                toggle.classList.remove('active');
-                toggle.setAttribute('aria-expanded', 'false');
-            }
-        }
-
         modal.style.display = 'flex';
         modal.classList.add('show', 'active');
         modal.setAttribute('aria-hidden', 'false');
@@ -90,8 +80,6 @@ document.addEventListener('DOMContentLoaded', function () {
         switch (type) {
             case 'delete':
                 return { className: 'danger', icon: 'fa-triangle-exclamation' };
-            case 'logout':
-                return { className: 'danger', icon: 'fa-right-from-bracket' };
             case 'create':
                 return { className: 'create', icon: 'fa-plus' };
             case 'update':
@@ -113,7 +101,6 @@ document.addEventListener('DOMContentLoaded', function () {
         switch (type) {
             case 'approve':
                 return ['global-confirm-btn', 'approve-confirm-btn'];
-            case 'logout':
             case 'reject':
             case 'delete':
                 return ['global-confirm-btn', 'danger-btn'];

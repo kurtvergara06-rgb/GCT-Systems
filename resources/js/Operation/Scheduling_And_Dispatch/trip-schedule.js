@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+window.GCTPartialNavigation.registerInitializer('operation-trip-schedule', '.trip-schedule-page', () => {
     const tripModal = document.getElementById('tripModal');
     const generateTripsModal = document.getElementById('generateTripsModal');
     const viewTripModal = document.getElementById('viewTripModal');

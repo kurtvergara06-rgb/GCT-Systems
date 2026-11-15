@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+window.GCTPartialNavigation.registerInitializer('operation-trip-records', '.trip-records-page', () => {
     const modalOverlay = document.getElementById('tripDetailModal');
     if (!modalOverlay) return;
 

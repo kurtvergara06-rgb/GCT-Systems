@@ -52,14 +52,14 @@
     }
 @endphp
 
-<x-layout.app title="FROMS - Predictive Analytics" :assets="$pageAssets">
+<x-layout.app title="FROMS - Predictive Analytics" :assets="$pageAssets" :partial-navigation="false">
     <div class="app">
         <x-layout.sidebar department="Admin" />
 
         <main class="main analytics-stage-page predictive-analytics-page predictive-domain-{{ $activeDomain }}">
             <x-layout.topbar title="Predictive Analytics" subtitle="AI-powered predictions and forecasts for proactive decision making." />
 
-            <x-analytics.insight-toast stage="predictive" :domain="$activeDomain" />
+            <x-analytics.insight-toast stage="predictive" :domain="$activeDomain" :insight="$analyticsAlert" />
 
             <section class="analytics-domain-toolbar predictive-toolbar">
                 <nav class="analytics-domain-tabs" aria-label="Predictive analytics domains">

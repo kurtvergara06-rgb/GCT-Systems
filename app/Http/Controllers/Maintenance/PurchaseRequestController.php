@@ -426,6 +426,9 @@ class PurchaseRequestController extends Controller
                 )
             ) === 'RESTOCK'
         ) {
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Inventory restock requests are not allowed in Maintenance Purchase Requests.'], 422);
+            }
             return redirect()
                 ->back()
                 ->withInput()
@@ -448,6 +451,9 @@ class PurchaseRequestController extends Controller
             )->first();
 
         if (! $jobOrder) {
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Selected job order was not found.'], 422);
+            }
             return redirect()
                 ->back()
                 ->withInput()
@@ -467,6 +473,9 @@ class PurchaseRequestController extends Controller
                     ->assigned_mechanic
             )
         ) {
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'A mechanic must be assigned before creating a Purchase Request.'], 422);
+            }
             return redirect()
                 ->back()
                 ->withInput()
@@ -486,6 +495,9 @@ class PurchaseRequestController extends Controller
                     ->part_needed
             )
         ) {
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'This Job Order has no requested parts.'], 422);
+            }
             return redirect()
                 ->back()
                 ->withInput()
@@ -499,6 +511,9 @@ class PurchaseRequestController extends Controller
             $jobOrder->status
             === 'Completed'
         ) {
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'A Purchase Request cannot be created for a completed Job Order.'], 422);
+            }
             return redirect()
                 ->back()
                 ->withInput()
@@ -534,15 +549,18 @@ class PurchaseRequestController extends Controller
                 ->first();
 
         if ($existingRequest) {
+            $existingMsg = $existingRequest->status === 'Rejected'
+                ? 'This Job Order already has a rejected Purchase Request. Revise and resubmit the same PR.'
+                : 'This Job Order already has a Purchase Request.';
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => $existingMsg], 422);
+            }
             return redirect()
                 ->back()
                 ->withInput()
                 ->with(
                     'error',
-                    $existingRequest->status
-                        === 'Rejected'
-                        ? 'This Job Order already has a rejected Purchase Request. Revise and resubmit the same PR.'
-                        : 'This Job Order already has a Purchase Request.'
+                    $existingMsg
                 );
         }
 
@@ -586,6 +604,9 @@ class PurchaseRequestController extends Controller
         if (
             count($parts) === 0
         ) {
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Please add at least one requested part.'], 422);
+            }
             return redirect()
                 ->back()
                 ->withInput()
@@ -671,6 +692,14 @@ class PurchaseRequestController extends Controller
             'Job order part status was updated to Submitted.'
         );
 
+        if ($request->ajax() || $request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Purchase request created successfully.',
+                'purchase_request' => $purchaseRequest,
+            ]);
+        }
+
         return redirect()
             ->to(route('purchase-requests', [], false))
             ->with(
@@ -692,6 +721,9 @@ class PurchaseRequestController extends Controller
                 $purchaseRequest
             )
         ) {
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Inventory restock requests cannot be edited from Maintenance.'], 422);
+            }
             return redirect()
                 ->back()
                 ->with(
@@ -710,14 +742,17 @@ class PurchaseRequestController extends Controller
             $purchaseRequest->status
             !== 'Submitted'
         ) {
+            $msg = $purchaseRequest->status === 'Rejected'
+                ? 'This Purchase Request was rejected. Use Revise and Resubmit.'
+                : 'Only submitted Purchase Requests can be edited.';
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => $msg], 422);
+            }
             return redirect()
                 ->back()
                 ->with(
                     'error',
-                    $purchaseRequest->status
-                        === 'Rejected'
-                        ? 'This Purchase Request was rejected. Use Revise and Resubmit.'
-                        : 'Only submitted Purchase Requests can be edited.'
+                    $msg
                 );
         }
 
@@ -768,6 +803,9 @@ class PurchaseRequestController extends Controller
                 )
             ) === 'RESTOCK'
         ) {
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Inventory restock requests are not allowed in Maintenance Purchase Requests.'], 422);
+            }
             return redirect()
                 ->back()
                 ->withInput()
@@ -786,6 +824,9 @@ class PurchaseRequestController extends Controller
             )->first();
 
         if (! $jobOrder) {
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Selected job order was not found.'], 422);
+            }
             return redirect()
                 ->back()
                 ->withInput()
@@ -801,6 +842,9 @@ class PurchaseRequestController extends Controller
                     ->assigned_mechanic
             )
         ) {
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'The related Job Order must have an assigned mechanic.'], 422);
+            }
             return redirect()
                 ->back()
                 ->withInput()
@@ -846,6 +890,9 @@ class PurchaseRequestController extends Controller
         if (
             count($parts) === 0
         ) {
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Please add at least one requested part.'], 422);
+            }
             return redirect()
                 ->back()
                 ->withInput()
@@ -956,6 +1003,14 @@ class PurchaseRequestController extends Controller
             'A maintenance purchase request was updated.'
         );
 
+        if ($request->ajax() || $request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Purchase request updated successfully.',
+                'purchase_request' => $purchaseRequest,
+            ]);
+        }
+
         return redirect()
             ->back()
             ->with(
@@ -977,6 +1032,9 @@ class PurchaseRequestController extends Controller
                 $purchaseRequest
             )
         ) {
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Inventory restock requests cannot be resubmitted from Maintenance.'], 422);
+            }
             return redirect()
                 ->back()
                 ->with(
@@ -989,6 +1047,9 @@ class PurchaseRequestController extends Controller
             $purchaseRequest->status
             !== 'Rejected'
         ) {
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Only rejected Purchase Requests can be revised and resubmitted.'], 422);
+            }
             return redirect()
                 ->back()
                 ->with(
@@ -1023,6 +1084,9 @@ class PurchaseRequestController extends Controller
             )->first();
 
         if (! $jobOrder) {
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'The related Job Order was not found.'], 422);
+            }
             return redirect()
                 ->back()
                 ->with(
@@ -1037,6 +1101,9 @@ class PurchaseRequestController extends Controller
                     ->assigned_mechanic
             )
         ) {
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'The related Job Order must have an assigned mechanic before the PR can be resubmitted.'], 422);
+            }
             return redirect()
                 ->back()
                 ->with(
@@ -1136,6 +1203,14 @@ class PurchaseRequestController extends Controller
             'The related Job Order part status was returned to Submitted.'
         );
 
+        if ($request->ajax() || $request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Purchase Request revised and resubmitted successfully.',
+                'purchase_request' => $purchaseRequest,
+            ]);
+        }
+
         return redirect()
             ->to(route('purchase-requests', [], false))
             ->with(
@@ -1149,6 +1224,7 @@ class PurchaseRequestController extends Controller
     ========================================================= */
 
     public function approve(
+        Request $request,
         PurchaseRequest $purchaseRequest
     ) {
         if (
@@ -1156,6 +1232,9 @@ class PurchaseRequestController extends Controller
                 $purchaseRequest
             )
         ) {
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Inventory restock requests cannot be approved from Maintenance.'], 422);
+            }
             return redirect()
                 ->back()
                 ->with(
@@ -1168,6 +1247,9 @@ class PurchaseRequestController extends Controller
             ! $this
                 ->canApprovePurchaseRequest()
         ) {
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Only Maintenance Head can approve purchase requests.'], 403);
+            }
             abort(
                 403,
                 'Only Maintenance Head can approve purchase requests.'
@@ -1178,6 +1260,9 @@ class PurchaseRequestController extends Controller
             $purchaseRequest->status
             !== 'Submitted'
         ) {
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Only submitted purchase requests can be approved.'], 422);
+            }
             return redirect()
                 ->back()
                 ->with(
@@ -1211,6 +1296,14 @@ class PurchaseRequestController extends Controller
             'A maintenance purchase request was approved.'
         );
 
+        if ($request->ajax() || $request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Purchase request approved successfully.',
+                'purchase_request' => $purchaseRequest,
+            ]);
+        }
+
         return redirect()
             ->back()
             ->with(
@@ -1224,6 +1317,7 @@ class PurchaseRequestController extends Controller
     ========================================================= */
 
     public function reject(
+        Request $request,
         PurchaseRequest $purchaseRequest
     ) {
         if (
@@ -1231,6 +1325,9 @@ class PurchaseRequestController extends Controller
                 $purchaseRequest
             )
         ) {
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Inventory restock requests cannot be rejected from Maintenance.'], 422);
+            }
             return redirect()
                 ->back()
                 ->with(
@@ -1243,6 +1340,9 @@ class PurchaseRequestController extends Controller
             ! $this
                 ->canApprovePurchaseRequest()
         ) {
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Only Maintenance Head can reject purchase requests.'], 403);
+            }
             abort(
                 403,
                 'Only Maintenance Head can reject purchase requests.'
@@ -1253,6 +1353,9 @@ class PurchaseRequestController extends Controller
             $purchaseRequest->status
             !== 'Submitted'
         ) {
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Only submitted purchase requests can be rejected.'], 422);
+            }
             return redirect()
                 ->back()
                 ->with(
@@ -1272,7 +1375,7 @@ class PurchaseRequestController extends Controller
                 null,
 
             'remarks' =>
-                'Rejected by Maintenance Head',
+                $request->input('remarks', 'Rejected by Maintenance Head'),
         ]);
 
         $this
@@ -1288,6 +1391,14 @@ class PurchaseRequestController extends Controller
             $purchaseRequest->id,
             'A maintenance purchase request was rejected.'
         );
+
+        if ($request->ajax() || $request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Purchase request rejected successfully.',
+                'purchase_request' => $purchaseRequest,
+            ]);
+        }
 
         return redirect()
             ->back()
@@ -1452,6 +1563,7 @@ class PurchaseRequestController extends Controller
     ========================================================= */
 
     public function destroy(
+        Request $request,
         PurchaseRequest $purchaseRequest
     ) {
         if (
@@ -1459,6 +1571,9 @@ class PurchaseRequestController extends Controller
                 $purchaseRequest
             )
         ) {
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Inventory restock requests cannot be deleted from Maintenance.'], 422);
+            }
             return redirect()
                 ->back()
                 ->with(
@@ -1477,14 +1592,17 @@ class PurchaseRequestController extends Controller
             $purchaseRequest->status
             !== 'Submitted'
         ) {
+            $msg = $purchaseRequest->status === 'Rejected'
+                ? 'Rejected Purchase Requests cannot be deleted. Revise and resubmit the same PR.'
+                : 'This Purchase Request can no longer be deleted because it has already entered the approval or processing workflow.';
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => $msg], 422);
+            }
             return redirect()
                 ->back()
                 ->with(
                     'error',
-                    $purchaseRequest->status
-                        === 'Rejected'
-                        ? 'Rejected Purchase Requests cannot be deleted. Revise and resubmit the same PR.'
-                        : 'This Purchase Request can no longer be deleted because it has already entered the approval or processing workflow.'
+                    $msg
                 );
         }
 
@@ -1536,6 +1654,13 @@ class PurchaseRequestController extends Controller
             $purchaseRequestId,
             'A maintenance purchase request was deleted.'
         );
+
+        if ($request->ajax() || $request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Purchase request deleted successfully.',
+            ]);
+        }
 
         return redirect()
             ->back()

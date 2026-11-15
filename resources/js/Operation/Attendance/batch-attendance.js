@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+function initBatchAttendancePage() {
     const path = window.location.pathname.replace(/\/$/, '');
     const type = path.endsWith('/driver-attendance')
         ? 'driver'
@@ -106,6 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             </div>`;
 
+        overlay.dataset.pageOwned = 'true';
         document.body.appendChild(overlay);
         document.body.classList.add('batch-modal-open');
 
@@ -584,4 +585,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         window.alert(message);
     }
-});
+}
+
+window.GCTPartialNavigation.registerInitializer(
+    'operation-batch-attendance',
+    '[data-batch-attendance-open]',
+    initBatchAttendancePage,
+);

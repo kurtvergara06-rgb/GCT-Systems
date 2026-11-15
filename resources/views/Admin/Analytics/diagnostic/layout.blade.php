@@ -33,14 +33,14 @@
     ];
 @endphp
 
-<x-layout.app title="FROMS - Diagnostic Analytics" :assets="$pageAssets">
+<x-layout.app title="FROMS - Diagnostic Analytics" :assets="$pageAssets" :partial-navigation="false">
     <div class="app">
         <x-layout.sidebar department="Admin" />
 
         <main class="main analytics-stage-page diagnostic-analytics-page diagnostic-domain-{{ $activeDomain }}">
             <x-layout.topbar title="Diagnostic Analytics" subtitle="Why operational outcomes happened based on recorded data." />
 
-            <x-analytics.insight-toast stage="diagnostic" :domain="$activeDomain" />
+            <x-analytics.insight-toast stage="diagnostic" :domain="$activeDomain" :insight="$analyticsAlert" />
 
             <section class="analytics-domain-toolbar diagnostic-toolbar">
                 <nav class="analytics-domain-tabs" aria-label="Diagnostic analytics domains">

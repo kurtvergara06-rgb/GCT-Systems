@@ -14,7 +14,7 @@ return new class extends Migration
             })
             ->update([
                 'part_needed' => null,
-                'part_status' => 'No Parts Required',
+                'part_status' => 'No Parts Needed',
             ]);
 
         DB::table('job_orders')
@@ -22,7 +22,7 @@ return new class extends Migration
             ->whereRaw("TRIM(part_needed) <> ''")
             ->where(function ($query) {
                 $query->whereNull('part_status')
-                    ->orWhereIn('part_status', ['', 'Unknown', 'No Parts Needed', 'No Parts Required']);
+                    ->orWhereIn('part_status', ['', 'Unknown', 'No Parts Needed']);
             })
             ->update([
                 'part_status' => 'Not Requested',
