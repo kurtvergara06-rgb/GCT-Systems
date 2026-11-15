@@ -47,7 +47,7 @@
         <main class="main">
             <x-layout.topbar
                 title="PMS Scheduling"
-                subtitle="Monitor preventive maintenance schedules based on processed GPS vehicle mileage data."
+                subtitle="Monitor preventive maintenance tasks based on processed GPS vehicle mileage data."
                 notification-count="6"
             />
 
@@ -74,7 +74,7 @@
                     <div>
                         <p>Upcoming PMS</p>
                         <h2>{{ $upcomingCount }}</h2>
-                        <small>Scheduled maintenance</small>
+                        <small>Scheduled maintenance tasks</small>
                     </div>
 
                     <i class="fa-solid fa-chevron-right arrow"></i>
@@ -115,11 +115,18 @@
                         <h2>Automated PMS Record</h2>
 
                         <p>
-                            The system reads only processed GPS mileage reports and compares
-                            Current KM against Next PMS KM.
+                            One bus row can contain multiple PMS tasks. Click the list icon to view the tasks in a popup.
                         </p>
                     </div>
 
+                    <button
+                        type="button"
+                        class="pms-add-btn"
+                        data-open-add-pms
+                    >
+                        <i class="fa-solid fa-plus"></i>
+                        Add PMS Task
+                    </button>
                 </div>
 
                 <form method="GET" action="{{ route('PMS-Scheduling') }}">
@@ -131,7 +138,7 @@
                                 type="text"
                                 name="search"
                                 value="{{ request('search') }}"
-                                placeholder="Search vehicle or status..."
+                                placeholder="Search vehicle, PMS task, or status..."
                             >
                         </div>
 
@@ -167,15 +174,8 @@
                                 </option>
                             </select>
                         </div>
-
                     </div>
                 </form>
-
-                <div class="status-legend">
-                    <div><span class="dot green"></span>Upcoming</div>
-                    <div><span class="dot yellow"></span>Due Soon</div>
-                    <div><span class="dot red"></span>Overdue</div>
-                </div>
 
                 <div class="table-wrap">
                     <table class="pms-table">
@@ -185,17 +185,18 @@
                                 <th>GPS Report Date</th>
                                 <th>Current KM</th>
                                 <th>KM Traveled</th>
-                                <th>Last PMS KM</th>
-                                <th>Next PMS KM</th>
-                                <th>Maintenance Type</th>
-                                <th>Recommended Date</th>
-                                <th class="status-col">Status</th>
+                                <th>Due PMS</th>
+                                <th class="status-col">Overall Status</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
 
                         <tbody>
                             @forelse($rows as $row)
+                                @php
+                                    $modalId = 'pmsTasksModal-' . $loop->iteration . '-' . preg_replace('/[^A-Za-z0-9]/', '-', $row->bus_no);
+                                @endphp
+
                                 <tr>
                                     <td>
                                         <strong>{{ $row->bus_no }}</strong>
@@ -223,82 +224,30 @@
                                     </td>
 
                                     <td>
-                                        {{ number_format($row->last_pms_km, 2) }} km
-                                    </td>
-
-                                    <td>
-                                        {{ number_format($row->next_pms_km, 2) }} km
-                                    </td>
-
-                                    <td>
-                                        {{ $row->maintenance_type }}
-                                    </td>
-
-                                    <td>
-                                        {{ $row->status === 'Overdue'
-                                            ? 'Immediate'
-                                            : ($row->recommended_date
-                                                ? \Carbon\Carbon::parse($row->recommended_date)->format('M d, Y')
-                                                : '—'
-                                            )
-                                        }}
+                                        {{ $row->due_pms_count }} task{{ $row->due_pms_count === 1 ? '' : 's' }}
                                     </td>
 
                                     <td class="status-col">
-                                        <span class="badge {{ strtolower(str_replace(' ', '-', $row->status)) }}">
-                                            {{ $row->status }}
+                                        <span class="badge {{ strtolower(str_replace(' ', '-', $row->overall_status)) }}">
+                                            {{ $row->overall_status }}
                                         </span>
                                     </td>
 
                                     <td>
-                                        <div class="actions">
-                                            @if(in_array($row->status, ['Due Soon', 'Overdue']))
-                                                <a
-                                                    href="{{ route('pms-schedules.create-job-order', $row->schedule) }}"
-                                                    class="create-pms-jo-btn"
-                                                    title="Create PMS Job Order"
-                                                >
-                                                    <i class="fa-solid fa-file-circle-plus"></i>
-                                                </a>
-                                            @endif
-
-                                            <button
-                                                type="button"
-                                                class="edit open-edit-pms"
-                                                title="Edit PMS Information"
-                                                data-action="{{ route('pms-schedules.update', $row->schedule) }}"
-                                                data-bus-no="{{ $row->bus_no }}"
-                                                data-last-pms-km="{{ $row->last_pms_km }}"
-                                                data-pms-interval-km="{{ $row->pms_interval_km }}"
-                                                data-maintenance-type="{{ $row->maintenance_type }}"
-                                                data-recommended-date="{{ $row->recommended_date ? \Carbon\Carbon::parse($row->recommended_date)->format('Y-m-d') : '' }}"
-                                            >
-                                                <i class="fa-solid fa-pen-to-square"></i>
-                                            </button>
-
-                                            <form
-                                                action="{{ route('pms-schedules.destroy', $row->schedule) }}"
-                                                method="POST"
-                                                onsubmit="return confirm('Delete this PMS schedule?');"
-                                            >
-                                                @csrf
-                                                @method('DELETE')
-
-                                                <button
-                                                    type="submit"
-                                                    class="delete"
-                                                    title="Delete PMS Schedule"
-                                                >
-                                                    <i class="fa-solid fa-trash"></i>
-                                                </button>
-                                            </form>
-                                        </div>
+                                        <button
+                                            type="button"
+                                            class="pms-view-tasks-btn open-pms-tasks-modal"
+                                            data-modal-target="{{ $modalId }}"
+                                            title="View PMS Tasks"
+                                        >
+                                            <i class="fa-solid fa-list-check"></i>
+                                        </button>
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="10" class="pms-empty-row">
-                                        No PMS schedule records found. Add a bus PMS schedule first.
+                                    <td colspan="7" class="pms-empty-row">
+                                        No PMS schedule records found. Add a bus PMS task first.
                                     </td>
                                 </tr>
                             @endforelse
@@ -309,101 +258,270 @@
                 <x-ui.table-footer :items="$rows" />
             </section>
 
-            <div class="pms-modal-overlay" id="editPmsModal">
+            @foreach($rows as $row)
+                @php
+                    $modalId = 'pmsTasksModal-' . $loop->iteration . '-' . preg_replace('/[^A-Za-z0-9]/', '-', $row->bus_no);
+                @endphp
+
+                <div class="pms-modal-overlay pms-tasks-popup" id="{{ $modalId }}">
+                    <div class="pms-modal pms-wide-modal">
+                        <div class="pms-modal-header">
+                            <div>
+                                <h2>PMS Tasks - {{ $row->bus_no }}</h2>
+                                <p>
+                                    Current KM:
+                                    {{ $row->current_km !== null ? number_format($row->current_km, 2) . ' km' : 'No processed GPS KM' }}
+                                    • Overall Status: {{ $row->overall_status }}
+                                </p>
+                            </div>
+
+                            <button
+                                type="button"
+                                class="pms-close-btn close-pms-tasks-modal"
+                                data-modal-target="{{ $modalId }}"
+                            >
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+
+                        <div class="table-wrap pms-popup-table-wrap">
+                            <table class="pms-table">
+                                <thead>
+                                    <tr>
+                                        <th>PMS Type</th>
+                                        <th>Last PMS KM</th>
+                                        <th>Interval</th>
+                                        <th>Next PMS KM</th>
+                                        <th>Recommended Date</th>
+                                        <th class="status-col">Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    @forelse($row->tasks as $task)
+                                        <tr>
+                                            <td>
+                                                <strong>{{ $task->maintenance_type }}</strong>
+                                            </td>
+
+                                            <td>
+                                                {{ number_format($task->last_pms_km, 2) }} km
+                                            </td>
+
+                                            <td>
+                                                {{ number_format($task->pms_interval_km, 2) }} km
+                                            </td>
+
+                                            <td>
+                                                {{ number_format($task->next_pms_km, 2) }} km
+                                            </td>
+
+                                            <td>
+                                                {{ $task->status === 'Overdue'
+                                                    ? 'Immediate'
+                                                    : ($task->recommended_date
+                                                        ? \Carbon\Carbon::parse($task->recommended_date)->format('M d, Y')
+                                                        : '—'
+                                                    )
+                                                }}
+                                            </td>
+
+                                            <td class="status-col">
+                                                <span class="badge {{ strtolower(str_replace(' ', '-', $task->status)) }}">
+                                                    {{ $task->status }}
+                                                </span>
+                                            </td>
+
+                                            <td>
+                                                <div class="actions">
+                                                    @if(in_array($task->status, ['Due Soon', 'Overdue']))
+                                                        <a
+                                                            href="{{ route('pms-schedules.create-job-order', $task->schedule) }}"
+                                                            class="create-pms-jo-btn"
+                                                            title="Create PMS Job Order"
+                                                            aria-label="Create PMS Job Order"
+                                                        >
+                                                            <i class="fa-solid fa-plus"></i>
+                                                        </a>
+                                                    @else
+                                                        <span class="pms-action-placeholder" title="Job Order available when Due Soon or Overdue">
+                                                            —
+                                                        </span>
+                                                    @endif
+
+                                                    <form
+                                                        action="{{ route('pms-schedules.destroy', $task->schedule) }}"
+                                                        method="POST"
+                                                        onsubmit="return confirm('Delete this PMS task?');"
+                                                    >
+                                                        @csrf
+                                                        @method('DELETE')
+
+                                                        <button
+                                                            type="submit"
+                                                            class="delete"
+                                                            title="Delete PMS Task"
+                                                        >
+                                                            <i class="fa-solid fa-trash"></i>
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="7" class="pms-empty-row">
+                                                No PMS tasks found for this bus.
+                                            </td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            @endforeach
+
+            <div class="pms-modal-overlay" id="addPmsModal">
                 <div class="pms-modal">
                     <div class="pms-modal-header">
                         <div>
-                            <h2>Edit PMS Schedule</h2>
-                            <p>Update the maintenance interval details.</p>
+                            <h2>Add PMS Task</h2>
+                            <p>Select a bus with processed GPS mileage data.</p>
                         </div>
 
                         <button
                             type="button"
                             class="pms-close-btn"
-                            data-close-edit-pms
+                            data-close-add-pms
                         >
                             <i class="fa-solid fa-xmark"></i>
                         </button>
                     </div>
 
-                    <form
-                        id="editPmsForm"
-                        method="POST"
-                        action=""
-                    >
+                    <form action="{{ route('pms-schedules.store') }}" method="POST">
                         @csrf
-                        @method('PUT')
 
                         <div class="pms-form-grid">
                             <div class="form-group">
-                                <label for="edit_bus_no">Vehicle ID / Bus No.</label>
+                                <label for="pmsBusSelect">Vehicle ID / Bus No.</label>
+
+                                <select
+                                    name="bus_no"
+                                    id="pmsBusSelect"
+                                    required
+                                >
+                                    <option value="">
+                                        Select processed GPS bus
+                                    </option>
+
+                                    @foreach($processedBuses as $bus)
+                                        <option
+                                            value="{{ $bus->bus_no }}"
+                                            data-current-km="{{ $bus->current_km }}"
+                                            data-gps-date="{{ $bus->gps_report_date ? \Carbon\Carbon::parse($bus->gps_report_date)->format('M d, Y h:i A') : '' }}"
+                                        >
+                                            {{ $bus->bus_no }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="currentGpsKm">Current GPS KM</label>
 
                                 <input
-                                    id="edit_bus_no"
                                     type="text"
-                                    name="bus_no"
-                                    required
+                                    id="currentGpsKm"
+                                    readonly
+                                    placeholder="Select a bus first"
                                 >
                             </div>
 
                             <div class="form-group">
-                                <label for="edit_last_pms_km">Last PMS KM</label>
+                                <label for="gpsReportDate">GPS Report Date</label>
 
                                 <input
-                                    id="edit_last_pms_km"
+                                    type="text"
+                                    id="gpsReportDate"
+                                    readonly
+                                    placeholder="Select a bus first"
+                                >
+                            </div>
+
+                            <div class="form-group">
+                                <label for="lastPmsKm">Last PMS KM</label>
+
+                                <input
+                                    id="lastPmsKm"
                                     type="number"
                                     step="0.01"
                                     min="0"
                                     name="last_pms_km"
+                                    placeholder="Enter last completed PMS KM"
                                     required
                                 >
                             </div>
 
                             <div class="form-group">
-                                <label for="edit_pms_interval_km">PMS Interval KM</label>
+                                <label for="pmsIntervalKm">PMS Interval KM</label>
 
                                 <input
-                                    id="edit_pms_interval_km"
+                                    id="pmsIntervalKm"
                                     type="number"
                                     step="0.01"
                                     min="1"
                                     name="pms_interval_km"
+                                    value="5000"
                                     required
                                 >
                             </div>
 
                             <div class="form-group">
-                                <label for="edit_maintenance_type">Maintenance Type</label>
+                                <label for="nextPmsKm">Next PMS KM</label>
+
+                                <input
+                                    type="text"
+                                    id="nextPmsKm"
+                                    readonly
+                                    placeholder="Automatic"
+                                >
+                            </div>
+
+                            <div class="form-group">
+                                <label for="pmsStatusPreview">Predicted Status</label>
+
+                                <input
+                                    type="text"
+                                    id="pmsStatusPreview"
+                                    readonly
+                                    placeholder="Automatic"
+                                >
+                            </div>
+
+                            <div class="form-group">
+                                <label for="maintenanceType">PMS Type</label>
 
                                 <select
-                                    id="edit_maintenance_type"
                                     name="maintenance_type"
+                                    id="maintenanceType"
                                     required
                                 >
-                                    <option value="Preventive Maintenance">
-                                        Preventive Maintenance
-                                    </option>
-
-                                    <option value="Oil Change">
-                                        Oil Change
-                                    </option>
-
-                                    <option value="Brake Inspection">
-                                        Brake Inspection
-                                    </option>
-
-                                    <option value="Regular Check-up">
-                                        Regular Check-up
-                                    </option>
+                                    <option value="Change Oil">Change Oil</option>
+                                    <option value="Oil Filter">Oil Filter</option>
+                                    <option value="Brake Check">Brake Check</option>
+                                    <option value="Air Filter">Air Filter</option>
+                                    <option value="Full PMS">Full PMS</option>
                                 </select>
                             </div>
 
                             <div class="form-group full-width">
-                                <label for="edit_recommended_date">Recommended Date</label>
+                                <label for="recommendedDate">Recommended Date</label>
 
                                 <input
-                                    id="edit_recommended_date"
                                     type="date"
+                                    id="recommendedDate"
                                     name="recommended_date"
                                 >
                             </div>
@@ -413,21 +531,73 @@
                             <button
                                 type="button"
                                 class="pms-cancel-btn"
-                                data-close-edit-pms
+                                data-close-add-pms
                             >
                                 Cancel
                             </button>
 
                             <button type="submit" class="pms-save-btn">
                                 <i class="fa-solid fa-floppy-disk"></i>
-                                Update PMS Schedule
+                                Save PMS Task
                             </button>
                         </div>
                     </form>
                 </div>
             </div>
+
         </main>
     </div>
+
+    <style>
+        .pms-wide-modal {
+            width: min(1100px, 96vw);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .pms-popup-table-wrap {
+            margin-top: 16px;
+        }
+
+        .pms-action-placeholder {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            color: #94a3b8;
+            font-weight: 700;
+        }
+
+        .create-pms-jo-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            border-radius: 9px;
+            text-decoration: none;
+        }
+    </style>
+
+    <style>
+        .pms-view-tasks-btn {
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #2563eb;
+            background: #eff6ff;
+            cursor: pointer;
+        }
+
+        .pms-view-tasks-btn:hover {
+            background: #dbeafe;
+        }
+    </style>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -439,6 +609,50 @@
                         modal.classList.remove('show');
                     }
                 });
+            });
+
+            function openModal(modalId) {
+                const modal = document.getElementById(modalId);
+
+                if (modal) {
+                    modal.classList.add('show');
+                }
+            }
+
+            function closeModal(modalId) {
+                const modal = document.getElementById(modalId);
+
+                if (modal) {
+                    modal.classList.remove('show');
+                }
+            }
+
+            document.querySelectorAll('.open-pms-tasks-modal').forEach(function (button) {
+                button.addEventListener('click', function () {
+                    openModal(button.dataset.modalTarget);
+                });
+            });
+
+            document.querySelectorAll('.close-pms-tasks-modal').forEach(function (button) {
+                button.addEventListener('click', function () {
+                    closeModal(button.dataset.modalTarget);
+                });
+            });
+
+            document.querySelectorAll('.pms-tasks-popup').forEach(function (modal) {
+                modal.addEventListener('click', function (event) {
+                    if (event.target === modal) {
+                        modal.classList.remove('show');
+                    }
+                });
+            });
+
+            document.addEventListener('keydown', function (event) {
+                if (event.key === 'Escape') {
+                    document.querySelectorAll('.pms-tasks-popup.show').forEach(function (modal) {
+                        modal.classList.remove('show');
+                    });
+                }
             });
         });
     </script>

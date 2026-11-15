@@ -1,3 +1,11 @@
 python -m uvicorn main:app --reload
 
 php artisan reverb:start
+
+
+
+Start-Service MySQL80
+
+Stop-Service MySQL80
+
+Get-Service MySQL80
