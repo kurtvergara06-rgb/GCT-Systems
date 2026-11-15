@@ -1,0 +1,179 @@
+.fuel-page .fuel-analytics-grid {
+  align-items: stretch;
+}
+
+.fuel-page .fuel-chart-card {
+  display: flex;
+  min-height: 390px;
+  flex-direction: column;
+}
+
+.fuel-page .fuel-chart-container {
+  flex: 1;
+  min-height: 310px;
+  overflow: hidden;
+}
+
+.fuel-page .fuel-chart-tag {
+  white-space: nowrap;
+}
+
+.fuel-page .fuel-monitoring-refined .daily-monitoring-toolbar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
+.fuel-page .fuel-monitoring-refined .daily-monitoring-filters {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) minmax(180px, 220px);
+  align-items: end;
+  gap: 12px;
+  flex: 1;
+}
+
+.fuel-page .fuel-monitoring-refined .daily-filter-field {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fuel-page .fuel-monitoring-refined .daily-filter-field label {
+  color: #475569;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.fuel-page .fuel-monitoring-refined .daily-filter-field input,
+.fuel-page .fuel-monitoring-refined .daily-filter-field select {
+  width: 100%;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #0f172a;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.fuel-page .fuel-monitoring-refined .manual-entry-btn {
+  min-width: 132px;
+  min-height: 40px;
+  margin: 0;
+  align-self: end;
+}
+
+.fuel-page .fuel-monitoring-refined .fuel-monitoring-scroll {
+  max-height: 440px;
+  overflow-x: auto;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+.fuel-page .fuel-monitoring-refined .fuel-monitoring-scroll::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+.fuel-page .fuel-monitoring-refined .fuel-monitoring-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.fuel-page .fuel-monitoring-refined .fuel-monitoring-scroll::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: #cbd5e1;
+}
+
+.fuel-page .fuel-monitoring-refined .daily-monitoring-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 8;
+}
+
+.fuel-page .fuel-monitoring-refined .daily-monitoring-table td {
+  border-bottom-color: #eef2f7;
+}
+
+.fuel-page .fuel-monitoring-refined .daily-monitoring-table tbody tr:hover {
+  background: #f8fbff;
+}
+
+.fuel-page .fuel-monitoring-refined .daily-monitoring-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 14px;
+  padding: 12px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
+.fuel-page .fuel-monitoring-refined .daily-monitoring-actions p {
+  margin: 0;
+  color: #64748b;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.fuel-page .fuel-monitoring-refined .daily-save-btn {
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid #efb500;
+  border-radius: 9px;
+  background: #ffc400;
+  color: #061f3d;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.fuel-page .fuel-monitoring-refined .daily-save-btn:hover {
+  background: #f5b900;
+  border-color: #d99f00;
+}
+
+@media (max-width: 900px) {
+  .fuel-page .fuel-monitoring-refined .daily-monitoring-toolbar,
+  .fuel-page .fuel-monitoring-refined .daily-monitoring-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .fuel-page .fuel-monitoring-refined .daily-monitoring-filters {
+    width: 100%;
+    grid-template-columns: 1fr;
+  }
+
+  .fuel-page .fuel-monitoring-refined .manual-entry-btn,
+  .fuel-page .fuel-monitoring-refined .daily-save-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .fuel-page .fuel-chart-card {
+    min-height: 350px;
+  }
+
+  .fuel-page .fuel-chart-container {
+    min-height: 270px;
+  }
+
+  .fuel-page .fuel-monitoring-refined .fuel-monitoring-scroll {
+    max-height: 380px;
+  }
+}

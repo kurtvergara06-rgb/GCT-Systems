@@ -171,7 +171,7 @@
                         <div class="assigned-job-main">
                           <span>{{ $activeJob->maintenance_type }}</span>
                           <span class="dot">•</span>
-                          <span>Bus {{ $activeJob->bus_no }}</span>
+                          <span class="bus-badge-pill"><i class="fa-solid fa-bus"></i> {{ $activeJob->bus_no }}</span>
                         </div>
 
                         <span class="assigned-job-issue" title="{{ $activeJob->problem_issue }}">

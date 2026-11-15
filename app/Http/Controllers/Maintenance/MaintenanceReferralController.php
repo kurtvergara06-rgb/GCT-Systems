@@ -4,12 +4,15 @@ namespace App\Http\Controllers\Maintenance;
 
 use App\Http\Controllers\Controller;
 use App\Models\Maintenance\MaintenanceReferral;
+use App\Traits\SystemDataUpdateBroadcaster;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class MaintenanceReferralController extends Controller
 {
+    use SystemDataUpdateBroadcaster;
+
     public function index(Request $request): View
     {
         $query = MaintenanceReferral::query()
@@ -67,6 +70,14 @@ class MaintenanceReferralController extends Controller
             'reviewed_at' => now(),
         ]);
 
+        $this->broadcastSystemDataUpdated(
+            'Maintenance',
+            'MaintenanceReferral',
+            'approved',
+            $maintenanceReferral->id,
+            "Maintenance referral for incident {$maintenanceReferral->incident?->incident_no} was approved."
+        );
+
         return back()->with('success', 'Maintenance referral approved. Maintenance Staff may now create the Job Order.');
     }
 
@@ -88,6 +99,14 @@ class MaintenanceReferralController extends Controller
             'reviewed_by' => auth()->id(),
             'reviewed_at' => now(),
         ]);
+
+        $this->broadcastSystemDataUpdated(
+            'Maintenance',
+            'MaintenanceReferral',
+            'rejected',
+            $maintenanceReferral->id,
+            "Maintenance referral for incident {$maintenanceReferral->incident?->incident_no} was rejected."
+        );
 
         return back()->with('success', 'Maintenance referral rejected.');
     }

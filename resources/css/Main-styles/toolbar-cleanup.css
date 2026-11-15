@@ -1,16 +1,26 @@
 /* Shared toolbar cleanup across GCT/FROMS modules.
-   Department captions are redundant because the select already names its purpose.
-   Form labels outside filtering toolbars remain untouched for accessibility. */
+   Filter captions are visually redundant because the controls already expose
+   their purpose through placeholder text, selected values, or aria-labels.
+   Form labels outside filtering/search toolbars remain untouched. */
 
-[class*="toolbar"] .filter-group:has(select[name="department"]) > label,
-[class*="toolbar"] .filter-group:has(select[id*="department" i]) > label,
-[class*="toolbar"] label[for*="department" i]:has(+ select) {
+[class*="toolbar"] .filter-group > label,
+[class*="toolbar"] [class*="filter"] > label,
+[class*="toolbar"] label[for*="department" i]:has(+ select),
+[class*="toolbar"] label:has(+ input[type="date"]),
+[class*="toolbar"] label:has(+ select) {
     display: none !important;
 }
 
-/* When the only label in a filter cell is hidden, keep all controls vertically aligned. */
-[class*="toolbar"] .filter-group:has(select[name="department"]),
-[class*="toolbar"] .filter-group:has(select[id*="department" i]) {
+/* Filter forms that wrap each control in a label keep the label as the
+   accessible container while hiding only the small caption above it. */
+[class*="filters"] label > span:first-child,
+.analytics-stage-filters label > span:first-child {
+    display: none !important;
+}
+
+/* Once captions are removed, keep toolbar controls on the same baseline. */
+[class*="toolbar"] .filter-group,
+[class*="toolbar"] [class*="filter"] {
     justify-content: flex-end;
     gap: 0 !important;
 }

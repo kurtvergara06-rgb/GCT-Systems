@@ -74,6 +74,13 @@
             />
 
             <section class="account-content">
+                @if ($user->must_change_password)
+                    <div class="account-alert account-alert-success">
+                        <i class="fa-solid fa-route"></i>
+                        <span><strong>First login — Step 1 of 2:</strong> Change your temporary password. After a successful update, you will continue automatically to <strong>Welcome to GCT</strong> for your profile confirmation and department tutorial.</span>
+                    </div>
+                @endif
+
                 @if (session('success'))
                     <div class="account-alert account-alert-success">
                         <i class="fa-solid fa-circle-check"></i>
@@ -149,6 +156,12 @@
                         <i class="fa-solid fa-shield-halved"></i>
                         <span>Security & Password</span>
                     </a>
+                    @if (! $user->must_change_password)
+                        <a href="{{ route('onboarding.show', ['replay' => 1]) }}" class="account-nav-tab" data-system-tutorial-link>
+                            <i class="fa-solid fa-graduation-cap"></i>
+                            <span>System Tutorial</span>
+                        </a>
+                    @endif
                 </nav>
 
                 <div class="account-settings-grid">

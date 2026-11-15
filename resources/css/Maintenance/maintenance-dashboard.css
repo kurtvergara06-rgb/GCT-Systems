@@ -109,16 +109,67 @@
   display: grid;
   grid-template-columns: minmax(0, 1.6fr) minmax(320px, 1fr);
   gap: 16px;
+  align-items: stretch;
 }
 
 .maintenance-two-col-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
+  align-items: stretch;
 }
 
 .mb-4 {
   margin-bottom: 16px;
+}
+
+/* =========================================================
+   DASHBOARD SCROLL CONTAINERS
+========================================================= */
+.dashboard-scroll-body {
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+  padding-right: 4px;
+}
+
+.dashboard-scroll-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.dashboard-scroll-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.dashboard-scroll-body::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 999px;
+}
+
+.dashboard-scroll-body::-webkit-scrollbar-thumb:hover {
+  background-color: #94a3b8;
+}
+
+/* Specific Max Heights for Paired Scroll Bodies (Desktop) */
+.dashboard-scroll-job-orders {
+  max-height: 430px;
+}
+
+.dashboard-scroll-mechanics {
+  max-height: 430px;
+}
+
+.dashboard-scroll-pms {
+  max-height: 260px;
+}
+
+.dashboard-scroll-parts {
+  max-height: 260px;
+}
+
+.dashboard-scroll-referrals {
+  max-height: 220px;
 }
 
 /* =========================================================
@@ -133,6 +184,7 @@
   box-shadow: var(--md-shadow);
   display: flex;
   flex-direction: column;
+  height: 100%;
 }
 
 .dashboard-card-header {
@@ -195,30 +247,28 @@
 .recent-job-list {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 7px;
 }
 
 .recent-job-item {
   display: grid;
-  grid-template-columns: 38px minmax(0, 1fr);
+  grid-template-columns: 36px minmax(0, 1fr);
   gap: 12px;
-  padding: 12px 10px;
+  padding: 10px 12px;
   border-radius: 10px;
-  border-bottom: 1px solid #edf2f7;
-  transition: background 0.15s ease;
-}
-
-.recent-job-item:last-child {
-  border-bottom: none;
+  border: 1px solid rgba(226, 232, 240, 0.85);
+  background: #ffffff;
+  transition: all 0.15s ease;
 }
 
 .recent-job-item:hover {
   background: #f8fbff;
+  border-color: #cbd5e1;
 }
 
 .recent-job-item.is-urgent-item {
-  background: #fffafa;
-  border-left: 3px solid #ef4444;
+  background: #fffcfc;
+  border-color: #fee2e2;
 }
 
 .recent-job-icon {
@@ -410,9 +460,7 @@
 .mechanic-roster-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  max-height: 380px;
-  overflow-y: auto;
+  gap: 7px;
 }
 
 .roster-item {
@@ -420,13 +468,14 @@
   align-items: center;
   gap: 10px;
   padding: 8px 10px;
-  border-radius: 10px;
-  border: 1px solid #edf2f7;
+  border-radius: 9px;
+  border: 1px solid rgba(226, 232, 240, 0.85);
   background: #ffffff;
-  transition: border-color 0.15s ease;
+  transition: all 0.15s ease;
 }
 
 .roster-item:hover {
+  background: #f8fafc;
   border-color: #cbd5e1;
 }
 
@@ -500,19 +549,44 @@
   gap: 12px;
   padding: 10px 12px;
   border-radius: 10px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid rgba(226, 232, 240, 0.85);
   background: #ffffff;
   transition: all 0.15s ease;
 }
 
+.pms-attention-row:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
 .pms-attention-row.is-overdue {
-  border-left: 4px solid #ef4444;
+  border-color: #fee2e2;
   background: #fffcfc;
 }
 
 .pms-attention-row.is-due-soon {
-  border-left: 4px solid #f59e0b;
+  border-color: #fef3c7;
   background: #fffdfa;
+}
+
+.pms-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 6px;
+}
+
+.pms-status-badge.overdue {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.pms-status-badge.due-soon {
+  background: #fef3c7;
+  color: #b45309;
 }
 
 .pms-bus-badge {
@@ -639,17 +713,23 @@
 .blocked-repairs-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 7px;
 }
 
 .blocked-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 10px;
-  border-radius: 8px;
-  border: 1px solid #fed7aa;
-  background: #fffaf5;
+  padding: 10px 12px;
+  border-radius: 9px;
+  border: 1px solid rgba(226, 232, 240, 0.85);
+  background: #ffffff;
+  transition: all 0.15s ease;
+}
+
+.blocked-item:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
 }
 
 .blocked-main {
@@ -670,7 +750,11 @@
 .blocked-part-name {
   margin: 3px 0 0;
   font-size: 11px;
-  color: #9a3412;
+  color: var(--md-muted);
+}
+
+.blocked-part-name strong {
+  color: #c2410c;
 }
 
 .part-status-badge.waiting {
@@ -736,12 +820,18 @@
   gap: 10px;
   padding: 10px 12px;
   border-radius: 10px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid rgba(226, 232, 240, 0.85);
   background: #ffffff;
+  transition: all 0.15s ease;
+}
+
+.referral-stream-item:hover {
+  background: #f8fbff;
+  border-color: #cbd5e1;
 }
 
 .referral-stream-item.is-pending {
-  border-left: 3px solid #dc2626;
+  border-color: #fee2e2;
   background: #fffcfc;
 }
 
@@ -1026,11 +1116,33 @@
   .maintenance-two-col-grid {
     grid-template-columns: 1fr;
   }
+
+  .dashboard-scroll-job-orders,
+  .dashboard-scroll-mechanics {
+    max-height: 380px;
+  }
+
+  .dashboard-scroll-pms,
+  .dashboard-scroll-parts {
+    max-height: 240px;
+  }
+
+  .dashboard-scroll-referrals {
+    max-height: 210px;
+  }
 }
 
 @media (max-width: 768px) {
   .maintenance-stats-grid {
     grid-template-columns: 1fr;
+  }
+
+  .dashboard-scroll-job-orders,
+  .dashboard-scroll-mechanics,
+  .dashboard-scroll-pms,
+  .dashboard-scroll-parts,
+  .dashboard-scroll-referrals {
+    max-height: 360px;
   }
 
   .roster-metrics-bar,

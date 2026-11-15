@@ -454,7 +454,6 @@
                     </div>
 
                     <div class="form-group">
-                        <label>Department</label>
                         <select name="department" id="userDepartmentInput" required>
                             <option value="">Select Department</option>
                             @foreach($departmentOptions as $department)
@@ -464,7 +463,6 @@
                     </div>
 
                     <div class="form-group">
-                        <label>Role</label>
                         <select name="role" id="userRoleInput" required>
                             <option value="">Select Role</option>
                             @foreach(($roles ?? []) as $roleValue => $roleLabel)

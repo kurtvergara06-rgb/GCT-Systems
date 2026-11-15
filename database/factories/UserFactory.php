@@ -27,6 +27,10 @@ class UserFactory extends Factory
     /**
      * Define the model's default state.
      *
+     * Factory users represent established accounts by default. Tests that
+     * exercise first-login behavior explicitly override these onboarding
+     * flags to false.
+     *
      * @return array<string, mixed>
      */
     public function definition(): array
@@ -37,6 +41,9 @@ class UserFactory extends Factory
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
+            'must_change_password' => false,
+            'onboarding_completed' => true,
+            'onboarding_completed_at' => now(),
         ];
     }
 
