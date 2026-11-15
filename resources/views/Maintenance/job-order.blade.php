@@ -1,23 +1,12 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <title>FROMS - Job Orders</title>
-
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-
-  @vite([
-    'resources/css/Main-styles/main.css',
-    'resources/css/Main-styles/sidebar.css',
+<x-layout.app
+  title="FROMS - Job Orders"
+  :assets="[
     'resources/css/Maintenance/job-order.css',
     'resources/js/Maintenance/job-order.js'
-  ])
-</head>
+  ]"
+>
 
-<body>
-
+  {{-- SUCCESS POPUP --}}
   @if(session('success'))
     <div id="successModal" class="success-modal-overlay show">
       <div class="success-modal-box">
@@ -37,76 +26,28 @@
 
   <div class="app">
 
-    <!-- SIDEBAR -->
-    <aside class="sidebar">
+    {{-- SIDEBAR COMPONENT --}}
+    <x-layout.sidebar
+      department="Maintenance"
+      subtitle="Department Module"
+      icon="fa-truck"
+      user-name="R. Lim"
+      user-role="Maintenance Admin"
+      :items="[
+        ['label' => 'Dashboard', 'route' => 'dashboard-maintenance', 'icon' => 'fa-table-cells-large'],
+        ['label' => 'Job Orders', 'route' => 'job-orders', 'icon' => 'fa-clipboard-list'],
+        ['label' => 'Mechanic List', 'route' => 'mechanic-list', 'icon' => 'fa-bus'],
+        ['label' => 'PMS Scheduling', 'route' => 'PMS-Scheduling', 'icon' => 'fa-calendar-check'],
+        ['label' => 'Purchase Requests', 'route' => 'purchase-requests', 'icon' => 'fa-file-invoice'],
+        ['label' => 'Fuel Reports', 'route' => 'fuel-reports', 'icon' => 'fa-gas-pump'],
+        ['label' => 'Settings', 'route' => 'settings', 'icon' => 'fa-gear'],
+      ]"
+    />
 
-      <div class="brand">
-        <div class="brand-icon">
-          <i class="fa-solid fa-truck"></i>
-        </div>
-
-        <div>
-          <h2>Maintenance</h2>
-          <p>Department Module</p>
-        </div>
-      </div>
-
-      <nav class="menu">
-        <a href="{{ route('dashboard-maintenance') }}" class="menu-item">
-          <i class="fa-solid fa-table-cells-large"></i>
-          <span>Dashboard</span>
-        </a>
-
-        <a href="{{ route('job-orders') }}" class="menu-item active">
-          <i class="fa-solid fa-clipboard-list"></i>
-          <span>Job Orders</span>
-        </a>
-
-        <a href="{{ route('mechanic-list') }}" class="menu-item">
-          <i class="fa-solid fa-bus"></i>
-          <span>Mechanic List</span>
-        </a>
-
-        <a href="{{ route('PMS-Scheduling') }}" class="menu-item">
-          <i class="fa-solid fa-calendar-check"></i>
-          <span>PMS Scheduling</span>
-        </a>
-
-        <a href="{{ route('purchase-requests') }}" class="menu-item">
-          <i class="fa-solid fa-file-invoice"></i>
-          <span>Purchase Requests</span>
-        </a>
-
-        <a href="{{ route('fuel-reports') }}" class="menu-item">
-          <i class="fa-solid fa-gas-pump"></i>
-          <span>Fuel Reports</span>
-        </a>
-
-        <a href="{{ route('settings') }}" class="menu-item">
-          <i class="fa-solid fa-gear"></i>
-          <span>Settings</span>
-        </a>
-      </nav>
-
-      <div class="user-box">
-        <div class="avatar">
-          <i class="fa-solid fa-user"></i>
-        </div>
-
-        <div>
-          <h4>R. Lim</h4>
-          <p>Maintenance Admin</p>
-        </div>
-
-        <i class="fa-solid fa-chevron-down"></i>
-      </div>
-
-    </aside>
-
-    <!-- MAIN -->
+    {{-- MAIN CONTENT --}}
     <main class="main">
 
-      <!-- TOP BAR -->
+      {{-- TOP BAR --}}
       <header class="topbar">
         <div>
           <h1>Job Orders</h1>
@@ -129,6 +70,7 @@
         </div>
       </header>
 
+      {{-- ERROR ALERT --}}
       @if($errors->any())
         <div class="alert-error">
           <ul>
@@ -139,7 +81,7 @@
         </div>
       @endif
 
-      <!-- SUMMARY CARDS -->
+      {{-- SUMMARY CARDS --}}
       <section class="stats-grid">
 
         <div class="stat-card">
@@ -200,7 +142,7 @@
 
       </section>
 
-      <!-- JOB ORDERS TABLE -->
+      {{-- JOB ORDERS TABLE --}}
       <section class="table-card">
 
         <div class="section-header">
@@ -227,15 +169,19 @@
               <option value="All Statuses" {{ request('status') == 'All Statuses' ? 'selected' : '' }}>
                 All Statuses
               </option>
+
               <option value="On Hold" {{ request('status') == 'On Hold' ? 'selected' : '' }}>
                 On Hold
               </option>
+
               <option value="On Going" {{ request('status') == 'On Going' ? 'selected' : '' }}>
                 On Going
               </option>
+
               <option value="Completed" {{ request('status') == 'Completed' ? 'selected' : '' }}>
                 Completed
               </option>
+
               <option value="Urgent Repair" {{ request('status') == 'Urgent Repair' ? 'selected' : '' }}>
                 Urgent Repair
               </option>
@@ -248,9 +194,11 @@
               <option value="All Types" {{ request('type') == 'All Types' ? 'selected' : '' }}>
                 All Types
               </option>
+
               <option value="PMS" {{ request('type') == 'PMS' ? 'selected' : '' }}>
                 PMS
               </option>
+
               <option value="Repair" {{ request('type') == 'Repair' ? 'selected' : '' }}>
                 Repair
               </option>
@@ -402,7 +350,7 @@
 
   </div>
 
-  <!-- NEW JOB ORDER MODAL -->
+  {{-- NEW JOB ORDER MODAL --}}
   <div id="jobModal" class="modal-overlay">
     <div class="modal-box wide-modal">
       <div class="modal-header">
@@ -491,7 +439,7 @@
     </div>
   </div>
 
-  <!-- EDIT / DETAILS JOB ORDER MODAL -->
+  {{-- EDIT / DETAILS JOB ORDER MODAL --}}
   <div id="editJobModal" class="modal-overlay">
     <div class="modal-box wide-modal">
       <div class="modal-header">
@@ -580,7 +528,7 @@
     </div>
   </div>
 
-  <!-- DELETE CONFIRMATION MODAL -->
+  {{-- DELETE CONFIRMATION MODAL --}}
   <div id="deleteJobModal" class="delete-modal-overlay">
     <div class="delete-modal-box">
       <div class="delete-icon">
@@ -607,5 +555,4 @@
     </div>
   </div>
 
-</body>
-</html>
+</x-layout.app>
