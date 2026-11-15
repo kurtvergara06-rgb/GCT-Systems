@@ -51,10 +51,6 @@ document.addEventListener('DOMContentLoaded', () => {
         import('./Operation/Routes/route-pin-controls.js');
     }
 
-    if (document.getElementById('gpsUploadForm')) {
-        import('./Admin/Data_Management/batch-profile-selector.js');
-    }
-
     if (document.getElementById('importModule') && document.getElementById('exportModule')) {
         import('./Admin/Data_Management/import-export.js');
     }

@@ -551,9 +551,16 @@
    TABLES
    ========================================================= */
 
-.predictive-fleet-page .table-responsive {
+.predictive-fleet-page .table-responsive,
+.predictive-fleet-page .ft-table-wrap {
     width: 100%;
+    max-height: 480px;
+    overflow-y: auto;
     overflow-x: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
 }
 
 .predictive-fleet-page .ft-table {
@@ -568,9 +575,13 @@
 }
 
 .predictive-fleet-page .ft-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 5;
     padding: 9px 12px;
     background: #ffffff;
     border-bottom: 1px solid var(--ft-border);
+    box-shadow: 0 1px 0 var(--ft-border);
     color: #64748b;
     font-size: 9px;
     font-weight: 700;
@@ -674,9 +685,9 @@
 }
 
 .predictive-fleet-page .ft-action-chip:hover {
-    background: #0f172a;
-    color: #ffffff;
-    border-color: #0f172a;
+    background: #f1f5f9;
+    color: #1e293b;
+    border-color: #cbd5e1;
 }
 
 /* =========================================================

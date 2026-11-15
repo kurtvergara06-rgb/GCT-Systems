@@ -60,64 +60,47 @@
         ['label' => 'Inventory', 'value' => (int) $inventoryDiag->total, 'detail' => $stockAttentionCount . ' stock attention records', 'icon' => 'fa-boxes-stacked'],
     ]);
 
-    $impactRows = collect([
+    $severityBreakdown = collect([
         (object) [
-            'domain' => 'Fleet & Trip',
-            'delay' => (int) ($fleetDiag->delay_count ?? 0) + (int) ($fleetDiag->slow_movement_count ?? 0),
-            'idle' => (int) ($fleetDiag->high_idle_count ?? 0),
-            'fuel' => null,
-            'maintenance' => null,
-            'stock' => null,
-            'total' => (int) ($fleetDiag->review_count ?? 0),
-        ],
-        (object) [
-            'domain' => 'Fuel',
-            'delay' => null,
-            'idle' => $fuelDiag->high_idling_units->count(),
-            'fuel' => $fuelDiag->review_units->count(),
-            'maintenance' => null,
-            'stock' => null,
-            'total' => $fuelDiag->review_units->count(),
+            'domain' => 'Inventory',
+            'icon' => 'fa-boxes-stacked',
+            'high' => (int) $inventoryDiag->critical,
+            'high_label' => 'Critical / Out',
+            'moderate' => (int) $inventoryDiag->low,
+            'moderate_label' => 'Low Stock',
+            'total' => (int) $inventoryDiag->attention_rows->count(),
         ],
         (object) [
             'domain' => 'Bus Health',
-            'delay' => null,
-            'idle' => null,
-            'fuel' => null,
-            'maintenance' => $healthDiag->attention_buses->count(),
-            'stock' => null,
-            'total' => $healthDiag->attention_buses->count(),
+            'icon' => 'fa-screwdriver-wrench',
+            'high' => (int) $healthDiag->overdue_orders->count(),
+            'high_label' => 'Overdue Orders',
+            'moderate' => max(0, (int) $healthDiag->attention_buses->count() - (int) $healthDiag->overdue_orders->count()),
+            'moderate_label' => 'Active Orders',
+            'total' => (int) $healthDiag->attention_buses->count(),
         ],
         (object) [
-            'domain' => 'Inventory',
-            'delay' => null,
-            'idle' => null,
-            'fuel' => null,
-            'maintenance' => null,
-            'stock' => $inventoryDiag->attention_rows->count(),
-            'total' => $inventoryDiag->attention_rows->count(),
+            'domain' => 'Fuel',
+            'icon' => 'fa-gas-pump',
+            'high' => (int) $fuelDiag->high_idling_units->count(),
+            'high_label' => 'High Idle Units',
+            'moderate' => max(0, (int) $fuelDiag->review_units->count() - (int) $fuelDiag->high_idling_units->count()),
+            'moderate_label' => 'Sub-Baseline',
+            'total' => (int) $fuelDiag->review_units->count(),
+        ],
+        (object) [
+            'domain' => 'Fleet & Trip',
+            'icon' => 'fa-route',
+            'high' => (int) ($fleetDiag->delay_count ?? 0),
+            'high_label' => 'Delayed Trips',
+            'moderate' => (int) ($fleetDiag->high_idle_count ?? 0) + (int) ($fleetDiag->slow_movement_count ?? 0),
+            'moderate_label' => 'Idle / Slow',
+            'total' => (int) ($fleetDiag->review_count ?? 0),
         ],
     ]);
-    $impactKeys = ['delay', 'idle', 'fuel', 'maintenance', 'stock'];
-    $impactMax = max(1, (int) $impactRows->flatMap(fn ($row) => collect($impactKeys)->map(fn ($key) => $row->{$key}))->filter(fn ($value) => $value !== null)->max());
-    $heatClass = function ($value) use ($impactMax): string {
-        if ($value === null) return 'unsupported';
-        if ((int) $value <= 0) return 'heat-0';
-        $ratio = ((int) $value) / $impactMax;
-        if ($ratio >= .80) return 'heat-5';
-        if ($ratio >= .60) return 'heat-4';
-        if ($ratio >= .40) return 'heat-3';
-        if ($ratio >= .20) return 'heat-2';
-        return 'heat-1';
-    };
-    $impactTotals = (object) [
-        'delay' => $impactRows->sum(fn ($row) => (int) ($row->delay ?? 0)),
-        'idle' => $impactRows->sum(fn ($row) => (int) ($row->idle ?? 0)),
-        'fuel' => $impactRows->sum(fn ($row) => (int) ($row->fuel ?? 0)),
-        'maintenance' => $impactRows->sum(fn ($row) => (int) ($row->maintenance ?? 0)),
-        'stock' => $impactRows->sum(fn ($row) => (int) ($row->stock ?? 0)),
-        'total' => $impactRows->sum('total'),
-    ];
+    $totalHighImpact = (int) $all->high_impact;
+    $totalModerate = max(0, (int) $all->signals - $totalHighImpact);
+    $maxDomainTotal = max(1, (int) $severityBreakdown->max('total'));
 @endphp
 
 <section class="diag-stack diag-all-stack">
@@ -194,38 +177,70 @@
             </div>
         </article>
 
-        <article class="diag-card diag-impact-card">
-            <x-analytics.card-header class="diag-card-head" title="Impact by Domain and Metric" description="Recorded signal concentration by supported operational relationship. &quot;“—” means no supported link is asserted." />
-            <div class="diag-heatmap-wrap">
-                <table class="diag-heatmap-table">
-                    <thead>
-                        <tr><th>Domain</th><th>Delay / Movement</th><th>Idle</th><th>Fuel Efficiency</th><th>Maintenance</th><th>Stock Risk</th><th>Total Impact</th></tr>
-                    </thead>
-                    <tbody>
-                        @foreach($impactRows as $row)
-                            <tr>
-                                <th scope="row">{{ $row->domain }}</th>
-                                @foreach($impactKeys as $key)
-                                    <td class="{{ $heatClass($row->{$key}) }}">{{ $row->{$key} === null ? '—' : number_format($row->{$key}) }}</td>
-                                @endforeach
-                                <td class="diag-heat-total">{{ number_format($row->total) }}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                    <tfoot>
-                        <tr>
-                            <th>Total Impact</th>
-                            <td>{{ number_format($impactTotals->delay) }}</td>
-                            <td>{{ number_format($impactTotals->idle) }}</td>
-                            <td>{{ number_format($impactTotals->fuel) }}</td>
-                            <td>{{ number_format($impactTotals->maintenance) }}</td>
-                            <td>{{ number_format($impactTotals->stock) }}</td>
-                            <td>{{ number_format($impactTotals->total) }}</td>
-                        </tr>
-                    </tfoot>
-                </table>
+        <article class="diag-card diag-severity-card">
+            <x-analytics.card-header
+                class="diag-card-head"
+                title="Signal Severity & Friction Split"
+                description="Distribution of critical high-impact friction versus moderate monitoring signals across domains."
+            />
+
+            <div class="diag-severity-summary">
+                <div class="diag-sev-stat high">
+                    <span class="diag-sev-stat-badge"><i class="fa-solid fa-triangle-exclamation"></i> High Impact</span>
+                    <strong>{{ number_format($totalHighImpact) }}</strong>
+                    <small>Critical operational friction</small>
+                </div>
+                <div class="diag-sev-stat moderate">
+                    <span class="diag-sev-stat-badge"><i class="fa-solid fa-circle-exclamation"></i> Moderate / Watch</span>
+                    <strong>{{ number_format($totalModerate) }}</strong>
+                    <small>Baseline deviations under observation</small>
+                </div>
             </div>
-            <div class="diag-heat-legend"><span>Impact Scale (Low → High)</span><div class="diag-heat-gradient" aria-hidden="true"></div><small>Cell intensity is normalized from the real supported signal counts shown above.</small></div>
+
+            <div class="diag-severity-bars">
+                @foreach($severityBreakdown as $item)
+                    @php
+                        $barPct = $maxDomainTotal > 0 ? round(($item->total / $maxDomainTotal) * 100, 1) : 0;
+                        $highPctOfTotal = $item->total > 0 ? round(($item->high / $item->total) * 100, 1) : 0;
+                        $moderatePctOfTotal = $item->total > 0 ? max(0, 100 - $highPctOfTotal) : 0;
+                    @endphp
+                    <div class="diag-sev-row">
+                        <div class="diag-sev-row-head">
+                            <div class="diag-sev-domain">
+                                <i class="fa-solid {{ $item->icon }}"></i>
+                                <span>{{ $item->domain }}</span>
+                            </div>
+                            <div class="diag-sev-counts">
+                                @if($item->high > 0)
+                                    <span class="sev-tag high">{{ $item->high }} {{ $item->high_label }}</span>
+                                @endif
+                                @if($item->moderate > 0)
+                                    <span class="sev-tag moderate">{{ $item->moderate }} {{ $item->moderate_label }}</span>
+                                @endif
+                                @if($item->total === 0)
+                                    <span class="sev-tag clean"><i class="fa-solid fa-check"></i> Healthy</span>
+                                @endif
+                                <strong class="sev-total">({{ number_format($item->total) }})</strong>
+                            </div>
+                        </div>
+                        <div class="diag-sev-track-wrap">
+                            <div class="diag-sev-track" style="width: {{ max(10, $barPct) }}%;">
+                                @if($item->high > 0)
+                                    <div class="diag-sev-segment high" style="width: {{ $highPctOfTotal }}%;" title="{{ $item->high }} {{ $item->high_label }}"></div>
+                                @endif
+                                @if($item->moderate > 0)
+                                    <div class="diag-sev-segment moderate" style="width: {{ $moderatePctOfTotal }}%;" title="{{ $item->moderate }} {{ $item->moderate_label }}"></div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+
+            <div class="diag-sev-legend">
+                <span class="legend-item"><i class="dot high"></i> High Impact (Immediate Action)</span>
+                <span class="legend-item"><i class="dot moderate"></i> Moderate (Monitoring / Watch)</span>
+            </div>
         </article>
 
         <article class="diag-card diag-investigation-signals">

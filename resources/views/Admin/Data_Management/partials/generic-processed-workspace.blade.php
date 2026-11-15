@@ -17,9 +17,10 @@
                         href="{{ route('batch-file-processing', ['batch_id' => $batch->id], false) }}"
                         class="uploaded-file {{ $selectedBatchId == $batch->id ? 'active-file' : '' }}"
                     >
-                        <div class="file-icon {{ strtolower($batch->file_type ?? 'csv') }}">
-                            <i class="fa-solid fa-file"></i>
-                        </div>
+                        <x-ui.file-thumbnail
+                            :filename="$batch->file_name"
+                            :type="$batch->file_type"
+                        />
 
                         <div class="file-info">
                             <strong>{{ $batch->file_name }}</strong>

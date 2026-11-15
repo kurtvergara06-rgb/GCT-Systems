@@ -50,53 +50,6 @@ class DataManagementServiceProvider extends ServiceProvider
             )->name('admin.import-export.export');
         });
 
-        View::composer('Admin.Data_Management.data-history', function ($view) {
-            $request = request();
-
-            $query = DataActivity::query()
-                ->with('processor')
-                ->latest();
-
-            if ($request->filled('search')) {
-                $search = trim((string) $request->query('search'));
-
-                $query->where(function ($builder) use ($search) {
-                    $builder->where('file_name', 'like', "%{$search}%")
-                        ->orWhere('module', 'like', "%{$search}%")
-                        ->orWhere('data_type', 'like', "%{$search}%")
-                        ->orWhere('source', 'like', "%{$search}%");
-                });
-            }
-
-            if ($request->filled('type') && $request->query('type') !== 'All Types') {
-                $query->where('activity_type', $request->query('type'));
-            }
-
-            if ($request->filled('module') && $request->query('module') !== 'All Modules') {
-                $query->where('module', $request->query('module'));
-            }
-
-            if ($request->filled('status') && $request->query('status') !== 'All Status') {
-                $query->where('status', $request->query('status'));
-            }
-
-            $history = $query
-                ->paginate(10)
-                ->withQueryString();
-
-            $stats = [
-                'total' => DataActivity::count(),
-                'successful' => DataActivity::where('status', 'Completed')->count(),
-                'processed_files' => DataActivity::whereIn('activity_type', [
-                    'Batch Processing',
-                    'Import',
-                ])->where('status', 'Completed')->count(),
-                'failed' => DataActivity::whereIn('status', ['Failed', 'Needs Correction'])->count(),
-            ];
-
-            $view->with(compact('history', 'stats'));
-        });
-
         View::composer('Admin.Data_Management.uploading-data', function ($view) {
             $monthStart = now()->startOfMonth();
 

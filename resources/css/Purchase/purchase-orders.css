@@ -192,6 +192,23 @@
   border-radius: 10px;
 }
 
+.purchase-order-card .table-wrap:has(tbody > tr:nth-child(8)) {
+  max-height: 480px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+.purchase-order-card .table-wrap::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+.purchase-order-card .table-wrap::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+
 .purchase-order-card table {
   width: 100%;
   min-width: 1080px;
@@ -204,8 +221,13 @@
 }
 
 .purchase-order-card th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #f3f7fc;
   padding: 13px 14px;
   border-bottom: 1px solid #dce5f2;
+  box-shadow: 0 1px 0 #dce5f2;
   color: #475569;
   font-size: 11px;
   font-weight: 700;

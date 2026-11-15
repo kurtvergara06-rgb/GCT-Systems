@@ -63,6 +63,7 @@ export default defineConfig({
                 'resources/css/Admin/Data_Management/uploading-data.css',
 
                 'resources/js/Admin/Data_Management/batch-file-processing.js',
+                'resources/js/Admin/Data_Management/data-history.js',
 
                 // ======================================================
                 // ADMIN — SYSTEM MONITORING
@@ -70,7 +71,9 @@ export default defineConfig({
 
                 'resources/css/Admin/System_Monitoring/activity-logs.css',
                 'resources/css/Admin/System_Monitoring/notifications.css',
+                'resources/css/Admin/System_Monitoring/notifications-components.css',
                 'resources/js/Admin/System_Monitoring/activity-logs.js',
+                'resources/js/Admin/System_Monitoring/notifications.js',
 
                 // ======================================================
                 // ADMIN — SETTINGS
@@ -124,6 +127,7 @@ export default defineConfig({
                 'resources/css/Maintenance/fuel-reports.css',
                 'resources/css/Maintenance/job-order.css',
                 'resources/css/Maintenance/mechanic-list.css',
+                'resources/css/Maintenance/mechanic-availability-enhancement.css',
                 'resources/css/Maintenance/pms-scheduling.css',
                 'resources/css/Maintenance/purchase-requests.css',
 
@@ -144,9 +148,11 @@ export default defineConfig({
 
                 'resources/css/Operation/Attendance/driver-attendance.css',
                 'resources/css/Operation/Attendance/available-mechanics.css',
+                'resources/css/Operation/Attendance/personnel-master.css',
 
                 'resources/js/Operation/Attendance/driver-attendance.js',
                 'resources/js/Operation/Attendance/mechanic-attendance.js',
+                'resources/js/Operation/Attendance/personnel-master-modal.js',
 
                 // ======================================================
                 // OPERATION — ROUTES AND STOPS

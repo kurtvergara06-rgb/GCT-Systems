@@ -266,6 +266,23 @@
   border-radius: 10px;
 }
 
+.incoming-delivery-page .table-wrap:has(tbody > tr:nth-child(8)) {
+  max-height: 480px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+.incoming-delivery-page .table-wrap::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+.incoming-delivery-page .table-wrap::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+
 
 /* =========================================================
    TABLE
@@ -285,10 +302,16 @@
 }
 
 .incoming-delivery-table th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--delivery-head);
+
   padding: 13px 14px;
 
   border-bottom:
     1px solid var(--delivery-border);
+  box-shadow: 0 1px 0 var(--delivery-border);
 
   color: #475569;
 

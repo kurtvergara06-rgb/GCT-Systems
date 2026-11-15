@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function () {
         'markBatchProcessedBtn'
     );
 
-    const allowedExtensions = ['csv', 'txt', 'pdf', 'xls', 'xlsx'];
+    const allowedExtensions = ['pdf', 'csv', 'json', 'txt', 'xls', 'xlsx'];
 
     let hasUnsavedBatchChanges = false;
 
@@ -129,7 +129,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         if (selectedFileName) {
-            selectedFileName.textContent = 'Drag and drop GPS files here';
+            selectedFileName.textContent = 'Drag and drop GPS file here';
         }
 
         if (uploadButton) {
@@ -147,7 +147,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (!allowedExtensions.includes(extension)) {
             showNotification(
-                'Please upload only PDF, CSV, TXT, XLS, or XLSX files.',
+                'Please upload a supported GPS file (PDF, CSV, JSON, TXT, XLS, or XLSX).',
                 'error'
             );
 
@@ -247,9 +247,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (!allowedExtensions.includes(extension)) {
                 showNotification(
-                    'Please upload only PDF, CSV, TXT, XLS, or XLSX files.',
+                    'Please upload a supported GPS file (PDF, CSV, JSON, TXT, XLS, or XLSX).',
                     'error'
                 );
+                resetSelectedFile();
                 return;
             }
 
@@ -269,9 +270,22 @@ document.addEventListener('DOMContentLoaded', function () {
                 event.preventDefault();
 
                 showNotification(
-                    'Please select a GPS report first.',
+                    'Please select a GPS file first.',
                     'warning'
                 );
+                return;
+            }
+
+            const extension = getFileExtension(fileInput.files[0].name);
+            if (!allowedExtensions.includes(extension)) {
+                event.preventDefault();
+
+                showNotification(
+                    'Please upload a supported GPS file (PDF, CSV, JSON, TXT, XLS, or XLSX).',
+                    'error'
+                );
+                resetSelectedFile();
+                return;
             }
         });
     }
