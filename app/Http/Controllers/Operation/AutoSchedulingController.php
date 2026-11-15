@@ -3,7 +3,10 @@
 namespace App\Http\Controllers\Operation;
 
 use App\Http\Controllers\Controller;
+use App\Models\Admin\GpsTripRecord;
 use App\Models\Maintenance\Bus;
+use App\Models\Maintenance\FuelReport;
+use App\Models\Maintenance\JobOrder;
 use App\Models\Operation\DriverAttendance;
 use App\Models\Operation\ShuttleRoute;
 use App\Models\Operation\TripAssignment;
@@ -328,6 +331,14 @@ class AutoSchedulingController extends Controller
         $recommendations = collect();
         $conflicts = collect();
 
+        // ML feature histories are per-driver / per-bus aggregates that are
+        // independent of the current trip, so compute them once up-front and
+        // reuse them for every trip being auto-scheduled.
+        $aiHistories = $this->buildAiHistoryAggregates(
+            drivers: $drivers,
+            buses: $buses
+        );
+
         foreach ($trips as $trip) {
             $driver = $this->findAvailableDriver(
                 trip: $trip,
@@ -377,7 +388,11 @@ class AutoSchedulingController extends Controller
                     driverWorkloads:
                         $driverWorkloads,
                     busWorkloads:
-                        $busWorkloads
+                        $busWorkloads,
+                    driverHistories:
+                        $aiHistories['driver_histories'],
+                    busHistories:
+                        $aiHistories['bus_histories']
                 );
 
                 $aiResponse =
@@ -493,6 +508,45 @@ class AutoSchedulingController extends Controller
                                 'analysis.alternative_buses',
                                 []
                             ),
+
+                        'ml' => [
+                            'bus_ready' =>
+                                (bool) data_get(
+                                    $aiResponse,
+                                    'analysis.ml_bus_ready',
+                                    false
+                                ),
+                            'driver_ready' =>
+                                (bool) data_get(
+                                    $aiResponse,
+                                    'analysis.ml_driver_ready',
+                                    false
+                                ),
+                            'bus_source' =>
+                                data_get(
+                                    $aiResponse,
+                                    'analysis.ml_bus_source',
+                                    'rule_fallback'
+                                ),
+                            'driver_source' =>
+                                data_get(
+                                    $aiResponse,
+                                    'analysis.ml_driver_source',
+                                    'rule_fallback'
+                                ),
+                            'bus_suitability' =>
+                                (array) data_get(
+                                    $aiResponse,
+                                    'analysis.bus_suitability',
+                                    []
+                                ),
+                            'driver_suitability' =>
+                                (array) data_get(
+                                    $aiResponse,
+                                    'analysis.driver_suitability',
+                                    []
+                                ),
+                        ],
 
                         'conflict' =>
                             data_get(
@@ -825,7 +879,9 @@ class AutoSchedulingController extends Controller
         Collection $existingAssignments,
         Collection $generatedRecommendations,
         Collection $driverWorkloads,
-        Collection $busWorkloads
+        Collection $busWorkloads,
+        array $driverHistories = [],
+        array $busHistories = []
     ): array {
         return [
             'trip' => [
@@ -927,6 +983,199 @@ class AutoSchedulingController extends Controller
                     )
                     ->values()
                     ->all(),
+
+            'driver_histories' =>
+                (object) $driverHistories,
+
+            'bus_histories' =>
+                (object) $busHistories,
+        ];
+    }
+
+
+    /**
+     * Build the per-driver and per-bus historical feature aggregates used by
+     * the Python ML recommender.
+     *
+     * - driver_histories are keyed by the DriverAttendance row id (the same id
+     *   sent for each candidate driver) and are computed from the driver's real
+     *   attendance records across all dates.
+     * - bus_histories are keyed by the Bus id and are computed from the bus's
+     *   real GPS trip records, fuel reports, and open maintenance job orders.
+     *
+     * These are legitimate database-derived signal; nothing is fabricated.
+     */
+    private function buildAiHistoryAggregates(
+        Collection $drivers,
+        Collection $buses
+    ): array {
+        // ---- Driver histories (keyed by DriverAttendance row id) ----
+        $driverHistories = [];
+
+        if ($drivers->isNotEmpty()) {
+            $driverIds = $drivers
+                ->pluck('driver_id')
+                ->unique()
+                ->values();
+
+            $attendanceRows = DriverAttendance::query()
+                ->whereIn('driver_id', $driverIds)
+                ->get(['driver_id', 'attendance_date', 'status']);
+
+            $attendanceByDriver = $attendanceRows
+                ->groupBy('driver_id');
+
+            foreach ($drivers as $driver) {
+                $rows = $attendanceByDriver->get(
+                    $driver->driver_id,
+                    collect()
+                );
+
+                $total = $rows->count();
+
+                if ($total === 0) {
+                    $driverHistories[(int) $driver->id] = [
+                        'attendance_rate' => 0.0,
+                        'late_rate' => 0.0,
+                        'total_attendance' => 0.0,
+                        'distinct_dates' => 0.0,
+                        'has_history' => 0.0,
+                    ];
+                    continue;
+                }
+
+                $reliable = $rows->filter(
+                    fn ($row): bool =>
+                        in_array(
+                            strtolower((string) $row->status),
+                            ['present', 'late'],
+                            true
+                        )
+                )->count();
+
+                $late = $rows->filter(
+                    fn ($row): bool =>
+                        strtolower((string) $row->status) === 'late'
+                )->count();
+
+                $distinctDates = $rows
+                    ->pluck('attendance_date')
+                    ->map(
+                        fn ($d): string =>
+                            $d instanceof \Carbon\Carbon
+                                ? $d->toDateString()
+                                : (string) $d
+                    )
+                    ->unique()
+                    ->count();
+
+                $driverHistories[(int) $driver->id] = [
+                    'attendance_rate' =>
+                        round($reliable / max($total, 1), 6),
+                    'late_rate' =>
+                        round($late / max($total, 1), 6),
+                    'total_attendance' =>
+                        (float) $total,
+                    'distinct_dates' =>
+                        (float) $distinctDates,
+                    'has_history' => 1.0,
+                ];
+            }
+        }
+
+        // ---- Bus histories (keyed by Bus id) ----
+        $busHistories = [];
+
+        if ($buses->isNotEmpty()) {
+            $busNos = $buses->pluck('bus_no')->values();
+
+            // Averaged fuel efficiency per bus_no.
+            $fuelByBus = FuelReport::query()
+                ->whereIn('bus_no', $busNos)
+                ->whereNotNull('km_per_liter')
+                ->get(['bus_no', 'km_per_liter'])
+                ->groupBy('bus_no')
+                ->map(
+                    fn (Collection $rows): float =>
+                        round($rows->avg('km_per_liter'), 6)
+                );
+
+            // Averaged GPS trip profile per bus_no.
+            $gpsByBus = GpsTripRecord::query()
+                ->whereIn('bus_no', $busNos)
+                ->get([
+                    'bus_no',
+                    'mileage_km',
+                    'engine_hours',
+                    'idling_minutes',
+                    'total_minutes',
+                ])
+                ->groupBy('bus_no');
+
+            // Maintenance job order profile per bus_no.
+            $activeStatuses = [
+                'On Going',
+                'On Hold',
+                'For Parts',
+                'Pending',
+            ];
+            $jobByBus = JobOrder::query()
+                ->whereIn('bus_no', $busNos)
+                ->get(['bus_no', 'status'])
+                ->groupBy('bus_no');
+
+            foreach ($buses as $bus) {
+                $busNo = (string) $bus->bus_no;
+
+                $gpsRows = $gpsByBus->get($busNo, collect());
+                $jobRows = $jobByBus->get($busNo, collect());
+
+                $totalJobs = $jobRows->count();
+                $activeJobs = $jobRows->filter(
+                    fn ($row): bool =>
+                        in_array(
+                            (string) $row->status,
+                            $activeStatuses,
+                            true
+                        )
+                )->count();
+
+                $gpsCount = $gpsRows->count();
+
+                $busHistories[(int) $bus->id] = [
+                    'capacity' =>
+                        $bus->capacity !== null
+                            ? (float) $bus->capacity
+                            : 0.0,
+                    'fuel_efficiency_avg' =>
+                        (float) ($fuelByBus->get($busNo, 0.0) ?? 0.0),
+                    'active_job_orders' => (float) $activeJobs,
+                    'total_job_orders' => (float) $totalJobs,
+                    'avg_trip_mileage_km' =>
+                        $gpsCount > 0
+                            ? round($gpsRows->avg('mileage_km') ?? 0.0, 6)
+                            : 0.0,
+                    'avg_trip_engine_hours' =>
+                        $gpsCount > 0
+                            ? round($gpsRows->avg('engine_hours') ?? 0.0, 6)
+                            : 0.0,
+                    'avg_trip_idling_minutes' =>
+                        $gpsCount > 0
+                            ? round($gpsRows->avg('idling_minutes') ?? 0.0, 6)
+                            : 0.0,
+                    'avg_trip_total_minutes' =>
+                        $gpsCount > 0
+                            ? round($gpsRows->avg('total_minutes') ?? 0.0, 6)
+                            : 0.0,
+                    'has_history' =>
+                        $gpsCount > 0 ? 1.0 : 0.0,
+                ];
+            }
+        }
+
+        return [
+            'driver_histories' => $driverHistories,
+            'bus_histories' => $busHistories,
         ];
     }
 

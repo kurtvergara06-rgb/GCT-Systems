@@ -1,0 +1,15 @@
+{
+  "features": [
+    "status_encoded",
+    "capacity",
+    "remaining_pms_pct",
+    "fuel_efficiency_avg",
+    "active_job_orders",
+    "total_job_orders",
+    "trip_mileage_km",
+    "trip_engine_hours",
+    "trip_idling_minutes",
+    "trip_total_minutes",
+    "trip_hour"
+  ]
+}

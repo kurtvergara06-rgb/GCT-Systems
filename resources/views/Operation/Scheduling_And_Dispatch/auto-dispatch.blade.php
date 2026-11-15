@@ -134,6 +134,8 @@
                         </div>
                     </div>
 
+                    <div class="ai-ml-status" id="aiMlStatus" hidden></div>
+
                     <button
                         type="submit"
                         class="generate-schedule-btn"

@@ -1,0 +1,21 @@
+{
+  "bus_model_ready": true,
+  "driver_model_ready": true,
+  "bus_sample_count": 367,
+  "driver_sample_count": 6,
+  "bus_metrics": {
+    "mae": 0.041770545970123855,
+    "rmse": 0.06725612771536695,
+    "r2": 0.3248520504984278,
+    "train_mae": 0.020465730580938406,
+    "test_mae": 0.041770545970123855
+  },
+  "driver_metrics": {
+    "mae": 0.09275000000000011,
+    "rmse": 0.09275000000000011,
+    "r2": 0.0,
+    "train_mae": 0.09650000000000009,
+    "test_mae": 0.09275000000000011
+  },
+  "message": "ML_PRO_READY"
+}
