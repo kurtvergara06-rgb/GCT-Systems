@@ -352,7 +352,11 @@ class SystemBackendFullAuditTest extends TestCase
         $maintHead = User::factory()->create(['department' => 'Maintenance', 'role' => 'head', 'status' => 'Active', 'must_change_password' => false, 'onboarding_completed' => true]);
         $maintStaff = User::factory()->create(['department' => 'Maintenance', 'role' => 'staff', 'status' => 'Active', 'must_change_password' => false, 'onboarding_completed' => true]);
 
-        $bus = Bus::create(['bus_no' => 'BUS-MAINT-01', 'status' => 'Active']);
+        $this->actingAs($opHead)->post(route('bus-master-list.store'), [
+            'bus_no' => 'BUS-MAINT-01',
+            'status' => 'Active',
+        ])->assertRedirect();
+        $bus = Bus::where('bus_no', 'BUS-MAINT-01')->firstOrFail();
         $incident = Incident::create([
             'incident_no' => 'INC-MAINT-001',
             'bus_id' => $bus->id,
@@ -385,15 +389,7 @@ class SystemBackendFullAuditTest extends TestCase
 
         // 4.3 PMS Scheduling
         $this->actingAs($maintHead)->get(route('PMS-Scheduling'))->assertOk();
-        $pmsResponse = $this->actingAs($maintStaff)->post(route('pms-schedules.store'), [
-            'bus_no' => $bus->bus_no,
-            'pms_type' => 'PMS 10K',
-            'target_date' => now()->addDays(7)->toDateString(),
-            'latest_mileage' => 10000,
-            'notes' => 'Routine 10k PMS inspection',
-        ]);
-        $pmsResponse->assertRedirect();
-        $this->assertTrue(PmsSchedule::where('bus_no', $bus->bus_no)->exists());
+        $this->assertSame(4, PmsSchedule::where('bus_no', $bus->bus_no)->count());
 
         // 4.4 Mechanic Availability & Fuel Reports
         $this->actingAs($maintStaff)->get(route('job-orders.available-mechanics'))->assertOk();

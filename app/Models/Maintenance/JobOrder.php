@@ -8,7 +8,6 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Validation\ValidationException;
 use Throwable;
 
 class JobOrder extends Model
@@ -52,71 +51,6 @@ class JobOrder extends Model
             if (in_array($jobOrder->part_status, [null, '', 'Unknown', 'No Parts Needed', 'No Parts Required'], true)) {
                 $jobOrder->part_status = 'Not Requested';
             }
-        });
-
-        static::saving(function (JobOrder $jobOrder): void {
-            $request = request();
-
-            if (! $request->has('work_to_perform')) {
-                return;
-            }
-
-            $workToPerform = trim((string) $request->input('work_to_perform'));
-
-            if ($workToPerform === '') {
-                throw ValidationException::withMessages([
-                    'work_to_perform' => 'Describe the repair or maintenance work to perform.',
-                ]);
-            }
-
-            if (mb_strlen($workToPerform) > 2000) {
-                throw ValidationException::withMessages([
-                    'work_to_perform' => 'Work to perform must not exceed 2000 characters.',
-                ]);
-            }
-
-            $jobOrder->work_to_perform = $workToPerform;
-        });
-
-        static::saving(function (JobOrder $jobOrder): void {
-            if (app()->runningInConsole()) {
-                return;
-            }
-
-            $request = request();
-
-            if (! $request->has('estimated_duration_value') && ! $request->has('estimated_duration_unit')) {
-                return;
-            }
-
-            $value = $request->input('estimated_duration_value');
-            $unit = $request->input('estimated_duration_unit');
-
-            if (($value === null || $value === '') && $jobOrder->exists) {
-                $savedValue = $jobOrder->getOriginal('estimated_duration_value');
-                $savedUnit = $jobOrder->getOriginal('estimated_duration_unit');
-
-                if ($savedValue !== null && $savedValue !== '' && $savedUnit) {
-                    $jobOrder->estimated_duration_value = $savedValue;
-                    $jobOrder->estimated_duration_unit = $savedUnit;
-                    return;
-                }
-            }
-
-            if ($value === null || $value === '' || ! is_numeric($value) || (float) $value <= 0) {
-                throw ValidationException::withMessages([
-                    'estimated_duration_value' => 'Enter a valid estimated work duration greater than zero.',
-                ]);
-            }
-
-            if (! in_array($unit, ['Minutes', 'Hours', 'Days'], true)) {
-                throw ValidationException::withMessages([
-                    'estimated_duration_unit' => 'Select Minutes, Hours, or Days for the estimated work duration.',
-                ]);
-            }
-
-            $jobOrder->estimated_duration_value = round((float) $value, 2);
-            $jobOrder->estimated_duration_unit = $unit;
         });
 
         static::retrieved(function (JobOrder $jobOrder): void {

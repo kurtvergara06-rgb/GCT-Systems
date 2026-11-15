@@ -9,10 +9,13 @@ use App\Models\Maintenance\JobOrder;
 use App\Models\Maintenance\PmsSchedule;
 use App\Models\Maintenance\PurchaseRequest;
 use App\Models\Operation\MechanicAttendance;
+use App\Services\Maintenance\LinkedJobOrderResetService;
 use App\Services\PartParser;
 use App\Traits\SystemDataUpdateBroadcaster;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class JobOrderController extends Controller
 {
@@ -20,9 +23,14 @@ class JobOrderController extends Controller
 
     private PartParser $partParser;
 
-    public function __construct(PartParser $partParser)
-    {
+    private LinkedJobOrderResetService $linkedJobOrderResetService;
+
+    public function __construct(
+        PartParser $partParser,
+        LinkedJobOrderResetService $linkedJobOrderResetService
+    ) {
         $this->partParser = $partParser;
+        $this->linkedJobOrderResetService = $linkedJobOrderResetService;
     }
 
     /* =========================================================
@@ -269,8 +277,11 @@ class JobOrderController extends Controller
         $validated = $request->validate([
             'bus_no' => 'required|string|exists:buses,bus_no',
             'problem_issue' => 'required|string',
+            'work_to_perform' => 'sometimes|required|string|max:2000',
             'maintenance_type' => 'required|string|max:255',
             'assigned_mechanic' => 'nullable|string|max:255',
+            'estimated_duration_value' => 'sometimes|required|numeric|gt:0|required_with:estimated_duration_unit',
+            'estimated_duration_unit' => 'sometimes|required|in:Minutes,Hours,Days|required_with:estimated_duration_value',
             'parts' => 'nullable|array',
             'parts.*.name' => 'nullable|string|max:255',
             'parts.*.quantity' => 'nullable|integer|min:1',
@@ -339,26 +350,83 @@ class JobOrderController extends Controller
 
         $partStatus = $partNeeded ? 'Not Requested' : 'No Parts Required';
 
-        $jobOrder = JobOrder::create([
-            'job_order_no' => $this->generateJobOrderNo(),
-            'bus_no' => $validated['bus_no'],
-            'problem_issue' => $validated['problem_issue'],
-            'maintenance_type' => $validated['maintenance_type'],
-            'assigned_mechanic' => $assignedMechanic,
-            'part_needed' => $partNeeded,
-            'start_date' => now(),
-            'completion_date' => null,
-            'status' => $status,
-            'part_status' => $partStatus,
-        ]);
+        $jobOrder = DB::transaction(function () use (
+            $assignedMechanic,
+            $partNeeded,
+            $partStatus,
+            $pmsSchedule,
+            $status,
+            $validated
+        ): JobOrder {
+            $bus = Bus::query()
+                ->where('bus_no', $validated['bus_no'])
+                ->lockForUpdate()
+                ->firstOrFail();
 
-        if ($pmsSchedule) {
-            $jobOrder->pms_schedule_id = $pmsSchedule->id;
-            $jobOrder->save();
-        }
+            if ($bus->status !== 'Active') {
+                throw ValidationException::withMessages([
+                    'bus_no' => 'Only active buses without an open Job Order can be selected.',
+                ]);
+            }
 
-        if ($assignedMechanic) {
-            $this->setMechanicStatus($assignedMechanic, 'On Duty');
+            if (JobOrder::query()->where('bus_no', $bus->bus_no)->where('status', '!=', 'Completed')->exists()) {
+                throw ValidationException::withMessages([
+                    'bus_no' => 'This bus already has an active Job Order.',
+                ]);
+            }
+
+            if ($assignedMechanic) {
+                $mechanic = MechanicAttendance::query()
+                    ->where('mechanic_name', $assignedMechanic)
+                    ->whereDate('attendance_date', today())
+                    ->latest('id')
+                    ->lockForUpdate()
+                    ->first();
+
+                $hasActiveJobOrder = JobOrder::query()
+                    ->where('assigned_mechanic', $assignedMechanic)
+                    ->where('status', '!=', 'Completed')
+                    ->exists();
+
+                if (! $mechanic || ! in_array($mechanic->status, ['Present', 'Late'], true) || $hasActiveJobOrder) {
+                    throw ValidationException::withMessages([
+                        'assigned_mechanic' => 'Selected mechanic is not available.',
+                    ]);
+                }
+            }
+
+            $bus->update(['status' => 'Under Maintenance']);
+
+            $createdJobOrder = JobOrder::create([
+                'job_order_no' => $this->generateJobOrderNo(),
+                'bus_no' => $validated['bus_no'],
+                'pms_schedule_id' => $pmsSchedule?->id,
+                'problem_issue' => $validated['problem_issue'],
+                'work_to_perform' => isset($validated['work_to_perform'])
+                    ? trim($validated['work_to_perform'])
+                    : null,
+                'maintenance_type' => $validated['maintenance_type'],
+                'assigned_mechanic' => $assignedMechanic,
+                'part_needed' => $partNeeded,
+                'estimated_duration_value' => $validated['estimated_duration_value'] ?? null,
+                'estimated_duration_unit' => $validated['estimated_duration_unit'] ?? null,
+                'start_date' => now(),
+                'completion_date' => null,
+                'status' => $status,
+                'part_status' => $partStatus,
+            ]);
+
+            if ($assignedMechanic) {
+                $this->setMechanicStatus($assignedMechanic, 'On Duty');
+            }
+
+            return $createdJobOrder;
+        });
+
+        $updatedBus = Bus::query()->where('bus_no', $jobOrder->bus_no)->first();
+
+        if ($updatedBus) {
+            $this->broadcastSystemDataUpdated('Operation', 'Bus', 'updated', $updatedBus->id, 'A bus was placed Under Maintenance for a new Job Order.');
         }
 
         $this->broadcastSystemDataUpdated('Maintenance', 'JobOrder', 'created', $jobOrder->id, 'A job order was created.');
@@ -408,8 +476,11 @@ class JobOrderController extends Controller
                 Rule::in([$jobOrder->bus_no]),
             ],
             'problem_issue' => 'required|string',
+            'work_to_perform' => 'sometimes|required|string|max:2000',
             'maintenance_type' => 'required|string|max:255',
             'assigned_mechanic' => 'nullable|string|max:255',
+            'estimated_duration_value' => 'sometimes|required|numeric|gt:0|required_with:estimated_duration_unit',
+            'estimated_duration_unit' => 'sometimes|required|in:Minutes,Hours,Days|required_with:estimated_duration_value',
             'status' => 'nullable|string|in:On Hold,On Going',
             'parts' => 'nullable|array',
             'parts.*.name' => 'nullable|string|max:255',
@@ -468,7 +539,7 @@ class JobOrderController extends Controller
             $partStatus = 'Rejected';
         }
 
-        $jobOrder->update([
+        $updates = [
             'job_order_no' => $validated['job_order_no'],
             'bus_no' => $validated['bus_no'],
             'problem_issue' => $validated['problem_issue'],
@@ -477,7 +548,23 @@ class JobOrderController extends Controller
             'status' => $status,
             'part_needed' => $partNeeded,
             'part_status' => $partStatus,
-        ]);
+        ];
+
+        if (array_key_exists('work_to_perform', $validated)) {
+            $updates['work_to_perform'] = $validated['work_to_perform'] !== null
+                ? trim($validated['work_to_perform'])
+                : null;
+        }
+
+        if (array_key_exists('estimated_duration_value', $validated)) {
+            $updates['estimated_duration_value'] = $validated['estimated_duration_value'];
+        }
+
+        if (array_key_exists('estimated_duration_unit', $validated)) {
+            $updates['estimated_duration_unit'] = $validated['estimated_duration_unit'];
+        }
+
+        $jobOrder->update($updates);
 
         if ($oldMechanic && $oldMechanic !== $newMechanic) {
             $this->setMechanicStatus($oldMechanic, 'Present');
@@ -562,19 +649,35 @@ class JobOrderController extends Controller
             return redirect()->back()->with('error', 'No valid requested parts were found for this Job Order.');
         }
 
-        $purchaseRequest = PurchaseRequest::create([
-            'pr_no' => $this->generatePrNo(),
-            'job_order_no' => $jobOrder->job_order_no,
-            'bus_no' => $jobOrder->bus_no,
-            'item' => $this->partParser->formatParts($parts),
-            'quantity' => $this->partParser->calculateTotalQuantity($parts),
-            'status' => 'Submitted',
-            'source_type' => 'Maintenance Request',
-            'remarks' => 'Created from Job Order ' . $jobOrder->job_order_no,
-            'date_requested' => now(),
-        ]);
+        [$purchaseRequest, $jobOrder] = DB::transaction(function () use ($jobOrder, $parts): array {
+            $lockedJobOrder = JobOrder::query()->lockForUpdate()->findOrFail($jobOrder->id);
 
-        $jobOrder->update(['part_status' => 'Submitted']);
+            $existingRequest = $this->maintenancePurchaseRequestForJobOrder($lockedJobOrder->job_order_no)
+                ->latest()
+                ->first();
+
+            if ($existingRequest || ! in_array($lockedJobOrder->part_status, [null, 'Not Requested'], true)) {
+                throw ValidationException::withMessages([
+                    'job_order_no' => 'This Job Order already has a Purchase Request.',
+                ]);
+            }
+
+            $createdPurchaseRequest = PurchaseRequest::create([
+                'pr_no' => $this->generatePrNo(),
+                'job_order_no' => $lockedJobOrder->job_order_no,
+                'bus_no' => $lockedJobOrder->bus_no,
+                'item' => $this->partParser->formatParts($parts),
+                'quantity' => $this->partParser->calculateTotalQuantity($parts),
+                'status' => 'Submitted',
+                'source_type' => 'Maintenance Request',
+                'remarks' => 'Created from Job Order ' . $lockedJobOrder->job_order_no,
+                'date_requested' => now(),
+            ]);
+
+            $lockedJobOrder->update(['part_status' => 'Submitted']);
+
+            return [$createdPurchaseRequest, $lockedJobOrder->fresh()];
+        });
 
         $this->broadcastSystemDataUpdated('Maintenance', 'PurchaseRequest', 'created', $purchaseRequest->id, 'A purchase request was created from a job order.');
         $this->broadcastSystemDataUpdated('Maintenance', 'JobOrder', 'status_updated', $jobOrder->id, 'Job order part status was updated to Submitted.');
@@ -619,6 +722,11 @@ class JobOrderController extends Controller
             }
             return redirect()->back()->with('error', 'This job order cannot be completed yet. Required parts must be issued first.');
         }
+
+        $pmsSchedule = null;
+        $bus = null;
+        $pmsScheduleUpdate = null;
+        $busUpdateData = null;
 
         if ($jobOrder->maintenance_type === 'PMS') {
             if (! $jobOrder->pms_schedule_id) {
@@ -668,11 +776,11 @@ class JobOrderController extends Controller
 
             $nextPmsKm = $completedPmsKm + $intervalKm;
 
-            $pmsSchedule->update([
+            $pmsScheduleUpdate = [
                 'last_pms_km' => $completedPmsKm,
                 'pms_interval_km' => $intervalKm,
                 'next_pms_km' => $nextPmsKm,
-            ]);
+            ];
 
             $busUpdateData = [
                 'last_pms_km' => $completedPmsKm,
@@ -685,17 +793,65 @@ class JobOrderController extends Controller
                 $busUpdateData['latest_gps_at'] = $latestGps->beginning_at ?? $latestGps->created_at;
             }
 
-            $bus->update($busUpdateData);
-
-            $this->broadcastSystemDataUpdated('Operation', 'Bus', 'updated', $bus->id, 'A completed PMS Job Order updated the bus PMS mileage.');
         }
 
-        $jobOrder->update([
-            'completion_date' => now(),
-            'status' => 'Completed',
-        ]);
+        $busChanged = false;
 
-        $this->setMechanicStatus($jobOrder->assigned_mechanic, 'Present');
+        $jobOrder = DB::transaction(function () use (
+            $bus,
+            $busUpdateData,
+            &$busChanged,
+            $jobOrder,
+            $pmsSchedule,
+            $pmsScheduleUpdate
+        ): JobOrder {
+            $lockedJobOrder = JobOrder::query()->lockForUpdate()->findOrFail($jobOrder->id);
+
+            if ($lockedJobOrder->status !== 'On Going' || ! $this->canFinishWithPartStatus($lockedJobOrder)) {
+                throw ValidationException::withMessages([
+                    'status' => 'The Job Order changed and can no longer be completed. Refresh and try again.',
+                ]);
+            }
+
+            if ($pmsSchedule && $pmsScheduleUpdate && $bus && $busUpdateData) {
+                PmsSchedule::query()->lockForUpdate()->findOrFail($pmsSchedule->id)->update($pmsScheduleUpdate);
+                Bus::query()->lockForUpdate()->findOrFail($bus->id)->update($busUpdateData);
+                $busChanged = true;
+            }
+
+            $lockedJobOrder->update([
+                'completion_date' => now(),
+                'status' => 'Completed',
+            ]);
+
+            $this->setMechanicStatus($lockedJobOrder->assigned_mechanic, 'Present');
+
+            $lockedBus = Bus::query()
+                ->whereRaw('UPPER(TRIM(bus_no)) = ?', [strtoupper(trim($lockedJobOrder->bus_no))])
+                ->lockForUpdate()
+                ->first();
+
+            $hasAnotherActiveJobOrder = JobOrder::query()
+                ->where('bus_no', $lockedJobOrder->bus_no)
+                ->where('id', '!=', $lockedJobOrder->id)
+                ->where('status', '!=', 'Completed')
+                ->exists();
+
+            if ($lockedBus && $lockedBus->status === 'Under Maintenance' && ! $hasAnotherActiveJobOrder) {
+                $lockedBus->update(['status' => 'Active']);
+                $busChanged = true;
+            }
+
+            return $lockedJobOrder->fresh();
+        });
+
+        if ($busChanged) {
+            $updatedBus = Bus::query()->where('bus_no', $jobOrder->bus_no)->first();
+
+            if ($updatedBus) {
+                $this->broadcastSystemDataUpdated('Operation', 'Bus', 'updated', $updatedBus->id, 'A completed Job Order updated the bus availability or PMS mileage.');
+            }
+        }
 
         $this->broadcastSystemDataUpdated('Maintenance', 'JobOrder', 'status_updated', $jobOrder->id, 'A job order was marked as completed.');
 
@@ -712,23 +868,104 @@ class JobOrderController extends Controller
 
     public function destroy(Request $request, JobOrder $jobOrder)
     {
-        $hasLinkedPurchaseRequest = $this
-            ->maintenancePurchaseRequestForJobOrder($jobOrder->job_order_no)
-            ->exists();
+        if ($jobOrder->status === 'Completed') {
+            $message = 'Completed Job Orders are history records and cannot be deleted.';
 
-        if ($hasLinkedPurchaseRequest) {
             if ($request->ajax() || $request->expectsJson()) {
-                return response()->json(['success' => false, 'message' => 'This Job Order cannot be deleted because it already has a linked Purchase Request.'], 422);
+                return response()->json([
+                    'success' => false,
+                    'message' => $message,
+                ], 422);
             }
-            return redirect()->back()->with('error', 'This Job Order cannot be deleted because it already has a linked Purchase Request.');
+
+            return redirect()
+                ->back()
+                ->with('error', $message);
+        }
+
+        $linkedPurchaseRequests = $this
+            ->maintenancePurchaseRequestForJobOrder($jobOrder->job_order_no)
+            ->orderBy('id')
+            ->get();
+
+        if ($linkedPurchaseRequests->isNotEmpty()) {
+            $allRejected = $linkedPurchaseRequests->every(
+                fn (PurchaseRequest $purchaseRequest): bool => $purchaseRequest->status === 'Rejected'
+            );
+
+            if (! $allRejected) {
+                $message = 'This Job Order cannot be deleted because it already has an active linked Purchase Request.';
+
+                if ($request->ajax() || $request->expectsJson()) {
+                    return response()->json(['success' => false, 'message' => $message], 422);
+                }
+
+                return redirect()->back()->with('error', $message);
+            }
+
+            $jobOrderId = $jobOrder->id;
+
+            try {
+                $cleanupResult = $this->linkedJobOrderResetService->deleteRejectedWorkflow(
+                    $jobOrder->job_order_no
+                );
+            } catch (\RuntimeException $exception) {
+                $message = 'This rejected Job Order could not be deleted safely: '
+                    .$exception->getMessage();
+
+                if ($request->ajax() || $request->expectsJson()) {
+                    return response()->json(['success' => false, 'message' => $message], 422);
+                }
+
+                return redirect()->back()->with('error', $message);
+            }
+
+            if ($cleanupResult['bus_released_id'] ?? null) {
+                $this->broadcastSystemDataUpdated(
+                    'Operation',
+                    'Bus',
+                    'updated',
+                    $cleanupResult['bus_released_id'],
+                    'A bus was returned to Active after its Job Order was safely deleted.'
+                );
+            }
+
+            $this->broadcastSystemDataUpdated(
+                'Maintenance',
+                'JobOrder',
+                'deleted',
+                $jobOrderId,
+                'A rejected job order and its linked purchase-request data were deleted.'
+            );
+
+            $message = 'Rejected Job Order and its linked Purchase Request data were deleted successfully.';
+
+            if ($request->ajax() || $request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => $message,
+                ]);
+            }
+
+            return redirect()->to(route('job-orders', [], false))->with('success', $message);
         }
 
         $jobOrderId = $jobOrder->id;
         $assignedMechanic = $jobOrder->assigned_mechanic;
-        $jobOrder->delete();
+        $busNo = $jobOrder->bus_no;
 
-        if ($assignedMechanic) {
-            $this->setMechanicStatus($assignedMechanic, 'Present');
+        $releasedBus = DB::transaction(function () use ($assignedMechanic, $busNo, $jobOrder): ?Bus {
+            JobOrder::query()->lockForUpdate()->findOrFail($jobOrder->id)->delete();
+
+            if ($assignedMechanic) {
+                $this->setMechanicStatus($assignedMechanic, 'Present');
+            }
+
+            return $this->releaseBusWithoutActiveJobOrders($busNo);
+        });
+
+        if ($releasedBus) {
+            $this->broadcastSystemDataUpdated('Operation', 'Bus', 'updated', $releasedBus->id, 'A bus was returned to Active after its Job Order was deleted.');
         }
 
         $this->broadcastSystemDataUpdated('Maintenance', 'JobOrder', 'deleted', $jobOrderId, 'A job order was deleted.');
@@ -784,11 +1021,37 @@ class JobOrderController extends Controller
         return $jobOrder->part_status === 'Issued';
     }
 
+    private function releaseBusWithoutActiveJobOrders(string $busNo): ?Bus
+    {
+        $bus = Bus::query()
+            ->where('bus_no', $busNo)
+            ->lockForUpdate()
+            ->first();
+
+        if (! $bus || $bus->status !== 'Under Maintenance') {
+            return null;
+        }
+
+        $hasActiveJobOrder = JobOrder::query()
+            ->where('bus_no', $busNo)
+            ->where('status', '!=', 'Completed')
+            ->exists();
+
+        if ($hasActiveJobOrder) {
+            return null;
+        }
+
+        $bus->update(['status' => 'Active']);
+
+        return $bus->fresh();
+    }
+
     private function generateJobOrderNo(): string
     {
         $year = now()->format('Y');
         $lastJobOrder = JobOrder::where('job_order_no', 'like', "JO-{$year}-%")
             ->orderByDesc('id')
+            ->lockForUpdate()
             ->first();
 
         if (! $lastJobOrder) {
@@ -813,6 +1076,7 @@ class JobOrderController extends Controller
         $lastPr = PurchaseRequest::where('pr_no', 'like', "PR-{$year}-%")
             ->where('pr_no', 'not like', '%-P')
             ->orderByDesc('id')
+            ->lockForUpdate()
             ->first();
 
         if (! $lastPr) {

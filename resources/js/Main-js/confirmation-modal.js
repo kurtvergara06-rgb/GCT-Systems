@@ -5,8 +5,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const modalIcon = document.getElementById('globalConfirmationIcon');
     const confirmButton = document.getElementById('confirmGlobalAction');
     const cancelButton = document.getElementById('cancelGlobalConfirmation');
+    const closeButton = document.getElementById('closeGlobalConfirmation');
 
-    if (!modal || !modalTitle || !modalMessage || !modalIcon || !confirmButton || !cancelButton) {
+    if (!modal || !modalTitle || !modalMessage || !modalIcon || !confirmButton || !cancelButton || !closeButton) {
         return;
     }
 
@@ -259,12 +260,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     cancelButton.addEventListener('click', closeModal);
-
-    modal.addEventListener('click', function (event) {
-        if (event.target === modal) {
-            closeModal();
-        }
-    });
+    closeButton.addEventListener('click', closeModal);
 
     document.addEventListener('keydown', function (event) {
         if (event.key === 'Escape' && modal.classList.contains('show')) {

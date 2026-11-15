@@ -56,6 +56,13 @@ class User extends Authenticatable
 
     public function hasSystemPermission(string $module, string $capability): bool
     {
+        $department = strtolower(trim((string) $this->department));
+        $role = strtolower(trim((string) $this->role));
+
+        if (($department === 'admin' && $role === 'head') || $role === 'system admin') {
+            return true;
+        }
+
         $rolePermission = $this->rolePermission();
 
         if (! $rolePermission) {

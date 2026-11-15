@@ -23,8 +23,8 @@
     pointer-events: auto;
     opacity: 0;
     transform: none;
-    transition: opacity 0.18s ease;
-    will-change: opacity;
+    transition: none;
+    will-change: opacity, transform;
 }
 
 .system-toast-notification.is-visible {

@@ -2,7 +2,9 @@
 
 namespace Tests\Feature\Maintenance;
 
+use App\Models\Admin\RolePermission;
 use App\Models\Admin\User;
+use App\Models\Maintenance\JobOrder;
 use App\Models\Maintenance\PurchaseRequest;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -19,6 +21,17 @@ class PurchaseRequestReviewModalTest extends TestCase
             'status' => 'Active',
             'must_change_password' => false,
             'onboarding_completed' => true,
+        ]);
+    }
+
+    private function setMaintenanceStaffApproval(bool $allowed): void
+    {
+        $role = RolePermission::where('role_key', 'maintenance_staff')->firstOrFail();
+        $permissions = $role->permissions ?? [];
+        data_set($permissions, 'maintenance.approve', $allowed);
+
+        $role->update([
+            'permissions' => $permissions,
         ]);
     }
 
@@ -71,6 +84,37 @@ class PurchaseRequestReviewModalTest extends TestCase
             ->assertSee('data-can-approve="0"', false);
     }
 
+    public function test_staff_with_approve_permission_can_approve_submitted_pr(): void
+    {
+        $staff = $this->maintenanceUser('staff');
+        $this->setMaintenanceStaffApproval(true);
+        $purchaseRequest = $this->purchaseRequest();
+
+        $this->actingAs($staff)
+            ->get(route('purchase-requests'))
+            ->assertOk()
+            ->assertSee('data-can-approve="1"', false);
+
+        $this->actingAs($staff)
+            ->post(route('purchase-requests.approve', $purchaseRequest))
+            ->assertRedirect();
+
+        $this->assertSame('Approved', $purchaseRequest->fresh()->status);
+    }
+
+    public function test_staff_without_approve_permission_cannot_call_approve_endpoint(): void
+    {
+        $staff = $this->maintenanceUser('staff');
+        $this->setMaintenanceStaffApproval(false);
+        $purchaseRequest = $this->purchaseRequest();
+
+        $this->actingAs($staff)
+            ->post(route('purchase-requests.approve', $purchaseRequest))
+            ->assertForbidden();
+
+        $this->assertSame('Submitted', $purchaseRequest->fresh()->status);
+    }
+
     public function test_rejected_pr_exposes_revise_but_not_decision_permissions(): void
     {
         $head = $this->maintenanceUser('head');
@@ -108,6 +152,60 @@ class PurchaseRequestReviewModalTest extends TestCase
             ->assertSee('data-can-edit="0"', false)
             ->assertSee('data-can-approve="0"', false)
             ->assertSee('data-can-delete="0"', false);
+    }
+
+    public function test_review_modal_shows_work_repair_to_perform_from_source_job_order(): void
+    {
+        $head = $this->maintenanceUser('head');
+
+        JobOrder::create([
+            'job_order_no' => 'JO-2026-9001',
+            'bus_no' => 'GCT-108',
+            'problem_issue' => 'Brake vibration',
+            'work_to_perform' => 'Replace brake pads and inspect calipers.',
+            'maintenance_type' => 'Repair',
+            'assigned_mechanic' => 'Test Mechanic',
+            'part_needed' => 'Brake Pad - Qty: 2 pcs',
+            'start_date' => now(),
+            'status' => 'On Going',
+            'part_status' => 'Submitted',
+        ]);
+
+        $this->purchaseRequest();
+
+        $this->actingAs($head)
+            ->get(route('purchase-requests'))
+            ->assertOk()
+            ->assertSee('Work / Repair to Perform')
+            ->assertSee('id="reviewPrWorkToPerform"', false)
+            ->assertSee(
+                'data-work-to-perform="Replace brake pads and inspect calipers."',
+                false
+            );
+    }
+
+    public function test_open_review_modal_resyncs_permissions_after_realtime_refresh(): void
+    {
+        $source = file_get_contents(
+            resource_path('js/Maintenance/purchase-requests.js')
+        );
+
+        $this->assertStringContainsString(
+            'const syncOpenReviewPermissions',
+            $source
+        );
+        $this->assertStringContainsString(
+            "'system-regions-refreshed'",
+            $source
+        );
+        $this->assertStringContainsString(
+            "button.dataset.prNo === activePrNo",
+            $source
+        );
+        $this->assertStringContainsString(
+            "configureReviewActions(",
+            $source
+        );
     }
 
     public function test_review_modal_css_is_centered_not_a_side_drawer(): void

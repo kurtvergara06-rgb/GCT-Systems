@@ -216,6 +216,65 @@ class JobOrderCreateModalLayoutTest extends TestCase
         );
     }
 
+    public function test_new_job_order_bus_field_is_wider_than_the_reference_field(): void
+    {
+        $css = file_get_contents(
+            resource_path('css/Maintenance/job-order.css')
+        );
+
+        $this->assertStringContainsString(
+            'grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);',
+            $css
+        );
+    }
+
+    public function test_maintenance_job_uses_custom_downward_dropdown(): void
+    {
+        $js = file_get_contents(
+            resource_path('js/Maintenance/maintenance-ui-enhancements.js')
+        );
+        $css = file_get_contents(
+            resource_path('css/Maintenance/job-order.css')
+        );
+
+        $this->assertStringContainsString(
+            'jo-maintenance-job-combobox',
+            $js
+        );
+        $this->assertStringContainsString(
+            'makeDownwardSpace',
+            $js
+        );
+        $this->assertStringContainsString(
+            '.jo-maintenance-job-menu',
+            $css
+        );
+        $this->assertStringContainsString(
+            'top: calc(100% + 7px);',
+            $css
+        );
+    }
+
+    public function test_new_job_order_refreshes_available_mechanics_without_page_reload(): void
+    {
+        $js = file_get_contents(
+            resource_path('js/Maintenance/job-order.js')
+        );
+
+        $this->assertStringContainsString(
+            'void refreshAvailableMechanicsDropdown();',
+            $js
+        );
+        $this->assertStringContainsString(
+            'window.GCTRefreshJobOrderMechanics',
+            $js
+        );
+        $this->assertStringContainsString(
+            'await window.GCTRefreshJobOrderMechanics();',
+            $js
+        );
+    }
+
     public function test_duration_unit_stays_editable_but_locks_in_view_only_mode(): void
     {
         $js = file_get_contents(

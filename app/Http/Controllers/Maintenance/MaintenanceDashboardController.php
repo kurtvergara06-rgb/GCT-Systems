@@ -9,15 +9,18 @@ use App\Models\Maintenance\JobOrder;
 use App\Models\Maintenance\PmsSchedule;
 use App\Models\Maintenance\PurchaseRequest;
 use App\Models\Maintenance\MaintenanceReferral;
+use App\Services\Maintenance\PmsStatusService;
 use App\Models\Operation\Mechanic;
 use App\Models\Operation\MechanicAttendance;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 class MaintenanceDashboardController extends Controller
 {
-    private const WARNING_RANGE_KM = 500;
+    public function __construct(
+        private readonly PmsStatusService $pmsStatusService
+    ) {
+    }
 
     /**
      * Display the Maintenance Dashboard with real-time operational metrics.
@@ -72,9 +75,7 @@ class MaintenanceDashboardController extends Controller
         // ---------------------------------------------------------------------
         // 2. PMS SCHEDULES (Overdue, Due Soon, Attention List)
         // ---------------------------------------------------------------------
-        $buses = Bus::query()->get()->keyBy(function (Bus $bus) {
-            return strtoupper(trim($bus->bus_no));
-        });
+        $gpsByBus = $this->pmsStatusService->latestProcessedGpsByBus();
 
         $allPmsSchedules = PmsSchedule::query()
             ->with(['jobOrders' => function ($query) {
@@ -90,36 +91,34 @@ class MaintenanceDashboardController extends Controller
 
         foreach ($allPmsSchedules as $schedule) {
             $normalizedBusNo = strtoupper(trim($schedule->bus_no));
-            $bus = $buses->get($normalizedBusNo);
-            $latestGpsKm = $bus ? (float) $bus->latest_gps_km : 0.0;
-            $nextPmsKm = (float) $schedule->next_pms_km;
-            $recDate = $schedule->recommended_date;
+            $gps = $gpsByBus->get($normalizedBusNo);
 
-            $isKmOverdue = ($latestGpsKm > 0 && $latestGpsKm >= $nextPmsKm);
-            $isDateOverdue = ($recDate && $recDate->isPast());
-            $isOverdue = $isKmOverdue || $isDateOverdue;
+            $assessment = $this->pmsStatusService->assess(
+                $schedule,
+                $gps
+            );
 
-            $kmDifference = $nextPmsKm - $latestGpsKm;
-            $isDueSoon = (!$isOverdue && $latestGpsKm > 0 && $kmDifference <= self::WARNING_RANGE_KM);
+            $status = $assessment['status'];
 
-            if ($isOverdue) {
+            if ($status === 'Overdue') {
                 $pmsOverdueCount++;
-            } elseif ($isDueSoon) {
+            } elseif ($status === 'Due Soon') {
                 $pmsDueSoonCount++;
             }
 
-            if ($isOverdue || $isDueSoon) {
+            if (in_array($status, ['Overdue', 'Due Soon'], true)) {
                 $activeJobOrder = $schedule->jobOrders->first();
 
                 $pmsAttentionList->push((object) [
                     'schedule' => $schedule,
                     'bus_no' => $schedule->bus_no,
                     'maintenance_type' => $schedule->maintenance_type,
-                    'latest_gps_km' => $latestGpsKm,
-                    'next_pms_km' => $nextPmsKm,
-                    'km_difference' => $kmDifference,
-                    'recommended_date' => $recDate,
-                    'status' => $isOverdue ? 'Overdue' : 'Due Soon',
+                    'latest_gps_km' => (float) ($assessment['current_km'] ?? 0),
+                    'next_pms_km' => $assessment['next_pms_km'],
+                    'km_difference' => $assessment['remaining_km']
+                        ?? $assessment['next_pms_km'],
+                    'recommended_date' => $assessment['recommended_date'],
+                    'status' => $status,
                     'active_job_order' => $activeJobOrder,
                     'has_active_jo' => !is_null($activeJobOrder),
                 ]);
@@ -254,6 +253,13 @@ class MaintenanceDashboardController extends Controller
         // Bus master status is the authoritative source of readiness. An active
         // job order alone must not silently mark an otherwise Active bus as
         // unavailable, and an Inactive bus must never count as operational.
+        //
+        // This query intentionally lives here rather than in the PMS section.
+        // PMS status now uses processed GPS records, while fleet readiness uses
+        // the Bus master record. Keeping the sources separate prevents one
+        // refactor from silently removing data required by the other.
+        $buses = Bus::query()->get();
+
         $totalBuses = $buses->count();
         $activeBusesCount = $buses->filter(
             fn (Bus $bus) => strcasecmp(trim((string) $bus->status), 'Active') === 0

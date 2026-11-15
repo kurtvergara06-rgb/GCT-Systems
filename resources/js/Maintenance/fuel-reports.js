@@ -86,6 +86,48 @@ window.GCTPartialNavigation.registerInitializer('maintenance-fuel-reports', '.fu
     );
 
 
+  const fuelModalDescription =
+    document.getElementById(
+      'fuelModalDescription'
+    );
+
+
+  const fuelGpsLookupButton =
+    document.getElementById(
+      'fuelGpsLookupButton'
+    );
+
+
+  const fuelPreviewDistance =
+    document.getElementById(
+      'fuelPreviewDistance'
+    );
+
+
+  const fuelPreviewIdling =
+    document.getElementById(
+      'fuelPreviewIdling'
+    );
+
+
+  const fuelEfficiencyDistance =
+    document.getElementById(
+      'fuelEfficiencyDistance'
+    );
+
+
+  const fuelEfficiencyLiters =
+    document.getElementById(
+      'fuelEfficiencyLiters'
+    );
+
+
+  const fuelRemarksCount =
+    document.getElementById(
+      'fuelRemarksCount'
+    );
+
+
   const saveFuelText =
     document.getElementById(
       'saveFuelText'
@@ -324,6 +366,18 @@ window.GCTPartialNavigation.registerInitializer('maintenance-fuel-reports', '.fu
       gpsIdlingValue.textContent =
         `${Number(idling || 0)} min`;
 
+
+      if (fuelPreviewDistance) {
+        fuelPreviewDistance.textContent =
+          `${Number(distance).toFixed(2)} km`;
+      }
+
+
+      if (fuelPreviewIdling) {
+        fuelPreviewIdling.textContent =
+          `${Number(idling || 0)} min`;
+      }
+
     } else {
 
       gpsStatusDetails.hidden =
@@ -336,6 +390,18 @@ window.GCTPartialNavigation.registerInitializer('maintenance-fuel-reports', '.fu
 
       gpsIdlingValue.textContent =
         '0 min';
+
+
+      if (fuelPreviewDistance) {
+        fuelPreviewDistance.textContent =
+          '0.00 km';
+      }
+
+
+      if (fuelPreviewIdling) {
+        fuelPreviewIdling.textContent =
+          '0 min';
+      }
 
     }
 
@@ -506,6 +572,18 @@ window.GCTPartialNavigation.registerInitializer('maintenance-fuel-reports', '.fu
         kmPerLiter.toFixed(2);
 
 
+      if (fuelEfficiencyDistance) {
+        fuelEfficiencyDistance.textContent =
+          `${distance.toFixed(2)} km`;
+      }
+
+
+      if (fuelEfficiencyLiters) {
+        fuelEfficiencyLiters.textContent =
+          `${fuelLiters.toFixed(2)} L`;
+      }
+
+
       efficiencyStatus.textContent =
         status;
 
@@ -553,6 +631,12 @@ window.GCTPartialNavigation.registerInitializer('maintenance-fuel-reports', '.fu
       if (fuelModalTitle) {
         fuelModalTitle.textContent =
           'Add Fuel Record';
+      }
+
+
+      if (fuelModalDescription) {
+        fuelModalDescription.textContent =
+          'Select a bus and date. The system will automatically find the matching processed GPS mileage.';
       }
 
 
@@ -639,6 +723,14 @@ window.GCTPartialNavigation.registerInitializer('maintenance-fuel-reports', '.fu
         'Select a bus and date',
         'The system will search for a processed GPS record.'
       );
+
+
+      if (fuelRemarksCount) {
+        fuelRemarksCount.textContent =
+          String(
+            remarksInput?.value.length || 0
+          );
+      }
 
 
       updateEfficiencyPreview();
@@ -956,6 +1048,14 @@ window.GCTPartialNavigation.registerInitializer('maintenance-fuel-reports', '.fu
 
 
       if (
+        fuelModalDescription
+      ) {
+        fuelModalDescription.textContent =
+          'Update the saved fuel entry. GPS mileage and efficiency will be recalculated from the latest values.';
+      }
+
+
+      if (
         saveFuelText
       ) {
         saveFuelText.textContent =
@@ -1034,6 +1134,14 @@ window.GCTPartialNavigation.registerInitializer('maintenance-fuel-reports', '.fu
         remarksInput.value =
           button.dataset.remarks ||
           '';
+      }
+
+
+      if (fuelRemarksCount) {
+        fuelRemarksCount.textContent =
+          String(
+            remarksInput?.value.length || 0
+          );
       }
 
 
@@ -1378,6 +1486,13 @@ window.GCTPartialNavigation.registerInitializer('maintenance-fuel-reports', '.fu
     );
 
 
+  fuelGpsLookupButton
+    ?.addEventListener(
+      'click',
+      lookupGpsDistance
+    );
+
+
   busNoInput
     ?.addEventListener(
       'change',
@@ -1410,6 +1525,20 @@ window.GCTPartialNavigation.registerInitializer('maintenance-fuel-reports', '.fu
     ?.addEventListener(
       'input',
       updateSaveButtonState
+    );
+
+
+  remarksInput
+    ?.addEventListener(
+      'input',
+      () => {
+        if (fuelRemarksCount) {
+          fuelRemarksCount.textContent =
+            String(
+              remarksInput.value.length
+            );
+        }
+      }
     );
 
 

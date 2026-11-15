@@ -142,7 +142,7 @@
                                         $partStatus = 'Not Requested';
                                     }
 
-                                    $linkedPr = \App\Models\Maintenance\PurchaseRequest::query()
+                                    $linkedPrs = \App\Models\Maintenance\PurchaseRequest::query()
                                         ->where('job_order_no', $jobOrder->job_order_no)
                                         ->where('pr_no', 'not like', '%-P')
                                         ->where(function ($query) {
@@ -150,10 +150,15 @@
                                                 ->orWhere('source_type', 'Maintenance Request');
                                         })
                                         ->latest()
-                                        ->first();
+                                        ->get();
 
-                                    $hasLinkedPr = $linkedPr !== null;
+                                    $linkedPr = $linkedPrs->first();
+                                    $hasLinkedPr = $linkedPrs->isNotEmpty();
                                     $isRejectedPr = $linkedPr && $linkedPr->status === 'Rejected';
+                                    $allLinkedPrsRejected = $hasLinkedPr
+                                        && $linkedPrs->every(
+                                            fn ($purchaseRequest) => $purchaseRequest->status === 'Rejected'
+                                        );
 
                                     $canCreatePr = $hasMechanic
                                         && $hasNeededParts
@@ -331,30 +336,33 @@
                                                 </a>
                                             @endif
 
-                                            <form id="deleteForm-{{ $jobOrder->id }}" action="{{ route('job-orders.destroy', $jobOrder->id, false) }}" method="POST">
-                                                @csrf
-                                                @method('DELETE')
-                                                @if($hasLinkedPr)
-                                                    <button
-                                                        type="button"
-                                                        class="action-btn disabled-action-btn"
-                                                        title="Cannot delete: this Job Order already has a linked Purchase Request."
-                                                        disabled
-                                                    >
-                                                        <i class="fa-solid fa-trash"></i>
-                                                    </button>
-                                                @else
-                                                    <button
-                                                        type="button"
-                                                        class="action-btn delete open-delete-modal"
-                                                        title="Delete Job Order"
-                                                        data-id="{{ $jobOrder->id }}"
-                                                        data-jo-no="{{ $jobOrder->job_order_no }}"
-                                                    >
-                                                        <i class="fa-solid fa-trash"></i>
-                                                    </button>
-                                                @endif
-                                            </form>
+                                            @if($recordView !== 'history' && !$isCompleted)
+                                                <form id="deleteForm-{{ $jobOrder->id }}" action="{{ route('job-orders.destroy', $jobOrder->id, false) }}" method="POST">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    @if($hasLinkedPr && !$allLinkedPrsRejected)
+                                                        <button
+                                                            type="button"
+                                                            class="action-btn disabled-action-btn"
+                                                            title="Cannot delete: this Job Order has an active linked Purchase Request."
+                                                            disabled
+                                                        >
+                                                            <i class="fa-solid fa-trash"></i>
+                                                        </button>
+                                                    @else
+                                                        <button
+                                                            type="button"
+                                                            class="action-btn delete open-delete-modal"
+                                                            title="{{ $allLinkedPrsRejected ? 'Delete Rejected Job Order and Purchase Request' : 'Delete Job Order' }}"
+                                                            data-id="{{ $jobOrder->id }}"
+                                                            data-jo-no="{{ $jobOrder->job_order_no }}"
+                                                            data-rejected-pr="{{ $allLinkedPrsRejected ? '1' : '0' }}"
+                                                        >
+                                                            <i class="fa-solid fa-trash"></i>
+                                                        </button>
+                                                    @endif
+                                                </form>
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>
@@ -393,8 +401,14 @@
         confirm-button="Yes, Create Job Order"
         confirm-type="create"
         class="jo-create-modal-overlay"
+        data-pms-create="{{ $pmsCreate ? 'true' : 'false' }}"
     >
-        <input type="hidden" name="pms_schedule_id" id="pms_schedule_id" value="">
+        <input
+            type="hidden"
+            name="pms_schedule_id"
+            id="pms_schedule_id"
+            value="{{ $pmsCreate?->id ?? '' }}"
+        >
 
         <section class="jo-create-section jo-create-basic">
             <div class="jo-create-section-header">
@@ -445,7 +459,15 @@
                         id="jobProblemIssue"
                         placeholder="Describe the problem or issue..."
                         required
-                    >{{ old('problem_issue') }}</textarea>
+                    >{{ old(
+                        'problem_issue',
+                        $pmsCreate
+                            ? request(
+                                'problem_issue',
+                                'PMS maintenance is due based on processed GPS mileage.'
+                            )
+                            : ''
+                    ) }}</textarea>
                 </div>
             </div>
         </section>
@@ -829,44 +851,5 @@
         confirm-id="confirmDeleteJob"
     />
 
-    @if(request('create_pms') && $pmsCreate)
-        <script>
-            document.addEventListener('DOMContentLoaded', function () {
-                const modal = document.getElementById('jobModal');
-                const busSelect = document.querySelector('#jobModal select[name="bus_no"]');
-                const issueField = document.querySelector('#jobModal textarea[name="problem_issue"]');
-                const typeSelect = document.querySelector('#jobModal select[name="maintenance_type"]');
-                const pmsScheduleId = document.getElementById('pms_schedule_id');
 
-                if (busSelect) {
-                    busSelect.value = @json($pmsCreate->bus_no);
-                }
-
-                if (issueField) {
-                    issueField.value = @json(request('problem_issue', 'PMS maintenance is due based on processed GPS mileage.'));
-                }
-
-                if (typeSelect) {
-                    const hasPms = Array.from(typeSelect.options).some(option => option.value === 'PMS');
-
-                    if (!hasPms) {
-                        const pmsOption = document.createElement('option');
-                        pmsOption.value = 'PMS';
-                        pmsOption.textContent = 'PMS';
-                        typeSelect.appendChild(pmsOption);
-                    }
-
-                    typeSelect.value = 'PMS';
-                }
-
-                if (pmsScheduleId) {
-                    pmsScheduleId.value = @json($pmsCreate->id);
-                }
-
-                if (modal) {
-                    modal.classList.add('show', 'active');
-                }
-            });
-        </script>
-    @endif
 </x-layout.app>

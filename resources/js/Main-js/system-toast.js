@@ -40,12 +40,18 @@ const removeToast = (toast) => {
     }
 
     clearToastTimers(toast);
-    toast.classList.add('is-removing');
-
-    const cleanupTimer = window.setTimeout(() => {
+    const finishRemoval = () => {
         toast.remove();
         toastTimers.delete(toast);
-    }, removeAnimationDelay);
+    };
+
+    toast.classList.add('is-removing');
+
+    if (window.GCTSystemAnimations?.animateToastOut?.(toast, finishRemoval)) {
+        return;
+    }
+
+    const cleanupTimer = window.setTimeout(finishRemoval, removeAnimationDelay);
 
     toastTimers.set(toast, { cleanupTimer });
 };
@@ -78,7 +84,9 @@ const attachToastBehavior = (toast, timeout = removeDelay) => {
             requestAnimationFrame(() => {
                 if (!toast.isConnected) return;
                 toast.classList.remove('is-removing');
-                toast.classList.add('is-visible');
+                if (!window.GCTSystemAnimations?.animateToastIn?.(toast)) {
+                    toast.classList.add('is-visible');
+                }
             });
         });
     }

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Admin\GpsTripRecord;
 use App\Models\Maintenance\Bus;
 use App\Models\Maintenance\FuelReport;
+use App\Traits\SystemDataUpdateBroadcaster;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -13,6 +14,8 @@ use Illuminate\View\View;
 
 class FuelReportController extends Controller
 {
+    use SystemDataUpdateBroadcaster;
+
     public function index(Request $request): View
     {
         $query = FuelReport::query()
@@ -324,6 +327,8 @@ class FuelReportController extends Controller
             'manual_distance_reason' => $validated['manual_distance_reason'] ?? null,
         ]);
 
+        $this->broadcastSystemDataUpdated('Maintenance', 'FuelReport', 'created', $record->id, 'A fuel record was created.');
+
         if ($request->ajax() || $request->expectsJson()) {
             return response()->json([
                 'success' => true,
@@ -379,6 +384,8 @@ class FuelReportController extends Controller
             'manual_distance_reason' => $validated['manual_distance_reason'] ?? null,
         ]);
 
+        $this->broadcastSystemDataUpdated('Maintenance', 'FuelReport', 'updated', $fuelReport->id, 'A fuel record was updated.');
+
         if ($request->ajax() || $request->expectsJson()) {
             return response()->json([
                 'success' => true,
@@ -394,7 +401,10 @@ class FuelReportController extends Controller
 
     public function destroy(FuelReport $fuelReport): RedirectResponse|JsonResponse
     {
+        $recordId = $fuelReport->id;
         $fuelReport->delete();
+
+        $this->broadcastSystemDataUpdated('Maintenance', 'FuelReport', 'deleted', $recordId, 'A fuel record was deleted.');
 
         if (request()->ajax() || request()->expectsJson()) {
             return response()->json([
@@ -509,6 +519,10 @@ class FuelReportController extends Controller
 
         if ($skipped > 0) {
             $message .= " {$skipped} row(s) were skipped because GPS data was missing.";
+        }
+
+        if ($saved > 0) {
+            $this->broadcastSystemDataUpdated('Maintenance', 'FuelReport', 'batch_updated', null, 'Daily fuel monitoring records were updated.');
         }
 
         if ($request->ajax() || $request->expectsJson()) {

@@ -1184,6 +1184,12 @@ window.GCTPartialNavigation.registerInitializer(
       );
 
 
+    const reviewPrWorkToPerform =
+      document.getElementById(
+        'reviewPrWorkToPerform'
+      );
+
+
     const prReviewInformation =
       document.getElementById(
         'prReviewInformation'
@@ -1807,6 +1813,13 @@ window.GCTPartialNavigation.registerInitializer(
       }
 
 
+      if (reviewPrWorkToPerform) {
+        reviewPrWorkToPerform.textContent =
+          button.dataset.workToPerform?.trim()
+            || 'No work / repair details recorded.';
+      }
+
+
       if (
         reviewDecisionRemarks &&
         mode === 'view'
@@ -1932,6 +1945,54 @@ window.GCTPartialNavigation.registerInitializer(
       );
 
     }
+
+
+    const syncOpenReviewPermissions = () => {
+
+      if (
+        !activePrTrigger ||
+        !editPrModal?.classList.contains('show')
+      ) {
+        return;
+      }
+
+      const activePrNo =
+        activePrTrigger.dataset.prNo;
+
+      if (!activePrNo) {
+        return;
+      }
+
+      const freshTrigger =
+        Array.from(
+          document.querySelectorAll(
+            '.open-view-pr-modal'
+          )
+        ).find(
+          button =>
+            button.dataset.prNo === activePrNo
+        );
+
+      if (!freshTrigger) {
+        return;
+      }
+
+      activePrTrigger =
+        freshTrigger;
+
+      configureReviewActions(
+        freshTrigger,
+        'view',
+        freshTrigger.dataset.status || 'Submitted'
+      );
+
+    };
+
+
+    window.addEventListener(
+      'system-regions-refreshed',
+      syncOpenReviewPermissions
+    );
 
 
     /* =========================================================
@@ -2363,7 +2424,7 @@ window.GCTPartialNavigation.registerInitializer(
                     reviewDecisionRemarks
                       ?.value
                       ?.trim()
-                    || 'Rejected by Maintenance Head';
+                    || 'Rejected by Maintenance';
 
                 }
 

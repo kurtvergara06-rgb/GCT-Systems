@@ -2,9 +2,11 @@
 
 namespace Tests\Feature\Admin;
 
+use App\Events\SystemDataUpdated;
 use App\Models\Admin\RolePermission;
 use App\Models\Admin\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Event;
 use Tests\TestCase;
 
 class IsolatedRolePermissionsTest extends TestCase
@@ -63,6 +65,8 @@ class IsolatedRolePermissionsTest extends TestCase
 
     public function test_permission_update_cannot_grant_cross_module_access(): void
     {
+        Event::fake([SystemDataUpdated::class]);
+
         $admin = $this->systemAdmin();
 
         $this->actingAs($admin)
@@ -100,6 +104,15 @@ class IsolatedRolePermissionsTest extends TestCase
                 $this->assertFalse((bool) $allowed);
             }
         }
+
+        Event::assertDispatched(
+            SystemDataUpdated::class,
+            fn (SystemDataUpdated $event) =>
+                $event->module === 'Warehouse'
+                && $event->entity === 'RolePermission'
+                && $event->action === 'permissions_updated'
+                && $event->record_id === 'warehouse_head'
+        );
     }
 
     public function test_department_accounts_cannot_open_other_department_modules_by_url(): void

@@ -9,10 +9,10 @@ window.GCTPartialNavigation.registerInitializer('shared-table-search', 'main', (
 
   const searchInputSelector = '.search-box input[type="text"], .search-box input[type="search"]';
 
-  const findTableContext = (toolbar) => {
+  const findTableContext = (toolbar, root = document) => {
     let node = toolbar?.parentElement;
 
-    while (node && node !== document.body) {
+    while (node && node !== root.body) {
       const table = node.querySelector('.table-wrap table, table');
       const footer = node.querySelector('[data-scroll-pagination], .table-footer');
 
@@ -39,6 +39,7 @@ window.GCTPartialNavigation.registerInitializer('shared-table-search', 'main', (
   };
 
   const serverFilterTimers = new WeakMap();
+  const pendingServerFilterTimers = new Set();
 
   const closestToolbar = (element) => element?.closest?.(toolbarSelector) || null;
 
@@ -145,33 +146,341 @@ window.GCTPartialNavigation.registerInitializer('shared-table-search', 'main', (
     return target;
   };
 
-  const runServerFilter = (toolbar) => {
+  const serverFilterControllers = new WeakMap();
+  const activeServerFilterControllers = new Set();
+
+  const findMatchingServerToolbar = (parsed, toolbar) => {
+    if (!(toolbar instanceof HTMLFormElement)) {
+      return null;
+    }
+
+    const currentToolbars = Array.from(
+      document.querySelectorAll(toolbarSelector)
+    ).filter((item) => usesServerFilter(item));
+
+    const parsedToolbars = Array.from(
+      parsed.querySelectorAll(toolbarSelector)
+    ).filter((item) => usesServerFilter(item));
+
+    const currentIndex = currentToolbars.indexOf(toolbar);
+
+    if (currentIndex >= 0 && parsedToolbars[currentIndex]) {
+      return parsedToolbars[currentIndex];
+    }
+
+    const currentAction = new URL(
+      toolbar.getAttribute('action') || window.location.href,
+      window.location.href
+    );
+
+    return parsedToolbars.find((item) => {
+      const parsedAction = new URL(
+        item.getAttribute('action') || currentAction.href,
+        currentAction.href
+      );
+
+      return parsedAction.pathname === currentAction.pathname;
+    }) || null;
+  };
+
+  const replaceServerFilteredTable = (toolbar, parsedToolbar, parsed) => {
+    const currentContext = findTableContext(toolbar);
+    const parsedContext = findTableContext(parsedToolbar, parsed);
+
+    if (!currentContext?.table || !parsedContext?.table) {
+      return false;
+    }
+
+    const currentBody = currentContext.table.tBodies?.[0];
+    const parsedBody = parsedContext.table.tBodies?.[0];
+
+    if (!currentBody || !parsedBody) {
+      return false;
+    }
+
+    currentBody.replaceWith(
+      document.importNode(parsedBody, true)
+    );
+
+    if (currentContext.footer && parsedContext.footer) {
+      currentContext.footer.replaceWith(
+        document.importNode(parsedContext.footer, true)
+      );
+    }
+
+    const currentContainer = toolbar.closest(
+      'section, .table-card, .card'
+    );
+    const parsedContainer = parsedToolbar.closest(
+      'section, .table-card, .card'
+    );
+
+    [
+      '.section-count',
+      '.activity-count',
+      '[data-server-filter-count]',
+    ].forEach((selector) => {
+      const currentCount = currentContainer?.querySelector(selector);
+      const parsedCount = parsedContainer?.querySelector(selector);
+
+      if (currentCount && parsedCount) {
+        currentCount.innerHTML = parsedCount.innerHTML;
+      }
+    });
+
+    document.dispatchEvent(
+      new CustomEvent(
+        'ajax:content-updated',
+        {
+          detail: {
+            source: 'server-filter',
+            toolbar,
+          },
+        }
+      )
+    );
+
+    document.dispatchEvent(
+      new CustomEvent(
+        'system:table-filtered',
+        {
+          detail: {
+            table: currentContext.table,
+            toolbar,
+          },
+        }
+      )
+    );
+
+    return true;
+  };
+
+  const runServerFilter = async (toolbar) => {
+    if (!toolbar?.isConnected) {
+      return;
+    }
+
     const target = buildServerFilterUrl(toolbar);
     if (!target) {
       return;
     }
 
-    if (window.GCTPartialNavigation?.navigate) {
-      window.GCTPartialNavigation.navigate(target.href);
-      return;
+    const previousController =
+      serverFilterControllers.get(toolbar);
+
+    if (previousController) {
+      previousController.abort();
     }
 
-    window.location.assign(target.href);
+    const controller =
+      new AbortController();
+
+    serverFilterControllers.set(
+      toolbar,
+      controller
+    );
+    activeServerFilterControllers.add(controller);
+
+    const context =
+      findTableContext(toolbar);
+
+    const loading =
+      toolbar.closest(
+        'section, .table-card, .card'
+      )?.querySelector(
+        '[data-server-filter-loading], .activity-table-loading'
+      );
+
+    toolbar.setAttribute(
+      'aria-busy',
+      'true'
+    );
+
+    context?.table
+      ?.closest('.table-wrap')
+      ?.classList.add(
+        'is-server-filtering'
+      );
+
+    if (loading) {
+      loading.hidden = false;
+    }
+
+    document.dispatchEvent(
+      new CustomEvent(
+        'system:server-filter-started',
+        {
+          detail: {
+            toolbar,
+            url: target.href,
+          },
+        }
+      )
+    );
+
+    try {
+      const response =
+        await fetch(
+          target.href,
+          {
+            method: 'GET',
+            headers: {
+              Accept: 'text/html',
+              'X-Requested-With':
+                'XMLHttpRequest',
+            },
+            credentials:
+              'same-origin',
+            cache: 'no-store',
+            signal:
+              controller.signal,
+          }
+        );
+
+      if (!response.ok) {
+        throw new Error(
+          `Server filter request failed: ${response.status}`
+        );
+      }
+
+      const finalUrl =
+        response.url ||
+        target.href;
+
+      const parsed =
+        new DOMParser()
+          .parseFromString(
+            await response.text(),
+            'text/html'
+          );
+
+      if (
+        controller.signal.aborted ||
+        serverFilterControllers.get(toolbar) !== controller ||
+        !toolbar.isConnected
+      ) {
+        return;
+      }
+
+      const parsedToolbar =
+        findMatchingServerToolbar(
+          parsed,
+          toolbar
+        );
+
+      if (
+        !parsedToolbar ||
+        !replaceServerFilteredTable(
+          toolbar,
+          parsedToolbar,
+          parsed
+        )
+      ) {
+        throw new Error(
+          'Server-filter table region could not be resolved.'
+        );
+      }
+
+      window.history.replaceState(
+        {
+          ...window.history.state,
+          gctPartial: true,
+        },
+        '',
+        finalUrl
+      );
+    } catch (error) {
+      if (
+        error?.name === 'AbortError' ||
+        controller.signal.aborted ||
+        serverFilterControllers.get(toolbar) !== controller ||
+        !toolbar.isConnected
+      ) {
+        return;
+      }
+
+      console.error(
+        'Unable to update table filters without a page reload.',
+        error
+      );
+
+      if (
+        window
+          .GCTPartialNavigation
+          ?.navigate
+      ) {
+        await window
+          .GCTPartialNavigation
+          .navigate(
+            target.href
+          );
+        return;
+      }
+
+      window.location.assign(
+        target.href
+      );
+    } finally {
+      activeServerFilterControllers.delete(controller);
+
+      const isLatestRequest =
+        serverFilterControllers.get(toolbar) === controller;
+
+      if (isLatestRequest) {
+        serverFilterControllers.delete(toolbar);
+
+        toolbar.removeAttribute(
+          'aria-busy'
+        );
+
+        context?.table
+          ?.closest('.table-wrap')
+          ?.classList.remove(
+            'is-server-filtering'
+          );
+
+        if (loading) {
+          loading.hidden = true;
+        }
+
+        document.dispatchEvent(
+          new CustomEvent(
+            'system:server-filter-finished',
+            {
+              detail: {
+                toolbar,
+                url: target.href,
+              },
+            }
+          )
+        );
+      }
+    }
   };
 
   const scheduleServerFilter = (toolbar, delay = 300) => {
     const previousTimer = serverFilterTimers.get(toolbar);
     if (previousTimer) {
       window.clearTimeout(previousTimer);
+      pendingServerFilterTimers.delete(previousTimer);
     }
 
     const timer = window.setTimeout(() => {
+      pendingServerFilterTimers.delete(timer);
       serverFilterTimers.delete(toolbar);
-      runServerFilter(toolbar);
+      void runServerFilter(toolbar);
     }, delay);
 
     serverFilterTimers.set(toolbar, timer);
+    pendingServerFilterTimers.add(timer);
   };
+
+  window.addEventListener('gct:navigation-before', () => {
+    pendingServerFilterTimers.forEach((timer) => window.clearTimeout(timer));
+    pendingServerFilterTimers.clear();
+    activeServerFilterControllers.forEach((controller) => controller.abort());
+    activeServerFilterControllers.clear();
+  });
 
   const applyToolbarFilters = (toolbar) => {
     if (!toolbar || usesOwnClientFilter(toolbar) || usesServerFilter(toolbar)) {
@@ -288,7 +597,7 @@ window.GCTPartialNavigation.registerInitializer('shared-table-search', 'main', (
 
     if (usesServerFilter(toolbar)) {
       if (!ownsServerFilter(toolbar)) {
-        runServerFilter(toolbar);
+        void runServerFilter(toolbar);
       }
       return;
     }
@@ -315,7 +624,7 @@ window.GCTPartialNavigation.registerInitializer('shared-table-search', 'main', (
 
       if (event.key === 'Enter') {
         event.preventDefault();
-        runServerFilter(toolbar);
+        void runServerFilter(toolbar);
       }
 
       if (event.key === 'Escape') {
@@ -361,12 +670,8 @@ window.GCTPartialNavigation.registerInitializer('shared-table-search', 'main', (
     }
 
     if (usesServerFilter(form)) {
-      if (ownsServerFilter(form)) {
-        return;
-      }
-
       event.preventDefault();
-      runServerFilter(form);
+      void runServerFilter(form);
       return;
     }
 

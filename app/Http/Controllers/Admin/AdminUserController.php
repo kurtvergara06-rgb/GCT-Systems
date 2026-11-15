@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Events\SystemDataUpdated;
 use App\Http\Controllers\Controller;
 use App\Models\Admin\RolePermission;
 use App\Models\Admin\User;
@@ -153,6 +154,16 @@ class AdminUserController extends Controller
             'permissions' => $normalized,
             'updated_by' => Auth::id(),
         ]);
+
+        $roleModuleKey = $permissionService->roleModuleKey($rolePermission);
+
+        event(new SystemDataUpdated(
+            ucfirst((string) $roleModuleKey),
+            'RolePermission',
+            'permissions_updated',
+            $rolePermission->role_key,
+            $rolePermission->label . ' permissions were updated.'
+        ));
 
         return redirect()
             ->route('admin.roles-permissions', ['role' => $rolePermission->role_key])
