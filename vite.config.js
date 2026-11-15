@@ -68,6 +68,7 @@ export default defineConfig({
                 'resources/css/Operation/Attendance/available-mechanics.css',
 
                 'resources/js/Operation/Shuttle_Bus_Management/bus-master-list.js',
+                'resources/js/Operation/Routes/routes-stops.js',
             ],
 
             refresh: true,
