@@ -366,6 +366,14 @@ class BatchFileProcessingController extends Controller
         $this->syncBusesFromProcessedBatch($batchUpload);
 
         $this->broadcastSystemDataUpdated(
+            'Operation',
+            'Bus',
+            'updated',
+            $batchUpload->id,
+            'Processed GPS data updated Bus Master List mileage.'
+        );
+
+        $this->broadcastSystemDataUpdated(
             'Admin',
             'BatchUpload',
             'updated',
@@ -393,13 +401,37 @@ class BatchFileProcessingController extends Controller
             ->unique()
             ->values();
 
+        $batchId = $batchUpload->id;
+
         Storage::disk('public')->delete($batchUpload->file_path);
 
-        $batchId = $batchUpload->id;
+        /*
+        |--------------------------------------------------------------------------
+        | Delete the GPS records first so they are no longer included when
+        | checking the remaining Processed GPS data for each bus.
+        |--------------------------------------------------------------------------
+        */
+        $batchUpload->tripRecords()->delete();
 
         $batchUpload->delete();
 
+        /*
+        |--------------------------------------------------------------------------
+        | Refresh only the buses affected by this deleted batch.
+        |
+        | If another Processed batch still has GPS data for the same bus,
+        | keep that newer remaining value. Otherwise clear the bus GPS fields.
+        |--------------------------------------------------------------------------
+        */
         $this->refreshBusesLatestGps($affectedBusNumbers);
+
+        $this->broadcastSystemDataUpdated(
+            'Operation',
+            'Bus',
+            'updated',
+            $batchId,
+            'GPS data was removed or refreshed in the Bus Master List.'
+        );
 
         $this->broadcastSystemDataUpdated(
             'Admin',
@@ -413,7 +445,7 @@ class BatchFileProcessingController extends Controller
             ->route('batch-file-processing')
             ->with(
                 'success',
-                'Uploaded file and all related trip records were deleted.'
+                'Uploaded file, GPS records, and related Bus Master List GPS data were deleted.'
             );
     }
 

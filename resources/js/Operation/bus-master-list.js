@@ -1,3 +1,5 @@
+import '../echo';
+
 document.addEventListener('DOMContentLoaded', () => {
     const busModal = document.getElementById('busModal');
     const importBusModal = document.getElementById('importBusModal');
