@@ -55,7 +55,7 @@
 .inventory-toolbar {
   width: 100%;
   display: grid;
-  grid-template-columns: minmax(280px, 1fr) 150px auto;
+  grid-template-columns: minmax(280px, 1fr) 170px 150px auto;
   align-items: end;
   gap: 10px;
   padding: 10px 12px;
@@ -333,6 +333,19 @@
   white-space: nowrap;
 }
 
+.inventory-item-meta {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.inventory-item-meta .source-badge {
+  flex: 0 0 auto;
+  padding: 1px 6px;
+  font-size: 9px;
+}
+
 .inventory-stock-cell {
   display: inline-flex;
   align-items: baseline;
@@ -485,6 +498,95 @@
   display: flex;
 }
 
+#movementHistoryModal .inventory-movement-modal {
+  width: min(1320px, 96vw);
+  max-width: 96vw;
+  max-height: 92vh;
+  padding: 0;
+  overflow: hidden;
+}
+
+.inventory-movement-modal .inventory-movement-modal__header {
+  min-height: 68px;
+  margin: 0;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  background: #ffffff;
+}
+
+.inventory-movement-modal__header h2 {
+  margin: 0;
+  font-size: 19px;
+}
+
+.inventory-movement-modal__header .close-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.inventory-movement-modal__body {
+  max-height: calc(92vh - 68px);
+  padding: 18px 20px 20px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.inventory-movement-modal .item-movement-stats {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.inventory-movement-modal .item-movement-stats .stat-card {
+  min-height: 88px;
+}
+
+.inventory-movement-modal .item-history-toolbar {
+  grid-template-columns: minmax(180px, 260px);
+}
+
+.inventory-movement-modal .table-wrap {
+  max-height: 45vh;
+  overflow: auto;
+}
+
+.movement-history-loading,
+.movement-history-error {
+  min-height: 260px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--muted);
+  font-size: 13px;
+  text-align: left;
+}
+
+.movement-history-loading i {
+  color: #0b40b5;
+  font-size: 18px;
+}
+
+.movement-history-error {
+  color: #991b1b;
+}
+
+.movement-history-error i {
+  font-size: 20px;
+}
+
+.movement-history-error strong,
+.movement-history-error a {
+  display: block;
+}
+
+.movement-history-error a {
+  margin-top: 5px;
+  color: #0b40b5;
+  font-weight: 700;
+}
+
 .form-grid,
 .details-grid {
   display: grid;
@@ -624,6 +726,25 @@
   .inventory-card .table-footer {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  #movementHistoryModal .inventory-movement-modal {
+    width: 100%;
+    max-width: 100%;
+    max-height: 94vh;
+  }
+
+  .inventory-movement-modal__body {
+    max-height: calc(94vh - 64px);
+    padding: 14px;
+  }
+
+  .inventory-movement-modal .item-movement-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .inventory-movement-modal .item-history-header p {
+    line-height: 1.7;
   }
 }
 

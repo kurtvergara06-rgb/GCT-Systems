@@ -9,6 +9,8 @@ use App\Models\Warehouse\InventoryItem;
 use App\Services\Warehouse\InventoryLedgerService;
 use App\Traits\SystemDataUpdateBroadcaster;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class WarehousePartRequestController extends Controller
 {
@@ -196,60 +198,95 @@ class WarehousePartRequestController extends Controller
 
     public function issue(PurchaseRequest $purchaseRequest)
     {
+        $this->authorizeWarehouseRole('staff');
+
         if ($this->isRestockRequest($purchaseRequest)) {
             return redirect()
                 ->back()
                 ->with('error', 'Inventory restock requests cannot be issued from Warehouse Part Requests.');
         }
 
-        $missingPurchaseRequest = $this->getMissingPurchaseRequest($purchaseRequest);
-        $displayStatus = $missingPurchaseRequest?->status ?? $purchaseRequest->status;
-
-        if (! in_array($displayStatus, ['Approved', 'Delivered', 'Picked Up'], true)) {
+        if ($purchaseRequest->warehouse_status !== 'Preparing') {
             return redirect()
                 ->back()
-                ->with('error', 'Only approved, delivered, or picked up parts can be issued.');
+                ->with('error', 'Only requests prepared by Warehouse Staff can be issued.');
         }
 
         $parts = $this->parseParts($purchaseRequest->item);
-        $inventoryCheck = $this->checkInventoryAvailability($parts);
+        $validated = request()->validate([
+            'issued_quantities' => ['required', 'array', 'size:'.count($parts)],
+            'issued_quantities.*' => ['required', 'integer', 'min:1'],
+        ]);
+        $issuedQuantities = array_values($validated['issued_quantities']);
+        $issueDetails = [];
 
-        if (! $inventoryCheck['available']) {
-            return redirect()
-                ->back()
-                ->with('error', 'Cannot issue parts. One or more requested parts are not available in inventory yet.');
-        }
+        foreach ($parts as $index => $part) {
+            $requested = (int) $part['quantity'];
+            $actual = (int) $issuedQuantities[$index];
 
-        foreach ($parts as $part) {
-            $inventoryItem = $this->findInventoryItem($part['name'], $part['unit'] ?? '');
-
-            if (! $inventoryItem) {
-                continue;
+            if ($actual > $requested) {
+                throw ValidationException::withMessages([
+                    "issued_quantities.{$index}" => 'Actual issued quantity cannot exceed the requested quantity.',
+                ]);
             }
 
-            $this->ledger->stockOut(
-                $inventoryItem,
-                (int) $part['quantity'],
-                $purchaseRequest->pr_no ?? $purchaseRequest->id,
-                'Issued through Warehouse Part Request.',
-                auth()->id()
-            );
+            $issueDetails[] = [
+                'name' => $part['name'],
+                'requested' => $requested,
+                'issued' => $actual,
+                'unit' => $part['unit'] ?? '',
+            ];
         }
 
-        $purchaseRequest->update([
-            'status' => 'Issued',
-        ]);
+        DB::transaction(function () use ($purchaseRequest, $parts, $issuedQuantities, $issueDetails) {
+            $lockedRequest = PurchaseRequest::query()->lockForUpdate()->findOrFail($purchaseRequest->id);
 
-        if ($missingPurchaseRequest) {
-            $missingPurchaseRequest->update([
+            if ($lockedRequest->warehouse_status !== 'Preparing') {
+                throw ValidationException::withMessages([
+                    'workflow' => 'This request is no longer ready for issuance.',
+                ]);
+            }
+
+            foreach ($parts as $index => $part) {
+                $inventoryItem = $this->findInventoryItem($part['name'], $part['unit'] ?? '');
+                $actual = (int) $issuedQuantities[$index];
+
+                if (! $inventoryItem || (int) $inventoryItem->quantity_available < $actual) {
+                    throw ValidationException::withMessages([
+                        "issued_quantities.{$index}" => "Insufficient stock for {$part['name']}.",
+                    ]);
+                }
+
+                $this->ledger->stockOut(
+                    $inventoryItem,
+                    $actual,
+                    $lockedRequest->pr_no ?? $lockedRequest->id,
+                    'Issued through Warehouse Part Request.',
+                    auth()->id()
+                );
+            }
+
+            $lockedRequest->update([
                 'status' => 'Issued',
+                'warehouse_status' => 'Issued',
+                'warehouse_issue_quantities' => $issueDetails,
+                'issued_at' => now(),
             ]);
-        }
 
-        JobOrder::where('job_order_no', $purchaseRequest->job_order_no)
-            ->update([
-                'part_status' => 'Issued',
-            ]);
+            $missingPurchaseRequest = $this->getMissingPurchaseRequest($lockedRequest);
+
+            if ($missingPurchaseRequest) {
+                $missingPurchaseRequest->update([
+                    'status' => 'Issued',
+                    'warehouse_status' => 'Issued',
+                    'warehouse_issue_quantities' => $issueDetails,
+                    'issued_at' => now(),
+                ]);
+            }
+
+            JobOrder::where('job_order_no', $lockedRequest->job_order_no)
+                ->update(['part_status' => 'Issued']);
+        });
 
         $this->broadcastSystemDataUpdated(
             'Warehouse',
@@ -264,8 +301,76 @@ class WarehousePartRequestController extends Controller
             ->with('success', 'Parts issued successfully.');
     }
 
+    public function approveForIssue(PurchaseRequest $purchaseRequest)
+    {
+        $this->authorizeWarehouseRole('head');
+
+        if ($this->isRestockRequest($purchaseRequest) || $purchaseRequest->status === 'Issued') {
+            return redirect()->back()->with('error', 'This request cannot be approved for issuance.');
+        }
+
+        $displayStatus = $this->getMissingPurchaseRequest($purchaseRequest)?->status ?? $purchaseRequest->status;
+        $inventoryCheck = $this->checkInventoryAvailability($this->parseParts($purchaseRequest->item));
+
+        if (! in_array($displayStatus, ['Approved', 'Delivered', 'Picked Up'], true) || ! $inventoryCheck['available']) {
+            return redirect()->back()->with('error', 'All requested parts must be available before issuance approval.');
+        }
+
+        $purchaseRequest->update([
+            'warehouse_status' => 'Approved for Issue',
+            'warehouse_approved_by' => auth()->id(),
+            'warehouse_approved_at' => now(),
+            'warehouse_prepared_by' => null,
+            'warehouse_prepared_at' => null,
+        ]);
+
+        return redirect()->back()->with('success', 'Part issuance approved. Warehouse Staff may now prepare the request.');
+    }
+
+    public function hold(PurchaseRequest $purchaseRequest)
+    {
+        $this->authorizeWarehouseRole('head');
+
+        if ($purchaseRequest->status === 'Issued' || $purchaseRequest->warehouse_status === 'Issued') {
+            return redirect()->back()->with('error', 'Issued requests cannot be placed on hold.');
+        }
+
+        $purchaseRequest->update([
+            'warehouse_status' => 'On Hold',
+            'warehouse_prepared_by' => null,
+            'warehouse_prepared_at' => null,
+        ]);
+
+        return redirect()->back()->with('success', 'Part issuance placed on hold.');
+    }
+
+    public function prepare(PurchaseRequest $purchaseRequest)
+    {
+        $this->authorizeWarehouseRole('staff');
+
+        if ($purchaseRequest->warehouse_status !== 'Approved for Issue') {
+            return redirect()->back()->with('error', 'Warehouse Head approval is required before preparation.');
+        }
+
+        $inventoryCheck = $this->checkInventoryAvailability($this->parseParts($purchaseRequest->item));
+
+        if (! $inventoryCheck['available']) {
+            return redirect()->back()->with('error', 'Stock is no longer sufficient for this request.');
+        }
+
+        $purchaseRequest->update([
+            'warehouse_status' => 'Preparing',
+            'warehouse_prepared_by' => auth()->id(),
+            'warehouse_prepared_at' => now(),
+        ]);
+
+        return redirect()->back()->with('success', 'Parts marked as preparing. Record actual quantities when issuing.');
+    }
+
     public function sendToPurchase(PurchaseRequest $purchaseRequest)
     {
+        $this->authorizeWarehouseRole('head');
+
         if ($this->isRestockRequest($purchaseRequest)) {
             return redirect()
                 ->back()
@@ -373,13 +478,34 @@ class WarehousePartRequestController extends Controller
         $purchaseRequest->missing_purchase_request = $missingPurchaseRequest;
         $purchaseRequest->purchase_progress_status = $warehouseDisplayStatus;
 
-        $purchaseRequest->can_issue =
+        $workflowStatus = $purchaseRequest->warehouse_status;
+        if (! $workflowStatus) {
+            $workflowStatus = $purchaseRequest->status === 'Issued'
+                ? 'Issued'
+                : 'Pending Warehouse Approval';
+        }
+        $purchaseRequest->warehouse_workflow_status = $workflowStatus;
+
+        $purchaseRequest->can_approve_for_issue =
             $purchaseRequest->status !== 'Issued'
             && $inventoryCheck['available']
+            && in_array($workflowStatus, ['Pending Warehouse Approval', 'On Hold'], true)
             && (
                 $purchaseRequest->status === 'Approved'
                 || in_array($warehouseDisplayStatus, ['Delivered', 'Picked Up'], true)
             );
+
+        $purchaseRequest->can_hold =
+            $purchaseRequest->status !== 'Issued'
+            && in_array($workflowStatus, ['Pending Warehouse Approval', 'Approved for Issue', 'Preparing'], true);
+
+        $purchaseRequest->can_prepare =
+            $workflowStatus === 'Approved for Issue'
+            && $inventoryCheck['available'];
+
+        $purchaseRequest->can_issue =
+            $workflowStatus === 'Preparing'
+            && $inventoryCheck['available'];
 
         $purchaseRequest->needs_purchase =
             $purchaseRequest->status === 'Approved'
@@ -387,6 +513,19 @@ class WarehousePartRequestController extends Controller
             && ! $missingPrAlreadyCreated;
 
         return $purchaseRequest;
+    }
+
+    private function authorizeWarehouseRole(string $role): void
+    {
+        $user = auth()->user();
+
+        abort_unless(
+            $user
+                && strtolower(trim((string) $user->department)) === 'warehouse'
+                && strtolower(trim((string) $user->role)) === $role,
+            403,
+            "Only Warehouse {$role} may perform this action."
+        );
     }
 
     private function getMissingPurchaseRequest(PurchaseRequest $purchaseRequest): ?PurchaseRequest

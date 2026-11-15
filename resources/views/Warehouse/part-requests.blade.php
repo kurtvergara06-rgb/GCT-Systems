@@ -7,13 +7,18 @@
     'resources/js/Warehouse/part-requests.js'
   ]"
 >
+  @php
+    $warehouseRole = strtolower(trim((string) auth()->user()?->role));
+    $isWarehouseHead = strtolower(trim((string) auth()->user()?->department)) === 'warehouse' && $warehouseRole === 'head';
+    $isWarehouseStaff = strtolower(trim((string) auth()->user()?->department)) === 'warehouse' && $warehouseRole === 'staff';
+  @endphp
   <div class="app">
     <x-layout.sidebar department="Warehouse" />
 
     <main class="main">
       <x-layout.topbar
         title="Part Requests"
-        subtitle="Approved purchase requests from Maintenance for warehouse processing"
+        subtitle="Head-authorized part releases prepared and issued by Warehouse Staff"
         notification-count="6"
       />
 
@@ -68,6 +73,7 @@
                 <th class="qty-col">On Hand</th>
                 <th class="status-col">Inventory</th>
                 <th class="status-col">Purchase Status</th>
+                <th class="status-col">Warehouse Status</th>
                 <th>Date</th>
                 <th class="actions-col">Actions</th>
               </tr>
@@ -87,7 +93,11 @@
                     && $status === 'Approved';
                   $canIssue = ($partRequest->can_issue ?? false)
                     && $inventoryStatus === 'Available'
-                    && in_array($status, ['Approved', 'Delivered', 'Picked Up'], true);
+                    && $isWarehouseStaff;
+                  $canApproveForIssue = ($partRequest->can_approve_for_issue ?? false) && $isWarehouseHead;
+                  $canHold = ($partRequest->can_hold ?? false) && $isWarehouseHead;
+                  $canPrepare = ($partRequest->can_prepare ?? false) && $isWarehouseStaff;
+                  $warehouseStatus = $partRequest->warehouse_workflow_status ?? 'Pending Warehouse Approval';
                 @endphp
 
                 <tr>
@@ -97,6 +107,7 @@
                   <td class="qty-col"><span class="on-hand-pill {{ $onHandClass }}">{{ $onHand }}</span></td>
                   <td class="status-col"><x-ui.status-badge :status="$inventoryStatus" type="inventory" /></td>
                   <td class="status-col"><x-ui.status-badge :status="$status" type="purchase" /></td>
+                  <td class="status-col"><x-ui.status-badge :status="$warehouseStatus" type="purchase" /></td>
                   <td>{{ $partRequest->created_at?->format('M d, Y') ?? '—' }}</td>
                   <td class="actions-col">
                     <div class="actions warehouse-actions">
@@ -119,7 +130,7 @@
                         <i class="fa-solid fa-eye"></i>
                       </button>
 
-                      @if($canSendToPurchase)
+                      @if($isWarehouseHead && $canSendToPurchase)
                         <form
                           action="{{ route('part-requests.send-to-purchase', $partRequest->id) }}"
                           method="POST"
@@ -135,30 +146,53 @@
                             <i class="fa-solid fa-cart-shopping"></i>
                           </button>
                         </form>
-                      @else
-                        <button type="button" class="send-purchase-btn icon-only-btn disabled-action-btn" title="No purchase action available" disabled>
-                          <i class="fa-solid fa-cart-shopping"></i>
-                        </button>
                       @endif
 
-                      @if($canIssue)
+                      @if($canApproveForIssue)
                         <form
-                          action="{{ route('part-requests.issue', $partRequest->id) }}"
+                          action="{{ route('part-requests.approve-for-issue', $partRequest->id) }}"
                           method="POST"
                           class="inline-action-form"
                           data-confirm-form
-                          data-confirm-title="Issue Parts?"
-                          data-confirm-message="Are you sure you want to release these parts from inventory?"
-                          data-confirm-button="Yes, Issue Parts"
-                          data-confirm-type="issue"
+                          data-confirm-title="Approve Part Issuance?"
+                          data-confirm-message="Authorize Warehouse Staff to prepare {{ $partRequest->pr_no }} for release?"
+                          data-confirm-button="Yes, Approve"
+                          data-confirm-type="approve"
                         >
                           @csrf
-                          <button type="submit" class="issue-part-btn icon-only-btn" title="Issue Parts">
-                            <i class="fa-solid fa-box-open"></i>
+                          <button type="submit" class="approve-issue-btn icon-only-btn" title="Approve for Issue">
+                            <i class="fa-solid fa-circle-check"></i>
                           </button>
                         </form>
-                      @else
-                        <button type="button" class="issue-part-btn icon-only-btn disabled-action-btn" title="Parts are not ready to issue" disabled>
+                      @endif
+
+                      @if($canHold)
+                        <form action="{{ route('part-requests.hold', $partRequest->id) }}" method="POST" class="inline-action-form" data-confirm-form data-confirm-title="Hold Part Issuance?" data-confirm-message="Place {{ $partRequest->pr_no }} on hold?" data-confirm-button="Yes, Hold" data-confirm-type="warning">
+                          @csrf
+                          <button type="submit" class="hold-issue-btn icon-only-btn" title="Reject or Hold Release">
+                            <i class="fa-solid fa-ban"></i>
+                          </button>
+                        </form>
+                      @endif
+
+                      @if($canPrepare)
+                        <form action="{{ route('part-requests.prepare', $partRequest->id) }}" method="POST" class="inline-action-form">
+                          @csrf
+                          <button type="submit" class="prepare-part-btn icon-only-btn" title="Prepare Parts">
+                            <i class="fa-solid fa-box"></i>
+                          </button>
+                        </form>
+                      @endif
+
+                      @if($canIssue)
+                        <button
+                          type="button"
+                          class="issue-part-btn icon-only-btn open-issue-modal"
+                          title="Record and Issue Parts"
+                          data-action="{{ route('part-requests.issue', $partRequest->id) }}"
+                          data-pr-no="{{ $partRequest->pr_no }}"
+                          data-parts='@json($partRequest->parts_breakdown ?? [])'
+                        >
                           <i class="fa-solid fa-box-open"></i>
                         </button>
                       @endif
@@ -166,7 +200,7 @@
                   </td>
                 </tr>
               @empty
-                <x-ui.empty-row colspan="8" message="No active part requests found." />
+                <x-ui.empty-row colspan="9" message="No active part requests found." />
               @endforelse
             </tbody>
           </table>
@@ -223,5 +257,31 @@
         <button type="button" id="closeViewPrModalBottom" class="warehouse-cancel-btn">Close</button>
       </div>
     </div>
+  </div>
+
+  <div id="issuePartsModal" class="modal-overlay warehouse-view-overlay">
+    <form id="issuePartsForm" method="POST" class="warehouse-edit-style-modal">
+      @csrf
+      <div class="warehouse-edit-header">
+        <div>
+          <h2>Issue Prepared Parts</h2>
+          <h3 id="issue_pr_no">Purchase Request</h3>
+          <p>Record the quantities physically released from the warehouse.</p>
+        </div>
+        <button type="button" id="closeIssuePartsModal" class="warehouse-edit-close" title="Close">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div id="issue_parts_fields" class="issue-parts-fields"></div>
+
+      <div class="warehouse-edit-footer issue-modal-footer">
+        <button type="button" id="cancelIssueParts" class="warehouse-cancel-btn">Cancel</button>
+        <button type="submit" class="confirm-issue-btn">
+          <i class="fa-solid fa-box-open"></i>
+          Confirm Issue
+        </button>
+      </div>
+    </form>
   </div>
 </x-layout.app>

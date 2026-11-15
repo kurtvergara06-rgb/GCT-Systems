@@ -30,6 +30,12 @@ Route::controller(WarehousePartRequestController::class)
     ->prefix('part-requests')
     ->group(function () {
         Route::get('/', 'index')->name('part-requests');
+        Route::post('/{purchaseRequest}/approve-for-issue', 'approveForIssue')
+            ->name('part-requests.approve-for-issue');
+        Route::post('/{purchaseRequest}/hold', 'hold')
+            ->name('part-requests.hold');
+        Route::post('/{purchaseRequest}/prepare', 'prepare')
+            ->name('part-requests.prepare');
         Route::post('/{purchaseRequest}/issue', 'issue')->name('part-requests.issue');
         Route::post('/{purchaseRequest}/send-to-purchase', 'sendToPurchase')
             ->name('part-requests.send-to-purchase');

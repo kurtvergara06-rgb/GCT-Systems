@@ -21,6 +21,7 @@ class InventoryItem extends Model
         'unit_of_measurement',
         'reorder_level',
         'status',
+        'source',
         'supplier',
         'location',
         'storage_location',

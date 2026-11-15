@@ -40,16 +40,22 @@ class InventoryMovementController extends Controller
             ->where('source', 'simulated')
             ->count();
 
-        return view(
-            'Warehouse.inventory-movements',
-            compact(
-                'inventoryItem',
-                'movements',
-                'stockIn',
-                'stockOut',
-                'adjustments',
-                'simulatedMovements'
-            )
+        $data = compact(
+            'inventoryItem',
+            'movements',
+            'stockIn',
+            'stockOut',
+            'adjustments',
+            'simulatedMovements'
         );
+
+        if ($request->ajax() || $request->boolean('modal')) {
+            return view(
+                'Warehouse.partials.inventory-movement-history',
+                $data + ['isModal' => true]
+            );
+        }
+
+        return view('Warehouse.inventory-movements', $data);
     }
 }

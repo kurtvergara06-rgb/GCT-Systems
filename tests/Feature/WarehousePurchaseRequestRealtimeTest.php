@@ -18,7 +18,8 @@ class WarehousePurchaseRequestRealtimeTest extends TestCase
     {
         Event::fake([SystemDataUpdated::class]);
 
-        $user = User::factory()->create();
+        $head = User::factory()->create(['department' => 'Warehouse', 'role' => 'head']);
+        $staff = User::factory()->create(['department' => 'Warehouse', 'role' => 'staff']);
 
         $inventoryItem = InventoryItem::create([
             'item_code' => 'PART-A',
@@ -41,9 +42,19 @@ class WarehousePurchaseRequestRealtimeTest extends TestCase
             'remarks' => 'Test purchase request',
         ]);
 
+        $this->actingAs($head)
+            ->post(route('part-requests.approve-for-issue', $purchaseRequest))
+            ->assertRedirect();
+
+        $this->actingAs($staff)
+            ->post(route('part-requests.prepare', $purchaseRequest))
+            ->assertRedirect();
+
         $response = $this
-            ->actingAs($user)
-            ->post(route('part-requests.issue', $purchaseRequest));
+            ->actingAs($staff)
+            ->post(route('part-requests.issue', $purchaseRequest), [
+                'issued_quantities' => [1],
+            ]);
 
         $response->assertRedirect();
 

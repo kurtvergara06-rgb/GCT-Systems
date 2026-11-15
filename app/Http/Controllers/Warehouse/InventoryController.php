@@ -30,7 +30,18 @@ class InventoryController extends Controller
     {
         $this->syncAutoRestockRequests();
 
-        $query = InventoryItem::query();
+        $sourceFilter = strtolower(trim((string) $request->input('source', 'app')));
+        if (! in_array($sourceFilter, ['app', 'simulated', 'all'], true)) {
+            $sourceFilter = 'app';
+        }
+
+        $inventoryScope = static fn () => InventoryItem::query()
+            ->when(
+                $sourceFilter !== 'all',
+                fn ($query) => $query->where('source', $sourceFilter)
+            );
+
+        $query = $inventoryScope();
 
         if ($request->filled('search')) {
             $search = trim((string) $request->search);
@@ -58,25 +69,25 @@ class InventoryController extends Controller
             ->paginate(8)
             ->withQueryString();
 
-        $categories = InventoryItem::query()
+        $categories = $inventoryScope()
             ->whereNotNull('category')
             ->where('category', '!=', '')
             ->distinct()
             ->orderBy('category')
             ->pluck('category');
 
-        $totalItemsInStock = InventoryItem::count();
+        $totalItemsInStock = $inventoryScope()->count();
 
-        $lowStockAlerts = InventoryItem::query()
+        $lowStockAlerts = $inventoryScope()
             ->whereColumn('on_hand', '<=', 'reorder_level')
             ->where('on_hand', '>', 0)
             ->count();
 
-        $criticalItems = InventoryItem::query()
+        $criticalItems = $inventoryScope()
             ->where('on_hand', '<=', 0)
             ->count();
 
-        $forecastedStockouts = InventoryItem::query()
+        $forecastedStockouts = $inventoryScope()
             ->whereColumn('on_hand', '<=', 'reorder_level')
             ->count();
 
@@ -89,7 +100,8 @@ class InventoryController extends Controller
             'lowStockAlerts',
             'criticalItems',
             'forecastedStockouts',
-            'itemsAtRisk'
+            'itemsAtRisk',
+            'sourceFilter'
         ));
     }
 

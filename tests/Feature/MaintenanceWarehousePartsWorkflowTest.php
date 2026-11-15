@@ -16,6 +16,14 @@ class MaintenanceWarehousePartsWorkflowTest extends TestCase
     public function test_job_order_parts_flow_from_purchase_request_creation_to_warehouse_issue(): void
     {
         $user = User::factory()->create();
+        $warehouseHead = User::factory()->create([
+            'department' => 'Warehouse',
+            'role' => 'head',
+        ]);
+        $warehouseStaff = User::factory()->create([
+            'department' => 'Warehouse',
+            'role' => 'staff',
+        ]);
 
         $jobOrder = JobOrder::create([
             'job_order_no' => 'JO-2026-0100',
@@ -60,14 +68,73 @@ class MaintenanceWarehousePartsWorkflowTest extends TestCase
             'storage_location' => 'Warehouse 1',
         ]);
 
+        $this->actingAs($warehouseHead)
+            ->post(route('part-requests.approve-for-issue', $purchaseRequest))
+            ->assertRedirect();
+
+        $this->assertSame('Approved for Issue', $purchaseRequest->fresh()->warehouse_status);
+        $this->assertSame(5, (int) $inventoryItem->fresh()->quantity_available);
+
+        $this->actingAs($warehouseStaff)
+            ->post(route('part-requests.prepare', $purchaseRequest))
+            ->assertRedirect();
+
+        $this->assertSame('Preparing', $purchaseRequest->fresh()->warehouse_status);
+        $this->assertSame(5, (int) $inventoryItem->fresh()->quantity_available);
+
         $issueResponse = $this
-            ->actingAs($user)
-            ->post(route('part-requests.issue', $purchaseRequest));
+            ->actingAs($warehouseStaff)
+            ->post(route('part-requests.issue', $purchaseRequest), [
+                'issued_quantities' => [2],
+            ]);
 
         $issueResponse->assertRedirect();
 
         $this->assertSame('Issued', $purchaseRequest->fresh()->status);
+        $this->assertSame('Issued', $purchaseRequest->fresh()->warehouse_status);
         $this->assertSame('Issued', $jobOrder->fresh()->part_status);
         $this->assertSame(3, (int) $inventoryItem->fresh()->quantity_available);
+        $this->assertSame(2, $purchaseRequest->fresh()->warehouse_issue_quantities[0]['issued']);
+    }
+
+    public function test_warehouse_roles_are_enforced_for_approval_preparation_and_issue(): void
+    {
+        $head = User::factory()->create(['department' => 'Warehouse', 'role' => 'head']);
+        $staff = User::factory()->create(['department' => 'Warehouse', 'role' => 'staff']);
+        $item = InventoryItem::create([
+            'item_code' => 'FILTER-01',
+            'item_name' => 'Oil Filter',
+            'category' => 'Filters',
+            'quantity_available' => 4,
+            'unit_of_measurement' => 'pcs',
+            'reorder_level' => 1,
+        ]);
+        $request = PurchaseRequest::create([
+            'pr_no' => 'PR-RBAC-01',
+            'job_order_no' => 'JO-RBAC-01',
+            'bus_no' => 'BUS-01',
+            'item' => 'Oil Filter - Qty: 2 pcs',
+            'quantity' => 2,
+            'status' => 'Approved',
+            'warehouse_status' => 'Pending Warehouse Approval',
+        ]);
+
+        $this->actingAs($staff)
+            ->post(route('part-requests.approve-for-issue', $request))
+            ->assertForbidden();
+
+        $this->actingAs($head)
+            ->post(route('part-requests.prepare', $request))
+            ->assertForbidden();
+
+        $this->actingAs($head)
+            ->post(route('part-requests.approve-for-issue', $request))
+            ->assertRedirect();
+
+        $this->actingAs($head)
+            ->post(route('part-requests.issue', $request), ['issued_quantities' => [2]])
+            ->assertForbidden();
+
+        $this->assertSame(4, (int) $item->fresh()->quantity_available);
     }
 }

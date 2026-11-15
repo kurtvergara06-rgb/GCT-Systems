@@ -453,6 +453,7 @@ class RealisticSampleDataSeeder extends Seeder
                     'quantity_available' => 0,
                     'unit_of_measurement' => $unit,
                     'reorder_level' => $reorder,
+                    'source' => 'simulated',
                     'supplier' => ''.$supplier,
                     'storage_location' => 'Rack '.chr(65 + ($index % 6)).'-'.(($index % 4) + 1),
                     'created_at' => Carbon::create(2026, 5, 18, 8, 0),
