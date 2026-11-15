@@ -75,17 +75,27 @@ async def extract_pdf_data(pdf_file: UploadFile = File(...)):
         extracted_data = extract_entities(cleaned_text)
 
         records = []
+        skipped_headers = 0
+        skipped_no_bus_no = 0
         extraction_mode = None
         table_type = detected_table_type
+        debug_info = {}
 
         if table_rows:
-            inferred_records = infer_records_from_table_rows(table_rows)
+            inference_result = infer_records_from_table_rows(table_rows)
 
-            if inferred_records:
-                records = inferred_records
+            records = inference_result.get("records", [])
+            skipped_headers = inference_result.get("skipped_headers", 0)
+            skipped_no_bus_no = inference_result.get("skipped_no_bus_no", 0)
+            debug_info = inference_result.get("debug_info", {})
+
+            if records:
                 extraction_mode = "table"
 
-        if not records:
+        # Only use text fallback when NO TABLE was found at all.
+        # Do NOT fall back if table_rows exist but produced 0 records.
+        # This prevents random text extraction when valid tables exist.
+        if not records and not table_rows:
             has_meaningful_value = any([
                 extracted_data.get("bus_no"),
                 extracted_data.get("grouping"),
@@ -98,7 +108,7 @@ async def extract_pdf_data(pdf_file: UploadFile = File(...)):
                 extracted_data.get("engine_hours"),
             ])
 
-            if has_meaningful_value:
+            if has_meaningful_value and extracted_data.get("bus_no"):
                 fallback_record = {
                     "record_no": None,
                     "bus_no": extracted_data.get("bus_no"),
@@ -138,8 +148,14 @@ async def extract_pdf_data(pdf_file: UploadFile = File(...)):
             "_debug": {
                 "table_rows_found": len(table_rows),
                 "records_created": len(records),
+                "skipped_headers": skipped_headers,
+                "skipped_no_bus_no": skipped_no_bus_no,
                 "extraction_mode": extraction_mode,
-                "table_type": table_type
+                "table_type": table_type,
+                "detected_header": debug_info.get("detected_header"),
+                "sample_rows": debug_info.get("sample_rows"),
+                "num_standard_rows": debug_info.get("num_standard_rows"),
+                "num_key_value_rows": debug_info.get("num_key_value_rows"),
             }
         }
 
