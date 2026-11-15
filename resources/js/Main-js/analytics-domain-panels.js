@@ -121,35 +121,60 @@ const bindTripCanvasChart = (chart) => {
         context.fillStyle = '#64748b';
         geometry.forEach((point) => context.fillText(`${point.label}${point.partial ? '*' : ''}`, point.x, height - 13));
 
-        const completed = geometry.filter((point) => !point.partial);
-        if (completed.length > 1) {
-            context.save();
-            context.beginPath();
-            context.rect(0, 0, padding.left + (plotWidth * animationProgress), height);
-            context.clip();
-            context.strokeStyle = '#2563eb';
-            context.lineWidth = 3;
-            context.lineCap = 'round';
-            context.lineJoin = 'round';
-            drawSmoothCurve(context, completed);
-            context.stroke();
-            context.restore();
-        }
+        // Render modern rounded volume bars matching GCT system design
+        const barWidth = Math.min(36, Math.max(16, stepX * 0.44));
 
         geometry.forEach((point, index) => {
-            if (point.x > padding.left + (plotWidth * animationProgress) + 2 && !point.partial) return;
+            const barHeight = Math.max(0, (point.value / maxValue) * plotHeight * animationProgress);
+            const barX = point.x - (barWidth / 2);
+            const barY = padding.top + plotHeight - barHeight;
             const isActive = index === activeIndex;
-            const radius = isActive ? 6.5 : 4.5;
-            context.save();
-            context.beginPath();
-            context.arc(point.x, point.y, radius, 0, Math.PI * 2);
-            context.fillStyle = point.partial ? '#ffffff' : (isActive ? '#2563eb' : '#ffffff');
-            context.fill();
-            context.lineWidth = isActive ? 3 : 2.5;
-            context.strokeStyle = point.partial ? '#94a3b8' : '#2563eb';
-            if (point.partial) context.setLineDash([2, 2]);
-            context.stroke();
-            context.restore();
+
+            if (point.value > 0) {
+                context.save();
+                const gradient = context.createLinearGradient(0, barY, 0, padding.top + plotHeight);
+                if (point.partial) {
+                    gradient.addColorStop(0, 'rgba(148, 163, 184, 0.7)');
+                    gradient.addColorStop(1, 'rgba(203, 213, 225, 0.35)');
+                } else if (isActive) {
+                    gradient.addColorStop(0, '#1d4ed8');
+                    gradient.addColorStop(1, '#3b82f6');
+                } else {
+                    gradient.addColorStop(0, '#2563eb');
+                    gradient.addColorStop(1, '#60a5fa');
+                }
+                context.fillStyle = gradient;
+
+                context.beginPath();
+                const r = Math.min(5, barWidth / 2);
+                if (context.roundRect) {
+                    context.roundRect(barX, barY, barWidth, barHeight, [r, r, 0, 0]);
+                } else {
+                    context.rect(barX, barY, barWidth, barHeight);
+                }
+                context.fill();
+
+                if (isActive) {
+                    context.lineWidth = 2;
+                    context.strokeStyle = '#1e40af';
+                    context.stroke();
+                }
+
+                // Value label on top of bar
+                if (animationProgress > 0.75) {
+                    context.font = '700 10px Poppins, sans-serif';
+                    context.textAlign = 'center';
+                    context.fillStyle = isActive ? '#1d4ed8' : '#334155';
+                    context.fillText(String(point.value), point.x, Math.max(padding.top + 6, barY - 6));
+                }
+                context.restore();
+            } else {
+                // Subtle zero indicator baseline tick
+                context.save();
+                context.fillStyle = isActive ? '#94a3b8' : '#cbd5e1';
+                context.fillRect(point.x - 10, padding.top + plotHeight - 2, 20, 2);
+                context.restore();
+            }
         });
 
         if (activeIndex >= 0 && pointerX !== null) {
@@ -157,7 +182,7 @@ const bindTripCanvasChart = (chart) => {
             context.save();
             context.setLineDash([3, 4]);
             context.lineWidth = 1;
-            context.strokeStyle = 'rgba(100, 116, 139, .55)';
+            context.strokeStyle = 'rgba(148, 163, 184, 0.6)';
             context.beginPath();
             context.moveTo(crosshairX, padding.top);
             context.lineTo(crosshairX, padding.top + plotHeight);

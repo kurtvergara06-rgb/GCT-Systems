@@ -48,25 +48,11 @@ if (tripRiskCanvas) {
     destroyExistingChart(tripRiskCanvas);
 
     const tripRisk = data.tripRisk || {};
-    const labels = list(tripRisk.labels).length > 0
-        ? list(tripRisk.labels)
-        : ['May 1', 'May 6', 'May 11', 'May 16', 'May 21', 'May 26', 'May 31'];
-
-    const tripsAtRiskData = list(tripRisk.trips_at_risk).length > 0
-        ? list(tripRisk.trips_at_risk)
-        : [8, 10, 11, 15, 14, 17, 19];
-
-    const predictedDelaysData = list(tripRisk.predicted_delays).length > 0
-        ? list(tripRisk.predicted_delays)
-        : [5, 7, 7, 8, 7, 10, 13];
-
-    const idleEventsData = list(tripRisk.high_idle_events).length > 0
-        ? list(tripRisk.high_idle_events)
-        : [4, 5, 5, 6, 5, 6, 7];
-
-    const routeRiskData = list(tripRisk.route_risk).length > 0
-        ? list(tripRisk.route_risk)
-        : [12, 13, 15, 14, 13, 14, 17];
+    const labels = list(tripRisk.labels);
+    const tripsAtRiskData = list(tripRisk.trips_at_risk);
+    const predictedDelaysData = list(tripRisk.predicted_delays);
+    const idleEventsData = list(tripRisk.high_idle_events);
+    const routeRiskData = list(tripRisk.route_risk);
 
     const ctxRisk = tripRiskCanvas.getContext('2d');
     const blueGradient = ctxRisk.createLinearGradient(0, 0, 0, 220);
@@ -172,9 +158,9 @@ if (riskCanvas) {
     destroyExistingChart(riskCanvas);
 
     const risk = data.risk || {};
-    const low = Number(risk.low) || 10;
-    const medium = Number(risk.medium) || 9;
-    const high = Number(risk.high) || 5;
+    const low = Number.isFinite(Number(risk.low)) ? Number(risk.low) : 0;
+    const medium = Number.isFinite(Number(risk.medium)) ? Number(risk.medium) : 0;
+    const high = Number.isFinite(Number(risk.high)) ? Number(risk.high) : 0;
 
     new Chart(riskCanvas.getContext('2d'), {
         type: 'doughnut',
@@ -220,21 +206,10 @@ if (performanceCanvas) {
     destroyExistingChart(performanceCanvas);
 
     const perf = data.performance || {};
-    const labels = list(perf.labels).length > 0
-        ? list(perf.labels)
-        : ['May 1', 'May 6', 'May 11', 'May 16', 'May 21', 'May 26', 'May 31'];
-
-    const activeBuses = list(perf.active_buses).length > 0
-        ? list(perf.active_buses)
-        : [52, 60, 58, 65, 59, 63, 68];
-
-    const tripVolume = list(perf.trip_volume).length > 0
-        ? list(perf.trip_volume)
-        : [24, 30, 28, 35, 30, 32, 36];
-
-    const avgDuration = list(perf.avg_duration).length > 0
-        ? list(perf.avg_duration)
-        : [20, 35, 42, 45, 40, 48, 55];
+    const labels = list(perf.labels);
+    const activeBuses = list(perf.active_buses);
+    const tripVolume = list(perf.trip_volume);
+    const avgDuration = list(perf.avg_duration);
 
     new Chart(performanceCanvas.getContext('2d'), {
         data: {

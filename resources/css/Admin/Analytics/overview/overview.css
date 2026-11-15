@@ -741,21 +741,38 @@
 
 .lens-item {
     position: relative;
-
     display: grid;
-
-    grid-template-columns:
-        34px
-        40px
-        minmax(0, 1fr);
-
+    grid-template-columns: 34px 40px minmax(0, 1fr) 20px;
     align-items: center;
-
     gap: 10px;
-
-    padding: 10px 0;
-
+    padding: 10px 8px;
+    border-radius: 10px;
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
     z-index: 2;
+    transition: background-color .15s ease, transform .15s ease;
+}
+
+.lens-item:hover {
+    background-color: #f8fafc;
+    transform: translateX(3px);
+}
+
+.lens-item .lens-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+    font-size: 11px;
+    opacity: 0;
+    transition: opacity .15s ease, transform .15s ease, color .15s ease;
+}
+
+.lens-item:hover .lens-arrow {
+    opacity: 1;
+    transform: translateX(2px);
+    color: var(--ao-blue);
 }
 
 .lens-index {
@@ -1179,59 +1196,44 @@
 
 .priority-findings-grid {
     display: grid;
-
-    grid-template-columns:
-        repeat(4, minmax(0, 1fr));
-
-    gap: 11px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
 }
 
 .priority-finding {
     position: relative;
-
-    padding: 15px;
-
+    display: flex;
+    flex-direction: column;
+    padding: 16px 18px;
     border: 1px solid var(--ao-border);
     border-radius: 12px;
-
     background: #ffffff;
-
     box-shadow: var(--ao-shadow);
+    transition: transform .15s ease, box-shadow .15s ease;
 }
 
-.priority-finding.high {
-    border-top: 3px solid var(--ao-red);
-}
-
-.priority-finding.medium {
-    border-top: 3px solid var(--ao-yellow);
-}
-
-.priority-finding.low {
-    border-top: 3px solid var(--ao-green);
+.priority-finding:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(11, 35, 71, 0.08);
 }
 
 .finding-top {
     display: flex;
     align-items: center;
     justify-content: space-between;
-
-    gap: 8px;
-
-    margin-bottom: 10px;
+    gap: 10px;
+    margin-bottom: 12px;
 }
 
 .finding-icon {
-    width: 40px;
-    height: 40px;
-
+    width: 38px;
+    height: 38px;
     display: flex;
     align-items: center;
     justify-content: center;
-
     border-radius: 10px;
-
-    font-size: 13px;
+    font-size: 14px;
+    flex-shrink: 0;
 }
 
 .finding-icon.maintenance {
@@ -1256,16 +1258,15 @@
 
 .finding-priority {
     min-height: 24px;
-
-    padding: 0 8px;
-
+    padding: 3px 10px;
     border-radius: 999px;
-
     display: inline-flex;
     align-items: center;
-
     font-size: 10px;
-    font-weight: 700;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    white-space: nowrap;
 }
 
 .finding-priority.high {
@@ -1285,58 +1286,46 @@
 
 .finding-module {
     display: block;
-
     color: var(--ao-blue);
-
     font-size: 10px;
     font-weight: 800;
-
     letter-spacing: 0.06em;
-
     text-transform: uppercase;
+    margin-bottom: 4px;
 }
 
 .priority-finding h3 {
-    margin: 5px 0 0;
-
+    margin: 0 0 6px;
     color: var(--ao-navy);
-
     font-size: 13px;
     font-weight: 800;
-
     line-height: 1.45;
 }
 
 .priority-finding p {
     min-height: 52px;
-
-    margin: 6px 0 0;
-
+    margin: 0 0 12px;
     color: var(--ao-muted);
-
     font-size: 11px;
-
     line-height: 1.5;
+    flex-grow: 1;
 }
 
 .priority-finding > a {
     display: inline-flex;
     align-items: center;
-
     gap: 6px;
-
-    margin-top: 9px;
-
+    margin-top: auto;
     color: var(--ao-blue);
-
     text-decoration: none;
-
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 700;
+    transition: color .15s ease;
 }
 
 .priority-finding > a:hover {
     color: var(--ao-blue-dark);
+    text-decoration: underline;
 }
 
 

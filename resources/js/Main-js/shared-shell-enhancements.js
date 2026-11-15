@@ -3,9 +3,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (topbarActions) {
     const summaryUrl = topbarActions.dataset.summaryUrl;
-    const actionItems = topbarActions.querySelectorAll('.topbar-action-item');
-    const pendingButton = actionItems[1]?.querySelector('.icon-btn');
-    const activityButton = actionItems[2]?.querySelector('.icon-btn');
+    const pendingButton = topbarActions.querySelector('[data-dropdown-target="pendingActionsDropdown"]');
+    const activityButton = topbarActions.querySelector('[data-dropdown-target="recentActivityDropdown"]');
 
     const ensureBadge = (button, id) => {
       if (!button) {

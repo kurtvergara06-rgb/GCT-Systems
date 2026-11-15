@@ -95,12 +95,19 @@ function createGradient(ctx, height, color) {
     return gradient;
 }
 
+function destroyExistingChart(canvas) {
+    if (!canvas) return;
+    const existing = Chart.getChart(canvas);
+    if (existing) existing.destroy();
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     // ------------------------------------------------------------------
     // ALL — Cross-domain overview (grouped bar)
     // ------------------------------------------------------------------
     const overviewCanvas = document.getElementById('predictionOverviewChart');
     if (overviewCanvas) {
+        destroyExistingChart(overviewCanvas);
         const pData = window.predictiveChartData || data || {};
         const overview = pData.overview || { labels: [], records: [], at_risk: [] };
         const labels = Array.isArray(overview.labels) && overview.labels.length > 0
@@ -108,13 +115,10 @@ document.addEventListener('DOMContentLoaded', () => {
             : ['Fleet & Trip', 'Fuel', 'Bus Health', 'Inventory'];
         const records = Array.isArray(overview.records) && overview.records.length > 0
             ? overview.records
-            : [17, 9, 14, 53];
+            : [0, 0, 0, 0];
         const atRisk = Array.isArray(overview.at_risk) && overview.at_risk.length > 0
             ? overview.at_risk
-            : [1, 3, 12, 10];
-
-        const existing = Chart.getChart(overviewCanvas);
-        if (existing) existing.destroy();
+            : [0, 0, 0, 0];
 
         new Chart(overviewCanvas, {
             type: 'bar',
@@ -194,6 +198,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ------------------------------------------------------------------
     const riskDonut = document.getElementById('riskDonut');
     if (riskDonut) {
+        destroyExistingChart(riskDonut);
         const risk = data.risk || { low: 0, medium: 0, high: 0, total: 0 };
         donutCenter('riskDonutTotal', risk.total);
         new Chart(riskDonut, {
@@ -221,6 +226,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ------------------------------------------------------------------
     const fuelForecastChart = document.getElementById('fuelForecastChart');
     if (fuelForecastChart) {
+        destroyExistingChart(fuelForecastChart);
         const labels = data.fuel_labels || [];
         const actual = data.fuel_actual || [];
         const forecast = data.fuel_forecast || [];
@@ -263,6 +269,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ------------------------------------------------------------------
     const tripRiskChart = document.getElementById('tripRiskChart');
     if (tripRiskChart) {
+        destroyExistingChart(tripRiskChart);
         const series = data.tripRisk || { labels: [], values: [] };
         new Chart(tripRiskChart, {
             type: 'line',
@@ -292,6 +299,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ------------------------------------------------------------------
     const performanceChart = document.getElementById('performanceChart');
     if (performanceChart) {
+        destroyExistingChart(performanceChart);
         const performance = data.performance || { labels: [], recorded: [], forecast: [] };
         new Chart(performanceChart, {
             data: {
@@ -334,6 +342,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ------------------------------------------------------------------
     const consumptionChart = document.getElementById('consumptionChart');
     if (consumptionChart) {
+        destroyExistingChart(consumptionChart);
         const labels = data.fuel_labels || [];
         const actual = data.fuel_actual || [];
         const forecast = data.fuel_forecast || [];
@@ -389,6 +398,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ------------------------------------------------------------------
     const efficiencyChart = document.getElementById('efficiencyChart');
     if (efficiencyChart) {
+        destroyExistingChart(efficiencyChart);
         const labels = data.efficiency_labels || [];
         const actual = data.efficiency_actual || [];
         const forecast = data.efficiency_forecast || [];
@@ -442,6 +452,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ------------------------------------------------------------------
     const busHealthDonut = document.getElementById('busHealthDonut');
     if (busHealthDonut) {
+        destroyExistingChart(busHealthDonut);
         const health = data.busHealth || { active: 0, maintenance: 0, inactive: 0, total: 0 };
         donutCenter('busHealthDonutTotal', health.total);
         new Chart(busHealthDonut, {
@@ -469,6 +480,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ------------------------------------------------------------------
     const inventoryDonut = document.getElementById('inventoryDonut');
     if (inventoryDonut) {
+        destroyExistingChart(inventoryDonut);
         const stock = data.inventory || { healthy: 0, low: 0, critical: 0, total: 0 };
         donutCenter('inventoryDonutTotal', stock.total);
         new Chart(inventoryDonut, {
@@ -496,6 +508,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ------------------------------------------------------------------
     const fuelRiskDonut = document.getElementById('fuelRiskDonut');
     if (fuelRiskDonut) {
+        destroyExistingChart(fuelRiskDonut);
         const risk = data.risk || { low: 0, medium: 0, high: 0, total: 0 };
         new Chart(fuelRiskDonut, {
             type: 'doughnut',
