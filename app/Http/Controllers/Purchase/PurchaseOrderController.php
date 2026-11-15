@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Purchase;
 
-use App\Models\InventoryItem;
-use App\Models\JobOrder;
-use App\Models\PurchaseOrder;
-use App\Models\PurchaseRequest;
+use App\Http\Controllers\Controller;
+use App\Models\Warehouse\InventoryItem;
+use App\Models\Maintenance\JobOrder;
+use App\Models\Purchase\PurchaseOrder;
+use App\Models\Maintenance\PurchaseRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -322,9 +323,9 @@ class PurchaseOrderController extends Controller
         }
 
         foreach ($items as $item) {
-            $itemName = trim($item['item_description'] ?? '');
+            $rawItemName = trim($item['item_description'] ?? '');
 
-            if ($itemName === '') {
+            if ($rawItemName === '') {
                 continue;
             }
 
@@ -332,41 +333,66 @@ class PurchaseOrderController extends Controller
             $unit = trim($item['unit'] ?? 'PC');
             $supplier = $purchaseOrder->supplier_name ?: 'N/A';
 
-            $inventoryItem = $this->findInventoryItem($itemName);
+            /*
+            |--------------------------------------------------------------------------
+            | Important:
+            | If item_description is accidentally saved as "tire, oil",
+            | split it so inventory will receive separate records:
+            | tire
+            | oil
+            |--------------------------------------------------------------------------
+            */
+            $itemNames = $this->splitItemNames($rawItemName);
 
-            if ($inventoryItem) {
-                $newOnHand = (int) $inventoryItem->on_hand + $quantity;
+            foreach ($itemNames as $itemName) {
+                $inventoryItem = $this->findInventoryItem($itemName);
 
-                $inventoryItem->update([
-                    'on_hand' => $newOnHand,
-                    'quantity_available' => $newOnHand,
-                    'unit' => $inventoryItem->unit ?: $unit,
-                    'unit_of_measurement' => $inventoryItem->unit_of_measurement ?: $unit,
-                    'supplier' => $inventoryItem->supplier ?: $supplier,
-                    'status' => $this->inventoryStatus($newOnHand, (int) ($inventoryItem->reorder_level ?? 0)),
-                ]);
-            } else {
-                InventoryItem::create([
-                    'item_code' => $this->generateInventoryItemCode(),
-                    'item_name' => $itemName,
-                    'parts_name' => $itemName,
-                    'category' => 'Auto Parts',
-                    'on_hand' => $quantity,
-                    'quantity_available' => $quantity,
-                    'unit' => $unit,
-                    'unit_of_measurement' => $unit,
-                    'reorder_level' => 5,
-                    'status' => $this->inventoryStatus($quantity, 5),
-                    'supplier' => $supplier,
-                    'location' => 'Warehouse',
-                    'storage_location' => 'Warehouse',
-                ]);
+                if ($inventoryItem) {
+                    $newOnHand = (int) $inventoryItem->on_hand + $quantity;
+
+                    $inventoryItem->update([
+                        'on_hand' => $newOnHand,
+                        'quantity_available' => $newOnHand,
+                        'unit' => $inventoryItem->unit ?: $unit,
+                        'unit_of_measurement' => $inventoryItem->unit_of_measurement ?: $unit,
+                        'supplier' => $inventoryItem->supplier ?: $supplier,
+                        'status' => $this->inventoryStatus(
+                            $newOnHand,
+                            (int) ($inventoryItem->reorder_level ?? 0)
+                        ),
+                    ]);
+                } else {
+                    InventoryItem::create([
+                        'item_code' => $this->generateInventoryItemCode(),
+                        'item_name' => $itemName,
+                        'parts_name' => $itemName,
+                        'category' => 'Auto Parts',
+                        'on_hand' => $quantity,
+                        'quantity_available' => $quantity,
+                        'unit' => $unit,
+                        'unit_of_measurement' => $unit,
+                        'reorder_level' => 5,
+                        'status' => $this->inventoryStatus($quantity, 5),
+                        'supplier' => $supplier,
+                        'location' => 'Warehouse',
+                        'storage_location' => 'Warehouse',
+                    ]);
+                }
             }
         }
 
         $purchaseOrder->update([
             'inventory_posted_at' => now(),
         ]);
+    }
+
+    private function splitItemNames(string $itemName): array
+    {
+        return collect(explode(',', $itemName))
+            ->map(fn ($name) => trim($name))
+            ->filter(fn ($name) => $name !== '')
+            ->values()
+            ->toArray();
     }
 
     private function findInventoryItem(string $itemName): ?InventoryItem

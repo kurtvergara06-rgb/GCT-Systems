@@ -1,8 +1,10 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\Purchase;
 
+use App\Models\Maintenance\PurchaseRequest;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PurchaseOrder extends Model
 {
@@ -44,6 +46,11 @@ class PurchaseOrder extends Model
         $first = $this->items[0] ?? null;
 
         return $first['pr_no'] ?? null;
+    }
+
+    public function purchaseRequest(): BelongsTo
+    {
+        return $this->belongsTo(PurchaseRequest::class);
     }
 
     public function relatedPurchaseRequest()

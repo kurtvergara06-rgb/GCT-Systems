@@ -1,8 +1,10 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Warehouse;
 
-use App\Models\InventoryItem;
+use App\Http\Controllers\Controller;
+
+use App\Models\Warehouse\InventoryItem;
 use Illuminate\Http\Request;
 
 class InventoryController extends Controller
@@ -137,3 +139,4 @@ class InventoryController extends Controller
             ->with('success', 'Inventory data imported successfully.');
     }
 }
+
