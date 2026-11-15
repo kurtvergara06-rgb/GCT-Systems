@@ -350,6 +350,27 @@ class FrontendUiUxComprehensiveTest extends TestCase
         $this->assertTrue(str_contains($content, 'Data Import Management'), 'Sidebar should contain the "Data Import Management" menu entry');
     }
 
+    public function test_all_analytics_pages_have_insight_toast_and_view_details(): void
+    {
+        $analyticsPages = [
+            'Overview' => route('analytics.overview'),
+            'Descriptive' => route('analytics.descriptive'),
+            'Diagnostic' => route('analytics.stage', ['stage' => 'diagnostic']),
+            'Predictive' => route('analytics.stage', ['stage' => 'predictive']),
+            'Prescriptive' => route('analytics.stage', ['stage' => 'prescriptive']),
+        ];
+
+        foreach ($analyticsPages as $name => $url) {
+            $resp = $this->actingAs($this->adminUser)->get($url);
+            $this->assertSame(200, $resp->status(), "Analytics page {$name} must return 200 OK");
+
+            $content = $resp->getContent();
+            $this->assertStringContainsString('data-analytics-insight-toast', $content, "Analytics page {$name} must include the insight toast component");
+            $this->assertStringContainsString('data-toast-action', $content, "Analytics page {$name} must include the View Details/Action button");
+            $this->assertStringContainsString('data-target-selector', $content, "Analytics page {$name} must configure target selector for highlighting");
+        }
+    }
+
     // =========================================================================
     // 3. OPERATION MODULE PAGES
     // =========================================================================

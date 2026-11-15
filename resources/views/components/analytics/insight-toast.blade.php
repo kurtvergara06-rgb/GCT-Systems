@@ -18,7 +18,7 @@
                     'priority' => 'info',
                     'icon' => 'fa-solid fa-chart-pie',
                     'action' => 'View Details',
-                    'target' => '.executive-snapshot, .analytics-kpi-strip, .analytics-overview-page',
+                    'target' => '.priority-findings-grid .priority-finding:not(.empty):first-child, .priority-findings-grid .priority-finding:first-child, .health-module.fleet, .executive-snapshot',
                 ],
             ],
         ],
@@ -32,7 +32,7 @@
                     'priority' => 'info',
                     'icon' => 'fa-solid fa-chart-column',
                     'action' => 'View Details',
-                    'target' => '.analytics-domain-toolbar, .analytics-overview-strip, .analytics-main-content',
+                    'target' => '.descriptive-overview-lower-grid .refined-ranking-row:first-child, .descriptive-alerts-table tbody tr:first-child, .analytics-kpi-strip .analytics-kpi:first-child',
                 ],
                 'fleet-trip' => [
                     'title' => 'Trip Volume & Speed Baseline',
@@ -41,7 +41,7 @@
                     'priority' => 'info',
                     'icon' => 'fa-solid fa-route',
                     'action' => 'View Details',
-                    'target' => '.fleet-trip-chart-card, .analytics-card, .analytics-main-content',
+                    'target' => '.fleet-trip-alerts-table tbody tr:first-child, .refined-ranking-row:first-child, .fleet-trip-chart-card',
                 ],
                 'fuel' => [
                     'title' => 'Fuel Usage Summary',
@@ -50,7 +50,7 @@
                     'priority' => 'warning',
                     'icon' => 'fa-solid fa-gas-pump',
                     'action' => 'View Details',
-                    'target' => '.fuel-analytics-card, .analytics-card, .analytics-main-content',
+                    'target' => '.analytics-fuel-table tbody tr[data-fuel-bus]:first-child, .analytics-fuel-table tbody tr:first-child, .fuel-details-card',
                 ],
                 'bus-health' => [
                     'title' => 'Maintenance & PMS Overview',
@@ -59,7 +59,7 @@
                     'priority' => 'warning',
                     'icon' => 'fa-solid fa-heart-pulse',
                     'action' => 'View Details',
-                    'target' => '.analytics-card, .analytics-main-content',
+                    'target' => '.bus-health-attention-list .bus-health-attention-row:first-child, .bus-health-unit-list .bus-health-unit-row:first-child, .bus-health-status-panel',
                 ],
                 'inventory' => [
                     'title' => 'Inventory Stock Levels',
@@ -68,7 +68,7 @@
                     'priority' => 'critical',
                     'icon' => 'fa-solid fa-boxes-stacked',
                     'action' => 'View Details',
-                    'target' => '.inventory-table-section, .analytics-card, .analytics-main-content',
+                    'target' => '.inventory-atrisk-table tbody tr:first-child, .inventory-table tbody tr:first-child, .inventory-table-section',
                 ],
             ],
         ],
@@ -82,7 +82,7 @@
                     'priority' => 'warning',
                     'icon' => 'fa-solid fa-triangle-exclamation',
                     'action' => 'View Details',
-                    'target' => '.diagnostic-evidence-card, .analytics-card, .analytics-main-content',
+                    'target' => '.diag-primary-causes .diag-list-row:first-child, .diag-table-detailed tbody tr:first-child, .diag-card',
                 ],
                 'fleet-trip' => [
                     'title' => 'Delay Cause Detected',
@@ -91,7 +91,7 @@
                     'priority' => 'warning',
                     'icon' => 'fa-solid fa-triangle-exclamation',
                     'action' => 'View Details',
-                    'target' => '.diagnostic-evidence-card, .analytics-card, .analytics-main-content',
+                    'target' => '.diag-table tbody tr:first-child, .fleet-main-grid .diag-list-row:first-child, .diag-evidence-card',
                 ],
                 'fuel' => [
                     'title' => 'Fuel Wastage Factor Identified',
@@ -100,7 +100,7 @@
                     'priority' => 'warning',
                     'icon' => 'fa-solid fa-fire-flame-curved',
                     'action' => 'View Details',
-                    'target' => '.diagnostic-evidence-card, .analytics-card, .analytics-main-content',
+                    'target' => '.diag-table tbody tr:first-child, .fuel-secondary-grid .diag-list-row:first-child, .diag-card',
                 ],
                 'bus-health' => [
                     'title' => 'Recurring Component Wear',
@@ -109,7 +109,7 @@
                     'priority' => 'critical',
                     'icon' => 'fa-solid fa-screwdriver-wrench',
                     'action' => 'View Details',
-                    'target' => '.diagnostic-evidence-card, .analytics-card, .analytics-main-content',
+                    'target' => '.health-card-attention .diag-list-row:first-child, .health-table tbody tr:first-child, .diag-card',
                 ],
                 'inventory' => [
                     'title' => 'Stockout Root Cause',
@@ -118,7 +118,7 @@
                     'priority' => 'critical',
                     'icon' => 'fa-solid fa-box-open',
                     'action' => 'View Details',
-                    'target' => '.diagnostic-evidence-card, .analytics-card, .analytics-main-content',
+                    'target' => '.inv-card-reorder .diag-list-row:first-child, .inv-table tbody tr:first-child, .diag-card',
                 ],
             ],
         ],
@@ -132,7 +132,7 @@
                     'priority' => 'critical',
                     'icon' => 'fa-solid fa-clock-rotate-left',
                     'action' => 'View Details',
-                    'target' => '.analytics-kpi-strip, .analytics-card, .analytics-main-content',
+                    'target' => '.risk-list .risk-item:first-child, .all-domain-table tbody tr:first-child, .risk-card',
                 ],
                 'fleet-trip' => [
                     'title' => 'Delay Risk Detected',
@@ -141,7 +141,7 @@
                     'priority' => 'critical',
                     'icon' => 'fa-solid fa-clock-rotate-left',
                     'action' => 'View Details',
-                    'target' => '.analytics-kpi-strip, .analytics-card, .analytics-main-content',
+                    'target' => '#tripPredictionsTable .ft-table tbody tr:first-child, .ft-issues-list .ft-issue:first-child, .ft-table tbody tr:first-child',
                 ],
                 'fuel' => [
                     'title' => 'Fuel Depletion Horizon',
@@ -150,7 +150,7 @@
                     'priority' => 'warning',
                     'icon' => 'fa-solid fa-chart-line',
                     'action' => 'View Details',
-                    'target' => '.analytics-kpi-strip, .analytics-card, .analytics-main-content',
+                    'target' => '.predictive-table tbody tr:first-child, .fuel-burn-card, .predictive-card',
                 ],
                 'bus-health' => [
                     'title' => 'PMS Timing Alert',
@@ -159,7 +159,7 @@
                     'priority' => 'critical',
                     'icon' => 'fa-solid fa-gauge-high',
                     'action' => 'View Details',
-                    'target' => '.analytics-kpi-strip, .analytics-card, .analytics-main-content',
+                    'target' => '.predictive-health-table tbody tr:first-child, .predictive-card',
                 ],
                 'inventory' => [
                     'title' => 'Stockout Runway Forecast',
@@ -168,7 +168,7 @@
                     'priority' => 'critical',
                     'icon' => 'fa-solid fa-hourglass-end',
                     'action' => 'View Details',
-                    'target' => '.analytics-kpi-strip, .analytics-card, .analytics-main-content',
+                    'target' => '.predictive-inventory-table tbody tr:first-child, .predictive-card',
                 ],
             ],
         ],
@@ -182,7 +182,7 @@
                     'priority' => 'info',
                     'icon' => 'fa-solid fa-lightbulb',
                     'action' => 'Review Recommendations',
-                    'target' => '.prescriptive-playbooks-card, .action-playbooks-queue, .analytics-kpi-strip, .analytics-card, .analytics-main-content',
+                    'target' => '.prescriptive-queue-list .prescriptive-queue-item:first-child, .prescriptive-table tbody tr:first-child, .prescriptive-playbooks-card',
                 ],
                 'fleet-trip' => [
                     'title' => 'Schedule & Route Optimization',
@@ -191,7 +191,7 @@
                     'priority' => 'info',
                     'icon' => 'fa-solid fa-shuffle',
                     'action' => 'Review Recommendations',
-                    'target' => '.prescriptive-playbooks-card, .action-playbooks-queue, .analytics-kpi-strip, .analytics-card, .analytics-main-content',
+                    'target' => '.prescriptive-table tbody tr:first-child, .prescriptive-card:first-child',
                 ],
                 'fuel' => [
                     'title' => 'Fuel Optimization',
@@ -200,7 +200,7 @@
                     'priority' => 'info',
                     'icon' => 'fa-solid fa-gas-pump',
                     'action' => 'Review Recommendations',
-                    'target' => '.prescriptive-playbooks-card, .action-playbooks-queue, .analytics-kpi-strip, .analytics-card, .analytics-main-content',
+                    'target' => '.prescriptive-table tbody tr:first-child, .prescriptive-card:first-child',
                 ],
                 'bus-health' => [
                     'title' => 'Preventive Maintenance Scheduling',
@@ -209,7 +209,7 @@
                     'priority' => 'warning',
                     'icon' => 'fa-solid fa-calendar-check',
                     'action' => 'Review Recommendations',
-                    'target' => '.prescriptive-playbooks-card, .action-playbooks-queue, .analytics-kpi-strip, .analytics-card, .analytics-main-content',
+                    'target' => '.prescriptive-table tbody tr:first-child, .prescriptive-card:first-child',
                 ],
                 'inventory' => [
                     'title' => 'Automated Reorder Dispatch',
@@ -218,7 +218,7 @@
                     'priority' => 'warning',
                     'icon' => 'fa-solid fa-cart-shopping',
                     'action' => 'Review Recommendations',
-                    'target' => '.prescriptive-playbooks-card, .action-playbooks-queue, .analytics-kpi-strip, .analytics-card, .analytics-main-content',
+                    'target' => '.prescriptive-table tbody tr:first-child, .prescriptive-card:first-child',
                 ],
             ],
         ],
@@ -311,9 +311,9 @@
             }
         }
 
-        // 2. Auto-dismiss timer (8 seconds) with hover pause and resume
+        // 2. Auto-dismiss timer (10 seconds) with hover pause and resume
         let autoDismissTimer = null;
-        let remainingTime = 8000;
+        let remainingTime = 10000;
         let lastStartTime = Date.now();
 
         function startTimer() {
@@ -328,7 +328,7 @@
                 clearTimeout(autoDismissTimer);
                 autoDismissTimer = null;
                 remainingTime -= (Date.now() - lastStartTime);
-                if (remainingTime < 1000) remainingTime = 1000;
+                if (remainingTime < 2000) remainingTime = 2000;
             }
         }
 
@@ -337,7 +337,9 @@
                 clearTimeout(autoDismissTimer);
                 autoDismissTimer = null;
             }
-            sessionStorage.setItem(sessionKey, '1');
+            if (userExplicit) {
+                sessionStorage.setItem(sessionKey, '1');
+            }
             const toastEl = container.querySelector('.analytics-insight-toast');
             if (toastEl) {
                 toastEl.classList.add('is-dismissing');
@@ -362,12 +364,11 @@
             });
         }
 
-        // 3. "View Details" / "Review Recommendations" smooth scroll & focus
-        const actionBtn = container.querySelector('[data-toast-action]');
-        if (actionBtn) {
-            actionBtn.addEventListener('click', function () {
-                const selectorList = (container.dataset.targetSelector || '').split(',');
-                let targetEl = null;
+        // 3. Global & Reusable Target Highlighting Function
+        window.gctHighlightTarget = function (targetSelectorOrEl) {
+            let targetEl = null;
+            if (typeof targetSelectorOrEl === 'string') {
+                const selectorList = targetSelectorOrEl.split(',');
                 for (let i = 0; i < selectorList.length; i++) {
                     const sel = selectorList[i].trim();
                     if (sel) {
@@ -378,17 +379,49 @@
                         }
                     }
                 }
+            } else if (targetSelectorOrEl instanceof Element) {
+                targetEl = targetSelectorOrEl;
+            }
 
-                if (targetEl) {
-                    targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    targetEl.classList.add('gct-highlight-pulse');
-                    setTimeout(function () {
-                        targetEl.classList.remove('gct-highlight-pulse');
-                    }, 2400);
+            if (!targetEl) return null;
+
+            // Scroll into view smoothly (centered vertically)
+            targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+            // Clear previous highlight timer if user clicked multiple times
+            if (targetEl._gctHighlightTimer) {
+                clearTimeout(targetEl._gctHighlightTimer);
+                targetEl._gctHighlightTimer = null;
+            }
+
+            // Remove class and trigger DOM reflow to reliably restart animation
+            targetEl.classList.remove('gct-highlight-pulse');
+            void targetEl.offsetWidth;
+            targetEl.classList.add('gct-highlight-pulse');
+
+            // Keep highlight visible for ~2.6 seconds (within 2-4s range), then smoothly return to normal
+            targetEl._gctHighlightTimer = setTimeout(function () {
+                targetEl.classList.remove('gct-highlight-pulse');
+                targetEl._gctHighlightTimer = null;
+            }, 2600);
+
+            return targetEl;
+        };
+
+        // 4. "View Details" / "Review Recommendations" click handler
+        const actionBtn = container.querySelector('[data-toast-action]');
+        if (actionBtn) {
+            actionBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                const selectorString = container.dataset.targetSelector || '';
+                window.gctHighlightTarget(selectorString);
+
+                // Reset timer giving user time to view highlighted entry and click multiple times
+                if (autoDismissTimer) {
+                    clearTimeout(autoDismissTimer);
                 }
-
-                // Dismiss toast after action taken
-                dismissToast(false);
+                remainingTime = 8000;
+                startTimer();
             });
         }
     })();

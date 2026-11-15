@@ -15,6 +15,8 @@
                 subtitle="Executive summary of descriptive, diagnostic, predictive, and prescriptive analytics across FROMS"
             />
 
+            <x-analytics.insight-toast stage="overview" domain="all" />
+
             <form class="overview-period-filter" method="GET" action="{{ route('analytics.overview') }}">
                 <div>
                     <label for="overview-period">Reporting period</label>
