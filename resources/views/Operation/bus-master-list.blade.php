@@ -8,21 +8,18 @@
         'resources/js/Operation/bus-master-list.js'
     ]"
 >
-    {{-- Success popup --}}
     <x-ui.action-buttom-modal
         mode="feedback"
         feedback-type="success"
         :message="session('success')"
     />
 
-    {{-- Error popup --}}
     <x-ui.action-buttom-modal
         mode="feedback"
         feedback-type="error"
         :message="session('error')"
     />
 
-    {{-- Validation popup --}}
     @if($errors->any())
         <x-ui.action-buttom-modal
             mode="feedback"
@@ -81,7 +78,6 @@
             />
 
             <section class="stats-grid">
-
                 <x-ui.summary-card
                     label="Total Buses"
                     value="{{ $totalBuses }}"
@@ -113,11 +109,9 @@
                     icon="fa-location-dot"
                     color="red"
                 />
-
             </section>
 
             <section class="table-card">
-
                 <div class="section-header">
                     <div>
                         <h2>Registered Buses</h2>
@@ -150,33 +144,25 @@
                             onchange="this.form.submit()"
                         >
                             <option value="All Status">All Status</option>
-
-                            <option
-                                value="Active"
-                                @selected(request('status') === 'Active')
-                            >
+                            <option value="Active" @selected(request('status') === 'Active')>
                                 Active
                             </option>
-
-                            <option
-                                value="Inactive"
-                                @selected(request('status') === 'Inactive')
-                            >
+                            <option value="Inactive" @selected(request('status') === 'Inactive')>
                                 Inactive
                             </option>
-
-                            <option
-                                value="Under Maintenance"
-                                @selected(request('status') === 'Under Maintenance')
-                            >
+                            <option value="Under Maintenance" @selected(request('status') === 'Under Maintenance')>
                                 Under Maintenance
                             </option>
                         </select>
                     </div>
 
-                    <button type="submit" class="filter-btn">
-                        <i class="fa-solid fa-filter"></i>
-                        Filter
+                    <button
+                        type="button"
+                        id="openImportBusModal"
+                        class="import-btn"
+                    >
+                        <i class="fa-solid fa-file-import"></i>
+                        Import CSV
                     </button>
 
                     <button
@@ -191,7 +177,6 @@
 
                 <div class="table-wrap">
                     <table class="bus-table">
-
                         <thead>
                             <tr>
                                 <th>Bus No.</th>
@@ -209,10 +194,7 @@
                         <tbody>
                             @forelse($buses as $bus)
                                 <tr>
-                                    <td>
-                                        <strong>{{ $bus->bus_no }}</strong>
-                                    </td>
-
+                                    <td><strong>{{ $bus->bus_no }}</strong></td>
                                     <td>{{ $bus->plate_no ?: '—' }}</td>
                                     <td>{{ $bus->bus_model ?: '—' }}</td>
                                     <td>{{ $bus->route_grouping ?: '—' }}</td>
@@ -225,13 +207,8 @@
                                         @endif
                                     </td>
 
-                                    <td>
-                                        {{ number_format($bus->last_pms_km, 2) }} km
-                                    </td>
-
-                                    <td>
-                                        {{ number_format($bus->next_pms_km, 2) }} km
-                                    </td>
+                                    <td>{{ number_format($bus->last_pms_km, 2) }} km</td>
+                                    <td>{{ number_format($bus->next_pms_km, 2) }} km</td>
 
                                     <td>
                                         <x-ui.status-badge :status="$bus->status" />
@@ -239,7 +216,6 @@
 
                                     <td>
                                         <div class="actions">
-
                                             <x-ui.action-buttom-modal
                                                 class="edit open-edit-bus"
                                                 type="button"
@@ -275,7 +251,6 @@
                                                     data-bus-no="{{ $bus->bus_no }}"
                                                 />
                                             </form>
-
                                         </div>
                                     </td>
                                 </tr>
@@ -286,18 +261,14 @@
                                 />
                             @endforelse
                         </tbody>
-
                     </table>
                 </div>
 
                 <x-ui.table-footer :items="$buses" />
-
             </section>
-
         </main>
     </div>
 
-    {{-- Add Bus Modal --}}
     <x-ui.form-modal
         id="busModal"
         title="Add New Bus"
@@ -311,49 +282,27 @@
     >
         <div class="form-group">
             <label>Bus No.</label>
-            <input
-                type="text"
-                name="bus_no"
-                placeholder="Example: BUS-205"
-                required
-            >
+            <input type="text" name="bus_no" placeholder="Example: BUS-205" required>
         </div>
 
         <div class="form-group">
             <label>Plate No.</label>
-            <input
-                type="text"
-                name="plate_no"
-                placeholder="Example: ABC-1234"
-            >
+            <input type="text" name="plate_no" placeholder="Example: ABC-1234">
         </div>
 
         <div class="form-group">
             <label>Bus Model</label>
-            <input
-                type="text"
-                name="bus_model"
-                placeholder="Example: Isuzu N-Series"
-            >
+            <input type="text" name="bus_model" placeholder="Example: Isuzu N-Series">
         </div>
 
         <div class="form-group">
             <label>Year Model</label>
-            <input
-                type="text"
-                name="year_model"
-                placeholder="Example: 2024"
-            >
+            <input type="text" name="year_model" placeholder="Example: 2024">
         </div>
 
         <div class="form-group">
             <label>Capacity</label>
-            <input
-                type="number"
-                name="capacity"
-                min="1"
-                placeholder="Example: 40"
-            >
+            <input type="number" name="capacity" min="1" placeholder="Example: 40">
         </div>
 
         <div class="form-group">
@@ -377,10 +326,7 @@
 
         <div class="form-section-title full-width">
             <h3>PMS Starting Information</h3>
-            <p>
-                GPS mileage will appear after Admin processes a GPS record
-                with the same Bus No.
-            </p>
+            <p>GPS mileage appears later after Admin processes matching GPS records.</p>
         </div>
 
         <div class="form-group">
@@ -406,10 +352,74 @@
         </div>
     </x-ui.form-modal>
 
-    {{-- Edit Bus Modal --}}
+    {{-- CSV Import Modal --}}
+    <div id="importBusModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <div>
+                    <h2>Import Bus CSV</h2>
+                    <p>Bulk add or update buses using a CSV file.</p>
+                </div>
+
+                <button
+                    type="button"
+                    id="closeImportBusModal"
+                    class="close-btn"
+                >
+                    &times;
+                </button>
+            </div>
+
+            <form
+                action="{{ route('bus-master-list.import') }}"
+                method="POST"
+                enctype="multipart/form-data"
+                class="job-form"
+            >
+                @csrf
+
+                <div class="form-group full-width">
+                    <label>CSV File</label>
+
+                    <input
+                        type="file"
+                        name="csv_file"
+                        accept=".csv,text/csv"
+                        required
+                    >
+
+                    <small>
+                        Required column: <strong>bus_no</strong>
+                    </small>
+                </div>
+
+                <div class="form-section-title full-width">
+                    <h3>Supported CSV Columns</h3>
+                    <p>
+                        bus_no, plate_no, bus_model, year_model, capacity,
+                        route_grouping, status, last_pms_km, pms_interval_km
+                    </p>
+                </div>
+
+                <div class="modal-actions full-width">
+                    <button
+                        type="button"
+                        id="cancelImportBusModal"
+                        class="cancel-btn"
+                    >
+                        Cancel
+                    </button>
+
+                    <button type="submit" class="save-btn">
+                        Import CSV
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div id="editBusModal" class="modal-overlay">
         <div class="modal-box wide-modal">
-
             <div class="modal-header">
                 <div>
                     <h2>Edit Bus Information</h2>
@@ -436,79 +446,47 @@
 
                 <div class="form-group">
                     <label>Bus No.</label>
-                    <input
-                        type="text"
-                        name="bus_no"
-                        id="edit_bus_no"
-                        required
-                    >
+                    <input type="text" name="bus_no" id="edit_bus_no" required>
                 </div>
 
                 <div class="form-group">
                     <label>Plate No.</label>
-                    <input
-                        type="text"
-                        name="plate_no"
-                        id="edit_plate_no"
-                    >
+                    <input type="text" name="plate_no" id="edit_plate_no">
                 </div>
 
                 <div class="form-group">
                     <label>Bus Model</label>
-                    <input
-                        type="text"
-                        name="bus_model"
-                        id="edit_bus_model"
-                    >
+                    <input type="text" name="bus_model" id="edit_bus_model">
                 </div>
 
                 <div class="form-group">
                     <label>Year Model</label>
-                    <input
-                        type="text"
-                        name="year_model"
-                        id="edit_year_model"
-                    >
+                    <input type="text" name="year_model" id="edit_year_model">
                 </div>
 
                 <div class="form-group">
                     <label>Capacity</label>
-                    <input
-                        type="number"
-                        name="capacity"
-                        id="edit_capacity"
-                        min="1"
-                    >
+                    <input type="number" name="capacity" id="edit_capacity" min="1">
                 </div>
 
                 <div class="form-group">
                     <label>Status</label>
 
-                    <select
-                        name="status"
-                        id="edit_status"
-                        required
-                    >
+                    <select name="status" id="edit_status" required>
                         <option value="Active">Active</option>
                         <option value="Inactive">Inactive</option>
-                        <option value="Under Maintenance">
-                            Under Maintenance
-                        </option>
+                        <option value="Under Maintenance">Under Maintenance</option>
                     </select>
                 </div>
 
                 <div class="form-group full-width">
                     <label>Route / Grouping</label>
-                    <input
-                        type="text"
-                        name="route_grouping"
-                        id="edit_route_grouping"
-                    >
+                    <input type="text" name="route_grouping" id="edit_route_grouping">
                 </div>
 
                 <div class="form-section-title full-width">
                     <h3>PMS Information</h3>
-                    <p>Next PMS KM is recalculated automatically after saving.</p>
+                    <p>Next PMS KM is automatically recalculated after saving.</p>
                 </div>
 
                 <div class="form-group">
@@ -549,11 +527,9 @@
                     </button>
                 </div>
             </form>
-
         </div>
     </div>
 
-    {{-- Delete Bus Popup --}}
     <x-ui.action-buttom-modal
         mode="delete"
         id="deleteBusModal"
@@ -563,5 +539,4 @@
         cancel-id="cancelDeleteBus"
         confirm-id="confirmDeleteBus"
     />
-
 </x-layout.app>
