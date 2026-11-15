@@ -262,6 +262,13 @@ td:nth-child(8) {
   color: #64748b !important;
 }
 
+.table-card .finish-order-form,
+.jo-page .job-orders-table .finish-order-form {
+  display: inline-flex;
+  margin: 0;
+  padding: 0;
+}
+
 /* =========================================================
    ALERTS
 ========================================================= */

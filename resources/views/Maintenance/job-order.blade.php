@@ -121,8 +121,17 @@
                                         && !$hasLinkedPr
                                         && in_array($jobOrder->part_status, [null, 'Not Requested'], true);
 
-                                    $canFinish = !$isOnHold
-                                        && (!$hasNeededParts || in_array($jobOrder->part_status, ['Issued', 'Rejected'], true));
+                                    $isOngoing = $jobOrder->status === 'On Going';
+
+                                    $canComplete = !$isCompleted
+                                        && $isOngoing
+                                        && (!$hasNeededParts || $jobOrder->part_status === 'Issued');
+
+                                    $lockedCompleteReason = $isOnHold
+                                        ? 'Cannot complete while job order is on hold.'
+                                        : (!$isOngoing
+                                            ? 'Cannot complete inactive job order.'
+                                            : 'Cannot complete until required parts are issued by warehouse.');
 
                                     $isLockedByPurchaseRequest = in_array($jobOrder->part_status, [
                                         'Approved', 'For Purchase', 'Ordered', 'For Pick-up', 'For Delivery',
@@ -187,25 +196,38 @@
                                         @endif
                                     </td>
 
-                                    <td class="{{ $jobOrder->completion_date ? 'date-time-cell' : 'empty' }}">
-                                        @if($jobOrder->completion_date)
-                                            <span class="date-value">{{ date('M d, Y', strtotime($jobOrder->completion_date)) }}</span>
-                                            <span class="time-value">{{ date('h:i A', strtotime($jobOrder->completion_date)) }}</span>
-                                        @elseif($canFinish)
-                                            <form id="finishForm-{{ $jobOrder->id }}" action="{{ route('job-orders.finish', $jobOrder->id) }}" method="POST">
+                                    <td class="{{ $isCompleted && $jobOrder->completion_date ? 'date-time-cell' : 'empty' }}">
+                                        @if($isCompleted)
+                                            @if($jobOrder->completion_date)
+                                                <span class="date-value">{{ date('M d, Y', strtotime($jobOrder->completion_date)) }}</span>
+                                                <span class="time-value">{{ date('h:i A', strtotime($jobOrder->completion_date)) }}</span>
+                                            @else
+                                                <span class="empty">—</span>
+                                            @endif
+                                        @elseif($canComplete)
+                                            <form id="finishForm-{{ $jobOrder->id }}" action="{{ route('job-orders.finish', $jobOrder->id) }}" method="POST" class="finish-order-form">
                                                 @csrf
                                                 <button
                                                     type="button"
                                                     class="finish-btn open-finish-modal"
                                                     data-id="{{ $jobOrder->id }}"
                                                     data-jo-no="{{ $jobOrder->job_order_no }}"
+                                                    title="Complete this Job Order"
                                                 >
                                                     <i class="fa-solid fa-check"></i>
-                                                    Finish
+                                                    Complete
                                                 </button>
                                             </form>
                                         @else
-                                            <span class="empty" title="Completion date is recorded only after the Job Order is manually finished.">—</span>
+                                            <button
+                                                type="button"
+                                                class="finish-btn locked-finish-btn"
+                                                disabled
+                                                title="{{ $lockedCompleteReason }}"
+                                            >
+                                                <i class="fa-solid fa-lock"></i>
+                                                Complete
+                                            </button>
                                         @endif
                                     </td>
 
@@ -607,15 +629,15 @@
     <div id="finishJobModal" class="delete-modal-overlay">
         <div class="delete-modal-box">
             <div class="delete-icon finish-icon"><i class="fa-solid fa-check"></i></div>
-            <h2>Finish Job Order?</h2>
+            <h2>Complete Job Order?</h2>
             <p>
-                Are you sure you want to finish
-                <strong id="finishJoNo">this job order</strong>?
-                This record will be marked as completed.
+                Confirm that all maintenance work for this Job Order has been completed.
+                Completion date and time will be recorded automatically.
             </p>
+            <span id="finishJoNo" class="sr-only"></span>
             <div class="delete-modal-actions">
                 <button type="button" id="cancelFinishJob" class="secondary-btn cancel-delete-btn">Cancel</button>
-                <button type="button" id="confirmFinishJob" class="warning-btn confirm-finish-btn">Yes, Finish</button>
+                <button type="button" id="confirmFinishJob" class="warning-btn confirm-finish-btn">Yes, Complete</button>
             </div>
         </div>
     </div>

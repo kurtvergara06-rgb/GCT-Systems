@@ -84,9 +84,7 @@ class MaintenanceWarehousePartsWorkflowTest extends TestCase
 
         $issueResponse = $this
             ->actingAs($warehouseStaff)
-            ->post(route('part-requests.issue', $purchaseRequest), [
-                'issued_quantities' => [2],
-            ]);
+            ->post(route('part-requests.issue', $purchaseRequest));
 
         $issueResponse->assertRedirect();
 
@@ -132,9 +130,103 @@ class MaintenanceWarehousePartsWorkflowTest extends TestCase
             ->assertRedirect();
 
         $this->actingAs($head)
-            ->post(route('part-requests.issue', $request), ['issued_quantities' => [2]])
+            ->post(route('part-requests.issue', $request))
             ->assertForbidden();
 
         $this->assertSame(4, (int) $item->fresh()->quantity_available);
     }
+
+    public function test_warehouse_staff_issues_prepared_parts_using_requested_quantity_automatically(): void
+    {
+        $warehouseStaff = User::factory()->create([
+            'department' => 'Warehouse',
+            'role' => 'staff',
+        ]);
+
+        $itemA = InventoryItem::create([
+            'item_code' => 'AIR-FLTR-01',
+            'item_name' => 'Air Filter',
+            'category' => 'Filters',
+            'quantity_available' => 20,
+            'unit_of_measurement' => 'pcs',
+            'reorder_level' => 2,
+        ]);
+
+        $itemB = InventoryItem::create([
+            'item_code' => 'FUEL-FLTR-01',
+            'item_name' => 'Fuel Filter',
+            'category' => 'Filters',
+            'quantity_available' => 10,
+            'unit_of_measurement' => 'pcs',
+            'reorder_level' => 2,
+        ]);
+
+        $jobOrder = JobOrder::create([
+            'job_order_no' => 'JO-AUTO-001',
+            'bus_no' => 'BUS-200',
+            'problem_issue' => 'Periodic filter replacement',
+            'maintenance_type' => 'Preventive',
+            'assigned_mechanic' => 'Lead Mechanic',
+            'part_needed' => 'Air Filter (1 pcs), Fuel Filter (3 pcs)',
+            'start_date' => now(),
+            'status' => 'On Going',
+            'part_status' => 'Not Requested',
+        ]);
+
+        $purchaseRequest = PurchaseRequest::create([
+            'pr_no' => 'PR-GCT-0004',
+            'job_order_no' => $jobOrder->job_order_no,
+            'bus_no' => $jobOrder->bus_no,
+            'item' => 'Air Filter (1 pcs), Fuel Filter (3 pcs)',
+            'quantity' => 4,
+            'status' => 'Approved',
+            'warehouse_status' => 'Preparing',
+            'warehouse_prepared_by' => $warehouseStaff->id,
+            'warehouse_prepared_at' => now(),
+        ]);
+
+        // Post issue without any issued_quantities payload
+        $response = $this
+            ->actingAs($warehouseStaff)
+            ->post(route('part-requests.issue', $purchaseRequest));
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success', 'Parts issued successfully.');
+
+        $updatedPr = $purchaseRequest->fresh();
+        $this->assertSame('Issued', $updatedPr->status);
+        $this->assertSame('Issued', $updatedPr->warehouse_status);
+        $this->assertSame('Issued', $jobOrder->fresh()->part_status);
+
+        // Inventory deductions match requested quantities exactly
+        $this->assertSame(19, (int) $itemA->fresh()->quantity_available);
+        $this->assertSame(7, (int) $itemB->fresh()->quantity_available);
+
+        // warehouse_issue_quantities history matches requested quantities automatically
+        $history = $updatedPr->warehouse_issue_quantities;
+        $this->assertIsArray($history);
+        $this->assertCount(2, $history);
+        $this->assertSame('Air Filter', $history[0]['name']);
+        $this->assertSame(1, $history[0]['requested']);
+        $this->assertSame(1, $history[0]['issued']);
+        $this->assertSame('Fuel Filter', $history[1]['name']);
+        $this->assertSame(3, $history[1]['requested']);
+        $this->assertSame(3, $history[1]['issued']);
+
+        // Stock movement ledger records generated
+        $this->assertDatabaseHas('stock_movements', [
+            'inventory_item_id' => $itemA->id,
+            'movement_type' => 'Stock Out',
+            'quantity_change' => -1,
+            'reference_no' => 'PR-GCT-0004',
+        ]);
+
+        $this->assertDatabaseHas('stock_movements', [
+            'inventory_item_id' => $itemB->id,
+            'movement_type' => 'Stock Out',
+            'quantity_change' => -3,
+            'reference_no' => 'PR-GCT-0004',
+        ]);
+    }
 }
+

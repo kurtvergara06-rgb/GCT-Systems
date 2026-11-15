@@ -51,15 +51,16 @@ class JobOrderController extends Controller
             $request->filled('part_status')
             && $request->part_status !== 'All Part Statuses'
         ) {
-            if ($request->part_status === 'No Parts Needed') {
+            if (in_array($request->part_status, ['No Parts Required', 'No Parts Needed'], true)) {
                 $query->where(function ($q) {
                     $q->whereNull('part_needed')
-                        ->orWhere('part_needed', '')
-                        ->orWhere(
-                            'part_status',
-                            'No Parts Needed'
-                        );
+                        ->orWhereRaw("TRIM(COALESCE(part_needed, '')) = ''")
+                        ->orWhereIn('part_status', ['No Parts Required', 'No Parts Needed']);
                 });
+            } elseif ($request->part_status === 'Not Requested') {
+                $query->where('part_status', 'Not Requested')
+                    ->whereNotNull('part_needed')
+                    ->whereRaw("TRIM(part_needed) != ''");
             } else {
                 $query->where(
                     'part_status',
@@ -105,7 +106,7 @@ class JobOrderController extends Controller
 
         $needParts = JobOrder::query()
             ->whereNotNull('part_needed')
-            ->where('part_needed', '!=', '')
+            ->whereRaw("TRIM(part_needed) <> ''")
             ->where('status', '!=', 'Completed')
             ->whereNotIn('part_status', ['Issued'])
             ->count();
@@ -332,7 +333,7 @@ class JobOrderController extends Controller
             ? $this->partParser->formatParts($parts)
             : null;
 
-        $partStatus = $partNeeded ? 'Not Requested' : 'No Parts Needed';
+        $partStatus = $partNeeded ? 'Not Requested' : 'No Parts Required';
 
         $jobOrder = JobOrder::create([
             'job_order_no' => $this->generateJobOrderNo(),
@@ -428,12 +429,12 @@ class JobOrderController extends Controller
         $partStatus = $jobOrder->part_status;
 
         if (! $newMechanic || ! $partNeeded) {
-            $partStatus = 'No Parts Needed';
-        } elseif (! $partStatus || in_array($partStatus, ['Unknown', 'No Parts Needed'], true)) {
+            $partStatus = 'No Parts Required';
+        } elseif (! $partStatus || in_array($partStatus, ['Unknown', 'No Parts Needed', 'No Parts Required'], true)) {
             $partStatus = 'Not Requested';
         }
 
-        if ($jobOrder->part_status === 'Rejected') {
+        if ($jobOrder->part_status === 'Rejected' && $partNeeded) {
             $partStatus = 'Rejected';
         }
 
@@ -528,11 +529,15 @@ class JobOrderController extends Controller
         }
 
         if ($jobOrder->status === 'On Hold') {
-            return redirect()->back()->with('error', 'This job order cannot be finished because it is currently on hold.');
+            return redirect()->back()->with('error', 'This job order cannot be completed because it is currently on hold.');
+        }
+
+        if ($jobOrder->status !== 'On Going') {
+            return redirect()->back()->with('error', 'Only active job orders can be completed.');
         }
 
         if (! $this->canFinishWithPartStatus($jobOrder)) {
-            return redirect()->back()->with('error', 'This job order cannot be finished yet. The part status must be Issued or Rejected first.');
+            return redirect()->back()->with('error', 'This job order cannot be completed yet. Required parts must be issued first.');
         }
 
         if ($jobOrder->maintenance_type === 'PMS') {
@@ -663,11 +668,13 @@ class JobOrderController extends Controller
 
     private function canFinishWithPartStatus(JobOrder $jobOrder): bool
     {
-        if (empty($jobOrder->part_needed)) {
+        $hasNeededParts = trim((string) $jobOrder->part_needed) !== '';
+
+        if (! $hasNeededParts) {
             return true;
         }
 
-        return in_array($jobOrder->part_status, ['Issued', 'Rejected'], true);
+        return $jobOrder->part_status === 'Issued';
     }
 
     private function generateJobOrderNo(): string

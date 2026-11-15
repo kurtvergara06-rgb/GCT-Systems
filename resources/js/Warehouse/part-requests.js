@@ -155,23 +155,48 @@ document.addEventListener('DOMContentLoaded', function () {
   function renderIssueFields(parts) {
     if (!issuePartsFields) return;
 
-    issuePartsFields.innerHTML = parts.map(function (part, index) {
-      const requested = Number.parseInt(part.needed || 1, 10);
+    if (!Array.isArray(parts) || parts.length === 0) {
+      issuePartsFields.innerHTML = '<div class="issue-empty-state">No requested parts found.</div>';
+      return;
+    }
+
+    const cardsHtml = parts.map(function (part) {
+      const requested = Number.parseInt(part.needed || part.quantity || 1, 10);
       const unit = escapeHtml(part.unit || 'pcs');
+      const requestedText = escapeHtml(part.needed_display || `${requested} ${unit}`);
+      const onHandText = escapeHtml(part.available_display || (part.available !== undefined ? `${part.available} ${unit}` : '0 pcs'));
 
       return `
-        <div class="issue-quantity-row">
-          <div class="issue-part-description">
+        <div class="issue-part-item-card">
+          <div class="issue-part-item-name">
             <strong>${escapeHtml(part.name || 'Part')}</strong>
-            <span>Requested: ${requested} ${unit} | On hand: ${escapeHtml(part.available_display || part.available || '0')}</span>
           </div>
-          <label>
-            Actual Issued
-            <input type="number" name="issued_quantities[${index}]" min="1" max="${requested}" value="${requested}" required>
-          </label>
+          <div class="issue-part-item-details">
+            <div class="issue-detail-line">
+              <span class="detail-label">Requested:</span>
+              <strong class="detail-value text-blue">${requestedText}</strong>
+            </div>
+            <div class="issue-detail-line">
+              <span class="detail-label">On Hand:</span>
+              <strong class="detail-value text-green">${onHandText}</strong>
+            </div>
+          </div>
         </div>
       `;
     }).join('');
+
+    const confirmMessage = parts.length === 1
+      ? `Confirm release of ${escapeHtml(parts[0].needed_display || (parts[0].needed ? `${parts[0].needed} ${parts[0].unit || 'pcs'}` : '1 pcs'))}?`
+      : 'Confirm release of all requested parts?';
+
+    issuePartsFields.innerHTML = `
+      <div class="issue-parts-list">
+        ${cardsHtml}
+      </div>
+      <div class="issue-confirm-prompt">
+        <p>${confirmMessage}</p>
+      </div>
+    `;
   }
 
   document.addEventListener('click', function (event) {
