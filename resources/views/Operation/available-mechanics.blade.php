@@ -1,24 +1,34 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<x-layout.app
+  title="FROMS - Attendance"
+  :assets="[
+    'resources/css/Operation/attendance.css'
+  ]"
+>
 
-  <title>FROMS - Available Mechanics</title>
+  <div class="app">
 
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+    <x-layout.sidebar
+      department="Operation"
+      subtitle="Department Module"
+      icon="fa-clipboard-check"
+      user-name="O. Admin"
+      user-role="Operation Admin"
+      :items="[
+        ['label' => 'Dashboard', 'route' => 'dashboard-operation', 'icon' => 'fa-table-cells-large'],
+        ['label' => 'Attendance', 'route' => 'attendance', 'icon' => 'fa-calendar-check'],
+        ['label' => 'Available Mechanics', 'route' => 'available-mechanics', 'icon' => 'fa-users-gear'],
+      ]"
+    />
 
-  @vite([
-    'resources/css/Main-styles/main.css',
-    'resources/css/Main-styles/sidebar.css',
-    'resources/css/Operation/available-mechanics.css'
-  ])
-</head>
+    <main class="main">
 
-<body>
+      <!-- your attendance page content here -->
 
-<div class="app">
+    </main>
 
+  </div>
+
+</x-layout.app>
   <!-- SIDEBAR -->
   <aside class="sidebar">
 
