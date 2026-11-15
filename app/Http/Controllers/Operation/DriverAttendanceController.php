@@ -7,6 +7,7 @@ use App\Models\Operation\DriverAttendance;
 use App\Traits\SystemDataUpdateBroadcaster;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
 use Throwable;
 
 class DriverAttendanceController extends Controller
@@ -122,7 +123,7 @@ class DriverAttendanceController extends Controller
     |--------------------------------------------------------------------------
     */
 
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'driver_name' => 'required|string|max:255',
@@ -150,12 +151,12 @@ class DriverAttendanceController extends Controller
             'A driver attendance record was created.'
         );
 
-        return redirect()
-            ->route('driver-attendance')
-            ->with(
-                'success',
-                'Driver attendance record created successfully.'
-            );
+        session()->flash(
+            'success',
+            'Driver attendance record created successfully.'
+        );
+
+        return new RedirectResponse('/driver-attendance');
     }
 
     /*
@@ -167,7 +168,7 @@ class DriverAttendanceController extends Controller
     public function update(
         Request $request,
         DriverAttendance $driverAttendance
-    ) {
+    ): RedirectResponse {
         $validated = $request->validate([
             'driver_name' => 'required|string|max:255',
             'shift' => 'required|string|max:255',
@@ -190,12 +191,12 @@ class DriverAttendanceController extends Controller
             'A driver attendance record was updated.'
         );
 
-        return redirect()
-            ->route('driver-attendance')
-            ->with(
-                'success',
-                'Driver attendance record updated successfully.'
-            );
+        session()->flash(
+            'success',
+            'Driver attendance record updated successfully.'
+        );
+
+        return new RedirectResponse('/driver-attendance');
     }
 
     /*
@@ -206,7 +207,7 @@ class DriverAttendanceController extends Controller
 
     public function destroy(
         DriverAttendance $driverAttendance
-    ) {
+    ): RedirectResponse {
         $attendanceId =
             $driverAttendance->id;
 
@@ -220,12 +221,12 @@ class DriverAttendanceController extends Controller
             'A driver attendance record was deleted.'
         );
 
-        return redirect()
-            ->route('driver-attendance')
-            ->with(
-                'success',
-                'Driver attendance record deleted successfully.'
-            );
+        session()->flash(
+            'success',
+            'Driver attendance record deleted successfully.'
+        );
+
+        return new RedirectResponse('/driver-attendance');
     }
 
     /*
@@ -234,7 +235,7 @@ class DriverAttendanceController extends Controller
     |--------------------------------------------------------------------------
     */
 
-    public function import(Request $request)
+    public function import(Request $request): RedirectResponse
     {
         $request->validate([
             'import_file' =>
@@ -253,12 +254,12 @@ class DriverAttendanceController extends Controller
             );
 
         if (! $handle) {
-            return redirect()
-                ->route('driver-attendance')
-                ->with(
-                    'error',
-                    'Unable to read the uploaded CSV file.'
-                );
+            session()->flash(
+                'error',
+                'Unable to read the uploaded CSV file.'
+            );
+
+            return new RedirectResponse('/driver-attendance');
         }
 
         try {
@@ -273,12 +274,12 @@ class DriverAttendanceController extends Controller
                 fgetcsv($handle);
 
             if (! $header) {
-                return redirect()
-                    ->route('driver-attendance')
-                    ->with(
-                        'error',
-                        'CSV file is empty.'
-                    );
+                session()->flash(
+                    'error',
+                    'CSV file is empty.'
+                );
+
+                return new RedirectResponse('/driver-attendance');
             }
 
             /*
@@ -324,14 +325,12 @@ class DriverAttendanceController extends Controller
                         true
                     )
                 ) {
-                    return redirect()
-                        ->route(
-                            'driver-attendance'
-                        )
-                        ->with(
-                            'error',
-                            "Invalid CSV format. Missing required column: {$column}"
-                        );
+                    session()->flash(
+                        'error',
+                        "Invalid CSV format. Missing required column: {$column}"
+                    );
+
+                    return new RedirectResponse('/driver-attendance');
                 }
             }
 
@@ -520,15 +519,13 @@ class DriverAttendanceController extends Controller
                 ) {
                     $skipped++;
 
-                    return redirect()
-                        ->route(
-                            'driver-attendance'
-                        )
-                        ->with(
-                            'error',
-                            "Invalid CSV format on row {$rowNumber}. "
-                            . "Use date YYYY-MM-DD and time HH:MM:SS or 08:00 AM."
-                        );
+                    session()->flash(
+                        'error',
+                        "Invalid CSV format on row {$rowNumber}. "
+                        . "Use date YYYY-MM-DD and time HH:MM:SS or 08:00 AM."
+                    );
+
+                    return new RedirectResponse('/driver-attendance');
                 }
             }
 
@@ -539,14 +536,12 @@ class DriverAttendanceController extends Controller
             */
 
             if ($imported === 0) {
-                return redirect()
-                    ->route(
-                        'driver-attendance'
-                    )
-                    ->with(
-                        'error',
-                        'No driver attendance records were imported. Please check your CSV format.'
-                    );
+                session()->flash(
+                    'error',
+                    'No driver attendance records were imported. Please check your CSV format.'
+                );
+
+                return new RedirectResponse('/driver-attendance');
             }
 
             /*
@@ -577,27 +572,23 @@ class DriverAttendanceController extends Controller
                     " {$skipped} row(s) were skipped.";
             }
 
-            return redirect()
-                ->route(
-                    'driver-attendance'
-                )
-                ->with(
-                    'success',
-                    $message
-                );
+            session()->flash(
+                'success',
+                $message
+            );
+
+            return new RedirectResponse('/driver-attendance');
 
         } catch (
             Throwable $error
         ) {
 
-            return redirect()
-                ->route(
-                    'driver-attendance'
-                )
-                ->with(
-                    'error',
-                    'Unable to import the CSV file. Please check the file format and try again.'
-                );
+            session()->flash(
+                'error',
+                'Unable to import the CSV file. Please check the file format and try again.'
+            );
+
+            return new RedirectResponse('/driver-attendance');
 
         } finally {
 

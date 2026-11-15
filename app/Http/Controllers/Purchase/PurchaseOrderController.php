@@ -12,6 +12,7 @@ use App\Traits\SystemDataUpdateBroadcaster;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Http\RedirectResponse;
 
 class PurchaseOrderController extends Controller
 {
@@ -188,9 +189,12 @@ class PurchaseOrderController extends Controller
             );
         }
 
-        return redirect()
-            ->route('purchase-orders')
-            ->with('success', 'Purchase order created successfully.');
+        session()->flash(
+            'success',
+            'Purchase order created successfully.'
+        );
+
+        return new RedirectResponse('/purchase-orders');
     }
 
     public function update(Request $request, PurchaseOrder $purchaseOrder)
@@ -281,9 +285,12 @@ class PurchaseOrderController extends Controller
             'A purchase order was updated.'
         );
 
-        return redirect()
-            ->back()
-            ->with('success', 'Purchase order updated successfully.');
+        session()->flash(
+            'success',
+            'Purchase order updated successfully.'
+        );
+
+        return new RedirectResponse('/purchase-orders');
     }
 
     public function updateStatus(Request $request, PurchaseOrder $purchaseOrder)
@@ -312,9 +319,12 @@ class PurchaseOrderController extends Controller
             'A purchase order status was updated.'
         );
 
-        return redirect()
-            ->back()
-            ->with('success', 'Purchase order status updated successfully.');
+        session()->flash(
+            'success',
+            'Purchase order status updated successfully.'
+        );
+
+        return new RedirectResponse('/purchase-orders');
     }
 
     public function destroy(PurchaseOrder $purchaseOrder)
@@ -343,9 +353,12 @@ class PurchaseOrderController extends Controller
             'A purchase order was deleted.'
         );
 
-        return redirect()
-            ->back()
-            ->with('success', 'Purchase order deleted successfully.');
+        session()->flash(
+            'success',
+            'Purchase order deleted successfully.'
+        );
+
+        return new RedirectResponse('/purchase-orders');
     }
 
     private function isInventoryPostingStatus(string $status): bool

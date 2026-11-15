@@ -123,7 +123,11 @@ document.addEventListener('DOMContentLoaded', () => {
     let timeEdited = false;
     let lastCalculated = null;
 
-    const originalAction = routeForm?.action || '';
+    const originalAction = normalizeAppPath(
+        routeForm?.getAttribute('action'),
+        '/operation/routes'
+    );
+
     const originalRouteCode = routeCode?.value || 'R-01';
 
     /* =========================================================
@@ -288,7 +292,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         routeForm.reset();
-        routeForm.action = originalAction;
+        routeForm.setAttribute(
+            'action',
+            originalAction
+        );
 
         if (routeFormMethod) {
             routeFormMethod.disabled = true;
@@ -349,7 +356,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         routeForm.reset();
-        routeForm.action = route.updateUrl;
+        routeForm.setAttribute(
+            'action',
+            normalizeAppPath(
+                route.updateUrl,
+                `/operation/routes/${route.id}`
+            )
+        );
 
         if (routeFormMethod) {
             routeFormMethod.disabled = false;
@@ -3338,6 +3351,44 @@ document.addEventListener('DOMContentLoaded', () => {
                         : 'Location'
             )
         );
+    }
+
+    function normalizeAppPath(value, fallback = '/') {
+        const rawValue = String(value || '').trim();
+
+        if (!rawValue) {
+            return fallback;
+        }
+
+        // Already a safe application-relative path.
+        if (rawValue.startsWith('/') && !rawValue.startsWith('//')) {
+            return rawValue;
+        }
+
+        // Convert a valid absolute URL into path + query + hash.
+        try {
+            const parsed = new URL(rawValue, window.location.origin);
+
+            if (parsed.origin === window.location.origin) {
+                return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+            }
+        } catch (error) {
+            // Continue to malformed-URL cleanup below.
+        }
+
+        // Repair values such as "https:/operation/routes" or
+        // "https://operation/routes/2" that may come from old cached markup.
+        const withoutScheme = rawValue
+            .replace(/^https?:\/+/i, '')
+            .replace(/^\/+/, '');
+
+        const knownPathIndex = withoutScheme.indexOf('operation/routes');
+
+        if (knownPathIndex >= 0) {
+            return `/${withoutScheme.slice(knownPathIndex)}`;
+        }
+
+        return fallback;
     }
 
     function parseJson(element) {

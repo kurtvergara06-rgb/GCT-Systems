@@ -530,3 +530,30 @@
   }
 
 }
+
+/* Driver Attendance status badge patch */
+
+.badge.leave,
+.badge.on-leave {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 78px;
+    padding: 6px 12px;
+    border: 1px solid #c4b5fd;
+    border-radius: 999px;
+    background: #ede9fe;
+    color: #6d28d9;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.badge.leave::before,
+.badge.on-leave::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    margin-right: 6px;
+    border-radius: 50%;
+    background: currentColor;
+}

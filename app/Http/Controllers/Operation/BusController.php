@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Admin\GpsTripRecord;
 use App\Models\Maintenance\Bus;
 use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
 
 class BusController extends Controller
 {
@@ -105,7 +106,7 @@ class BusController extends Controller
         ));
     }
 
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'bus_no' => [
@@ -155,12 +156,15 @@ class BusController extends Controller
             'status' => $validated['status'],
         ]);
 
-        return redirect()
-            ->route('bus-master-list')
-            ->with('success', 'Bus added successfully.');
+        session()->flash(
+            'success',
+            'Bus added successfully.'
+        );
+
+        return new RedirectResponse('/bus-master-list');
     }
 
-    public function import(Request $request)
+    public function import(Request $request): RedirectResponse
     {
         $request->validate([
             'csv_file' => [
@@ -174,17 +178,23 @@ class BusController extends Controller
         $file = $request->file('csv_file');
 
         if (! $file || ! $file->isValid()) {
-            return redirect()
-                ->back()
-                ->with('error', 'Please upload a valid CSV file.');
+            session()->flash(
+                'error',
+                'Please upload a valid CSV file.'
+            );
+
+            return new RedirectResponse('/bus-master-list');
         }
 
         $handle = fopen($file->getRealPath(), 'r');
 
         if (! $handle) {
-            return redirect()
-                ->back()
-                ->with('error', 'Unable to read the CSV file.');
+            session()->flash(
+                'error',
+                'Unable to read the CSV file.'
+            );
+
+            return new RedirectResponse('/bus-master-list');
         }
 
         $header = fgetcsv($handle);
@@ -192,9 +202,12 @@ class BusController extends Controller
         if (! $header) {
             fclose($handle);
 
-            return redirect()
-                ->back()
-                ->with('error', 'The CSV file is empty.');
+            session()->flash(
+                'error',
+                'The CSV file is empty.'
+            );
+
+            return new RedirectResponse('/bus-master-list');
         }
 
         $header = array_map(function ($value) {
@@ -210,12 +223,12 @@ class BusController extends Controller
         if (! in_array('bus_no', $header, true)) {
             fclose($handle);
 
-            return redirect()
-                ->back()
-                ->with(
-                    'error',
-                    'CSV must have a bus_no column.'
-                );
+            session()->flash(
+                'error',
+                'CSV must have a bus_no column.'
+            );
+
+            return new RedirectResponse('/bus-master-list');
         }
 
         $added = 0;
@@ -308,15 +321,15 @@ class BusController extends Controller
 
         fclose($handle);
 
-        return redirect()
-            ->route('bus-master-list')
-            ->with(
-                'success',
-                "CSV imported. Added: {$added}, Updated: {$updated}, Skipped: {$skipped}."
-            );
+        session()->flash(
+            'success',
+            "CSV imported. Added: {$added}, Updated: {$updated}, Skipped: {$skipped}."
+        );
+
+        return new RedirectResponse('/bus-master-list');
     }
 
-    public function update(Request $request, Bus $bus)
+    public function update(Request $request, Bus $bus): RedirectResponse
     {
         $validated = $request->validate([
             'bus_no' => [
@@ -366,20 +379,23 @@ class BusController extends Controller
             'status' => $validated['status'],
         ]);
 
-        return redirect()
-            ->route('bus-master-list')
-            ->with(
-                'success',
-                'Bus information updated successfully.'
-            );
+        session()->flash(
+            'success',
+            'Bus information updated successfully.'
+        );
+
+        return new RedirectResponse('/bus-master-list');
     }
 
-    public function destroy(Bus $bus)
+    public function destroy(Bus $bus): RedirectResponse
     {
         $bus->delete();
 
-        return redirect()
-            ->route('bus-master-list')
-            ->with('success', 'Bus deleted successfully.');
+        session()->flash(
+            'success',
+            'Bus deleted successfully.'
+        );
+
+        return new RedirectResponse('/bus-master-list');
     }
 }
