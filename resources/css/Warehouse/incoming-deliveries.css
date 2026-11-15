@@ -1,0 +1,511 @@
+/* =========================================================
+   INCOMING DELIVERIES
+   Consistent with Job Order / Warehouse styling
+========================================================= */
+
+.incoming-delivery-page {
+  --delivery-blue: #0b40b5;
+  --delivery-navy: #061f3d;
+  --delivery-yellow: #ffc400;
+
+  --delivery-text: #0f172a;
+  --delivery-muted: #64748b;
+  --delivery-border: #dce5f2;
+  --delivery-head: #f3f7fc;
+
+  --delivery-shadow:
+    0 4px 16px rgba(6, 31, 61, 0.07);
+}
+
+
+/* =========================================================
+   TOPBAR
+========================================================= */
+
+.incoming-delivery-page .topbar {
+  margin-bottom: 20px;
+}
+
+
+/* =========================================================
+   SUMMARY CARDS
+========================================================= */
+
+.delivery-stats-grid {
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.delivery-stats-grid .stat-card,
+.delivery-stats-grid .stat-card-link {
+  min-height: 112px;
+  padding: 18px 20px;
+
+  border: 1px solid var(--delivery-border);
+  border-radius: 16px;
+
+  background: #ffffff;
+  box-shadow: var(--delivery-shadow);
+
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  align-items: center;
+
+  gap: 14px;
+}
+
+.delivery-stats-grid .stat-card:hover,
+.delivery-stats-grid .stat-card-link:hover {
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 10px 24px rgba(6, 31, 61, 0.11);
+}
+
+.delivery-stats-grid .stat-icon {
+  width: 48px;
+  height: 48px;
+
+  flex: 0 0 48px;
+
+  border-radius: 14px;
+
+  font-size: 18px;
+}
+
+
+/* =========================================================
+   TABLE CARD
+========================================================= */
+
+.incoming-delivery-card {
+  padding: 16px;
+
+  margin-bottom: 20px;
+
+  border: 1px solid var(--delivery-border);
+  border-radius: 16px;
+
+  background: #ffffff;
+
+  box-shadow: var(--delivery-shadow);
+
+  overflow: hidden;
+}
+
+
+/* =========================================================
+   SECTION HEADER
+========================================================= */
+
+.incoming-delivery-page .section-header {
+  margin-bottom: 12px;
+}
+
+.incoming-delivery-page .section-header h2 {
+  margin: 0;
+
+  color: var(--delivery-navy);
+
+  font-size: 18px;
+  font-weight: 800;
+
+  letter-spacing: -0.01em;
+}
+
+.incoming-delivery-page .section-header p {
+  margin: 3px 0 0;
+
+  color: var(--delivery-muted);
+
+  font-size: 12px;
+}
+
+
+/* =========================================================
+   TOOLBAR
+========================================================= */
+
+.delivery-toolbar {
+  width: 100%;
+
+  display: grid;
+
+  grid-template-columns:
+    minmax(280px, 1fr)
+    160px;
+
+  align-items: end;
+
+  gap: 10px;
+
+  margin-bottom: 14px;
+
+  padding: 10px 12px;
+
+  border: 1px solid var(--delivery-border);
+  border-radius: 12px;
+
+  background: #ffffff;
+}
+
+
+/* =========================================================
+   SEARCH
+========================================================= */
+
+.delivery-toolbar .search-box {
+  position: relative;
+
+  min-width: 0;
+}
+
+.delivery-toolbar .search-box i {
+  position: absolute;
+
+  top: 50%;
+  left: 14px;
+
+  transform: translateY(-50%);
+
+  color: var(--delivery-blue);
+
+  font-size: 13px;
+
+  pointer-events: none;
+}
+
+.delivery-toolbar .search-box input {
+  width: 100%;
+  height: 40px;
+
+  padding:
+    0 14px 0 40px;
+
+  border: 1px solid var(--delivery-border);
+  border-radius: 9px;
+
+  background: #ffffff;
+
+  color: var(--delivery-text);
+
+  font-size: 13px;
+
+  outline: none;
+}
+
+.delivery-toolbar .search-box input::placeholder {
+  color: #8a98ac;
+}
+
+.delivery-toolbar .search-box input:focus {
+  border-color: var(--delivery-blue);
+
+  box-shadow:
+    0 0 0 3px rgba(11, 64, 181, 0.12);
+}
+
+
+/* =========================================================
+   FILTER
+========================================================= */
+
+.delivery-toolbar .filter-group {
+  display: flex;
+  flex-direction: column;
+
+  gap: 5px;
+}
+
+.delivery-toolbar .filter-group label {
+  color: var(--delivery-muted);
+
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.delivery-toolbar .filter-group select {
+  width: 100%;
+  height: 40px;
+
+  padding:
+    0 34px 0 11px;
+
+  border: 1px solid var(--delivery-border);
+  border-radius: 9px;
+
+  background: #ffffff !important;
+
+  color: var(--delivery-text) !important;
+
+  font-size: 12px;
+  font-weight: 500;
+
+  outline: none;
+
+  cursor: pointer;
+}
+
+.delivery-toolbar .filter-group select:focus {
+  border-color: var(--delivery-blue);
+
+  box-shadow:
+    0 0 0 3px rgba(11, 64, 181, 0.12);
+}
+
+
+/* =========================================================
+   TABLE WRAPPER
+========================================================= */
+
+.incoming-delivery-page .table-wrap {
+  width: 100%;
+
+  overflow-x: auto;
+
+  border-radius: 10px;
+}
+
+
+/* =========================================================
+   TABLE
+========================================================= */
+
+.incoming-delivery-table {
+  width: 100%;
+
+  min-width: 980px;
+
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.incoming-delivery-table thead {
+  background: var(--delivery-head);
+}
+
+.incoming-delivery-table th {
+  padding: 13px 14px;
+
+  border-bottom:
+    1px solid var(--delivery-border);
+
+  color: #475569;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  letter-spacing: 0.055em;
+
+  text-transform: uppercase;
+
+  white-space: nowrap;
+}
+
+.incoming-delivery-table td {
+  padding: 13px 14px;
+
+  border-bottom:
+    1px solid #e7edf5;
+
+  color: var(--delivery-text);
+
+  font-size: 13px;
+  font-weight: 500;
+
+  vertical-align: middle;
+}
+
+.incoming-delivery-table tbody tr {
+  transition:
+    background 0.18s ease;
+}
+
+.incoming-delivery-table tbody tr:hover {
+  background: #f8fbff;
+}
+
+.incoming-delivery-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+
+/* =========================================================
+   COLUMN ALIGNMENT
+========================================================= */
+
+.incoming-delivery-table th:nth-child(-n+3),
+.incoming-delivery-table td:nth-child(-n+3) {
+  text-align: left;
+}
+
+.incoming-delivery-table th:nth-child(n+4),
+.incoming-delivery-table td:nth-child(n+4) {
+  text-align: center;
+}
+
+
+/* =========================================================
+   DELIVERY STATUS
+========================================================= */
+
+.delivery-status {
+  min-width: 94px;
+
+  min-height: 26px;
+
+  padding: 0 11px;
+
+  border-radius: 999px;
+
+  border: 1px solid transparent;
+
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  line-height: 1;
+
+  white-space: nowrap;
+}
+
+
+/* FOR DELIVERY */
+
+.delivery-status.for-delivery {
+  background: #ffedd5;
+
+  color: #c2410c;
+
+  border-color: #fed7aa;
+}
+
+
+/* DELIVERED */
+
+.delivery-status.delivered {
+  background: #dcfce7;
+
+  color: #15803d;
+
+  border-color: #b7efca;
+}
+
+
+/* RECEIVED */
+
+.delivery-status.received {
+  background: #e0f2fe;
+
+  color: #0369a1;
+
+  border-color: #bae6fd;
+}
+
+
+/* DEFAULT */
+
+.delivery-status.default {
+  background: #f1f5f9;
+
+  color: #475569;
+
+  border-color: var(--delivery-border);
+}
+
+
+/* =========================================================
+   EMPTY STATE
+========================================================= */
+
+.empty-deliveries {
+  padding: 0 !important;
+}
+
+.delivery-empty-state {
+  padding: 50px 20px;
+
+  text-align: center;
+}
+
+.delivery-empty-icon {
+  width: 52px;
+  height: 52px;
+
+  margin:
+    0 auto 12px;
+
+  border-radius: 14px;
+
+  background: #e0ecff;
+
+  color: var(--delivery-blue);
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  font-size: 18px;
+}
+
+.delivery-empty-state h3 {
+  margin: 0;
+
+  color: var(--delivery-navy);
+
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.delivery-empty-state p {
+  margin:
+    5px 0 0;
+
+  color: var(--delivery-muted);
+
+  font-size: 11px;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 1200px) {
+
+  .delivery-stats-grid {
+    grid-template-columns:
+      repeat(2, 1fr);
+  }
+
+}
+
+
+@media (max-width: 768px) {
+
+  .delivery-stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+
+  .delivery-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+
+  .delivery-toolbar .filter-group,
+  .delivery-toolbar .filter-group select {
+    width: 100%;
+  }
+
+
+  .incoming-delivery-card {
+    padding: 12px;
+  }
+
+}

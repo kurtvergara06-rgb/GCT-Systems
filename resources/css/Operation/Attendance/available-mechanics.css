@@ -530,3 +530,13 @@
   }
 
 }
+
+/* =========================================================
+   ATTENDANCE STATUS - ON LEAVE
+========================================================= */
+
+.badge.leave {
+    background: #ede9fe;
+    color: #7c3aed;
+    border: 1px solid #c4b5fd;
+}

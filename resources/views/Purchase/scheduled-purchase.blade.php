@@ -7,32 +7,46 @@
     'resources/js/Purchase/scheduled-purchase.js'
   ]"
 >
-  <x-ui.action-buttom-modal
-    mode="feedback"
-    feedback-type="error"
-    :message="session('error')"
-  />
-
-  <div class="app">
-    <x-layout.sidebar
-      department="Purchase"
-      subtitle="Department Module"
-      icon="fa-cart-shopping"
-      user-name="P. Admin"
-      user-role="Purchase Admin"
-      :items="[
-        ['label' => 'Purchase Orders', 'route' => 'purchase-orders', 'icon' => 'fa-file-invoice'],
+  <x-layout.sidebar
+    department="Purchase"
+    subtitle="Department Module"
+    icon="fa-cart-shopping"
+    user-name="P. Admin"
+    user-role="Purchase Admin"
+    :items="[
         [
-          'label' => 'Requested Purchase',
-          'icon' => 'fa-clipboard-list',
-          'children' => [
-            ['label' => 'Maintenance Requests', 'route' => 'maintenance-requests', 'icon' => 'fa-screwdriver-wrench'],
-            ['label' => 'Inventory Restock', 'route' => 'inventory-restock', 'icon' => 'fa-boxes-stacked'],
-          ],
+            'label' => 'Dashboard',
+            'route' => 'dashboard-purchase',
+            'icon' => 'fa-table-cells-large'
         ],
-        ['label' => 'Scheduled Purchase', 'route' => 'scheduled-purchase', 'icon' => 'fa-calendar-check'],
-      ]"
-    />
+        [
+            'label' => 'Purchase Orders',
+            'route' => 'purchase-orders',
+            'icon' => 'fa-file-invoice'
+        ],
+        [
+            'label' => 'Requested Purchase',
+            'icon' => 'fa-clipboard-list',
+            'children' => [
+                [
+                    'label' => 'Maintenance Requests',
+                    'route' => 'maintenance-requests',
+                    'icon' => 'fa-screwdriver-wrench'
+                ],
+                [
+                    'label' => 'Inventory Restock',
+                    'route' => 'inventory-restock',
+                    'icon' => 'fa-boxes-stacked'
+                ],
+            ],
+        ],
+        [
+            'label' => 'Scheduled Purchase',
+            'route' => 'scheduled-purchase',
+            'icon' => 'fa-calendar-check'
+        ],
+    ]"
+/>
 
     <main class="main">
       <x-layout.topbar

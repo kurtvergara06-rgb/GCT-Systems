@@ -22,7 +22,7 @@
         ['label' => 'PMS Scheduling', 'route' => 'PMS-Scheduling', 'icon' => 'fa-calendar-check'],
         ['label' => 'Purchase Requests', 'route' => 'purchase-requests', 'icon' => 'fa-file-invoice'],
         ['label' => 'Fuel Reports', 'route' => 'fuel-reports', 'icon' => 'fa-gas-pump'],
-        ['label' => 'Settings', 'route' => 'settings', 'icon' => 'fa-gear'],
+    
       ]"
     />
 
@@ -214,7 +214,7 @@
 
                   <td>
                     <span class="attendance-badge {{ $statusClass }}">
-                      {{ $mechanic->status }}
+                      {{ $mechanic->status }} 
                     </span>
                   </td>
                 </tr>
