@@ -33,18 +33,16 @@ def main() -> int:
     if not csv_path.exists():
         print(f"Inventory feature CSV not found: {csv_path}")
         print("Run `python -m inventory.prepare_training_data` first.")
-        result = InventoryModelResult(
-            n_samples=0,
-            message="No prepared training data found.",
-            source=source,
-        )
-        save_inventory_model(result, paths)
-        save_state(result, paths)
         return 1
 
     df = pd.read_csv(csv_path)
     df["date"] = pd.to_datetime(df["date"], errors="coerce")
-    result = train_inventory_model(df, source=source)
+
+    # Client-demo rows are synthetic by policy. Save the trained artifact with
+    # a development/sample provenance marker so production can never accept it
+    # as genuine. Demo mode uses separate artifact filenames in config.py.
+    artifact_source = "sample" if source == "demo" else source
+    result = train_inventory_model(df, source=artifact_source)
 
     if result.trained:
         encoders = build_encoders(df)
@@ -61,38 +59,38 @@ def main() -> int:
         save_inventory_model(result, paths)
     save_state(result, paths)
 
-    source_label = (
-        "GENUINE GCT INVENTORY LEDGER"
-        if source == "genuine"
-        else "SAMPLE / DEVELOPMENT"
-    )
+    if source == "genuine":
+        source_label = "GENUINE GCT INVENTORY LEDGER"
+    elif source == "demo":
+        source_label = "FRONTEND DEMO / SYNTHETIC DATA (saved as development model)"
+    else:
+        source_label = "SAMPLE / DEVELOPMENT"
+
     print(f"\n=== Inventory Model #4 training results ({source_label}) ===")
-    print(f"Data source:      {source}")
-    print(f"Sample count:     {result.n_samples}")
+    print(f"Pipeline source:   {source}")
+    print(f"Artifact class:    {artifact_source}")
+    print(f"Sample count:      {result.n_samples}")
     if not result.trained:
-        print(f"NOT TRAINED:      {result.message}")
+        print(f"NOT TRAINED:       {result.message}")
         return 1
 
-    print(f"Train rows:       {result.n_train}")
-    print(f"Test rows:        {result.n_test}")
+    print(f"Train rows:        {result.n_train}")
+    print(f"Test rows:         {result.n_test}")
     print(
-        f"Train period:     {result.periods.get('train_start')} .. "
+        f"Train period:      {result.periods.get('train_start')} .. "
         f"{result.periods.get('train_end')}"
     )
     print(
-        f"Test period:      {result.periods.get('test_start')} .. "
+        f"Test period:       {result.periods.get('test_start')} .. "
         f"{result.periods.get('test_end')}"
     )
     print("Metrics (chronological held-out test):")
     print(f"  MAE  = {result.metrics['mae']:.3f} units/week")
     print(f"  RMSE = {result.metrics['rmse']:.3f} units/week")
     print(f"  R2   = {result.metrics['r2']:.4f}")
-    print("Top feature importances:")
-    for name, importance in sorted(
-        result.feature_importances.items(), key=lambda item: -item[1]
-    )[:8]:
-        print(f"  {name:<30} {importance:.4f}")
     print(f"\nArtifacts written to: {paths['dir']}")
+    if source == "demo":
+        print("DEMO / SYNTHETIC ONLY - this artifact is not production eligible.")
     return 0
 
 

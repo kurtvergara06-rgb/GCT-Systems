@@ -1,4 +1,12 @@
 {
+  "model_name": "scheduling_rf",
+  "model_version": "1.0.0",
+  "sklearn_version": "1.9.0",
+  "training_source": "genuine",
+  "trained_at": "2026-09-15T00:00:00+00:00",
+  "feature_schema_version": "1.0",
+  "bus_model_name": "scheduling_bus_rf",
+  "driver_model_name": "scheduling_driver_rf",
   "bus_model_ready": true,
   "driver_model_ready": true,
   "bus_sample_count": 367,

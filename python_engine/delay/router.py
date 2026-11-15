@@ -102,9 +102,9 @@ def delay_model_status() -> dict:
         "model_ready": effective_ready,
         "ready": effective_ready,
         "source": readiness.source,
-        "dataset_type": "GENUINE GCT RECORDS" if genuine else "SYNTHETIC / DEVELOPMENT",
+        "dataset_type": "GENUINE GCT RECORDS" if genuine else "SAMPLE / DEMONSTRATION (SYNTHETIC)",
         "model_source": policy.data_source,
-        "data_source": policy.data_source,
+        "data_source": readiness.data_source,
         "is_production_model": bool(genuine and effective_ready),
         "model_type": (
             "Production Model" if genuine and effective_ready
@@ -122,7 +122,7 @@ def delay_model_status() -> dict:
         "message": readiness.message if policy.allowed else policy.model_ready_message,
         "warning": (
             "" if genuine else
-            "Generated/synthetic Delay data is development-only and is blocked in production."
+            "This model is NOT trained on genuine GCT historical delay records. Generated/synthetic Delay data is development-only and is blocked in production."
         ),
         "disclaimer": disclaimers().get(
             readiness.source if readiness.source in {"sample", "genuine"} else "sample",

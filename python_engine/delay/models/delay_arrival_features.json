@@ -67,172 +67,172 @@
   "route_metadata": {
     "Ayala Center - IT Park": {
       "distance_km": 5.2,
-      "duration_minutes": 27.0,
-      "prior_delay_mean": 7.9,
-      "prior_delay_rate": 0.6667,
-      "n_obs": 78
+      "duration_minutes": 25.0,
+      "prior_delay_mean": 12.6,
+      "prior_delay_rate": 1.0,
+      "n_obs": 85
     },
     "BDO KTC Emall - Talisay Arcade": {
       "distance_km": 9.6,
-      "duration_minutes": 35.0,
-      "prior_delay_mean": 4.93,
-      "prior_delay_rate": 0.6667,
-      "n_obs": 70
+      "duration_minutes": 37.0,
+      "prior_delay_mean": 3.45,
+      "prior_delay_rate": 0.0,
+      "n_obs": 77
     },
     "Fuente Osmena - IT Park": {
       "distance_km": 6.8,
-      "duration_minutes": 29.0,
-      "prior_delay_mean": 5.43,
-      "prior_delay_rate": 0.2857,
-      "n_obs": 76
+      "duration_minutes": 32.0,
+      "prior_delay_mean": 4.9,
+      "prior_delay_rate": 0.3333,
+      "n_obs": 80
     },
     "Mambaling - SM City Cebu": {
       "distance_km": 11.3,
-      "duration_minutes": 45.0,
-      "prior_delay_mean": 6.2,
-      "prior_delay_rate": 0.6667,
-      "n_obs": 79
+      "duration_minutes": 44.0,
+      "prior_delay_mean": 5.2,
+      "prior_delay_rate": 1.0,
+      "n_obs": 81
     },
     "SM City Cebu - Mactan Airport": {
       "distance_km": 12.5,
-      "duration_minutes": 45.0,
-      "prior_delay_mean": 5.48,
-      "prior_delay_rate": 0.6,
-      "n_obs": 94
+      "duration_minutes": 40.0,
+      "prior_delay_mean": 11.7,
+      "prior_delay_rate": 1.0,
+      "n_obs": 79
     },
     "Talisay - SM Seaside": {
       "distance_km": 18.4,
-      "duration_minutes": 55.0,
-      "prior_delay_mean": 3.25,
+      "duration_minutes": 57.0,
+      "prior_delay_mean": 1.4,
       "prior_delay_rate": 0.0,
-      "n_obs": 103
+      "n_obs": 98
     }
   },
   "driver_metadata": {
     "DRV-201": {
-      "prior_delay_mean": 5.8629999999999995,
-      "n_obs": 30
+      "prior_delay_mean": 7.820833333333333,
+      "n_obs": 24
     },
     "DRV-202": {
-      "prior_delay_mean": 9.236428571428572,
-      "n_obs": 28
+      "prior_delay_mean": 9.323125,
+      "n_obs": 32
     },
     "DRV-203": {
-      "prior_delay_mean": 5.938823529411764,
-      "n_obs": 34
+      "prior_delay_mean": 4.804615384615384,
+      "n_obs": 39
     },
     "DRV-204": {
-      "prior_delay_mean": 7.523888888888889,
-      "n_obs": 36
+      "prior_delay_mean": 7.002272727272726,
+      "n_obs": 22
     },
     "DRV-205": {
-      "prior_delay_mean": 6.22030303030303,
-      "n_obs": 33
+      "prior_delay_mean": 5.3559375000000005,
+      "n_obs": 32
     },
     "DRV-206": {
-      "prior_delay_mean": 7.64027027027027,
-      "n_obs": 37
+      "prior_delay_mean": 7.295172413793102,
+      "n_obs": 29
     },
     "DRV-207": {
-      "prior_delay_mean": 6.392580645161292,
-      "n_obs": 31
+      "prior_delay_mean": 5.9121428571428565,
+      "n_obs": 28
     },
     "DRV-208": {
-      "prior_delay_mean": 7.503,
-      "n_obs": 30
-    },
-    "DRV-209": {
-      "prior_delay_mean": 5.464705882352941,
-      "n_obs": 34
-    },
-    "DRV-210": {
-      "prior_delay_mean": 5.957916666666667,
-      "n_obs": 24
-    },
-    "DRV-211": {
-      "prior_delay_mean": 6.888333333333333,
-      "n_obs": 24
-    },
-    "DRV-212": {
-      "prior_delay_mean": 6.8878048780487795,
-      "n_obs": 41
-    },
-    "DRV-213": {
-      "prior_delay_mean": 5.570333333333334,
-      "n_obs": 30
-    },
-    "DRV-214": {
-      "prior_delay_mean": 8.022903225806452,
+      "prior_delay_mean": 9.943548387096774,
       "n_obs": 31
     },
+    "DRV-209": {
+      "prior_delay_mean": 6.328717948717949,
+      "n_obs": 39
+    },
+    "DRV-210": {
+      "prior_delay_mean": 8.831071428571429,
+      "n_obs": 28
+    },
+    "DRV-211": {
+      "prior_delay_mean": 4.832058823529412,
+      "n_obs": 34
+    },
+    "DRV-212": {
+      "prior_delay_mean": 9.485833333333334,
+      "n_obs": 36
+    },
+    "DRV-213": {
+      "prior_delay_mean": 6.521714285714286,
+      "n_obs": 35
+    },
+    "DRV-214": {
+      "prior_delay_mean": 8.407499999999999,
+      "n_obs": 36
+    },
     "DRV-215": {
-      "prior_delay_mean": 6.622000000000001,
-      "n_obs": 25
+      "prior_delay_mean": 5.611923076923077,
+      "n_obs": 26
     },
     "DRV-216": {
-      "prior_delay_mean": 5.5075,
-      "n_obs": 32
+      "prior_delay_mean": 4.566896551724138,
+      "n_obs": 29
     }
   },
   "bus_metadata": {
     "GCT-101": {
-      "n_obs": 35,
-      "mean_route_prior_delay": 7.096285714285714
+      "n_obs": 30,
+      "mean_route_prior_delay": 6.770333333333334
     },
     "GCT-102": {
-      "n_obs": 45,
-      "mean_route_prior_delay": 6.677555555555556
+      "n_obs": 43,
+      "mean_route_prior_delay": 6.904186046511629
     },
     "GCT-103": {
-      "n_obs": 44,
-      "mean_route_prior_delay": 6.569772727272726
+      "n_obs": 34,
+      "mean_route_prior_delay": 7.389411764705883
     },
     "GCT-104": {
-      "n_obs": 49,
-      "mean_route_prior_delay": 6.528163265306122
+      "n_obs": 48,
+      "mean_route_prior_delay": 6.897291666666667
     },
     "GCT-105": {
-      "n_obs": 32,
-      "mean_route_prior_delay": 6.605
+      "n_obs": 37,
+      "mean_route_prior_delay": 7.292432432432432
     },
     "GCT-106": {
-      "n_obs": 46,
-      "mean_route_prior_delay": 6.808043478260869
+      "n_obs": 38,
+      "mean_route_prior_delay": 7.2494736842105265
     },
     "GCT-107": {
-      "n_obs": 40,
-      "mean_route_prior_delay": 6.783250000000001
+      "n_obs": 38,
+      "mean_route_prior_delay": 7.093421052631579
     },
     "GCT-108": {
-      "n_obs": 45,
-      "mean_route_prior_delay": 6.698888888888889
+      "n_obs": 41,
+      "mean_route_prior_delay": 7.081219512195123
     },
     "GCT-109": {
-      "n_obs": 40,
-      "mean_route_prior_delay": 6.614749999999999
+      "n_obs": 38,
+      "mean_route_prior_delay": 7.030789473684212
     },
     "GCT-110": {
-      "n_obs": 30,
-      "mean_route_prior_delay": 7.013666666666668
+      "n_obs": 50,
+      "mean_route_prior_delay": 7.0914
     },
     "GCT-111": {
-      "n_obs": 41,
-      "mean_route_prior_delay": 6.831463414634146
+      "n_obs": 53,
+      "mean_route_prior_delay": 6.98377358490566
     },
     "GCT-112": {
-      "n_obs": 53,
-      "mean_route_prior_delay": 6.667735849056603
+      "n_obs": 50,
+      "mean_route_prior_delay": 7.3142000000000005
     }
   },
   "target_range": {
-    "min": 1.8,
-    "max": 23.8,
-    "mean": 7.297215189873418
+    "min": 0.7,
+    "max": 29.1,
+    "mean": 7.724688279301746
   },
   "periods": {
-    "train_start": "2026-03-24",
-    "train_end": "2026-07-30",
-    "test_start": "2026-07-31",
+    "train_start": "2026-03-19",
+    "train_end": "2026-07-29",
+    "test_start": "2026-07-30",
     "test_end": "2026-08-31"
   },
   "risk_thresholds": [
@@ -252,5 +252,5 @@
       "label": "High Delay"
     }
   ],
-  "disclaimer": "SAMPLE / DEMONSTRATION DATA - NOT ACTUAL GCT OPERATIONAL DATA. This Model #3 implementation is a demonstration prototype trained on a separate sample dataset because the current GCT database does not contain sufficient genuine historical DDR/schedule records for delay-model training. The sample dataset is not presented as actual GCT operational data, and the model is NOT trained on genuine GCT historical delay records."
+  "disclaimer": "SYNTHETIC / DEVELOPMENT DATA - NOT ACTUAL GCT OPERATIONAL DATA. This Model #3 implementation is a development/demo prototype trained on generated data. It must never be presented as genuine GCT history and is blocked from serving predictions in production."
 }

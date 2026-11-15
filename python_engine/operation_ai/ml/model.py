@@ -32,6 +32,7 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.model_selection import train_test_split
 
+from ml_version_guard import get_model_metadata
 from .config import model_paths
 from .training_data import (
     BUS_FEATURE_COLUMNS,
@@ -219,7 +220,16 @@ def save_model_result(result: ModelResult, paths: Dict[str, Path]) -> None:
 
 def save_state(bus_result: ModelResult, driver_result: ModelResult, paths: Dict[str, Path]) -> None:
     """Write a JSON state file describing the current ML readiness."""
+    metadata = get_model_metadata(
+        model_name="scheduling_rf",
+        training_source="genuine",
+        model_version="1.0.0",
+        feature_schema_version="1.0",
+    )
     state = {
+        **metadata,
+        "bus_model_name": "scheduling_bus_rf",
+        "driver_model_name": "scheduling_driver_rf",
         "bus_model_ready": bus_result.trained,
         "driver_model_ready": driver_result.trained,
         "bus_sample_count": bus_result.n_samples,

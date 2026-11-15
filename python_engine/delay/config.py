@@ -1,17 +1,17 @@
 """Configuration for the Model #3 Delay Prediction subsystem.
 
-Two explicit, isolated data sources:
+Three explicit, isolated data sources:
 
-    * ``sample``  - DEVELOPMENT / DEMONSTRATION mode. Trains on a generated
-                  sample dataset under ``training_data/delay/`` and never reads
-                  the Laravel MySQL database.
-    * ``genuine`` - PRODUCTION mode. Trains exclusively on the genuine DDR <->
-                  schedule matched history exported by Laravel. If genuine data
-                  is missing or fails readiness, training/prediction must fail
-                  clearly and never silently fall back to sample data.
+    * ``sample``  - deterministic generated development dataset under
+                    ``training_data/delay``.
+    * ``demo``    - client-demo records that are visible in the Laravel
+                    frontend and exported with ``php artisan delay:export-demo``.
+                    These records are synthetic and never production data.
+    * ``genuine`` - production mode trained exclusively on genuine matched
+                    DDR/schedule history. No synthetic fallback is allowed.
 
 Production runtime defaults to ``genuine``. Local/development runtime defaults
-to ``sample`` so generated data remains available for demonstrations and tests.
+to ``sample`` unless ``DELAY_DATA_SOURCE=demo`` is selected explicitly.
 """
 
 import os
@@ -22,9 +22,15 @@ from ml_runtime_policy import is_production_runtime
 
 SAMPLE_DISCLAIMER = (
     "SYNTHETIC / DEVELOPMENT DATA - NOT ACTUAL GCT OPERATIONAL DATA. "
-    "This Model #3 implementation is a development/demo prototype trained on "
-    "generated data. It must never be presented as genuine GCT history and is "
-    "blocked from serving predictions in production."
+    "This Model #3 implementation is a development prototype trained on "
+    "generated data and is blocked from serving predictions in production."
+)
+
+DEMO_DISCLAIMER = (
+    "DEMO / SYNTHETIC CLIENT-PRESENTATION DATA - NOT ACTUAL GCT OPERATIONAL "
+    "HISTORY. These records are visible in the normal GCT frontend so the "
+    "client can demonstrate the complete workflow, but the model remains a "
+    "development/demo model and is blocked from production serving."
 )
 
 GENUINE_DISCLAIMER = (
@@ -37,27 +43,33 @@ GENUINE_DISCLAIMER = (
 def disclaimers() -> Dict[str, str]:
     return {
         "sample": SAMPLE_DISCLAIMER,
+        "demo": DEMO_DISCLAIMER,
         "genuine": GENUINE_DISCLAIMER,
     }
 
 
 def data_source() -> str:
-    """Return the requested training-data source.
-
-    Development defaults to ``sample``. Production defaults to ``genuine``.
-    Even if ``sample`` is explicitly selected in production, the shared runtime
-    policy blocks it from serving predictions.
-    """
+    """Return ``sample``, ``demo`` or ``genuine`` for the active pipeline."""
     default = "genuine" if is_production_runtime() else "sample"
-    return os.environ.get("DELAY_DATA_SOURCE", default).strip().lower()
+    value = os.environ.get("DELAY_DATA_SOURCE", default).strip().lower()
+    if value not in {"sample", "demo", "genuine"}:
+        raise ValueError(
+            "DELAY_DATA_SOURCE must be one of: sample, demo, genuine "
+            f"(received {value!r})."
+        )
+    return value
 
 
 def is_genuine() -> bool:
     return data_source() == "genuine"
 
 
+def is_demo() -> bool:
+    return data_source() == "demo"
+
+
 def demo_trip_prefixes() -> tuple[str, ...]:
-    """Trip-code prefixes treated as DEMO schedules and excluded from genuine training."""
+    """Trip-code prefixes excluded from genuine training and selected for demo."""
     raw = os.environ.get("DELAY_DEMO_TRIP_PREFIXES", "TRIP-")
     return tuple(p.strip() for p in raw.split(",") if p.strip())
 
@@ -86,21 +98,22 @@ def rf_convention() -> Dict[str, object]:
 
 
 def model_paths() -> Dict[str, Path]:
-    """Canonical paths for the saved delay model artifacts."""
+    """Artifact paths; demo artifacts are isolated from the canonical model."""
     models_dir = Path(__file__).resolve().parent / "models"
+    prefix = "demo_" if data_source() == "demo" else ""
     return {
         "dir": models_dir,
-        "model": models_dir / "delay_arrival_rf.pkl",
-        "report": models_dir / "delay_arrival_report.txt",
-        "features": models_dir / "delay_arrival_features.json",
-        "state": models_dir / "delay_arrival_state.json",
+        "model": models_dir / f"{prefix}delay_arrival_rf.pkl",
+        "report": models_dir / f"{prefix}delay_arrival_report.txt",
+        "features": models_dir / f"{prefix}delay_arrival_features.json",
+        "state": models_dir / f"{prefix}delay_arrival_state.json",
     }
 
 
 def training_data_paths() -> Dict[str, Path]:
-    """Canonical paths for the delay training datasets."""
+    """Canonical paths for the active delay training dataset."""
     data_dir = Path(__file__).resolve().parents[2] / "training_data" / "delay"
-    prefix = "genuine" if is_genuine() else "sample"
+    prefix = data_source()
     return {
         "dir": data_dir,
         "csv": data_dir / f"{prefix}_delay_training.csv",
@@ -109,10 +122,15 @@ def training_data_paths() -> Dict[str, Path]:
 
 
 def genuine_csv_path() -> Path:
-    """Path of the Laravel-exported genuine matched DDR dataset."""
-    return training_data_paths()["dir"] / "genuine_delay_training.csv"
+    data_dir = Path(__file__).resolve().parents[2] / "training_data" / "delay"
+    return data_dir / "genuine_delay_training.csv"
+
+
+def demo_csv_path() -> Path:
+    data_dir = Path(__file__).resolve().parents[2] / "training_data" / "delay"
+    return data_dir / "demo_delay_training.csv"
 
 
 def forecast_test_fraction() -> float:
-    """Fraction of the chronologically latest dates reserved for the test set."""
+    """Fraction of chronologically latest dates reserved for the test set."""
     return float(os.environ.get("DELAY_TEST_FRACTION", "0.2"))
