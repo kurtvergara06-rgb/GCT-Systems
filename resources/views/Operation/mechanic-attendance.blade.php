@@ -326,6 +326,11 @@
         method="POST"
         enctype="multipart/form-data"
         class="job-form"
+        data-confirm-form
+        data-confirm-title="Import Mechanic Attendance?"
+        data-confirm-message="Are you sure you want to import these mechanic attendance records?"
+        data-confirm-button="Yes, Import Data"
+        data-confirm-type="warning"
       >
         @csrf
 
@@ -386,6 +391,11 @@
         action="{{ route('mechanic-attendance.store') }}"
         method="POST"
         class="job-form wide-form"
+        data-confirm-form
+        data-confirm-title="Save Mechanic Attendance?"
+        data-confirm-message="Are you sure you want to save this mechanic attendance record?"
+        data-confirm-button="Yes, Save Record"
+        data-confirm-type="create"
       >
         @csrf
 
@@ -514,6 +524,11 @@
         id="editMechanicAttendanceForm"
         method="POST"
         class="job-form wide-form"
+        data-confirm-form
+        data-confirm-title="Update Mechanic Attendance?"
+        data-confirm-message="Are you sure you want to update this mechanic attendance record?"
+        data-confirm-button="Yes, Update Record"
+        data-confirm-type="update"
       >
         @csrf
         @method('PUT')

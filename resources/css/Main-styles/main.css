@@ -1176,3 +1176,99 @@ textarea[readonly] {
         width: 100%;
     }
 }
+
+/* =========================================================
+   GLOBAL ACTION CONFIRMATION MODAL
+========================================================= */
+
+.global-confirmation-overlay {
+  z-index: 99999;
+}
+
+.global-confirmation-box {
+  width: min(430px, calc(100% - 32px));
+  padding: 30px;
+  text-align: center;
+}
+
+.global-confirmation-box .primary-btn:disabled,
+.global-confirmation-box .danger-btn:disabled {
+  opacity: 0.72;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.global-confirmation-box h2 {
+  margin: 16px 0 8px;
+  color: var(--text, #0f172a);
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.global-confirmation-box p {
+  margin: 0 auto 24px;
+  max-width: 340px;
+  color: var(--muted, #64748b);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.global-confirmation-icon {
+  width: 62px;
+  height: 62px;
+  margin: 0 auto;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.global-confirmation-icon.warning {
+  color: #b77900;
+  background: #fff3cd;
+}
+
+.global-confirmation-icon.danger {
+  color: #dc2626;
+  background: #fee2e2;
+}
+
+.global-confirmation-icon.success {
+  color: #16a34a;
+  background: #dcfce7;
+}
+
+.global-confirmation-icon.create {
+  color: #0b40b5;
+  background: #dbeafe;
+}
+
+.global-confirmation-icon.update {
+  color: #6d28d9;
+  background: #ede9fe;
+}
+
+.global-confirmation-box .delete-modal-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.global-confirmation-box .delete-modal-actions button {
+  min-width: 130px;
+}
+
+@media (max-width: 520px) {
+  .global-confirmation-box {
+    padding: 24px 20px;
+  }
+
+  .global-confirmation-box .delete-modal-actions {
+    flex-direction: column-reverse;
+  }
+
+  .global-confirmation-box .delete-modal-actions button {
+    width: 100%;
+  }
+}

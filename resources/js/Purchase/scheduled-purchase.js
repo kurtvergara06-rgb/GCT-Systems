@@ -213,6 +213,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
     form.reset();
     form.action = form.dataset.storeUrl;
+    form.dataset.confirmTitle = 'Create Scheduled Purchase?';
+    form.dataset.confirmMessage =
+      'Are you sure you want to create this scheduled purchase?';
+    form.dataset.confirmButton = 'Yes, Create Schedule';
+    form.dataset.confirmType = 'create';
 
     enableFormFields();
 
@@ -365,6 +370,11 @@ document.addEventListener('DOMContentLoaded', function () {
       disableFormFields();
     } else {
       form.action = button.dataset.updateUrl;
+      form.dataset.confirmTitle = 'Update Scheduled Purchase?';
+      form.dataset.confirmMessage =
+        'Are you sure you want to update this scheduled purchase?';
+      form.dataset.confirmButton = 'Yes, Update Schedule';
+      form.dataset.confirmType = 'update';
 
       if (method) {
         method.value = 'PUT';

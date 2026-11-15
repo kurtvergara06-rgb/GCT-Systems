@@ -205,7 +205,7 @@
 
           <div class="filter-group po-filter-field">
             <label for="poStatusFilter"></label>
-            <select id="poStatusFilter" name="status" onchange="this.form.submit()">
+            <select id="poStatusFilter" name="status" onchange="this.form.requestSubmit()">
               <option value="All States" {{ request('status', 'All States') === 'All States' ? 'selected' : '' }}>
                 All Statuses
               </option>
@@ -311,6 +311,11 @@
                       action="{{ route('purchase-orders.update-status', $purchaseOrder->id) }}"
                       method="POST"
                       class="status-update-form"
+                      data-confirm-form
+                      data-confirm-title="Change PO Status?"
+                      data-confirm-message="Are you sure you want to change this purchase order status?"
+                      data-confirm-button="Yes, Change Status"
+                      data-confirm-type="status"
                     >
                       @csrf
                       @method('PATCH')
@@ -318,7 +323,12 @@
                       <select
                         name="status"
                         class="po-status-select {{ $statusClass }} {{ $isFinalStatus ? 'is-final' : '' }}"
-                        onchange="this.form.submit()"
+                        onchange="
+                          this.form.dataset.confirmMessage =
+                            'Change PO {{ $purchaseOrder->po_no }} status to ' + this.value + '?';
+
+                          this.form.requestSubmit();
+                        "
                         title="{{ $isFinalStatus ? 'Final status — this purchase order can no longer be changed.' : 'Change purchase order status' }}"
                         {{ $isFinalStatus ? 'disabled' : '' }}
                       >
@@ -429,6 +439,11 @@
         method="POST"
         class="po-form"
         data-store-url="{{ route('purchase-orders.store') }}"
+        data-confirm-form
+        data-confirm-title="Create Purchase Order?"
+        data-confirm-message="Are you sure you want to create this Purchase Order?"
+        data-confirm-button="Yes, Create PO"
+        data-confirm-type="create"
       >
         @csrf
 

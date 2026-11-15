@@ -108,6 +108,11 @@ document.addEventListener('DOMContentLoaded', function () {
   function resetUserForm() {
     if (userForm) {
       userForm.action = '/admin/users';
+      userForm.dataset.confirmTitle = 'Create User?';
+      userForm.dataset.confirmMessage =
+        'Are you sure you want to create this user account?';
+      userForm.dataset.confirmButton = 'Yes, Create User';
+      userForm.dataset.confirmType = 'create';
     }
 
     if (userFormMethod) {
@@ -155,6 +160,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (userForm) {
       userForm.action = editButton.dataset.updateUrl;
+      userForm.dataset.confirmTitle = 'Update User?';
+      userForm.dataset.confirmMessage =
+        `Are you sure you want to update ${editButton.dataset.name}?`;
+      userForm.dataset.confirmButton = 'Yes, Update User';
+      userForm.dataset.confirmType = 'update';
     }
 
     if (userFormMethod) {
@@ -212,6 +222,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (resetPasswordForm) {
       resetPasswordForm.action = resetButton.dataset.resetUrl;
+      resetPasswordForm.dataset.confirmMessage =
+        `Are you sure you want to reset the password for ${resetButton.dataset.name}?`;
     }
 
     if (resetPasswordSubtitle) {

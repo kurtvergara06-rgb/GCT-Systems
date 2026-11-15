@@ -32,6 +32,8 @@
     @if($icon)
       <i class="fa-solid {{ $icon }}"></i>
     @endif
+
+    {{ $slot }}
   </button>
 
 @elseif($mode === 'feedback')
@@ -44,7 +46,7 @@
   @endphp
 
   @if($message)
-    <div class="modal-overlay show">
+    <div class="modal-overlay show active feedback-modal-overlay">
       <div class="modal-card success-modal-box">
         <div class="{{ $iconWrapper }}">
           <i class="fa-solid {{ $iconClass }}"></i>
@@ -53,7 +55,11 @@
         <h2>{{ $modalTitle }}</h2>
         <p>{{ $message }}</p>
 
-        <button type="button" class="primary-btn close-feedback-modal">
+        <button
+          type="button"
+          class="primary-btn close-feedback-modal"
+          data-close-feedback
+        >
           {{ $buttonText }}
         </button>
       </div>
@@ -73,16 +79,74 @@
       <p>
         {{ $deleteMessage }}
         <strong id="{{ $nameId }}">this record</strong>?
-        This action can’t be undone.
+        This action cannot be undone.
       </p>
 
       <div class="delete-modal-actions">
-        <button type="button" id="{{ $cancelId }}" class="secondary-btn cancel-btn">
+        <button
+          type="button"
+          id="{{ $cancelId }}"
+          class="secondary-btn cancel-btn"
+        >
           Cancel
         </button>
 
-        <button type="button" id="{{ $confirmId }}" class="danger-btn">
+        <button
+          type="button"
+          id="{{ $confirmId }}"
+          class="danger-btn"
+        >
           Yes, Delete
+        </button>
+      </div>
+    </div>
+  </div>
+
+@elseif($mode === 'global-confirmation')
+
+  <div
+    id="globalConfirmationModal"
+    class="modal-overlay global-confirmation-overlay"
+    data-global-confirmation-modal
+    aria-hidden="true"
+    tabindex="-1"
+  >
+    <div
+      class="modal-card global-confirmation-box"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="globalConfirmationTitle"
+    >
+      <div
+        id="globalConfirmationIcon"
+        class="global-confirmation-icon warning"
+      >
+        <i class="fa-solid fa-triangle-exclamation"></i>
+      </div>
+
+      <h2 id="globalConfirmationTitle">
+        Confirm Action
+      </h2>
+
+      <p id="globalConfirmationMessage">
+        Are you sure you want to continue?
+      </p>
+
+      <div class="delete-modal-actions">
+        <button
+          type="button"
+          id="cancelGlobalConfirmation"
+          class="secondary-btn cancel-btn"
+        >
+          Cancel
+        </button>
+
+        <button
+          type="button"
+          id="confirmGlobalAction"
+          class="primary-btn"
+        >
+          Confirm
         </button>
       </div>
     </div>
