@@ -1,6 +1,39 @@
 document.addEventListener('DOMContentLoaded', function () {
+  const body = document.body;
+  const sidebar = document.getElementById('appSidebar');
+  const collapseBtn = document.getElementById('sidebarCollapseBtn');
+
+  /*
+   * Sidebar collapse / expand
+   * Sidebar will only open/close when clicking the arrow button.
+   */
+  function setSidebarCollapsed(isCollapsed) {
+  if (!sidebar) return;
+
+  document.documentElement.classList.toggle('sidebar-start-collapsed', isCollapsed);
+
+    sidebar.classList.toggle('collapsed', isCollapsed);
+    body.classList.toggle('sidebar-collapsed', isCollapsed);
+
+    localStorage.setItem('gctSidebarCollapsed', isCollapsed ? '1' : '0');
+  }
+
+  const savedState = localStorage.getItem('gctSidebarCollapsed');
+
+  if (savedState === '1') {
+    setSidebarCollapsed(true);
+  }
+
+  if (collapseBtn) {
+    collapseBtn.addEventListener('click', function () {
+      const isCollapsed = sidebar.classList.contains('collapsed');
+      setSidebarCollapsed(!isCollapsed);
+    });
+  }
+
   /*
    * Sidebar menu dropdown
+   * This will NOT auto-open the sidebar when collapsed.
    */
   document.addEventListener('click', function (event) {
     const button = event.target.closest('.dropdown-toggle');

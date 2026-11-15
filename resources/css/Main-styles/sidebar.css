@@ -789,3 +789,299 @@
     margin-top: 12px;
   }
 }
+
+/* =========================================================
+   COLLAPSIBLE SIDEBAR - ARROW STYLE
+========================================================= */
+
+.sidebar,
+.main,
+.brand-text,
+.menu-item span,
+.submenu-item span,
+.user-box-text,
+.dropdown-arrow,
+.profile-chevron,
+.sidebar-profile-menu {
+  transition: all 0.25s ease;
+}
+
+/* Small arrow button outside sidebar */
+.sidebar-collapse-btn {
+  position: absolute;
+  top: 28px;
+  right: -14px;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 50%;
+  background: #ffffff;
+  color: #073763;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.25);
+  z-index: 1200;
+  transition: 0.2s ease;
+}
+
+.sidebar-collapse-btn:hover {
+  background: #ffc400;
+  color: #061f3d;
+}
+
+.sidebar-collapse-btn i {
+  transition: transform 0.25s ease;
+}
+
+/* Collapsed sidebar size */
+.sidebar.collapsed {
+  width: 86px;
+  padding-left: 14px;
+  padding-right: 14px;
+}
+
+/* Adjust main content */
+body.sidebar-collapsed .main {
+  margin-left: 86px;
+  width: calc(100% - 86px);
+}
+
+/* Rotate arrow when collapsed */
+.sidebar.collapsed .sidebar-collapse-btn i {
+  transform: rotate(180deg);
+}
+
+/* Brand collapsed */
+.sidebar.collapsed .brand {
+  justify-content: center;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.sidebar.collapsed .brand-icon {
+  margin: 0 auto;
+}
+
+.sidebar.collapsed .brand-text {
+  opacity: 0;
+  width: 0;
+  max-width: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* Menu collapsed */
+.sidebar.collapsed .menu-item {
+  justify-content: center;
+  padding-left: 0;
+  padding-right: 0;
+  gap: 0;
+}
+
+.sidebar.collapsed .menu-item span,
+.sidebar.collapsed .submenu-item span,
+.sidebar.collapsed .dropdown-arrow {
+  opacity: 0;
+  width: 0;
+  max-width: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.sidebar.collapsed .menu-item i {
+  width: auto;
+  min-width: auto;
+  font-size: 16px;
+}
+
+.sidebar.collapsed .submenu {
+  display: none !important;
+}
+
+.sidebar.collapsed .menu-dropdown.open > .menu-item,
+.sidebar.collapsed .menu-dropdown.active > .menu-item {
+  background: #ffc400;
+  color: #061f3d;
+}
+
+/* Profile collapsed */
+.sidebar.collapsed .sidebar-profile-wrap {
+  padding-top: 14px;
+}
+
+.sidebar.collapsed .user-box {
+  justify-content: center;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.sidebar.collapsed .user-box-text,
+.sidebar.collapsed .profile-chevron {
+  opacity: 0;
+  width: 0;
+  max-width: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.sidebar.collapsed .sidebar-profile-menu {
+  left: 74px;
+  right: auto;
+  bottom: 0;
+  width: 240px;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .sidebar-collapse-btn {
+    display: none;
+  }
+
+  .sidebar.collapsed {
+    width: 100%;
+  }
+
+  body.sidebar-collapsed .main {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .sidebar.collapsed .brand-text,
+  .sidebar.collapsed .menu-item span,
+  .sidebar.collapsed .submenu-item span,
+  .sidebar.collapsed .dropdown-arrow,
+  .sidebar.collapsed .user-box-text,
+  .sidebar.collapsed .profile-chevron {
+    opacity: 1;
+    width: auto;
+    max-width: none;
+    overflow: visible;
+    pointer-events: auto;
+  }
+
+  .sidebar.collapsed .menu-item {
+    justify-content: flex-start;
+    padding: 0 14px;
+    gap: 12px;
+  }
+}
+
+/* Better collapsed sidebar arrow + icon spacing */
+.sidebar-collapse-btn {
+  top: 45px;
+  right: -12px;
+  width: 26px;
+  height: 26px;
+}
+
+.sidebar.collapsed {
+  width: 88px;
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+body.sidebar-collapsed .main {
+  margin-left: 88px;
+  width: calc(100% - 88px);
+}
+
+.sidebar.collapsed .menu-item {
+  width: 54px;
+  height: 54px;
+  min-height: 54px;
+  margin-left: auto;
+  margin-right: auto;
+  border-radius: 14px;
+}
+
+.sidebar.collapsed .brand {
+  padding-top: 22px;
+}
+
+.sidebar.collapsed .brand-icon {
+  width: 52px;
+  height: 52px;
+  flex: 0 0 52px;
+}
+
+.sidebar.collapsed .sidebar-profile-wrap {
+  display: flex;
+  justify-content: center;
+}
+
+.sidebar.collapsed .user-box {
+  width: 54px;
+  height: 54px;
+  border-radius: 16px;
+}
+
+html.sidebar-start-collapsed .sidebar {
+  width: 88px;
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+html.sidebar-start-collapsed .main {
+  margin-left: 88px;
+  width: calc(100% - 88px);
+}
+
+html.sidebar-start-collapsed .brand-text,
+html.sidebar-start-collapsed .menu-item span,
+html.sidebar-start-collapsed .submenu-item span,
+html.sidebar-start-collapsed .dropdown-arrow,
+html.sidebar-start-collapsed .user-box-text,
+html.sidebar-start-collapsed .profile-chevron {
+  opacity: 0;
+  width: 0;
+  max-width: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+html.sidebar-start-collapsed .menu-item {
+  justify-content: center;
+  padding-left: 0;
+  padding-right: 0;
+  gap: 0;
+}
+
+/* Fix profile popup position when sidebar is collapsed */
+.sidebar.collapsed .sidebar-profile-menu {
+  left: 72px;
+  right: auto;
+  bottom: 0;
+  width: 260px;
+  transform: translateY(-8px);
+}
+
+/* Center avatar/profile button when collapsed */
+.sidebar.collapsed .sidebar-profile-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.sidebar.collapsed .user-box {
+  width: 54px;
+  height: 54px;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.sidebar.collapsed .avatar {
+  margin: 0;
+}
+
+/* Make popup look centered and clean */
+.sidebar-profile-menu {
+  min-width: 260px;
+}
+
+.profile-menu-header {
+  align-items: center;
+}
