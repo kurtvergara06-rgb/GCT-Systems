@@ -159,6 +159,12 @@
                 'icon' => 'fa-file-lines',
                 'active_routes' => ['daily-driver-reports', 'daily-driver-reports.*'],
             ],
+            [
+                'label' => 'Incidents',
+                'route' => 'incidents',
+                'icon' => 'fa-triangle-exclamation',
+                'active_routes' => ['incidents', 'incidents.*'],
+            ],
         ];
     }
 

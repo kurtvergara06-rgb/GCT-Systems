@@ -35,7 +35,7 @@ import joblib  # noqa: E402
 import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
 
-from delay.config import DISCLAIMER, model_paths, training_data_paths  # noqa: E402
+from delay.config import disclaimers, model_paths, training_data_paths  # noqa: E402
 from delay.model import (  # noqa: E402
     RISK_THRESHOLDS,
     save_delay_model,
@@ -43,6 +43,7 @@ from delay.model import (  # noqa: E402
     train_delay_model,
 )
 from delay.training_data import (  # noqa: E402
+    DELAY_INCIDENT_FEATURES,
     DLY_FEATURE_COLUMNS,
     DLY_TARGET,
     DLY_TRACE_COLUMNS,
@@ -90,7 +91,10 @@ print("\n=== Model #3 delay model tests (SAMPLE / DEMONSTRATION DATA) ===")
 if not csv_path.exists():
     print("Sample CSV not found - generating deterministic SAMPLE data...")
     generate_sample_csv()
-if not features_path.exists():
+if not features_path.exists() or not all(
+    c in pd.read_csv(features_path).columns for c in DLY_FEATURE_COLUMNS
+):
+    print("Feature matrix missing or stale - rebuilding from SAMPLE data...")
     raw = load_sample_csv(csv_path)
     wide = build_dataset(raw)
     write_features_csv(wide, features_path)
@@ -356,10 +360,11 @@ for _, row in probe_rows.iterrows():
             exp = float(d_meta.get("prior_delay_mean", 0.0))
         elif name == "driver_trip_seq":
             exp = 1.0
+        elif name in DELAY_INCIDENT_FEATURES:
+            # SAMPLE data has no incident records -> the feature is always 0.
+            exp = 0.0
         else:
             exp = float(row[name])
-        if abs(enc - exp) > 1e-6:
-            diff_rows.append((name, enc, exp))
         if abs(enc - exp) > 1e-6:
             diff_rows.append((name, enc, exp))
     if diff_rows:

@@ -97,6 +97,8 @@ class DailyDriverReportController extends Controller
             ->orderBy('bus_no')
             ->get(['id', 'bus_no', 'plate_no', 'status']);
 
+        [$activeBuses, $tripTicketSuggestions] = $this->encodeLookups();
+
         return view(
             'Operation.Daily_Driver_Reports.index',
             compact(
@@ -106,7 +108,9 @@ class DailyDriverReportController extends Controller
                 'passengersToday',
                 'passengerCount',
                 'drivers',
-                'buses'
+                'buses',
+                'activeBuses',
+                'tripTicketSuggestions'
             )
         );
     }
@@ -117,6 +121,20 @@ class DailyDriverReportController extends Controller
             ->orderBy('driver_name')
             ->get(['driver_id', 'driver_name', 'shift', 'employment_status']);
 
+        [$activeBuses, $tripTicketSuggestions] = $this->encodeLookups();
+
+        return view(
+            'Operation.Daily_Driver_Reports.create',
+            compact(
+                'drivers',
+                'activeBuses',
+                'tripTicketSuggestions'
+            )
+        );
+    }
+
+    private function encodeLookups(): array
+    {
         $activeBuses = Bus::query()
             ->where('status', 'Active')
             ->orderBy('bus_no')
@@ -143,14 +161,7 @@ class DailyDriverReportController extends Controller
             ->unique()
             ->values();
 
-        return view(
-            'Operation.Daily_Driver_Reports.create',
-            compact(
-                'drivers',
-                'activeBuses',
-                'tripTicketSuggestions'
-            )
-        );
+        return [$activeBuses, $tripTicketSuggestions];
     }
 
     public function store(Request $request): RedirectResponse
@@ -274,7 +285,7 @@ class DailyDriverReportController extends Controller
         });
 
         return redirect()
-            ->route('daily-driver-reports.show', ['dailyDriverReport' => $ddrNo])
+            ->route('daily-driver-reports')
             ->with(
                 'success',
                 "Daily driver report {$ddrNo} has been encoded successfully."

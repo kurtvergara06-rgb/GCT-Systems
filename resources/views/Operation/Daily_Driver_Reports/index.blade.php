@@ -18,6 +18,15 @@
                 subtitle="Encoded actual trip execution from physical daily driver reports"
             />
 
+            @if (session('success'))
+                <div class="ddr-alert ddr-alert-success" role="alert">
+                    <i class="fa-solid fa-circle-check"></i>
+                    <div>
+                        <strong>{{ session('success') }}</strong>
+                    </div>
+                </div>
+            @endif
+
             <!-- Summary KPI Cards -->
             <section class="ddr-summary-grid">
                 <article class="ddr-summary-card">
@@ -73,10 +82,10 @@
                         <p>Actual shuttle trip execution encoded from physical daily driver reports.</p>
                     </div>
 
-                    <a href="{{ route('daily-driver-reports.create') }}" class="ddr-new-btn">
+                    <button type="button" id="openEncodeReportModal" class="ddr-new-btn">
                         <i class="fa-solid fa-plus"></i>
                         Encode New Report
-                    </a>
+                    </button>
                 </div>
 
                 <!-- Filter & Search Toolbar -->
@@ -134,7 +143,7 @@
                 </form>
 
                 <!-- DDR Table Container with Contained Scroll -->
-                <div class="ddr-table-wrap">
+                <div class="table-wrap ddr-table-wrap">
                     <table class="ddr-table">
                         <thead>
                             <tr>
@@ -235,7 +244,7 @@
                                     </td>
                                 </tr>
                             @empty
-                                <tr>
+                                <tr class="empty-row">
                                     <td colspan="9" style="text-align: center; padding: 48px 20px;">
                                         <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: var(--ddr-muted);">
                                             <i class="fa-solid fa-file-lines" style="font-size: 32px; color: #cbd5e1;"></i>
@@ -251,37 +260,234 @@
                     </table>
                 </div>
 
-                <!-- Pagination Footer -->
-                <div class="ddr-table-footer">
-                    <span>
-                        Showing {{ $reports->firstItem() ?? 0 }} to {{ $reports->lastItem() ?? 0 }} of {{ $reports->total() }} daily driver reports
-                    </span>
-
-                    <div class="ddr-pagination">
-                        @if ($reports->onFirstPage())
-                            <button type="button" class="disabled" disabled>
-                                <i class="fa-solid fa-chevron-left"></i> Previous
-                            </button>
-                        @else
-                            <a href="{{ $reports->previousPageUrl() }}">
-                                <i class="fa-solid fa-chevron-left"></i> Previous
-                            </a>
-                        @endif
-
-                        <span>Page {{ $reports->currentPage() }} of {{ $reports->lastPage() }}</span>
-
-                        @if ($reports->hasMorePages())
-                            <a href="{{ $reports->nextPageUrl() }}">
-                                Next <i class="fa-solid fa-chevron-right"></i>
-                            </a>
-                        @else
-                            <button type="button" class="disabled" disabled>
-                                Next <i class="fa-solid fa-chevron-right"></i>
-                            </button>
-                        @endif
-                    </div>
-                </div>
+                <x-ui.table-footer :items="$reports" />
             </section>
         </main>
     </div>
+
+    <x-ui.form-modal
+        id="ddrEncodeModal"
+        title="Encode New Report"
+        description="Values are transcribed from the physical DDR; nothing is generated or estimated."
+        icon="fa-file-lines"
+        size="wide"
+        form-id="ddrEncodeForm"
+        :action="route('daily-driver-reports.store', [], false)"
+        method="POST"
+        submit-text="Save Report"
+        submit-text-id="ddrEncodeSubmitText"
+        submit-icon="fa-floppy-disk"
+        cancel-text="Cancel"
+        cancel-id="cancelEncodeReport"
+        close-id="closeEncodeReport"
+    >
+        @if ($errors->any() || session('error'))
+            <div class="ddr-alert ddr-alert-error ddr-modal-alert" role="alert">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                <div>
+                    <strong>{{ session('error') ?? 'Unable to save the report.' }}</strong>
+                    <span>Please review the highlighted fields below.</span>
+                </div>
+            </div>
+        @endif
+
+        <div class="ddr-form-grid ddr-modal-form-grid">
+            <x-ui.form-field
+                label="Report Date"
+                name="report_date"
+                type="date"
+                value="{{ old('report_date') }}"
+                required
+                icon="fa-calendar-day"
+            />
+
+            <x-ui.form-field
+                label="Trip Ticket No."
+                name="trip_ticket"
+                value="{{ old('trip_ticket') }}"
+                placeholder="Ticket number printed on the DDR"
+                required
+                icon="fa-ticket"
+                list="ddrTripTicketList"
+            />
+            <datalist id="ddrTripTicketList">
+                @foreach($tripTicketSuggestions as $ticket)
+                    <option value="{{ $ticket }}"></option>
+                @endforeach
+            </datalist>
+
+            <div class="ddr-form-group">
+                <label for="driverCombo">
+                    Driver
+                    <span class="ui-required">*</span>
+                </label>
+
+                <div class="ddr-combo" data-combo data-field="driver">
+                    <input
+                        type="text"
+                        class="ddr-combo-input"
+                        data-combo-input
+                        placeholder="Search driver by name or ID..."
+                        autocomplete="off"
+                    >
+                    <input
+                        type="hidden"
+                        name="driver_id"
+                        value="{{ old('driver_id') }}"
+                        data-combo-value
+                    >
+                    <button type="button" class="ddr-combo-clear" data-combo-clear tabindex="-1" title="Clear selection">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+
+                    <ul class="ddr-combo-list" data-combo-list>
+                        @foreach($drivers as $driver)
+                            <li
+                                data-combo-option
+                                data-value="{{ $driver->driver_id }}"
+                                data-search="{{ strtolower($driver->driver_name . ' ' . $driver->driver_id . ' ' . $driver->shift . ' ' . $driver->employment_status) }}"
+                            >
+                                <strong>{{ $driver->driver_name }}</strong>
+                                <small>{{ $driver->driver_id }} &bull; {{ $driver->shift }} &bull; {{ $driver->employment_status }}</small>
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
+
+                @error('driver_id')
+                    <span class="ui-field-error">{{ $message }}</span>
+                @enderror
+            </div>
+
+            <div class="ddr-form-group">
+                <label for="busCombo">
+                    Bus
+                    <span class="ui-required">*</span>
+                </label>
+
+                <div class="ddr-combo" data-combo data-field="bus">
+                    <input
+                        type="text"
+                        class="ddr-combo-input"
+                        data-combo-input
+                        placeholder="Search bus number or plate..."
+                        autocomplete="off"
+                    >
+                    <input
+                        type="hidden"
+                        name="bus_id"
+                        value="{{ old('bus_id') }}"
+                        data-combo-value
+                    >
+                    <button type="button" class="ddr-combo-clear" data-combo-clear tabindex="-1" title="Clear selection">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+
+                    <ul class="ddr-combo-list" data-combo-list>
+                        @foreach($activeBuses as $bus)
+                            <li
+                                data-combo-option
+                                data-value="{{ $bus->id }}"
+                                data-search="{{ strtolower($bus->bus_no . ' ' . $bus->plate_no . ' ' . $bus->bus_model . ' ' . $bus->status) }}"
+                            >
+                                <strong>{{ $bus->bus_no }}</strong>
+                                <small>{{ $bus->plate_no }} &bull; {{ $bus->bus_model }} &bull; {{ $bus->status }}</small>
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
+
+                @error('bus_id')
+                    <span class="ui-field-error">{{ $message }}</span>
+                @enderror
+            </div>
+
+            <x-ui.form-field
+                label="From Location"
+                name="from_location"
+                value="{{ old('from_location') }}"
+                placeholder="Origin terminal / stop"
+                required
+                icon="fa-circle-play"
+            />
+
+            <x-ui.form-field
+                label="To Location"
+                name="to_location"
+                value="{{ old('to_location') }}"
+                placeholder="Destination terminal / stop"
+                required
+                icon="fa-circle-flag"
+                unit=""
+            />
+
+            <x-ui.form-field
+                label="Departure Time"
+                name="departure_time"
+                type="time"
+                value="{{ old('departure_time') }}"
+                required
+                icon="fa-clock"
+            />
+
+            <x-ui.form-field
+                label="Arrival Time"
+                name="arrival_time"
+                type="time"
+                value="{{ old('arrival_time') }}"
+                required
+                icon="fa-flag-checkered"
+            />
+
+            <x-ui.form-field
+                label="Passengers"
+                name="passengers"
+                type="number"
+                value="{{ old('passengers') }}"
+                min="0"
+                step="1"
+                placeholder="0"
+                required
+                icon="fa-users"
+            />
+        </div>
+
+        <div class="ddr-form-note">
+            <i class="fa-solid fa-circle-info"></i>
+            <div>
+                <strong>Overnight trips are supported.</strong>
+                <span>Arrival times earlier than the departure time mean the trip ran past midnight. Entered times are saved exactly as encoded on the DDR and are never modified.</span>
+            </div>
+        </div>
+
+        <details class="ddr-sched-panel ddr-modal-sched-panel">
+            <summary class="ddr-sched-panel-head">
+                <i class="fa-solid fa-calendar-check"></i>
+                <div>
+                    <h3>Scheduled Trip Match</h3>
+                    <p>Reference panel &mdash; for comparison only, never stored.</p>
+                </div>
+            </summary>
+
+            <div class="ddr-sched-panel-body">
+                <div id="sfcStatus" class="ddr-sched-status idle">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <span>Select a date, driver, and bus to check matching scheduled trips.</span>
+                </div>
+
+                <div id="sfcList" class="ddr-sched-list"></div>
+            </div>
+
+            <div class="ddr-sched-panel-foot">
+                <i class="fa-solid fa-circle-info"></i>
+                <span>A match only exists when a real trip is scheduled for this driver and bus on the selected date. Otherwise the comparison shows &ldquo;Schedule match unavailable&rdquo;.</span>
+            </div>
+        </details>
+    </x-ui.form-modal>
+
+    @push('scripts')
+        <script>
+            window.ddrScheduleLookupUrl = "{{ route('daily-driver-reports.schedule-lookup', [], false) }}";
+        </script>
+    @endpush
 </x-layout.app>

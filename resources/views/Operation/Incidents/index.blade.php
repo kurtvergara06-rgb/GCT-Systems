@@ -91,10 +91,10 @@
                         <p>Operational incidents reported by drivers during active trips.</p>
                     </div>
 
-                    <a href="{{ route('incidents.create') }}" class="inc-new-btn">
+                    <button type="button" id="openIncidentReportModal" class="inc-new-btn">
                         <i class="fa-solid fa-plus"></i>
                         Report Incident
-                    </a>
+                    </button>
                 </div>
 
                 <!-- Filter & Search Toolbar -->
@@ -141,7 +141,7 @@
                 </form>
 
                 <!-- Incidents Table -->
-                <div class="inc-table-wrap">
+                <div class="table-wrap inc-table-wrap">
                     <table class="inc-table">
                         <thead>
                             <tr>
@@ -243,7 +243,7 @@
                                     </td>
                                 </tr>
                             @empty
-                                <tr>
+                                <tr class="empty-row">
                                     <td colspan="9" style="text-align: center; padding: 48px 20px;">
                                         <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: var(--inc-muted);">
                                             <i class="fa-solid fa-triangle-exclamation" style="font-size: 32px; color: #cbd5e1;"></i>
@@ -259,37 +259,52 @@
                     </table>
                 </div>
 
-                <!-- Pagination Footer -->
-                <div class="inc-table-footer">
-                    <span>
-                        Showing {{ $incidents->firstItem() ?? 0 }} to {{ $incidents->lastItem() ?? 0 }} of {{ $incidents->total() }} incidents
-                    </span>
-
-                    <div class="inc-pagination">
-                        @if ($incidents->onFirstPage())
-                            <button type="button" class="disabled" disabled>
-                                <i class="fa-solid fa-chevron-left"></i> Previous
-                            </button>
-                        @else
-                            <a href="{{ $incidents->previousPageUrl() }}">
-                                <i class="fa-solid fa-chevron-left"></i> Previous
-                            </a>
-                        @endif
-
-                        <span>Page {{ $incidents->currentPage() }} of {{ $incidents->lastPage() }}</span>
-
-                        @if ($incidents->hasMorePages())
-                            <a href="{{ $incidents->nextPageUrl() }}">
-                                Next <i class="fa-solid fa-chevron-right"></i>
-                            </a>
-                        @else
-                            <button type="button" class="disabled" disabled>
-                                Next <i class="fa-solid fa-chevron-right"></i>
-                            </button>
-                        @endif
-                    </div>
-                </div>
+                <x-ui.table-footer :items="$incidents" />
             </section>
         </main>
     </div>
+
+    <x-ui.form-modal
+        id="incidentReportModal"
+        title="Report Incident"
+        description="Report an operational incident encountered during an active trip."
+        icon="fa-triangle-exclamation"
+        size="wide"
+        form-id="incidentReportForm"
+        :action="route('incidents.store', [], false)"
+        method="POST"
+        submit-text="Save Incident"
+        submit-id="incidentReportSubmit"
+        submit-icon="fa-floppy-disk"
+        cancel-text="Cancel"
+        cancel-id="cancelIncidentReport"
+        close-id="closeIncidentReport"
+    >
+        @if ($errors->any() || session('error'))
+            <div class="inc-alert inc-alert-error inc-modal-alert" role="alert">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                <div>
+                    <strong>{{ session('error') ?? 'Unable to save the incident report.' }}</strong>
+                    <span>Please review the highlighted fields below.</span>
+                </div>
+            </div>
+        @endif
+
+        <input type="hidden" name="incident_modal" value="1">
+        <input type="hidden" name="search" value="{{ request('search') }}">
+        <input type="hidden" name="status" value="{{ request('status') }}">
+        <input type="hidden" name="type" value="{{ request('type') }}">
+
+        <div class="inc-form-grid inc-modal-form-grid">
+            @include('Operation.Incidents._form-fields', ['formPrefix' => 'modal-'])
+        </div>
+
+        <div class="inc-form-note inc-modal-note">
+            <i class="fa-solid fa-circle-info"></i>
+            <div>
+                <strong>Incidents are timestamped automatically.</strong>
+                <span>The reported time is captured when you submit. A unique incident number is generated and Operations is notified immediately.</span>
+            </div>
+        </div>
+    </x-ui.form-modal>
 </x-layout.app>

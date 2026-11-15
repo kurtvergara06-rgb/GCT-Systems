@@ -44,6 +44,29 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Delay-prediction (Model #3)
+    |--------------------------------------------------------------------------
+    |
+    | The delay model is served by the same FastAPI engine as ETA (NLP_API_URL).
+    | demo_trip_prefixes: trip codes treated as DEMO schedules and excluded from
+    | the genuine training export (seeded demo rows use "TRIP-").
+    |
+    */
+
+    'delay' => [
+        'demo_trip_prefixes' => explode(',', (string) env(
+            'DELAY_DEMO_TRIP_PREFIXES',
+            'TRIP-'
+        )),
+        'min_records' => (int) env('DELAY_MIN_RECORDS', 50),
+        'min_routes' => (int) env('DELAY_MIN_ROUTES', 3),
+        'min_buses' => (int) env('DELAY_MIN_BUSES', 5),
+        'min_drivers' => (int) env('DELAY_MIN_DRIVERS', 5),
+        'min_weeks' => (int) env('DELAY_MIN_WEEKS', 4),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Geoapify
     |--------------------------------------------------------------------------
     */

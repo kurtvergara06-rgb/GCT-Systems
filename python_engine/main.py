@@ -224,33 +224,15 @@ app.include_router(
     tags=["Predictive Analytics"],
 )
 
-# Register the Delay-prediction router (Model #3, SAMPLE / DEMONSTRATION
-# prototype trained on a separate generated sample dataset - NOT genuine GCT
-# historical delay records).
+# Register the Delay-prediction router (Model #3). Source-aware: SAMPLE /
+# DEMONSTRATION prototype by default; with DELAY_DATA_SOURCE=genuine it serves
+# the genuine-operation model after the data-sufficiency gate has passed. It
+# NEVER falls back to the sample when genuine mode is requested.
 app.include_router(
     delay_router,
     prefix="/delay",
     tags=["Predictive Analytics"],
 )
-
-# The /ingestion review router (NLP.ingestion_router) is NOT present in this
-# checkout. It has no consumers (Laravel never calls /ingestion), so the import
-# is isolated: when absent the endpoint is simply not registered and the rest
-# of the engine still starts.
-try:
-    from NLP.ingestion_router import router as ingestion_router  # noqa: E402
-
-    app.include_router(
-        ingestion_router,
-        prefix="/ingestion",
-        tags=["Ingestion Review"],
-    )
-except ImportError as error:  # noqa: BLE001
-    logger.warning(
-        "NLP ingestion-review router is unavailable; /ingestion disabled: %s",
-        error,
-    )
-
 
 UPLOAD_FOLDER = Path("uploads")
 UPLOAD_FOLDER.mkdir(
