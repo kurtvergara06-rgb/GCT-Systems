@@ -1,77 +1,87 @@
-document.addEventListener('DOMContentLoaded', () => {
-  const addModal = document.getElementById('addModal');
-  const editModal = document.getElementById('editModal');
-  const viewModal = document.getElementById('viewModal');
-  const importModal = document.getElementById('importModal');
-
-  const openAddModal = document.getElementById('openAddModal');
-  const openImportModal = document.getElementById('openImportModal');
-
-  const closeButtons = document.querySelectorAll('.closeModal');
-
+document.addEventListener('DOMContentLoaded', function () {
   function openModal(modal) {
-    if (modal) {
-      modal.classList.add('active');
+    if (!modal) return;
+
+    modal.classList.add('show');
+    modal.classList.add('active');
+    modal.style.display = 'flex';
+  }
+
+  function closeModal(modal) {
+    if (!modal) return;
+
+    modal.classList.remove('show');
+    modal.classList.remove('active');
+    modal.style.display = 'none';
+  }
+
+  function setField(id, value, fallback = '—') {
+    const element = document.getElementById(id);
+
+    if (!element) return;
+
+    const finalValue =
+      value === undefined || value === null || value === '' || value === 'null'
+        ? fallback
+        : value;
+
+    if (
+      element.tagName === 'INPUT' ||
+      element.tagName === 'TEXTAREA' ||
+      element.tagName === 'SELECT'
+    ) {
+      element.value = finalValue;
+    } else {
+      element.textContent = finalValue;
     }
   }
 
-  function closeAllModals() {
-    document.querySelectorAll('.modal-overlay').forEach((modal) => {
-      modal.classList.remove('active');
+  const restockViewModal = document.getElementById('restockViewModal');
+  const closeRestockViewModal = document.getElementById('closeRestockViewModal');
+  const closeRestockViewModalBottom = document.getElementById('closeRestockViewModalBottom');
+
+  document.addEventListener('click', function (event) {
+    const button = event.target.closest('.open-restock-view-modal');
+
+    if (!button) return;
+
+    event.preventDefault();
+
+    setField('viewRestockPrNo', button.dataset.prNo);
+    setField('viewRestockSource', button.dataset.sourceType);
+    setField('viewRestockStatus', button.dataset.status);
+    setField('viewRestockCreated', button.dataset.created);
+    setField('viewRestockItem', button.dataset.item);
+    setField('viewRestockQuantity', button.dataset.quantity);
+    setField('viewRestockUnit', button.dataset.unit);
+    setField('viewRestockRemarks', button.dataset.remarks, 'No remarks');
+
+    openModal(restockViewModal);
+  });
+
+  if (closeRestockViewModal) {
+    closeRestockViewModal.addEventListener('click', function () {
+      closeModal(restockViewModal);
     });
   }
 
-  if (openAddModal) {
-    openAddModal.addEventListener('click', () => openModal(addModal));
+  if (closeRestockViewModalBottom) {
+    closeRestockViewModalBottom.addEventListener('click', function () {
+      closeModal(restockViewModal);
+    });
   }
 
-  if (openImportModal) {
-    openImportModal.addEventListener('click', () => openModal(importModal));
-  }
-
-  closeButtons.forEach((button) => {
-    button.addEventListener('click', closeAllModals);
-  });
-
-  document.querySelectorAll('.modal-overlay').forEach((modal) => {
-    modal.addEventListener('click', (event) => {
-      if (event.target === modal) {
-        closeAllModals();
+  if (restockViewModal) {
+    restockViewModal.addEventListener('click', function (event) {
+      if (event.target === restockViewModal) {
+        closeModal(restockViewModal);
       }
     });
-  });
+  }
 
-  document.querySelectorAll('.openEditModal').forEach((button) => {
-    button.addEventListener('click', () => {
-      document.getElementById('editForm').action = button.dataset.action;
-
-      document.getElementById('edit_item_code').value = button.dataset.code;
-      document.getElementById('edit_item_name').value = button.dataset.name;
-      document.getElementById('edit_category').value = button.dataset.category;
-      document.getElementById('edit_quantity').value = button.dataset.quantity;
-      document.getElementById('edit_unit').value = button.dataset.unit;
-      document.getElementById('edit_reorder').value = button.dataset.reorder;
-      document.getElementById('edit_supplier').value = button.dataset.supplier || '';
-      document.getElementById('edit_location').value = button.dataset.location || '';
-
-      openModal(editModal);
-    });
-  });
-
-  document.querySelectorAll('.openViewModal').forEach((button) => {
-    button.addEventListener('click', () => {
-      document.getElementById('view_code').textContent = button.dataset.code;
-      document.getElementById('view_name').textContent = button.dataset.name;
-      document.getElementById('view_category').textContent = button.dataset.category;
-      document.getElementById('view_quantity').textContent = button.dataset.quantity;
-      document.getElementById('view_unit').textContent = button.dataset.unit;
-      document.getElementById('view_reorder').textContent = button.dataset.reorder;
-      document.getElementById('view_status').textContent = button.dataset.status;
-      document.getElementById('view_supplier').textContent = button.dataset.supplier;
-      document.getElementById('view_location').textContent = button.dataset.location;
-      document.getElementById('view_updated').textContent = button.dataset.updated;
-
-      openModal(viewModal);
-    });
+  document.addEventListener('keydown', function (event) {
+    if (event.key === 'Escape') {
+      closeModal(restockViewModal);
+    }
   });
 });

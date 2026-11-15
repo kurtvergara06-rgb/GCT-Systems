@@ -24,10 +24,18 @@ class PurchaseRequestController extends Controller
 
     public function index(Request $request)
     {
-        $query = PurchaseRequest::query();
+        /*
+        |--------------------------------------------------------------------------
+        | IMPORTANT:
+        | Hide purchase-side copied PRs like PR-2026-0001-P.
+        | Maintenance page should only show the original PR.
+        |--------------------------------------------------------------------------
+        */
+        $query = PurchaseRequest::query()
+            ->where('pr_no', 'not like', '%-P');
 
         if ($request->filled('search')) {
-            $search = $request->search;
+            $search = trim($request->search);
 
             $query->where(function ($q) use ($search) {
                 $q->where('pr_no', 'like', "%{$search}%")
@@ -48,11 +56,30 @@ class PurchaseRequestController extends Controller
             ->paginate(8)
             ->withQueryString();
 
-        $submitted = PurchaseRequest::where('status', 'Submitted')->count();
-        $approved = PurchaseRequest::where('status', 'Approved')->count();
-        $rejected = PurchaseRequest::where('status', 'Rejected')->count();
-        $forPurchase = PurchaseRequest::where('status', 'For Purchase')->count();
-        $issued = PurchaseRequest::where('status', 'Issued')->count();
+        /*
+        |--------------------------------------------------------------------------
+        | Counts should also hide PR-xxxx-P copies.
+        |--------------------------------------------------------------------------
+        */
+        $submitted = PurchaseRequest::where('pr_no', 'not like', '%-P')
+            ->where('status', 'Submitted')
+            ->count();
+
+        $approved = PurchaseRequest::where('pr_no', 'not like', '%-P')
+            ->where('status', 'Approved')
+            ->count();
+
+        $rejected = PurchaseRequest::where('pr_no', 'not like', '%-P')
+            ->where('status', 'Rejected')
+            ->count();
+
+        $forPurchase = PurchaseRequest::where('pr_no', 'not like', '%-P')
+            ->where('status', 'For Purchase')
+            ->count();
+
+        $issued = PurchaseRequest::where('pr_no', 'not like', '%-P')
+            ->where('status', 'Issued')
+            ->count();
 
         $nextPrNo = $this->generatePrNo();
 
@@ -104,7 +131,14 @@ class PurchaseRequestController extends Controller
             'remarks' => 'nullable|string|max:1000',
         ]);
 
+        /*
+        |--------------------------------------------------------------------------
+        | Check only original PRs.
+        | Do not block because of purchase-side copy like PR-2026-0001-P.
+        |--------------------------------------------------------------------------
+        */
         $hasActiveRequest = PurchaseRequest::where('job_order_no', $validated['job_order_no'])
+            ->where('pr_no', 'not like', '%-P')
             ->whereNotIn('status', ['Rejected', 'Issued'])
             ->exists();
 
@@ -134,6 +168,7 @@ class PurchaseRequestController extends Controller
             'item' => $formattedParts,
             'quantity' => $totalQuantity,
             'status' => 'Submitted',
+            'source_type' => 'Maintenance Request',
             'remarks' => $validated['remarks'] ?? null,
             'date_requested' => now(),
         ]);
@@ -194,7 +229,9 @@ class PurchaseRequestController extends Controller
             $oldJobOrder = JobOrder::where('job_order_no', $oldJobOrderNo)->first();
 
             if ($oldJobOrder) {
-                $hasOtherRequest = PurchaseRequest::where('job_order_no', $oldJobOrderNo)->exists();
+                $hasOtherRequest = PurchaseRequest::where('job_order_no', $oldJobOrderNo)
+                    ->where('pr_no', 'not like', '%-P')
+                    ->exists();
 
                 if (! $hasOtherRequest) {
                     $oldJobOrder->update([
@@ -303,7 +340,9 @@ class PurchaseRequestController extends Controller
         $jobOrder = JobOrder::where('job_order_no', $jobOrderNo)->first();
 
         if ($jobOrder && ! empty($jobOrder->part_needed)) {
-            $hasOtherRequest = PurchaseRequest::where('job_order_no', $jobOrderNo)->exists();
+            $hasOtherRequest = PurchaseRequest::where('job_order_no', $jobOrderNo)
+                ->where('pr_no', 'not like', '%-P')
+                ->exists();
 
             if (! $hasOtherRequest) {
                 $jobOrder->update([
@@ -334,7 +373,13 @@ class PurchaseRequestController extends Controller
     {
         $year = now()->format('Y');
 
+        /*
+        |--------------------------------------------------------------------------
+        | Ignore PR copies ending in -P when generating the next Maintenance PR.
+        |--------------------------------------------------------------------------
+        */
         $lastPr = PurchaseRequest::where('pr_no', 'like', "PR-{$year}-%")
+            ->where('pr_no', 'not like', '%-P')
             ->orderByDesc('id')
             ->first();
 

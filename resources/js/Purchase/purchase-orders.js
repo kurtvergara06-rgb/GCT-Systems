@@ -236,9 +236,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const first = items[0] || {};
 
-    setValue('main_pr_no', first.pr_no || '');
-    setValue('main_bus_no', first.bus_no || '');
-    setValue('main_employee', first.employee || '');
+    setValue('main_pr_no', first.pr_no || getValue('main_pr_no'));
+    setValue('main_bus_no', first.bus_no || getValue('main_bus_no'));
+    setValue('main_employee', first.employee || getValue('main_employee'));
 
     items.forEach(function (item, index) {
       createItemRow(item, index);
@@ -262,7 +262,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const title = document.getElementById('poModalTitle');
 
     if (poForm) {
-      poForm.action = poForm.dataset.storeUrl || window.location.href;
+      poForm.action = poForm.dataset.storeUrl || poForm.action;
       poForm.reset();
     }
 
@@ -274,15 +274,53 @@ document.addEventListener('DOMContentLoaded', function () {
       title.textContent = 'New Purchase Order';
     }
 
-    setValue('po_status', 'Draft');
+    setValue('purchase_request_id', '');
+    setValue('po_status', 'Ordered');
     setValue('delivery_fee', 0);
     setValue('discount', 0);
     setValue('vat', 0);
     setValue('gross_amount_display', money(0));
     setValue('net_amount_display', money(0));
+    setValue('main_pr_no', '');
+    setValue('main_bus_no', '');
+    setValue('main_employee', '');
 
     renderItems([]);
     setReadonlyMode(false);
+  }
+
+  function fillPoFormFromPrefill(prefill) {
+    const poForm = document.getElementById('poForm');
+    const method = document.getElementById('poFormMethod');
+    const title = document.getElementById('poModalTitle');
+
+    if (!prefill) return;
+
+    if (poForm) {
+      poForm.action = poForm.dataset.storeUrl || poForm.action;
+    }
+
+    if (method) {
+      method.value = 'POST';
+    }
+
+    if (title) {
+      title.textContent = 'New Purchase Order';
+    }
+
+    setValue('purchase_request_id', prefill.id || '');
+    setValue('main_pr_no', prefill.pr_no || '');
+    setValue('main_bus_no', prefill.bus_no || '');
+    setValue('main_employee', prefill.employee || '');
+    setValue('purpose', prefill.purpose || '');
+    setValue('po_status', 'Ordered');
+    setValue('delivery_fee', 0);
+    setValue('discount', 0);
+    setValue('vat', 0);
+
+    renderItems(prefill.items || []);
+    setReadonlyMode(false);
+    calculateTotals();
   }
 
   function fillPoForm(button, mode) {
@@ -290,7 +328,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const method = document.getElementById('poFormMethod');
     const title = document.getElementById('poModalTitle');
 
-    const status = button.dataset.status || 'Draft';
+    const status = button.dataset.status || 'Ordered';
     const isViewOnly = mode === 'view' || status.toLowerCase() !== 'draft';
 
     if (poForm) {
@@ -324,16 +362,6 @@ document.addEventListener('DOMContentLoaded', function () {
     calculateTotals();
   }
 
-  document.querySelectorAll('.dropdown-toggle').forEach(function (button) {
-    button.addEventListener('click', function () {
-      const dropdown = button.closest('.menu-dropdown');
-
-      if (dropdown) {
-        dropdown.classList.toggle('open');
-      }
-    });
-  });
-
   const poModal = document.getElementById('poModal');
   const poForm = document.getElementById('poForm');
   const openPoModal = document.getElementById('openPoModal');
@@ -343,7 +371,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const addPoItemBtn = document.getElementById('addPoItemBtn');
 
   if (poForm) {
-    poForm.dataset.storeUrl = poForm.action;
+    poForm.dataset.storeUrl = poForm.dataset.storeUrl || poForm.action;
   }
 
   if (openPoModal) {
@@ -505,4 +533,11 @@ document.addEventListener('DOMContentLoaded', function () {
       closeModal(deletePoModal);
     }
   });
+
+  if (window.purchaseOrderShouldOpen && window.purchaseOrderPrefill) {
+    fillPoFormFromPrefill(window.purchaseOrderPrefill);
+    openModal(poModal);
+  } else {
+    renderItems([]);
+  }
 });

@@ -14,7 +14,7 @@ class MechanicAttendanceController extends Controller
         $query = MechanicAttendance::query();
 
         if ($request->filled('search')) {
-            $search = $request->search;
+            $search = trim($request->search);
 
             $query->where(function ($q) use ($search) {
                 $q->where('mechanic_id', 'like', "%{$search}%")

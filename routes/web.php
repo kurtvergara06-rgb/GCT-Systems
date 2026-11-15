@@ -5,9 +5,11 @@ use App\Http\Controllers\Maintenance\PurchaseRequestController;
 use App\Http\Controllers\Warehouse\InventoryController;
 use App\Http\Controllers\Warehouse\WarehousePartRequestController;
 use App\Http\Controllers\Purchase\PurchaseOrderController;
-use App\Http\Controllers\Purchase\RequestedPurchaseController;
+use App\Http\Controllers\Purchase\MaintenanceRequestController;
+use App\Http\Controllers\Purchase\InventoryRestockController;
 use App\Http\Controllers\Operation\MechanicAttendanceController;
 use Illuminate\Support\Facades\Route;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -65,6 +67,8 @@ Route::controller(JobOrderController::class)
 /*
 |--------------------------------------------------------------------------
 | Maintenance Department - Purchase Requests
+|--------------------------------------------------------------------------
+| This is the Maintenance-side PR page.
 |--------------------------------------------------------------------------
 */
 
@@ -135,16 +139,41 @@ Route::controller(PurchaseOrderController::class)
 
 /*
 |--------------------------------------------------------------------------
-| Purchase Department - Requested Purchases
+| Purchase Department - Maintenance Requests
+|--------------------------------------------------------------------------
+| This is the child page under Requested Purchase.
+| Old name was requested-purchase.
 |--------------------------------------------------------------------------
 */
 
-Route::controller(RequestedPurchaseController::class)
-    ->prefix('requested-purchase')
+Route::controller(MaintenanceRequestController::class)
+    ->prefix('maintenance-requests')
     ->group(function () {
-        Route::get('/', 'index')->name('requested-purchase');
-        Route::post('/{purchaseRequest}/create-po', 'createPo')->name('requested-purchase.create-po');
+        Route::get('/', 'index')->name('maintenance-requests');
+        Route::post('/{maintenanceRequest}/create-po', 'createPo')->name('maintenance-requests.create-po');
     });
+
+
+/*
+|--------------------------------------------------------------------------
+| Purchase Department - Inventory Restock
+|--------------------------------------------------------------------------
+| This is the child page under Requested Purchase.
+|--------------------------------------------------------------------------
+*/
+
+Route::controller(InventoryRestockController::class)
+    ->prefix('inventory-restock')
+    ->group(function () {
+        Route::get('/', 'index')->name('inventory-restock');
+    });
+
+
+/*
+|--------------------------------------------------------------------------
+| Purchase Department - Scheduled Purchase
+|--------------------------------------------------------------------------
+*/
 
 Route::view('/scheduled-purchase', 'Purchase.scheduled-purchase')
     ->name('scheduled-purchase');
