@@ -6,6 +6,25 @@ document.addEventListener('DOMContentLoaded', () => {
   const loginForm = document.getElementById('loginForm');
   const loginButton = document.getElementById('loginBtn');
   const accountStatusModal = document.querySelector('[data-account-status-modal]');
+  const cooldown = document.querySelector('[data-login-cooldown]');
+  const cooldownLabel = document.querySelector('[data-login-cooldown-label]');
+  if (cooldown && cooldownLabel) {
+    let remaining = Number(cooldown.dataset.loginCooldown) || 0;
+    const renderCooldown = () => {
+      cooldownLabel.textContent = String(Math.max(0, remaining));
+      if (loginButton) loginButton.disabled = remaining > 0;
+      if (remaining <= 0) {
+        cooldown.remove();
+        window.clearInterval(timer);
+      }
+    };
+    const timer = window.setInterval(() => {
+      remaining -= 1;
+      renderCooldown();
+    }, 1000);
+    renderCooldown();
+  }
+
   const accountStatusClose = document.querySelector('[data-account-status-close]');
 
   const closeAccountStatusModal = () => {

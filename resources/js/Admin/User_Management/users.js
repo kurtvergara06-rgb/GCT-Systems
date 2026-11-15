@@ -1,4 +1,29 @@
 window.GCTPartialNavigation.registerInitializer('admin-users', '.users-main', function () {
+  const reviewModal = document.getElementById('applicationReviewModal');
+  const reviewForm = document.getElementById('applicationReviewForm');
+  document.querySelectorAll('[data-review-application]').forEach((button) => {
+    button.addEventListener('click', () => {
+      if (!reviewModal || !reviewForm) return;
+      reviewForm.action = button.dataset.reviewUrl;
+      reviewForm.reset();
+      const setReviewText = (id, value) => {
+        const node = document.getElementById(id);
+        if (node) node.textContent = value || '—';
+      };
+      setReviewText('applicationReviewName', button.dataset.name);
+      setReviewText('applicationReviewEmail', button.dataset.email);
+      setReviewText('applicationReviewApplied', button.dataset.applied);
+      const verified = button.dataset.verified === '1';
+      setReviewText('applicationReviewVerified', verified ? 'Email verified' : 'Email not yet verified — approval unavailable');
+      const approve = document.getElementById('applicationReviewApprove');
+      if (approve) approve.disabled = !verified;
+      reviewModal.classList.add('show');
+    });
+  });
+  reviewModal?.querySelectorAll('[data-close-application-review]').forEach((button) => {
+    button.addEventListener('click', () => reviewModal.classList.remove('show'));
+  });
+
   const userFormModal = document.getElementById('userFormModal');
   const viewUserModal = document.getElementById('viewUserModal');
   const resetPasswordModal = document.getElementById('resetPasswordModal');

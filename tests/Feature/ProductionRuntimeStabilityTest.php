@@ -88,14 +88,16 @@ class ProductionRuntimeStabilityTest extends TestCase
                     ->assertSessionHasErrors('email');
             }
 
-            $this->withServerVariables(['REMOTE_ADDR' => $ip])
+            $response = $this->withServerVariables(['REMOTE_ADDR' => $ip])
                 ->post(route('login.submit'), [
                     'email' => $email,
                     'password' => 'invalid-password',
-                ])
-                ->assertSessionHasErrors([
-                    'email' => 'Too many login attempts. Please try again in 60 seconds.',
                 ]);
+
+            $response->assertSessionHasErrors('email')
+                ->assertSessionHas('login_lockout_seconds');
+            $this->assertGreaterThan(0, RateLimiter::availableIn($loginKey));
+            $this->assertLessThanOrEqual(300, RateLimiter::availableIn($loginKey));
         } finally {
             RateLimiter::clear($loginKey);
         }

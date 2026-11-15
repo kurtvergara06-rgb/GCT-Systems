@@ -92,6 +92,20 @@
                     class="users-section-header"
                 />
 
+                <nav class="application-status-tabs" aria-label="Filter accounts by status">
+                    @foreach(['All Accounts' => null, 'Pending Applications' => 'Pending', 'Active' => 'Active', 'Inactive' => 'Inactive', 'Rejected' => 'Rejected'] as $label => $statusValue)
+                        <a href="{{ route('admin.users', $statusValue ? ['status' => $statusValue] : []) }}"
+                           class="application-status-tab {{ request('status') === $statusValue || (!request()->filled('status') && $statusValue === null) ? 'is-active' : '' }}"
+                           @if(request('status') === $statusValue || (!request()->filled('status') && $statusValue === null)) aria-current="page" @endif>
+                            {{ $label }}
+                            @if($statusValue === 'Pending') <span class="application-status-count">{{ $pendingUsers }}</span> @endif
+                        </a>
+                    @endforeach
+                </nav>
+                @if(request('status') === 'Pending')
+                    <p class="application-review-notice">Review employee applications here. Email verification, department and role assignment are required before approval.</p>
+                @endif
+
                 <x-ui.table-toolbar
                     :action="route('admin.users')"
                     class="records-toolbar users-toolbar"
@@ -213,6 +227,18 @@
 
                                     <td>
                                         <div class="record-actions action-menu">
+                                        @if($user->status === 'Pending' && auth()->user()?->hasSystemPermission('administration', 'full_control'))
+                                            <button type="button" class="application-review-button"
+                                                data-review-application
+                                                data-review-url="{{ route('admin.users.review-application', $user) }}"
+                                                data-name="{{ $user->name }}"
+                                                data-email="{{ $user->email }}"
+                                                data-applied="{{ $user->created_at?->format('M d, Y · g:i A') }}"
+                                                data-verified="{{ $user->hasVerifiedEmail() ? '1' : '0' }}">
+                                                <i class="fa-solid fa-clipboard-check" aria-hidden="true"></i> Review
+                                            </button>
+                                        @endif
+
                                             <x-ui.action-button
                                                 type="view"
                                                 class="open-view-user-modal action-view"
@@ -276,7 +302,7 @@
                                                         data-icon-only
                                                     />
                                                 </form>
-                                            @else
+                                            @elseif($user->status === 'Inactive')
                                                 <form
                                                     action="{{ route('admin.users.update-status', $user) }}"
                                                     method="POST"
@@ -347,6 +373,54 @@
             </footer>
         </main>
     </div>
+
+    {{-- PENDING APPLICATION REVIEW --}}
+    @if(auth()->user()?->hasSystemPermission('administration', 'full_control'))
+        <div class="admin-modal-overlay" id="applicationReviewModal" role="dialog" aria-modal="true" aria-labelledby="applicationReviewTitle">
+            <div class="admin-user-modal">
+                <div class="admin-modal-header">
+                    <div>
+                        <h2 id="applicationReviewTitle">Review Employee Application</h2>
+                        <p>Confirm the applicant's verified email and assign their department and role.</p>
+                    </div>
+                    <button type="button" class="modal-close-btn" data-close-application-review aria-label="Close application review"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <form id="applicationReviewForm" class="admin-user-form" method="POST">
+                    @csrf
+                    <div class="application-review-details">
+                        <strong id="applicationReviewName"></strong>
+                        <span id="applicationReviewEmail"></span>
+                        <small id="applicationReviewApplied"></small>
+                        <span id="applicationReviewVerified" role="status"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="applicationReviewDepartment">Department <span aria-hidden="true">*</span></label>
+                        <select name="department" id="applicationReviewDepartment" required>
+                            <option value="">Select department</option>
+                            @foreach($departmentOptions as $department)
+                                <option value="{{ $department }}">{{ $department }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="applicationReviewRole">Role <span aria-hidden="true">*</span></label>
+                        <select name="role" id="applicationReviewRole" required>
+                            <option value="">Select role</option>
+                            @foreach($roles as $roleKey => $roleName)
+                                <option value="{{ $roleKey }}">{{ $roleName }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="application-review-actions">
+                        <button type="button" data-close-application-review>Cancel</button>
+                        <button type="submit" name="decision" value="reject" class="application-reject-button" formnovalidate
+                            onclick="return confirm('Reject this employee application?')">Reject</button>
+                        <button type="submit" name="decision" value="approve" class="application-approve-button" id="applicationReviewApprove">Approve Application</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    @endif
 
     {{-- ADD / EDIT ACCOUNT MODAL --}}
     <div class="admin-modal-overlay" id="userFormModal">

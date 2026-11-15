@@ -584,3 +584,19 @@ input {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Login/registration switch and employee-registration guidance. */
+.auth-switch { margin: 16px 0 0; text-align: center; font-size: 13px; color: #64748b; }
+.auth-switch a { color: #07549a; font-weight: 700; text-decoration: underline; }
+.registration-notice { font-size: 12px; line-height: 1.5; color: #64748b; margin: 5px 0 16px; }
+@media (max-height: 780px) { body:has(.registration-notice) { overflow-y: auto; } body:has(.registration-notice) .gct-login-page { min-height: 100vh; height: auto; overflow: visible; } body:has(.registration-notice) .gct-form-panel { min-height: 100vh; height: auto; } }
+
+/* Google identity option; shared by sign-in and registration pages. */
+.google-auth-separator { display: flex; align-items: center; gap: 14px; margin: 18px 0 12px; color: #778399; font-size: 12px; text-transform: uppercase; }
+.google-auth-separator::before, .google-auth-separator::after { content: ""; flex: 1; height: 1px; background: #d7dce4; }
+.google-auth-button { width: 100%; min-height: 47px; border: 1px solid #cbd5e1; border-radius: 7px; background: #fff; color: #192b47; display: flex; align-items: center; justify-content: center; gap: 12px; text-decoration: none; font-weight: 600; font-size: 13px; transition: background-color .15s ease, border-color .15s ease; }
+.google-auth-button:hover { background: #f5f8fd; border-color: #8da8c9; }
+.google-auth-button:focus-visible { outline: 3px solid #6fa5fa; outline-offset: 2px; }
+
+.login-cooldown { margin: 0 0 14px; padding: 11px 13px; border: 1px solid #f2c78b; border-radius: 8px; background: #fff7ed; color: #92400e; font-size: 12px; line-height: 1.6; }
+.login-cooldown strong { font-variant-numeric: tabular-nums; }

@@ -32,6 +32,7 @@ class AdminUserController extends Controller
         'Active',
         'Inactive',
         'Pending',
+        'Rejected',
     ];
 
     private function isProtectedSystemAdmin(User $user): bool
@@ -186,8 +187,23 @@ class AdminUserController extends Controller
             'status' => ['required', 'string', Rule::in($this->statuses)],
         ]);
 
+        if ($user->status === 'Pending' && $validated['status'] !== 'Pending') {
+            abort_unless($request->user()?->hasSystemPermission('administration', 'full_control'), 403);
+        }
+
         if (Auth::id() === $user->id && $validated['status'] !== 'Active') {
             return redirect()->route('admin.users')->with('error', 'You cannot deactivate or place your own account in Pending status.');
+        }
+
+        if ($user->status === 'Rejected' && $validated['status'] === 'Active') {
+            return redirect()->route('admin.users')->with('error', 'Rejected applications cannot be activated directly.');
+        }
+        if ($user->status === 'Pending' && $validated['status'] === 'Active') {
+            abort_unless($request->user()?->hasSystemPermission('administration', 'full_control'), 403);
+        }
+        if ($user->status === 'Pending' && $validated['status'] === 'Active'
+            && ! $user->hasVerifiedEmail()) {
+            return redirect()->route('admin.users')->with('error', 'Verify the employee email before approving this registration.');
         }
 
         $user->update([
@@ -211,8 +227,27 @@ class AdminUserController extends Controller
             'status' => ['required', 'string', Rule::in($this->statuses)],
         ]);
 
+        if ($user->status === 'Pending' && $validated['status'] !== 'Pending') {
+            abort_unless($request->user()?->hasSystemPermission('administration', 'full_control'), 403);
+        }
+
         if (Auth::id() === $user->id && $validated['status'] !== 'Active') {
             return redirect()->route('admin.users')->with('error', 'You cannot deactivate your own account.');
+        }
+
+        if ($user->status === 'Pending' && $validated['status'] === 'Active') {
+            abort_unless($request->user()?->hasSystemPermission('administration', 'full_control'), 403);
+            if (! $user->hasVerifiedEmail()) {
+                return redirect()->route('admin.users')->with('error', 'Verify the employee email before approving this registration.');
+            }
+            if (! in_array($user->department, $this->departments, true)
+                || ! array_key_exists((string) $user->role, $this->roles)) {
+                return redirect()->route('admin.users')->with('error', 'Assign a valid department and role before approving this registration.');
+            }
+        }
+
+        if ($user->status === 'Rejected' && $validated['status'] === 'Active') {
+            return redirect()->route('admin.users')->with('error', 'Rejected applications cannot be activated directly.');
         }
 
         $previousStatus = $user->status;
@@ -228,6 +263,38 @@ class AdminUserController extends Controller
         };
 
         return redirect()->route('admin.users')->with('success', $message);
+    }
+
+
+    public function reviewApplication(Request $request, User $user)
+    {
+        abort_unless($request->user()?->hasSystemPermission('administration', 'full_control'), 403);
+        abort_unless($user->status === 'Pending' && ! $this->isProtectedSystemAdmin($user), 404);
+
+        $data = $request->validate([
+            'decision' => ['required', Rule::in(['approve', 'reject'])],
+            'department' => ['required_if:decision,approve', 'nullable', Rule::in($this->departments)],
+            'role' => ['required_if:decision,approve', 'nullable', Rule::in(array_keys($this->roles))],
+        ]);
+
+        if ($data['decision'] === 'approve') {
+            if (! $user->hasVerifiedEmail()) {
+                return back()->with('error', 'This application cannot be approved until the employee verifies their email.');
+            }
+            $user->update([
+                'department' => $data['department'],
+                'role' => $data['role'],
+                'status' => 'Active',
+            ]);
+
+            return redirect()->route('admin.users', ['status' => 'Pending'])
+                ->with('success', 'Employee application approved. Department and role have been assigned.');
+        }
+
+        $user->update(['status' => 'Rejected']);
+
+        return redirect()->route('admin.users', ['status' => 'Pending'])
+            ->with('success', 'Employee application rejected. Account access remains blocked.');
     }
 
     public function resetPassword(Request $request, User $user)

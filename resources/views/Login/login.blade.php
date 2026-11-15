@@ -83,6 +83,12 @@
             </div>
           @endif
 
+          @if(session('login_lockout_seconds'))
+            <p class="login-cooldown" role="status" data-login-cooldown="{{ (int) session('login_lockout_seconds') }}">
+              Too many failed attempts. Try again in <strong data-login-cooldown-label>{{ (int) session('login_lockout_seconds') }}</strong> seconds.
+            </p>
+          @endif
+
           <form id="loginForm" method="POST" action="{{ route('login.submit') }}" novalidate>
             @csrf
 
@@ -147,7 +153,7 @@
                 <span>Remember me</span>
               </label>
 
-              <a href="#" class="forgot-link">Forgot password?</a>
+              <a href="{{ route('password.request') }}" class="forgot-link">Forgot password?</a>
             </div>
 
             <button type="submit" class="login-btn" id="loginBtn">
@@ -161,6 +167,18 @@
               </span>
             </button>
           </form>
+
+          <div class="google-auth-separator"><span>or</span></div>
+          <a class="google-auth-button" href="{{ route('auth.google') }}">
+            <svg width="19" height="19" viewBox="0 0 24 24" aria-hidden="true">
+              <path fill="#4285F4" d="M21.35 12.25c0-.75-.07-1.48-.2-2.18H12v4.13h5.23a4.47 4.47 0 0 1-1.94 2.93v2.43h3.13c1.83-1.69 2.93-4.17 2.93-7.31Z"/>
+              <path fill="#34A853" d="M12 21.5c2.62 0 4.82-.87 6.42-2.34l-3.13-2.43c-.87.58-1.98.93-3.29.93-2.53 0-4.68-1.71-5.44-4.01H3.33v2.51A9.7 9.7 0 0 0 12 21.5Z"/>
+              <path fill="#FBBC05" d="M6.56 13.65a5.8 5.8 0 0 1 0-3.3V7.84H3.33a9.7 9.7 0 0 0 0 8.32l3.23-2.51Z"/>
+              <path fill="#EA4335" d="M12 6.34c1.42 0 2.69.49 3.69 1.45l2.77-2.77A9.3 9.3 0 0 0 12 2.5a9.7 9.7 0 0 0-8.67 5.34l3.23 2.51c.76-2.3 2.91-4.01 5.44-4.01Z"/>
+            </svg>
+            Continue with Google
+          </a>
+          <p class="auth-switch">New employee? <a href="{{ route('register') }}">Sign Up</a></p>
 
           <div class="trust-divider" aria-hidden="true">
             <span></span>
