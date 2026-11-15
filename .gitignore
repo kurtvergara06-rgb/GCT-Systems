@@ -92,4 +92,6 @@ python_engine/**/*.pyc
 python_engine/uploads/*
 !python_engine/uploads/.gitkeep
 
+# Local server scratch files
 server_command
+server_commad
