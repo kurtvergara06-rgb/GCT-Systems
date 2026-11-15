@@ -2,8 +2,10 @@
 
 namespace App\Models\Maintenance;
 
+use App\Models\Operation\TripAssignment;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Bus extends Model
 {
@@ -32,4 +34,12 @@ class Bus extends Model
         'pms_interval_km' => 'decimal:2',
         'next_pms_km' => 'decimal:2',
     ];
+
+    public function tripAssignments(): HasMany
+    {
+        return $this->hasMany(
+            TripAssignment::class,
+            'bus_id'
+        );
+    }
 }
