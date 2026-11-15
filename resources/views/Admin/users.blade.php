@@ -1,4 +1,3 @@
-```blade
 <x-layout.app
     title="FROMS - User Management"
     :assets="[
@@ -722,4 +721,4 @@
     </div>
 
 </x-layout.app>
-```
+

@@ -12,6 +12,7 @@ use App\Http\Controllers\Purchase\PurchaseOrderController;
 use App\Http\Controllers\Warehouse\InventoryController;
 use App\Http\Controllers\Warehouse\WarehousePartRequestController;
 use App\Http\Controllers\Maintenance\MechanicListController;
+use App\Http\Controllers\Maintenance\PmsSchedulingController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -42,8 +43,23 @@ Route::middleware('auth')->group(function () {
     Route::get('/mechanic-list', [MechanicListController::class, 'index'])
     ->name('mechanic-list');
 
-    Route::view('/PMS-Scheduling', 'Maintenance.PMS-Scheduling')
-        ->name('PMS-Scheduling');
+    Route::controller(PmsSchedulingController::class)
+    ->prefix('pms-scheduling')
+    ->group(function () {
+        Route::get('/', 'index')->name('PMS-Scheduling');
+
+        Route::post('/', 'store')
+            ->name('pms-schedules.store');
+
+        Route::put('/{pmsSchedule}', 'update')
+            ->name('pms-schedules.update');
+
+        Route::delete('/{pmsSchedule}', 'destroy')
+            ->name('pms-schedules.destroy');
+
+        Route::get('/{pmsSchedule}/create-job-order', 'createJobOrder')
+            ->name('pms-schedules.create-job-order');
+    });
 
     Route::view('/fuel-reports', 'Maintenance.fuel-reports')
         ->name('fuel-reports');
