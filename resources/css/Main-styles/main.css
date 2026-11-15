@@ -1,5 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
 
+/* =========================================================
+   ROOT VARIABLES
+========================================================= */
+
 :root {
   --navy: #062b4f;
   --navy-dark: #041f3d;
@@ -11,14 +15,20 @@
   --green: #16a34a;
   --orange: #f59e0b;
   --gray: #64748b;
+
   --bg: #f4f7fb;
   --card: #ffffff;
   --text: #0b2344;
   --muted: #697892;
   --border: #dce5f2;
+
   --shadow: 0 8px 22px rgba(12, 35, 68, 0.06);
   --shadow-hover: 0 12px 26px rgba(12, 35, 68, 0.10);
 }
+
+/* =========================================================
+   GLOBAL RESET
+========================================================= */
 
 * {
   margin: 0;
@@ -45,8 +55,8 @@ button {
 }
 
 a {
-  text-decoration: none;
   color: inherit;
+  text-decoration: none;
 }
 
 .app {
@@ -62,7 +72,10 @@ a {
   overflow-x: hidden;
 }
 
-/* TOP BAR */
+/* =========================================================
+   TOP BAR
+========================================================= */
+
 .topbar {
   display: flex;
   align-items: center;
@@ -90,9 +103,9 @@ a {
 .icon-btn {
   width: 46px;
   height: 46px;
+  border: 1px solid var(--border);
   border-radius: 12px;
   background: var(--card);
-  border: 1px solid var(--border);
   color: var(--text);
   position: relative;
   display: grid;
@@ -121,7 +134,10 @@ a {
   font-weight: 700;
 }
 
-/* SUMMARY CARDS */
+/* =========================================================
+   SUMMARY CARDS
+========================================================= */
+
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -133,15 +149,15 @@ a {
 .stat-card-link {
   min-height: 120px;
   padding: 22px;
+  border: 1px solid var(--border);
   border-radius: 16px;
   background: var(--card);
-  border: 1px solid var(--border);
   box-shadow: var(--shadow);
+  color: inherit;
   display: flex;
   align-items: center;
   gap: 18px;
   transition: 0.25s ease;
-  color: inherit;
 }
 
 .stat-card:hover,
@@ -153,11 +169,11 @@ a {
 .stat-icon {
   width: 58px;
   height: 58px;
+  flex: 0 0 58px;
   border-radius: 18px;
   display: grid;
   place-items: center;
   font-size: 22px;
-  flex: 0 0 58px;
 }
 
 .stat-icon.blue {
@@ -210,7 +226,35 @@ a {
   color: #284563;
 }
 
-/* TOOLBAR */
+/* =========================================================
+   SECTION HEADER
+========================================================= */
+
+.section-header,
+.table-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.section-header h2,
+.table-header h2 {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.section-header p {
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 3px;
+}
+
+/* =========================================================
+   TOOLBAR
+========================================================= */
+
 .toolbar {
   background: var(--card);
   border: 1px solid var(--border);
@@ -223,34 +267,62 @@ a {
   gap: 18px;
 }
 
-.search-box {
-  flex: 1;
+.search-box,
+.mini-search {
   position: relative;
 }
 
-.search-box i {
+.search-box {
+  flex: 1;
+}
+
+.search-box i,
+.mini-search i {
   position: absolute;
-  left: 16px;
   top: 50%;
   transform: translateY(-50%);
   color: var(--muted);
 }
 
+.search-box i {
+  left: 16px;
+}
+
+.mini-search i {
+  left: 12px;
+  font-size: 12px;
+}
+
+.search-box input,
+.mini-search input,
+.filter-group select,
+.table-actions select {
+  border: 1px solid var(--border);
+  background: #ffffff;
+  color: var(--text);
+  outline: none;
+}
+
 .search-box input {
   width: 100%;
   height: 46px;
-  border: 1px solid var(--border);
   border-radius: 10px;
   padding: 0 16px 0 44px;
-  outline: none;
   font-size: 14px;
-  color: var(--text);
+}
+
+.mini-search input {
+  width: 220px;
+  height: 34px;
+  border-radius: 8px;
+  padding: 0 12px 0 34px;
+  font-size: 12px;
 }
 
 .search-box input:focus,
+.mini-search input:focus,
 .filter-group select:focus,
-.table-actions select:focus,
-.mini-search input:focus {
+.table-actions select:focus {
   border-color: var(--blue);
   box-shadow: 0 0 0 3px rgba(0, 87, 248, 0.12);
 }
@@ -264,17 +336,14 @@ a {
 .filter-group label {
   color: var(--muted);
   font-size: 13px;
+  white-space: nowrap;
 }
 
 .filter-group select {
   height: 46px;
   min-width: 145px;
-  border: 1px solid var(--border);
   border-radius: 10px;
-  background: #ffffff;
   padding: 0 12px;
-  color: var(--text);
-  outline: none;
 }
 
 .primary-btn {
@@ -285,8 +354,9 @@ a {
   background: linear-gradient(135deg, var(--yellow), var(--yellow-dark));
   color: #061f3b;
   font-weight: 800;
-  display: flex;
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   transition: 0.25s ease;
 }
@@ -296,7 +366,10 @@ a {
   box-shadow: 0 8px 18px rgba(255, 196, 0, 0.22);
 }
 
-/* TABLE */
+/* =========================================================
+   TABLE
+========================================================= */
+
 .table-card {
   background: var(--card);
   border: 1px solid var(--border);
@@ -337,6 +410,7 @@ td {
   border-bottom: 1px solid var(--border);
   font-size: 14px;
   color: var(--text);
+  vertical-align: middle;
 }
 
 td small {
@@ -363,18 +437,11 @@ tbody tr:last-child td {
   color: #17233f;
 }
 
-/* TABLE HEADER */
-.table-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 14px;
-}
-
-.table-header h2 {
-  font-size: 18px;
-  font-weight: 800;
-  color: var(--text);
+.empty-row {
+  text-align: center;
+  padding: 30px;
+  color: var(--muted);
+  font-weight: 700;
 }
 
 .table-actions {
@@ -383,40 +450,17 @@ tbody tr:last-child td {
   gap: 10px;
 }
 
-.mini-search {
-  position: relative;
-}
-
-.mini-search i {
-  position: absolute;
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--muted);
-  font-size: 12px;
-}
-
-.mini-search input {
-  width: 220px;
-  height: 34px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 0 12px 0 34px;
-  outline: none;
-  font-size: 12px;
-}
-
 .table-actions select {
   height: 34px;
-  border: 1px solid var(--border);
   border-radius: 8px;
   padding: 0 10px;
-  background: #ffffff;
   font-size: 12px;
-  color: var(--text);
 }
 
-/* BADGES */
+/* =========================================================
+   BADGES
+========================================================= */
+
 .badge {
   min-width: 86px;
   padding: 7px 12px;
@@ -432,6 +476,7 @@ tbody tr:last-child td {
 .badge.hold,
 .badge.submitted,
 .badge.pending,
+.badge.pending-purchase,
 .badge.high,
 .badge.progress {
   background: #fff3cd;
@@ -441,7 +486,8 @@ tbody tr:last-child td {
 .badge.ongoing,
 .badge.normal,
 .badge.open,
-.badge.issued {
+.badge.issued,
+.badge.for-purchase {
   background: #e7f0ff;
   color: #0057f8;
 }
@@ -449,7 +495,9 @@ tbody tr:last-child td {
 .badge.completed,
 .badge.approved,
 .badge.available,
-.badge.low {
+.badge.low,
+.badge.delivered,
+.badge.in-stock {
   background: #ddf8e7;
   color: #16a34a;
 }
@@ -461,9 +509,20 @@ tbody tr:last-child td {
 
 .badge.critical,
 .badge.not-available,
-.badge.rejected {
+.badge.rejected,
+.badge.urgent {
   background: #ffe2e2;
   color: #dc2626;
+}
+
+.badge.delivering {
+  background: #ede9fe;
+  color: #6d28d9;
+}
+
+.badge.low-stock {
+  background: #fff3cd;
+  color: #b77900;
 }
 
 .no-action {
@@ -471,7 +530,10 @@ tbody tr:last-child td {
   font-size: 13px;
 }
 
-/* ACTION BUTTONS */
+/* =========================================================
+   ACTION BUTTONS
+========================================================= */
+
 .actions {
   display: flex;
   align-items: center;
@@ -541,28 +603,65 @@ tbody tr:last-child td {
   transform: translateY(-2px);
 }
 
-/* TABLE FOOTER */
+/* =========================================================
+   TABLE FOOTER / PAGINATION
+========================================================= */
+
 .table-footer {
-  padding-top: 18px;
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 16px;
+  padding-top: 10px;
   color: var(--muted);
   font-size: 13px;
 }
 
-.pagination {
-  display: flex;
-  gap: 8px;
+.table-footer p {
+  color: var(--muted);
+  font-size: 13px;
 }
 
+.custom-pagination,
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.page-btn,
 .pagination button {
-  width: 38px;
+  min-width: 38px;
   height: 38px;
+  padding: 0 14px;
   border: 1px solid var(--border);
+  border-radius: 9px;
   background: #ffffff;
-  border-radius: 8px;
+  color: var(--text);
+  font-size: 13px;
   font-weight: 700;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.page-btn:hover,
+.pagination button:hover {
+  background: #f1f5f9;
+}
+
+.page-btn.disabled {
+  color: #94a3b8;
+  background: #f8fafc;
+  cursor: not-allowed;
+}
+
+.page-number {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
 }
 
 .pagination .active-page {
@@ -570,7 +669,10 @@ tbody tr:last-child td {
   color: #ffffff;
 }
 
-/* TEXT HELPERS */
+/* =========================================================
+   TEXT HELPERS
+========================================================= */
+
 .danger-text,
 .red-text {
   color: var(--red) !important;
@@ -580,7 +682,10 @@ tbody tr:last-child td {
   color: var(--orange);
 }
 
-/* SHARED MODALS */
+/* =========================================================
+   MODALS
+========================================================= */
+
 .modal-overlay,
 .delete-modal-overlay,
 .success-modal-overlay {
@@ -596,11 +701,13 @@ tbody tr:last-child td {
 
 .modal-overlay.show,
 .delete-modal-overlay.show,
-.success-modal-overlay.show {
+.success-modal-overlay.show,
+.modal-overlay.active,
+.delete-modal-overlay.active,
+.success-modal-overlay.active {
   display: flex;
 }
 
-/* FORM MODAL */
 .modal-box,
 .wide-modal {
   background: #ffffff;
@@ -640,6 +747,10 @@ tbody tr:last-child td {
 .close-btn:hover {
   background: #e2e8f0;
 }
+
+/* =========================================================
+   FORMS
+========================================================= */
 
 .job-form,
 .wide-form {
@@ -692,7 +803,6 @@ tbody tr:last-child td {
   color: var(--text);
   background: #ffffff;
   outline: none;
-  font-family: "Poppins", sans-serif;
 }
 
 .form-group textarea {
@@ -742,11 +852,36 @@ tbody tr:last-child td {
   padding: 14px;
 }
 
-.modal-actions {
+input[readonly],
+textarea[readonly] {
+  background: #f8fafc;
+  color: #64748b;
+  cursor: not-allowed;
+}
+
+.form-group small {
+  color: #64748b;
+  font-size: 12px;
+  margin-top: 5px;
+}
+
+/* =========================================================
+   MODAL BUTTONS
+========================================================= */
+
+.modal-actions,
+.delete-modal-actions {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
+}
+
+.modal-actions {
   padding-top: 10px;
+}
+
+.delete-modal-actions {
+  justify-content: center;
 }
 
 .cancel-btn,
@@ -758,7 +893,6 @@ tbody tr:last-child td {
   font-size: 14px;
   font-weight: 800;
   cursor: pointer;
-  font-family: "Poppins", sans-serif;
 }
 
 .cancel-btn {
@@ -788,12 +922,15 @@ tbody tr:last-child td {
   background: #b91c1c;
 }
 
-/* SUCCESS / DELETE POPUPS */
+/* =========================================================
+   SUCCESS / DELETE POPUPS
+========================================================= */
+
 .success-modal-box,
 .delete-modal-box {
-  background: #ffffff;
   width: 430px;
   max-width: 92vw;
+  background: #ffffff;
   border-radius: 18px;
   padding: 30px 28px;
   text-align: center;
@@ -839,17 +976,14 @@ tbody tr:last-child td {
   margin-bottom: 22px;
 }
 
-.delete-modal-actions {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-}
-
 .success-modal-box .save-btn {
   min-width: 100px;
 }
 
-/* RESPONSIVE */
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
 @media (max-width: 1200px) {
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -860,7 +994,8 @@ tbody tr:last-child td {
     flex-wrap: wrap;
   }
 
-  .table-header {
+  .table-header,
+  .section-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
@@ -904,7 +1039,17 @@ tbody tr:last-child td {
 
   .primary-btn {
     width: 100%;
-    justify-content: center;
+  }
+
+  .table-footer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .custom-pagination,
+  .pagination {
+    width: 100%;
+    justify-content: space-between;
   }
 
   .modal-box,

@@ -1,10 +1,37 @@
 document.addEventListener('DOMContentLoaded', function () {
   /*
   |--------------------------------------------------------------------------
-  | SIDEBAR DROPDOWN
+  | Helpers
   |--------------------------------------------------------------------------
   */
-  document.querySelectorAll('.dropdown-toggle').forEach(button => {
+  function openModal(modal) {
+    if (modal) {
+      modal.classList.add('show');
+      modal.style.display = 'flex';
+    }
+  }
+
+  function closeModal(modal) {
+    if (modal) {
+      modal.classList.remove('show');
+      modal.style.display = 'none';
+    }
+  }
+
+  function setText(id, value, fallback = '—') {
+    const element = document.getElementById(id);
+
+    if (element) {
+      element.textContent = value || fallback;
+    }
+  }
+
+  /*
+  |--------------------------------------------------------------------------
+  | Sidebar Dropdown
+  |--------------------------------------------------------------------------
+  */
+  document.querySelectorAll('.dropdown-toggle').forEach(function (button) {
     button.addEventListener('click', function () {
       const dropdown = this.closest('.menu-dropdown');
 
@@ -16,35 +43,23 @@ document.addEventListener('DOMContentLoaded', function () {
 
   /*
   |--------------------------------------------------------------------------
-  | VIEW PR DETAILS MODAL
+  | View PR Details Modal
   |--------------------------------------------------------------------------
   */
   const viewPrModal = document.getElementById('viewPrModal');
   const closeViewPrModal = document.getElementById('closeViewPrModal');
   const closeViewPrModalBottom = document.getElementById('closeViewPrModalBottom');
 
-  function openModal(modal) {
-    if (modal) {
-      modal.classList.add('show');
-    }
-  }
-
-  function closeModal(modal) {
-    if (modal) {
-      modal.classList.remove('show');
-    }
-  }
-
-  document.querySelectorAll('.open-view-pr-modal').forEach(button => {
+  document.querySelectorAll('.open-view-pr-modal').forEach(function (button) {
     button.addEventListener('click', function () {
-      document.getElementById('view_pr_no').textContent = this.dataset.prNo || '—';
-      document.getElementById('view_job_order_no').textContent = this.dataset.jobOrderNo || '—';
-      document.getElementById('view_bus_no').textContent = this.dataset.busNo || '—';
-      document.getElementById('view_item').textContent = this.dataset.item || '—';
-      document.getElementById('view_quantity').textContent = this.dataset.quantity || '—';
-      document.getElementById('view_status').textContent = this.dataset.status || '—';
-      document.getElementById('view_remarks').textContent = this.dataset.remarks || 'No remarks';
-      document.getElementById('view_created').textContent = this.dataset.created || '—';
+      setText('view_pr_no', this.dataset.prNo);
+      setText('view_job_order_no', this.dataset.jobOrderNo);
+      setText('view_bus_no', this.dataset.busNo);
+      setText('view_item', this.dataset.item);
+      setText('view_quantity', this.dataset.quantity);
+      setText('view_status', this.dataset.status);
+      setText('view_created', this.dataset.created);
+      setText('view_remarks', this.dataset.remarks, 'No remarks');
 
       openModal(viewPrModal);
     });
@@ -62,15 +77,67 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  window.addEventListener('click', function (event) {
-    if (event.target === viewPrModal) {
-      closeModal(viewPrModal);
-    }
-  });
+  if (viewPrModal) {
+    viewPrModal.addEventListener('click', function (event) {
+      if (event.target === viewPrModal) {
+        closeModal(viewPrModal);
+      }
+    });
+  }
 
+  /*
+  |--------------------------------------------------------------------------
+  | Feedback Modal Fallback
+  |--------------------------------------------------------------------------
+  */
+  const feedbackModal = document.getElementById('feedbackModal');
+  const closeFeedbackModal = document.getElementById('closeFeedbackModal');
+  const closeFeedbackModalBottom = document.getElementById('closeFeedbackModalBottom');
+
+  window.openFeedbackModal = function (data = {}) {
+    setText(
+      'feedback_reference_no',
+      data.referenceNo || data.prNo || data.jobOrderNo
+    );
+
+    setText('feedback_status', data.status);
+    setText('feedback_message', data.message, 'No feedback available.');
+    setText('feedback_remarks', data.remarks);
+
+    openModal(feedbackModal);
+  };
+
+  function closeFeedback() {
+    closeModal(feedbackModal);
+  }
+
+  if (closeFeedbackModal) {
+    closeFeedbackModal.addEventListener('click', closeFeedback);
+  }
+
+  if (closeFeedbackModalBottom) {
+    closeFeedbackModalBottom.addEventListener('click', closeFeedback);
+  }
+
+  if (feedbackModal) {
+    feedbackModal.addEventListener('click', function (event) {
+      if (event.target === feedbackModal) {
+        closeFeedback();
+      }
+    });
+  }
+
+  /*
+  |--------------------------------------------------------------------------
+  | Close Modals With Escape Key
+  |--------------------------------------------------------------------------
+  */
   document.addEventListener('keydown', function (event) {
     if (event.key === 'Escape') {
       closeModal(viewPrModal);
+      closeModal(feedbackModal);
     }
   });
+
+  
 });

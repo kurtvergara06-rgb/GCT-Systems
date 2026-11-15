@@ -1,8 +1,9 @@
 <x-layout.app
   title="FROMS - Warehouse Part Requests"
   :assets="[
-    'resources/css/Warehouse/part-requests.css',
     'resources/css/Main-style/main.css',
+    'resources/css/Main-style/sidebar.css',
+    'resources/css/Warehouse/part-requests.css',
     'resources/js/Warehouse/part-requests.js'
   ]"
 >
@@ -24,27 +25,11 @@
     <main class="main">
 
       {{-- TOP BAR --}}
-      <header class="topbar">
-        <div>
-          <h1>Part Requests</h1>
-          <p>Approved purchase requests from Maintenance for warehouse processing</p>
-        </div>
-
-        <div class="top-actions">
-          <button class="icon-btn notification">
-            <i class="fa-regular fa-bell"></i>
-            <span>6</span>
-          </button>
-
-          <button class="icon-btn">
-            <i class="fa-regular fa-circle-question"></i>
-          </button>
-
-          <button class="icon-btn">
-            <i class="fa-solid fa-user"></i>
-          </button>
-        </div>
-      </header>
+      <x-layout.topbar
+        title="Part Requests"
+        subtitle="Approved purchase requests from Maintenance for warehouse processing"
+        notification-count="6"
+      />
 
       {{-- SUMMARY CARDS --}}
       <section class="stats-grid inventory-stats">
@@ -93,17 +78,13 @@
           </div>
         </div>
 
-        <form method="GET" action="{{ route('part-requests') }}" class="toolbar inventory-toolbar">
-          <div class="search-box">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <input
-              type="text"
-              name="search"
-              value="{{ request('search') }}"
-              placeholder="Search PR no., JO no., bus, or item..."
-            >
-          </div>
-
+        {{-- TOOLBAR --}}
+        <x-ui.table-toolbar
+          :action="route('part-requests')"
+          class="toolbar inventory-toolbar"
+          search-placeholder="Search PR no., JO no., bus, or item..."
+          :show-button="false"
+        >
           <div class="filter-group">
             <label>Status</label>
             <select name="status" onchange="this.form.submit()">
@@ -136,7 +117,7 @@
               </option>
             </select>
           </div>
-        </form>
+        </x-ui.table-toolbar>
 
         <div class="table-wrap">
           <table class="inventory-table">
@@ -154,38 +135,31 @@
             </thead>
 
             <tbody>
-              @forelse($partRequests as $request)
+              @forelse($partRequests as $partRequest)
                 <tr>
-                  <td><strong>{{ $request->pr_no }}</strong></td>
-                  <td><strong>{{ $request->job_order_no }}</strong></td>
-                  <td>{{ $request->bus_no }}</td>
-                  <td>{{ $request->item }}</td>
-                  <td>{{ $request->quantity }}</td>
-
                   <td>
-                   @php
-                      $badgeClass = match($request->status) {
-                        'Approved' => 'under-review',
-                        'For Purchase' => 'for-purchase',
-                        'Pending Purchase' => 'pending-purchase',
-                        'Delivering' => 'delivering',
-                        'Delivered' => 'delivered',
-                        'Issued' => 'issued',
-                        default => 'pending-purchase'
-                      };
-
-                      $statusLabel = match($request->status) {
-                        'Approved' => 'Under Review',
-                        default => $request->status
-                      };
-                    @endphp
-
-                    <span class="badge {{ $badgeClass }}">
-                      {{ $statusLabel }}
-                    </span>
+                    <strong>{{ $partRequest->pr_no }}</strong>
                   </td>
 
-                  <td>{{ $request->created_at->format('M d, Y') }}</td>
+                  <td>
+                    <strong>{{ $partRequest->job_order_no }}</strong>
+                  </td>
+
+                  <td>{{ $partRequest->bus_no }}</td>
+                  <td>{{ $partRequest->item }}</td>
+                  <td>{{ $partRequest->quantity }}</td>
+
+                  <td>
+                    @php
+                      $statusLabel = $partRequest->status === 'Approved'
+                        ? 'Under Review'
+                        : $partRequest->status;
+                    @endphp
+
+                    <x-ui.status-badge :status="$statusLabel" />
+                  </td>
+
+                  <td>{{ $partRequest->created_at->format('M d, Y') }}</td>
 
                   <td>
                     <div class="actions">
@@ -195,20 +169,20 @@
                         type="button"
                         class="view-btn open-view-pr-modal"
                         title="View Details"
-                        data-pr-no="{{ $request->pr_no }}"
-                        data-job-order-no="{{ $request->job_order_no }}"
-                        data-bus-no="{{ $request->bus_no }}"
-                        data-item="{{ $request->item }}"
-                        data-quantity="{{ $request->quantity }}"
-                        data-status="{{ $request->status }}"
-                        data-remarks="{{ $request->remarks ?? 'No remarks' }}"
-                        data-created="{{ $request->created_at->format('M d, Y') }}"
+                        data-pr-no="{{ $partRequest->pr_no }}"
+                        data-job-order-no="{{ $partRequest->job_order_no }}"
+                        data-bus-no="{{ $partRequest->bus_no }}"
+                        data-item="{{ $partRequest->item }}"
+                        data-quantity="{{ $partRequest->quantity }}"
+                        data-status="{{ $statusLabel }}"
+                        data-remarks="{{ $partRequest->remarks ?? 'No remarks' }}"
+                        data-created="{{ $partRequest->created_at->format('M d, Y') }}"
                       >
                         <i class="fa-solid fa-eye"></i>
                       </button>
 
-                      @if($request->status === 'Approved')
-                        <form action="{{ route('purchase-requests.issue', $request->id) }}" method="POST">
+                      @if($partRequest->status === 'Approved')
+                        <form action="{{ route('purchase-requests.issue', $partRequest->id) }}" method="POST">
                           @csrf
 
                           <button type="submit" class="edit" title="Issue Parts">
@@ -216,7 +190,7 @@
                           </button>
                         </form>
 
-                        <form action="{{ route('purchase-requests.for-purchase', $request->id) }}" method="POST">
+                        <form action="{{ route('purchase-requests.for-purchase', $partRequest->id) }}" method="POST">
                           @csrf
 
                           <button type="submit" class="delete" title="For Purchase">
@@ -225,8 +199,8 @@
                         </form>
                       @endif
 
-                      @if($request->status === 'Delivered')
-                        <form action="{{ route('purchase-requests.issue', $request->id) }}" method="POST">
+                      @if($partRequest->status === 'Delivered')
+                        <form action="{{ route('purchase-requests.issue', $partRequest->id) }}" method="POST">
                           @csrf
 
                           <button type="submit" class="edit" title="Issue Parts">
@@ -239,25 +213,16 @@
                   </td>
                 </tr>
               @empty
-                <tr>
-                  <td colspan="8" style="text-align:center; padding: 30px;">
-                    No approved part requests found.
-                  </td>
-                </tr>
+                <x-ui.empty-row
+                  colspan="8"
+                  message="No approved part requests found."
+                />
               @endforelse
             </tbody>
           </table>
         </div>
 
-        <div class="table-footer">
-          <p>
-            Showing {{ $partRequests->firstItem() ?? 0 }} to {{ $partRequests->lastItem() ?? 0 }} of {{ $partRequests->total() }} entries
-          </p>
-
-          <div class="pagination">
-            {{ $partRequests->links() }}
-          </div>
-        </div>
+        <x-ui.table-footer :items="$partRequests" />
 
       </section>
 
@@ -328,6 +293,56 @@
 
       <div class="modal-actions full-width">
         <button type="button" id="closeViewPrModalBottom" class="cancel-btn">
+          Close
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  {{-- FEEDBACK MODAL FALLBACK --}}
+  <div id="feedbackModal" class="modal-overlay">
+    <div class="modal-box wide-modal">
+
+      <div class="modal-header">
+        <h2>Feedback Details</h2>
+
+        <button type="button" id="closeFeedbackModal" class="close-btn">
+          &times;
+        </button>
+      </div>
+
+      <div class="form-section-title full-width">
+        <h3>Feedback Information</h3>
+        <p>This section displays feedback details for the selected record.</p>
+      </div>
+
+      <div class="details-grid">
+
+        <div class="detail-item">
+          <span>Reference No.</span>
+          <strong id="feedback_reference_no">—</strong>
+        </div>
+
+        <div class="detail-item">
+          <span>Status</span>
+          <strong id="feedback_status">—</strong>
+        </div>
+
+        <div class="detail-item full-width">
+          <span>Message</span>
+          <strong id="feedback_message">No feedback available.</strong>
+        </div>
+
+        <div class="detail-item full-width">
+          <span>Remarks</span>
+          <strong id="feedback_remarks">—</strong>
+        </div>
+
+      </div>
+
+      <div class="modal-actions full-width">
+        <button type="button" id="closeFeedbackModalBottom" class="cancel-btn">
           Close
         </button>
       </div>

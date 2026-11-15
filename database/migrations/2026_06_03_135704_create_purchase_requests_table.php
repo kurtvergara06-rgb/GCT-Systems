@@ -3,33 +3,39 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
     public function up(): void
     {
-        DB::statement("ALTER TABLE purchase_requests MODIFY status ENUM(
-            'Draft',
-            'Submitted',
-            'Approved',
-            'Rejected',
-            'For Purchase',
-            'Pending Purchase',
-            'Delivering',
-            'Delivered',
-            'Issued'
-        ) DEFAULT 'Draft'");
+        Schema::create('purchase_requests', function (Blueprint $table) {
+            $table->id();
+
+            $table->string('pr_no')->unique();
+            $table->string('job_order_no');
+            $table->string('bus_no');
+            $table->string('item');
+            $table->integer('quantity');
+            $table->text('remarks')->nullable();
+
+            $table->enum('status', [
+                'Draft',
+                'Submitted',
+                'Approved',
+                'Rejected',
+                'For Purchase',
+                'Pending Purchase',
+                'Delivering',
+                'Delivered',
+                'Issued',
+            ])->default('Draft');
+
+            $table->timestamps();
+        });
     }
 
     public function down(): void
     {
-        DB::statement("ALTER TABLE purchase_requests MODIFY status ENUM(
-            'Draft',
-            'Submitted',
-            'For Issuance',
-            'Rejected',
-            'Issued'
-        ) DEFAULT 'Draft'");
+        Schema::dropIfExists('purchase_requests');
     }
 };

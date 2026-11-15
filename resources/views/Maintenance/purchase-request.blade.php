@@ -1,8 +1,9 @@
 <x-layout.app
   title="FROMS - Purchase Requests"
   :assets="[
-    'resources/css/Maintenance/purchase-request.css',
     'resources/css/Main-style/main.css',
+    'resources/css/Main-style/sidebar.css',
+    'resources/css/Maintenance/purchase-request.css',
     'resources/js/Maintenance/purchase-request.js'
   ]"
 >
@@ -11,39 +12,18 @@
     $role = 'sub_admin';
   @endphp
 
-  @if(session('success'))
-    <div id="successModal" class="success-modal-overlay show">
-      <div class="success-modal-box">
-        <div class="success-icon">
-          <i class="fa-solid fa-check"></i>
-        </div>
+  {{-- FEEDBACK MODALS --}}
+  <x-ui.action-buttom-modal
+    mode="feedback"
+    feedback-type="success"
+    :message="session('success')"
+  />
 
-        <h2>Success</h2>
-        <p>{{ session('success') }}</p>
-
-        <button type="button" id="closeSuccessModal" class="save-btn">
-          Okay
-        </button>
-      </div>
-    </div>
-  @endif
-
-  @if(session('error'))
-    <div id="successModal" class="success-modal-overlay show">
-      <div class="success-modal-box">
-        <div class="delete-icon">
-          <i class="fa-solid fa-triangle-exclamation"></i>
-        </div>
-
-        <h2>Error</h2>
-        <p>{{ session('error') }}</p>
-
-        <button type="button" id="closeSuccessModal" class="save-btn">
-          Okay
-        </button>
-      </div>
-    </div>
-  @endif
+  <x-ui.action-buttom-modal
+    mode="feedback"
+    feedback-type="error"
+    :message="session('error')"
+  />
 
   <div class="app">
 
@@ -66,28 +46,14 @@
 
     <main class="main">
 
-      <header class="topbar">
-        <div>
-          <h1>Purchase Requests</h1>
-          <p>Manage requested parts and maintenance purchasing records</p>
-        </div>
+      {{-- TOP BAR COMPONENT --}}
+      <x-layout.topbar
+        title="Purchase Requests"
+        subtitle="Manage requested parts and maintenance purchasing records"
+        notification-count="6"
+      />
 
-        <div class="top-actions">
-          <button class="icon-btn notification">
-            <i class="fa-regular fa-bell"></i>
-            <span>6</span>
-          </button>
-
-          <button class="icon-btn">
-            <i class="fa-regular fa-circle-question"></i>
-          </button>
-
-          <button class="icon-btn">
-            <i class="fa-solid fa-user"></i>
-          </button>
-        </div>
-      </header>
-
+      {{-- ERROR ALERT --}}
       @if($errors->any())
         <div class="alert-error">
           <ul>
@@ -98,43 +64,44 @@
         </div>
       @endif
 
-        {{-- SUMMARY CARDS --}}
-        <section class="stats-grid">
+      {{-- SUMMARY CARDS --}}
+      <section class="stats-grid">
 
-          <x-ui.summary-card
-            label="Draft"
-            value="{{ $draft }}"
-            small="Unfinished requests"
-            icon="fa-file"
-            color="gray"
-          />
+        <x-ui.summary-card
+          label="Draft"
+          value="{{ $draft }}"
+          small="Unfinished requests"
+          icon="fa-file"
+          color="gray"
+        />
 
-          <x-ui.summary-card
-            label="Submitted"
-            value="{{ $submitted }}"
-            small="Waiting approval"
-            icon="fa-paper-plane"
-            color="yellow"
-          />
+        <x-ui.summary-card
+          label="Submitted"
+          value="{{ $submitted }}"
+          small="Waiting approval"
+          icon="fa-paper-plane"
+          color="yellow"
+        />
 
-          <x-ui.summary-card
-            label="Rejected"
-            value="{{ $rejected }}"
-            small="Rejected requests"
-            icon="fa-xmark"
-            color="red"
-          />
+        <x-ui.summary-card
+          label="Rejected"
+          value="{{ $rejected }}"
+          small="Rejected requests"
+          icon="fa-xmark"
+          color="red"
+        />
 
-          <x-ui.summary-card
-            label="Approved"
-            value="{{ $approved }}"
-            small="Approved requests"
-            icon="fa-check"
-            color="green"
-          />
+        <x-ui.summary-card
+          label="Approved"
+          value="{{ $approved }}"
+          small="Approved requests"
+          icon="fa-check"
+          color="green"
+        />
 
-</section>
+      </section>
 
+      {{-- TABLE --}}
       <section class="table-card purchase-card">
 
         <div class="section-header">
@@ -144,38 +111,59 @@
           </div>
         </div>
 
-        <form method="GET" action="{{ route('purchase-requests') }}" class="toolbar purchase-toolbar">
-          <div class="search-box">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <input
-              type="text"
-              name="search"
-              value="{{ request('search') }}"
-              placeholder="Search PR no., JO no., bus, or item..."
-            >
-          </div>
-
+        {{-- TOOLBAR COMPONENT --}}
+        <x-ui.table-toolbar
+          :action="route('purchase-requests')"
+          class="toolbar purchase-toolbar"
+          search-placeholder="Search PR no., JO no., bus, or item..."
+          button-id="openPrModal"
+          button-label="New PR"
+        >
           <div class="filter-group">
             <label>Status</label>
             <select name="status" onchange="this.form.submit()">
-              <option value="All Statuses" {{ request('status') == 'All Statuses' ? 'selected' : '' }}>All Statuses</option>
-              <option value="Draft" {{ request('status') == 'Draft' ? 'selected' : '' }}>Draft</option>
-              <option value="Submitted" {{ request('status') == 'Submitted' ? 'selected' : '' }}>Submitted</option>
-              <option value="Approved" {{ request('status') == 'Approved' ? 'selected' : '' }}>Approved</option>
-              <option value="Rejected" {{ request('status') == 'Rejected' ? 'selected' : '' }}>Rejected</option>
-              <option value="For Purchase" {{ request('status') == 'For Purchase' ? 'selected' : '' }}>For Purchase</option>
-              <option value="Pending Purchase" {{ request('status') == 'Pending Purchase' ? 'selected' : '' }}>Pending Purchase</option>
-              <option value="Delivering" {{ request('status') == 'Delivering' ? 'selected' : '' }}>Delivering</option>
-              <option value="Delivered" {{ request('status') == 'Delivered' ? 'selected' : '' }}>Delivered</option>
-              <option value="Issued" {{ request('status') == 'Issued' ? 'selected' : '' }}>Issued</option>
+              <option value="All Statuses" {{ request('status') == 'All Statuses' ? 'selected' : '' }}>
+                All Statuses
+              </option>
+
+              <option value="Draft" {{ request('status') == 'Draft' ? 'selected' : '' }}>
+                Draft
+              </option>
+
+              <option value="Submitted" {{ request('status') == 'Submitted' ? 'selected' : '' }}>
+                Submitted
+              </option>
+
+              <option value="Approved" {{ request('status') == 'Approved' ? 'selected' : '' }}>
+                Approved
+              </option>
+
+              <option value="Rejected" {{ request('status') == 'Rejected' ? 'selected' : '' }}>
+                Rejected
+              </option>
+
+              <option value="For Purchase" {{ request('status') == 'For Purchase' ? 'selected' : '' }}>
+                For Purchase
+              </option>
+
+              <option value="Pending Purchase" {{ request('status') == 'Pending Purchase' ? 'selected' : '' }}>
+                Pending Purchase
+              </option>
+
+              <option value="Delivering" {{ request('status') == 'Delivering' ? 'selected' : '' }}>
+                Delivering
+              </option>
+
+              <option value="Delivered" {{ request('status') == 'Delivered' ? 'selected' : '' }}>
+                Delivered
+              </option>
+
+              <option value="Issued" {{ request('status') == 'Issued' ? 'selected' : '' }}>
+                Issued
+              </option>
             </select>
           </div>
-
-          <button type="button" class="primary-btn" id="openPrModal">
-            <i class="fa-solid fa-plus"></i>
-            New PR
-          </button>
-        </form>
+        </x-ui.table-toolbar>
 
         <div class="table-wrap">
           <table>
@@ -202,24 +190,7 @@
                   <td>{{ $pr->quantity }}</td>
 
                   <td>
-                    @php
-                      $badgeClass = match($pr->status) {
-                        'Draft' => 'draft',
-                        'Submitted' => 'submitted',
-                        'Approved' => 'approved',
-                        'Rejected' => 'rejected',
-                        'For Purchase' => 'for-purchase',
-                        'Pending Purchase' => 'pending-purchase',
-                        'Delivering' => 'delivering',
-                        'Delivered' => 'delivered',
-                        'Issued' => 'issued',
-                        default => 'draft'
-                      };
-                    @endphp
-
-                    <span class="badge {{ $badgeClass }}">
-                      {{ $pr->status }}
-                    </span>
+                    <x-ui.status-badge :status="$pr->status" />
                   </td>
 
                   <td>{{ $pr->created_at->format('M d, Y') }}</td>
@@ -227,10 +198,10 @@
                   <td>
                     <div class="actions">
 
-                      <button
-                        type="button"
+                      <x-ui.action-buttom-modal
                         class="edit open-edit-pr-modal"
                         title="View / Edit"
+                        icon="fa-pen-to-square"
                         data-id="{{ $pr->id }}"
                         data-pr-no="{{ $pr->pr_no }}"
                         data-job-order-no="{{ $pr->job_order_no }}"
@@ -247,9 +218,7 @@
                         data-delivering-url="{{ route('purchase-requests.delivering', $pr->id) }}"
                         data-delivered-url="{{ route('purchase-requests.delivered', $pr->id) }}"
                         data-issue-url="{{ route('purchase-requests.issue', $pr->id) }}"
-                      >
-                        <i class="fa-solid fa-pen-to-square"></i>
-                      </button>
+                      />
 
                       <form
                         id="deletePrForm-{{ $pr->id }}"
@@ -259,40 +228,29 @@
                         @csrf
                         @method('DELETE')
 
-                        <button
-                          type="button"
+                        <x-ui.action-buttom-modal
                           class="delete open-delete-pr-modal"
+                          title="Delete"
+                          icon="fa-trash"
                           data-id="{{ $pr->id }}"
                           data-pr-no="{{ $pr->pr_no }}"
-                          title="Delete"
-                        >
-                          <i class="fa-solid fa-trash"></i>
-                        </button>
+                        />
                       </form>
 
                     </div>
                   </td>
                 </tr>
               @empty
-                <tr>
-                  <td colspan="8" style="text-align:center; padding: 30px;">
-                    No purchase requests found.
-                  </td>
-                </tr>
+                <x-ui.empty-row
+                  colspan="8"
+                  message="No purchase requests found."
+                />
               @endforelse
             </tbody>
           </table>
         </div>
 
-        <div class="table-footer">
-          <p>
-            Showing {{ $purchaseRequests->firstItem() ?? 0 }} to {{ $purchaseRequests->lastItem() ?? 0 }} of {{ $purchaseRequests->total() }} entries
-          </p>
-
-          <div class="pagination">
-            {{ $purchaseRequests->links() }}
-          </div>
-        </div>
+        <x-ui.table-footer :items="$purchaseRequests" />
 
       </section>
 
@@ -552,30 +510,14 @@
   </div>
 
   {{-- DELETE MODAL --}}
-  <div id="deletePrModal" class="delete-modal-overlay">
-    <div class="delete-modal-box">
-      <div class="delete-icon">
-        <i class="fa-solid fa-triangle-exclamation"></i>
-      </div>
-
-      <h2>Delete Purchase Request?</h2>
-
-      <p>
-        Are you sure you want to delete
-        <strong id="deletePrNo">this purchase request</strong>?
-        This action can’t be undone.
-      </p>
-
-      <div class="delete-modal-actions">
-        <button type="button" id="cancelDeletePr" class="cancel-btn">
-          Cancel
-        </button>
-
-        <button type="button" id="confirmDeletePr" class="danger-btn">
-          Yes, Delete
-        </button>
-      </div>
-    </div>
-  </div>
+  <x-ui.action-buttom-modal
+    mode="delete"
+    id="deletePrModal"
+    delete-title="Delete Purchase Request?"
+    delete-message="Are you sure you want to delete"
+    name-id="deletePrNo"
+    cancel-id="cancelDeletePr"
+    confirm-id="confirmDeletePr"
+  />
 
 </x-layout.app>
