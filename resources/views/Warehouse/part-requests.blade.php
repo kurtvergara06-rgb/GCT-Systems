@@ -112,7 +112,7 @@
               </option>
 
               <option value="Approved" {{ request('status') == 'Approved' ? 'selected' : '' }}>
-                Approved
+                Under Review
               </option>
 
               <option value="For Purchase" {{ request('status') == 'For Purchase' ? 'selected' : '' }}>
