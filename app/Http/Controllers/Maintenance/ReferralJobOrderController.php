@@ -14,7 +14,7 @@ class ReferralJobOrderController extends Controller
     {
         $this->authorizeMaintenanceStaff();
 
-        $maintenanceReferral->load(['incident.bus', 'jobOrder']);
+        $maintenanceReferral->load(['incident.bus', 'incident.tripSchedule.shuttleRoute', 'jobOrder']);
 
         if ($maintenanceReferral->status !== 'Approved') {
             return back()->with('error', 'Only approved maintenance referrals can create a Job Order.');
@@ -73,6 +73,24 @@ class ReferralJobOrderController extends Controller
             $problem = trim((string) $incident->description);
             if ($problem === '') {
                 $problem = 'Bus breakdown reported at ' . ($incident->location ?: 'an unspecified location') . '.';
+            }
+
+            if ($incident->is_unplanned_breakdown) {
+                $tripCode = $incident->tripSchedule?->trip_code ?: 'Active Trip';
+                $routeName = $incident->tripSchedule?->shuttleRoute?->route_name;
+                $source = "Unplanned Breakdown - {$tripCode}";
+
+                if ($routeName) {
+                    $source .= " / {$routeName}";
+                }
+
+                if (! str_starts_with($problem, '[Unplanned Breakdown]')) {
+                    $problem = "[Unplanned Breakdown] {$source}: {$problem}";
+                }
+            }
+
+            if ($incident->bus && $incident->bus->status !== 'Under Maintenance') {
+                $incident->bus->update(['status' => 'Under Maintenance']);
             }
 
             $jobOrder = JobOrder::create([
