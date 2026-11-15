@@ -25,7 +25,6 @@ _original = {
 }
 
 try:
-    # Development/demo may explicitly use generated data.
     os.environ["ML_RUNTIME_MODE"] = "development"
     os.environ.pop("RENDER", None)
     os.environ["DELAY_DATA_SOURCE"] = "sample"
@@ -33,13 +32,8 @@ try:
 
     check("development runtime detected", runtime_mode() == "development")
     check("synthetic models allowed in development", synthetic_models_allowed())
-    check(
-        "development sample source allowed",
-        evaluate_model_source("test", "sample").allowed,
-    )
+    check("development sample source allowed", evaluate_model_source("test", "sample").allowed)
 
-    # Production blocks generated/synthetic models regardless of an explicit
-    # per-model sample setting.
     os.environ["ML_RUNTIME_MODE"] = "production"
     check("production runtime detected", runtime_mode() == "production")
     check("synthetic models blocked in production", not synthetic_models_allowed())
@@ -48,6 +42,35 @@ try:
     check("production sample source rejected", not sample_policy.allowed)
     check("production rejection says MODEL NOT READY", sample_policy.model_ready_message == "MODEL NOT READY")
     check("production genuine source allowed", evaluate_model_source("test", "genuine").allowed)
+
+    # ETA Model #1: the tracked artifact is development/demo data. Production
+    # must report MODEL NOT READY and reject inference even though a .pkl exists.
+    from eta.predict import reset_cache as reset_eta_cache
+    from eta.router import router as eta_router
+
+    reset_eta_cache()
+    eta_app = FastAPI()
+    eta_app.include_router(eta_router, prefix="/eta")
+    eta_client = TestClient(eta_app)
+
+    eta_status = eta_client.get("/eta/status")
+    check("ETA status reachable", eta_status.status_code == 200)
+    eta_body = eta_status.json()
+    check("ETA demo artifact identifies synthetic source", eta_body["data_source"] == "synthetic")
+    check("ETA demo artifact blocked in production", eta_body["model_ready"] is False)
+    check("ETA production flag false", eta_body["is_production_model"] is False)
+    check("ETA production reason explains source block", "production" in eta_body["reason"].lower())
+
+    eta_predict = eta_client.post(
+        "/eta/predict",
+        json={
+            "route": "Talisay - SM Seaside",
+            "departure_at": "2026-09-29T08:00:00",
+            "shift": "Morning",
+            "bus_no": "GCT-101",
+        },
+    )
+    check("ETA production demo prediction rejected", eta_predict.status_code == 503)
 
     # Delay Model #3: tracked sample artifact may exist, but production API must
     # report NOT READY and reject prediction instead of serving it.
@@ -78,7 +101,6 @@ try:
     )
     check("delay production sample prediction rejected", delay_predict.status_code == 503)
 
-    # Inventory Model #4: same hard rule.
     from inventory.predict import reset_cache as reset_inventory_cache
     from inventory.router import router as inventory_router
 
@@ -100,7 +122,6 @@ try:
     ml_scorer._model_loaded = False
     check("legacy synthetic scheduling model blocked", ml_scorer._load_model() is None)
 
-    # Incompatible scikit-learn version in production must never serve predictions
     from ml_version_guard import validate_model_version
 
     is_valid, reason = validate_model_version("test_rf", {"sklearn_version": "0.99.0"})

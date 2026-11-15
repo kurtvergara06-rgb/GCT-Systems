@@ -32,6 +32,13 @@
       "estimated_time_minutes": 55.0
     }
   },
+  "route_encodings": {
+    "ayala center - it park": 0,
+    "fuente osme\u00f1a - it park": 1,
+    "parkmall - mactan newtown": 2,
+    "sm city cebu - mactan airport": 3,
+    "talisay - sm seaside": 4
+  },
   "bus_encodings": {
     "GCT-101": 0,
     "GCT-102": 1,

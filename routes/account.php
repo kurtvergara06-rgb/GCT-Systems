@@ -15,6 +15,12 @@ Route::middleware(['web', 'auth'])
         Route::put('/profile', 'updateProfile')
             ->name('account.profile.update');
 
+        Route::put('/profile/photo', 'updateProfilePhoto')
+            ->name('account.profile.photo.update');
+
+        Route::delete('/profile/photo', 'destroyProfilePhoto')
+            ->name('account.profile.photo.destroy');
+
         Route::get('/settings', 'settings')
             ->name('account.settings');
 

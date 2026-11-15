@@ -1,13 +1,8 @@
-"""CLI: Extract real historical ETA training data from the Laravel database.
+"""CLI: extract verified genuine ETA training data from the Laravel database.
 
-Usage:
-    python -m eta.prepare_training_data
-
-Queries the Laravel MySQL database (read-only), builds the leakage-safe
-feature matrix labeled with REAL trip duration, and writes:
-    training_data/eta_trip_duration_training.csv
-
-No fake or invented samples are every generated.
+Only GPS rows linked to batch uploads explicitly classified as ``genuine`` are
+written to the ETA training CSV. Unclassified historical rows and demo/sample
+rows are intentionally excluded until their provenance is verified.
 """
 
 import logging
@@ -26,22 +21,25 @@ logger = logging.getLogger("prepare_eta_data")
 def main() -> int:
     db = DbConnection()
     try:
-        logger.info("Querying database for real completed GPS trips...")
+        logger.info("Querying database for verified genuine completed GPS trips...")
         summary = write_training_csv(db)
-
         dataset = summary["dataset"]
+
         print("\n=== ETA training data summary ===")
         print(f"Rows:                {summary['rows']}")
         print(f"Distinct routes:     {summary['distinct_routes']}")
         print(f"Distinct buses:      {summary['distinct_buses']}")
-        print(f"Target range (min):  {summary['target_min']:.1f} - {summary['target_max']:.1f}"
-              f" (mean {summary['target_mean']:.1f})")
+        print(f"Data origins:        {', '.join(summary['data_origins']) or 'none'}")
+        print(
+            f"Target range (min):  {summary['target_min']:.1f} - {summary['target_max']:.1f} "
+            f"(mean {summary['target_mean']:.1f})"
+        )
         print(f"Features:            {', '.join(ETA_FEATURE_COLUMNS)}")
         print(f"Target:              {ETA_TARGET}")
         print(f"Output CSV:          {summary['csv_path']}")
 
         if dataset.empty:
-            print("\nERROR: no usable training rows were produced.")
+            print("\nMODEL NOT READY: no verified genuine ETA training rows were produced.")
             return 1
         print("\nDone.")
         return 0

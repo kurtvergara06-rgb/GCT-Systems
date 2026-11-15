@@ -6,6 +6,7 @@ use App\Models\Admin\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\View\View;
@@ -39,6 +40,52 @@ class AccountController extends Controller
         return redirect()
             ->route('account.profile')
             ->with('success', 'Profile updated successfully.');
+    }
+
+    public function updateProfilePhoto(Request $request): RedirectResponse
+    {
+        /** @var User $user */
+        $user = $request->user();
+
+        $validated = $request->validate([
+            'avatar' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+        ]);
+
+        $path = $validated['avatar']->store('profile-photos', 'public');
+
+        if (! $path) {
+            return back()->withErrors([
+                'avatar' => 'The profile photo could not be saved. Please try again.',
+            ]);
+        }
+
+        $previousPath = $user->avatar_path;
+        $user->update(['avatar_path' => $path]);
+
+        if ($previousPath && $previousPath !== $path) {
+            Storage::disk('public')->delete($previousPath);
+        }
+
+        return redirect()
+            ->route('account.profile')
+            ->with('success', 'Profile photo updated successfully.');
+    }
+
+    public function destroyProfilePhoto(Request $request): RedirectResponse
+    {
+        /** @var User $user */
+        $user = $request->user();
+        $previousPath = $user->avatar_path;
+
+        $user->update(['avatar_path' => null]);
+
+        if ($previousPath) {
+            Storage::disk('public')->delete($previousPath);
+        }
+
+        return redirect()
+            ->route('account.profile')
+            ->with('success', 'Profile photo removed successfully.');
     }
 
     public function settings(Request $request): View

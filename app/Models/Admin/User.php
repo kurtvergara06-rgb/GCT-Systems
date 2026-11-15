@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 
 #[Fillable([
     'name',
@@ -20,6 +21,7 @@ use Illuminate\Notifications\Notifiable;
     'role',
     'status',
     'last_login_at',
+    'avatar_path',
 ])]
 #[Hidden([
     'password',
@@ -44,7 +46,7 @@ class User extends Authenticatable
             return 'admin_head';
         }
 
-        return str_replace(' ', '_', $department) . '_' . $role;
+        return str_replace(' ', '_', $department).'_'.$role;
     }
 
     public function rolePermission(): ?RolePermission
@@ -62,9 +64,18 @@ class User extends Authenticatable
 
         return (bool) data_get(
             $rolePermission->permissions,
-            $module . '.' . $capability,
+            $module.'.'.$capability,
             false
         );
+    }
+
+    public function profilePhotoUrl(): ?string
+    {
+        if (! $this->avatar_path) {
+            return null;
+        }
+
+        return Storage::disk('public')->url($this->avatar_path);
     }
 
     protected function casts(): array

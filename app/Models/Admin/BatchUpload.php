@@ -18,6 +18,14 @@ class BatchUpload extends Model
         ],
     ];
 
+    public const DATA_ORIGINS = [
+        'genuine',
+        'demo',
+        'sample',
+        'synthetic',
+        'unknown',
+    ];
+
     protected $fillable = [
         'file_name',
         'stored_name',
@@ -25,6 +33,7 @@ class BatchUpload extends Model
         'file_type',
         'module',
         'data_type',
+        'data_origin',
         'bus_no',
         'uploaded_by',
         'status',
@@ -55,8 +64,20 @@ class BatchUpload extends Model
                 );
             }
 
+            // Provenance is deliberately fail-closed. A file arriving through
+            // the normal upload UI is not proof that its rows are genuine GCT
+            // operational history; demo/sample files can be uploaded there too.
+            // Only an explicit verification step may set `genuine`.
+            $origin = strtolower(trim((string) ($batchUpload->data_origin ?: 'unknown')));
+            if (! in_array($origin, self::DATA_ORIGINS, true)) {
+                throw new InvalidArgumentException(
+                    "Unsupported batch data origin: {$origin}."
+                );
+            }
+
             $batchUpload->module = $module;
             $batchUpload->data_type = $dataType;
+            $batchUpload->data_origin = $origin;
         });
     }
 

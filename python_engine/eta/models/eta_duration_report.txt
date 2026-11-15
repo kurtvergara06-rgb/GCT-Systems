@@ -1,34 +1,29 @@
 ETA / Trip Duration model report
 ========================================
-Feature target:     actual_trip_duration (minutes)
-Feature inputs:     route_encoded, distance_km, route_estimated_time_minutes, departure_hour, day_of_week, is_weekend, shift_encoded, bus_no_encoded
-Samples available:  362
-Training rows:      289
-Test rows:          73
+Training source:    SYNTHETIC / DEMO
+Production status:  MODEL NOT READY
 
-Metrics (held-out test set):
-  MAE : 4.62 minutes
-  RMSE: 6.13 minutes
-  R2  : 0.8243
+IMPORTANT
+---------
+This committed artifact matches the repository DemoDataSeeder routes and is
+retained only for development/demo behavior. It must never be presented or
+served as a genuine GCT production model.
 
-Label range (training):
-  min : 14.0
-  max : 92.0
-  mean: 43.8
+Legacy evaluation (random 80/20 split; development reference only):
+  Samples: 362
+  Train:   289
+  Test:    73
+  MAE:     4.62 minutes
+  RMSE:    6.13 minutes
+  R2:      0.8243
 
-Feature importances:
-  route_estimated_time_minutes       0.3093
-  distance_km                        0.2981
-  route_encoded                      0.2843
-  bus_no_encoded                     0.0451
-  day_of_week                        0.0326
-  departure_hour                     0.0157
-  shift_encoded                      0.0118
-  is_weekend                         0.0031
+These metrics are not evidence of production readiness because the underlying
+records are generated demo data and the legacy split is not chronological.
 
-Configuration (reused project-wide RF convention):
-  n_estimators=200, max_depth=None, min_samples_leaf=2,
-  max_features='sqrt', random_state=42, n_jobs=-1
-
-Note: the label is the REAL GPS trip duration (minutes). It is
-NEVER included as an input feature (no target leakage).
+Production retraining requirements:
+  - batch_uploads.data_origin = genuine
+  - at least 50 verified GPS trip records
+  - at least 3 distinct routes
+  - chronological newest-trip holdout
+  - model MAE must beat the operator route-time baseline
+  - compatible model/feature schema and scikit-learn runtime

@@ -151,21 +151,19 @@ class AiModelStatusService
         $dataSource = strtolower(trim((string) ($status['data_source'] ?? '')));
         $productionFlag = ($status['is_production_model'] ?? false) === true;
 
-        // ETA became a genuine-only model before the shared provenance fields
-        // existed. The Python API now exposes them, but this fallback keeps the
-        // UI correct while mixed deployments roll forward.
-        if ($key === 'eta' && $dataSource === '' && ($status['source'] ?? null) === 'ml') {
-            $dataSource = 'genuine';
-            $productionFlag = $modelReady;
-        }
-
+        // Fail closed. Missing provenance is unknown, never implicitly genuine.
         $genuine = $dataSource === 'genuine';
+        $developmentSource = in_array(
+            $dataSource,
+            ['sample', 'synthetic', 'generated', 'demo', 'development'],
+            true
+        );
         $productionReady = $modelReady && $genuine && $productionFlag;
         $runtimeMode = strtolower(trim((string) ($status['runtime_mode'] ?? '')));
         $demoReady = ! app()->environment('production')
             && (bool) config('services.ai.allow_demo_models', false)
             && $modelReady
-            && ! $genuine
+            && $developmentSource
             && in_array($runtimeMode, ['development', 'dev', 'demo', 'local', 'testing', 'test'], true);
         $sampleCount = (int) ($status['sample_count'] ?? $status['training_record_count'] ?? 0);
         $datasetType = trim((string) ($status['dataset_type'] ?? ''));
@@ -179,7 +177,7 @@ class AiModelStatusService
         } elseif ($demoReady) {
             $state = 'Simulation Ready';
             $tone = 'partial';
-        } elseif ($modelReady && ! $genuine) {
+        } elseif ($modelReady && $developmentSource) {
             $state = 'Development Only';
             $tone = 'warning';
         } else {

@@ -57,6 +57,7 @@
             substr($nameParts->get(0, ''), 0, 1)
             . substr($nameParts->get(1, ''), 0, 1)
         ) ?: 'U';
+        $profilePhotoUrl = $user->profilePhotoUrl();
     @endphp
 
     <div class="app account-page">
@@ -85,10 +86,41 @@
                 {{-- Hero Identity Card --}}
                 <div class="account-hero-card">
                     <div class="account-hero-identity">
-                        <div class="account-avatar-wrapper">
-                            <div class="account-avatar-large">{{ $initials }}</div>
-                            <span class="account-avatar-status-dot" title="Active Account"></span>
-                        </div>
+                        <form
+                            action="{{ route('account.profile.photo.update', [], false) }}"
+                            method="POST"
+                            enctype="multipart/form-data"
+                            class="account-avatar-form"
+                            data-avatar-upload-form
+                        >
+                            @csrf
+                            @method('PUT')
+                            <button
+                                type="button"
+                                class="account-avatar-wrapper account-avatar-trigger"
+                                data-avatar-trigger
+                                aria-label="Choose a new profile photo"
+                            >
+                                <span class="account-avatar-large" data-avatar-preview>
+                                    @if ($profilePhotoUrl)
+                                        <img src="{{ $profilePhotoUrl }}" alt="{{ $user->name }} profile photo">
+                                    @else
+                                        <span data-avatar-initials>{{ $initials }}</span>
+                                    @endif
+                                </span>
+                                <span class="account-avatar-edit" aria-hidden="true">
+                                    <i class="fa-solid fa-camera"></i>
+                                </span>
+                                <span class="account-avatar-status-dot" title="Active Account"></span>
+                            </button>
+                            <input
+                                type="file"
+                                name="avatar"
+                                accept="image/jpeg,image/png,image/webp"
+                                class="account-avatar-input"
+                                data-avatar-input
+                            >
+                        </form>
                         <div class="account-hero-copy">
                             <h2>{{ $user->name }}</h2>
                             <div class="account-hero-badges">
@@ -105,38 +137,85 @@
                                     {{ $user->status ?: 'Active' }}
                                 </span>
                             </div>
+                            <div class="account-avatar-help">
+                                <span>Click the photo to choose and crop a JPG, PNG, or WebP image up to 2 MB.</span>
+                                @if ($profilePhotoUrl)
+                                    <form
+                                        action="{{ route('account.profile.photo.destroy', [], false) }}"
+                                        method="POST"
+                                        data-confirm-form
+                                        data-confirm-title="Remove Profile Photo"
+                                        data-confirm-message="Remove your current profile photo and return to your initials?"
+                                        data-confirm-button="Remove Photo"
+                                        data-confirm-type="danger"
+                                    >
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="account-avatar-remove">Remove photo</button>
+                                    </form>
+                                @endif
+                            </div>
+                            @error('avatar')
+                                <span class="account-field-error account-avatar-error">{{ $message }}</span>
+                            @enderror
+                            <span class="account-field-error account-avatar-error" data-avatar-client-error hidden></span>
                         </div>
                     </div>
+                </div>
 
-                    <div class="account-hero-meta">
-                        <div class="account-hero-meta-item">
-                            <div class="account-hero-meta-icon">
-                                <i class="fa-solid fa-id-badge"></i>
+                <div class="account-crop-modal" data-avatar-crop-modal hidden>
+                    <div class="account-crop-backdrop" data-avatar-crop-cancel></div>
+                    <section
+                        class="account-crop-dialog"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="avatarCropTitle"
+                    >
+                        <div class="account-crop-header">
+                            <div>
+                                <span class="account-crop-eyebrow">Profile photo</span>
+                                <h2 id="avatarCropTitle">Crop your photo</h2>
+                                <p>Drag the image to reposition it. Use the slider to zoom.</p>
                             </div>
-                            <div class="account-hero-meta-text">
-                                <span>System ID</span>
-                                <strong>{{ $displayUserId }}</strong>
+                            <button
+                                type="button"
+                                class="account-crop-close"
+                                data-avatar-crop-cancel
+                                aria-label="Close crop dialog"
+                            >&times;</button>
+                        </div>
+
+                        <div class="account-crop-workspace">
+                            <div class="account-crop-viewport" data-avatar-crop-viewport>
+                                <img data-avatar-crop-image alt="Photo selected for cropping" draggable="false">
+                                <div class="account-crop-mask" aria-hidden="true"></div>
                             </div>
                         </div>
-                        <div class="account-hero-meta-item">
-                            <div class="account-hero-meta-icon">
-                                <i class="fa-solid fa-shield-halved"></i>
-                            </div>
-                            <div class="account-hero-meta-text">
-                                <span>Account Health</span>
-                                <strong>Verified Active</strong>
-                            </div>
+
+                        <label class="account-crop-zoom" for="avatarCropZoom">
+                            <i class="fa-solid fa-image" aria-hidden="true"></i>
+                            <input
+                                id="avatarCropZoom"
+                                type="range"
+                                min="1"
+                                max="3"
+                                step="0.01"
+                                value="1"
+                                data-avatar-crop-zoom
+                            >
+                            <i class="fa-solid fa-magnifying-glass-plus" aria-hidden="true"></i>
+                        </label>
+
+                        <div class="account-crop-actions">
+                            <button type="button" class="account-crop-button secondary" data-avatar-crop-cancel>
+                                Cancel
+                            </button>
+                            <button type="button" class="account-crop-button primary" data-avatar-crop-apply>
+                                <i class="fa-solid fa-crop-simple"></i>
+                                Crop & Upload
+                            </button>
                         </div>
-                        <div class="account-hero-meta-item">
-                            <div class="account-hero-meta-icon">
-                                <i class="fa-solid fa-clock-rotate-left"></i>
-                            </div>
-                            <div class="account-hero-meta-text">
-                                <span>Last Activity</span>
-                                <strong>{{ $user->last_login_at?->format('M d, Y h:i A') ?? 'Current Session' }}</strong>
-                            </div>
-                        </div>
-                    </div>
+                    </section>
                 </div>
 
                 {{-- Unified Module Tabs --}}

@@ -240,6 +240,7 @@
                                             :subtitle="$user->email"
                                             :initials="$initials"
                                             :tone="$avatarTone"
+                                            :image-url="$user->profilePhotoUrl()"
                                         />
                                     </td>
 
@@ -290,6 +291,7 @@
                                                 data-status="{{ $user->status }}"
                                                 data-last-login="{{ $lastLoginDisplay }}"
                                                 data-initials="{{ $initials }}"
+                                                data-avatar-url="{{ $user->profilePhotoUrl() }}"
                                             />
 
                                             <x-ui.action-button
@@ -504,7 +506,10 @@
             </div>
 
             <div class="view-user-top">
-                <div class="view-avatar" id="viewUserInitials">--</div>
+                <div class="view-avatar">
+                    <img id="viewUserAvatarImage" src="" alt="" hidden>
+                    <span id="viewUserInitials">--</span>
+                </div>
                 <div class="view-user-meta">
                     <div class="view-user-name-row">
                         <h3 id="viewUserName">—</h3>
