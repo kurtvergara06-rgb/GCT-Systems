@@ -15,6 +15,14 @@
         'inventory' => 'Admin.Analytics.descriptive.inventory',
     ];
 
+    $domainStyles = [
+        'all' => 'resources/css/Admin/Analytics/descriptive/all.css',
+        'fleet-trip' => 'resources/css/Admin/Analytics/descriptive/fleet-trip.css',
+        'fuel' => 'resources/css/Admin/Analytics/descriptive/fuel.css',
+        'bus-health' => 'resources/css/Admin/Analytics/descriptive/bus-health.css',
+        'inventory' => 'resources/css/Admin/Analytics/descriptive/inventory.css',
+    ];
+
     $activeDomain = array_key_exists($domain, $domainViews) ? $domain : 'all';
 
     $trendCount = max(1, $trend->count());
@@ -79,21 +87,21 @@
     $deltaText = function (?float $value): string {
         return $value === null ? 'New' : (($value > 0 ? '+' : '') . number_format($value, 1) . '%');
     };
-@endphp
 
-<x-layout.app
-    title="FROMS - Descriptive Analytics"
-    :assets="[
+    $pageAssets = [
         'resources/css/Admin/Analytics/fleet-trip.css',
         'resources/css/Admin/Analytics/fleet-trip-redesign.css',
         'resources/css/Admin/Analytics/fleet-trip-rankings.css',
         'resources/css/Admin/Analytics/analytics-stage-hub.css',
-    ]"
->
+        $domainStyles[$activeDomain],
+    ];
+@endphp
+
+<x-layout.app title="FROMS - Descriptive Analytics" :assets="$pageAssets">
     <div class="app">
         <x-layout.sidebar department="Admin" />
 
-        <main class="main analytics-stage-page fleet-trip-page descriptive-analytics-page">
+        <main class="main analytics-stage-page fleet-trip-page descriptive-analytics-page descriptive-domain-{{ $activeDomain }}">
             <x-layout.topbar title="Descriptive Analytics" subtitle="What happened based on recorded operational data." />
 
             <section class="analytics-domain-toolbar descriptive-toolbar">
