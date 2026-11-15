@@ -124,12 +124,10 @@
         </form>
 
         <div class="table-wrap">
-          <table class="inventory-table">
+          <table class="inventory-table warehouse-part-table">
             <thead>
               <tr>
                 <th>PR #</th>
-                <th>JO No.</th>
-                <th>Bus #</th>
                 <th>Item</th>
                 <th class="qty-col">Quantity</th>
                 <th class="qty-col">On Hand</th>
@@ -143,21 +141,42 @@
             <tbody>
               @forelse($purchaseRequests as $partRequest)
                 @php
+                  /*
+                    Display logic:
+                    - Original PR may still be Approved in database.
+                    - If missing parts were already sent to Purchase,
+                      show it as For Purchase in Warehouse table.
+                  */
                   $status = $partRequest->status ?? 'Approved';
+
+                  if (($partRequest->missing_pr_already_created ?? false) && $status === 'Approved') {
+                      $status = 'For Purchase';
+                  }
+
                   $statusClass = strtolower(str_replace([' ', '/'], ['-', '-'], $status));
 
-                  $quantity = $partRequest->quantity ?? 0;
-                  $itemName = $partRequest->first_item_name ?? $partRequest->item ?? '—';
+                  $itemName = $partRequest->first_item_display ?? '—';
+                  $quantity = $partRequest->first_quantity_display ?? '0';
+                  $onHand = $partRequest->first_on_hand_display ?? '0';
 
-                  // On hand is only number, not 0 / 2
-                  $onHand = $partRequest->on_hand_available ?? $partRequest->on_hand ?? 0;
+                  $inventoryStatus = $partRequest->first_inventory_status ?? $partRequest->inventory_label ?? 'Not Available';
 
-                  $inventoryStatus = $partRequest->inventory_label ?? 'Not Available';
-                  $inventoryClass = $inventoryStatus === 'Available' ? 'available' : 'not-available';
+                  $inventoryClass = match ($inventoryStatus) {
+                      'Available' => 'available',
+                      'Not Fully Available' => 'not-fully-available',
+                      default => 'not-available',
+                  };
+
                   $onHandClass = $inventoryStatus === 'Available' ? 'enough' : 'low';
 
                   $canIssue = $partRequest->can_issue ?? false;
-                  $needsPurchase = $partRequest->needs_purchase ?? false;
+
+                  /*
+                    Hide Send to Purchase button if missing parts
+                    were already sent to Purchase.
+                  */
+                  $needsPurchase = ($partRequest->needs_purchase ?? false)
+                    && ! ($partRequest->missing_pr_already_created ?? false);
                 @endphp
 
                 <tr>
@@ -165,13 +184,9 @@
                     <strong>{{ $partRequest->pr_no }}</strong>
                   </td>
 
-                  <td>
-                    <strong>{{ $partRequest->job_order_no }}</strong>
+                  <td class="item-col">
+                    {{ $itemName }}
                   </td>
-
-                  <td>{{ $partRequest->bus_no }}</td>
-
-                  <td>{{ $itemName }}</td>
 
                   <td class="qty-col">
                     {{ $quantity }}
@@ -200,7 +215,7 @@
                   </td>
 
                   <td class="actions-col">
-                    <div class="actions">
+                    <div class="actions warehouse-actions">
 
                       <button
                         type="button"
@@ -216,6 +231,7 @@
                         data-status="{{ $status }}"
                         data-remarks="{{ $partRequest->remarks ?? 'No remarks' }}"
                         data-created="{{ $partRequest->created_at ? $partRequest->created_at->format('M d, Y') : '—' }}"
+                        data-parts='@json($partRequest->parts_breakdown ?? [])'
                       >
                         <i class="fa-solid fa-eye"></i>
                       </button>
@@ -230,11 +246,10 @@
 
                           <button
                             type="submit"
-                            class="send-purchase-btn"
+                            class="send-purchase-btn icon-only-btn"
                             title="Send to Purchase"
                           >
                             <i class="fa-solid fa-cart-shopping"></i>
-                            <span>Send</span>
                           </button>
                         </form>
                       @endif
@@ -249,11 +264,10 @@
 
                           <button
                             type="submit"
-                            class="issue-part-btn"
+                            class="issue-part-btn icon-only-btn"
                             title="Issue Parts"
                           >
                             <i class="fa-solid fa-box-open"></i>
-                            <span>Issue</span>
                           </button>
                         </form>
                       @endif
@@ -263,7 +277,7 @@
                 </tr>
               @empty
                 <x-ui.empty-row
-                  colspan="10"
+                  colspan="8"
                   message="No approved part requests found."
                 />
               @endforelse
@@ -279,6 +293,7 @@
 
   </div>
 
+  {{-- VIEW MODAL --}}
   <div id="viewPrModal" class="modal-overlay warehouse-view-overlay">
     <div class="warehouse-edit-style-modal">
 
@@ -317,18 +332,11 @@
         </div>
 
         <div class="warehouse-field full">
-          <label>Requested Item / Part</label>
-          <input id="view_item" type="text" value="—" readonly>
-        </div>
+          <label>Requested Parts Breakdown</label>
 
-        <div class="warehouse-field">
-          <label>Quantity</label>
-          <input id="view_quantity" type="text" value="—" readonly>
-        </div>
-
-        <div class="warehouse-field">
-          <label>On Hand</label>
-          <input id="view_on_hand" type="text" value="—" readonly>
+          <div id="view_parts_breakdown" class="parts-breakdown-box">
+            <div class="parts-breakdown-empty">No parts found.</div>
+          </div>
         </div>
 
         <div class="warehouse-field">

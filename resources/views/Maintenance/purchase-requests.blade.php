@@ -302,32 +302,11 @@
     </main>
   </div>
 
-  @php
-    $autoJobOrder = $selectedJobOrder ?? null;
-
-    $autoFirstPartName = '';
-    $autoFirstPartQty = 1;
-
-    if ($autoJobOrder && $autoJobOrder->part_needed) {
-      $firstPartRaw = trim(explode(',', $autoJobOrder->part_needed)[0] ?? '');
-
-      if (str_contains($firstPartRaw, ' - Qty:')) {
-        [$name, $qty] = explode(' - Qty:', $firstPartRaw, 2);
-
-        $autoFirstPartName = trim($name);
-        $autoFirstPartQty = max(1, (int) trim($qty));
-      } else {
-        $autoFirstPartName = $firstPartRaw;
-        $autoFirstPartQty = 1;
-      }
-    }
-  @endphp
-
   {{-- NEW PR MODAL --}}
   <div
     id="prModal"
-    class="modal-overlay {{ $autoJobOrder ? 'show active' : '' }}"
-    style="{{ $autoJobOrder ? 'display: flex;' : '' }}"
+    class="modal-overlay {{ isset($selectedJobOrder) && $selectedJobOrder ? 'show active' : '' }}"
+    style="{{ isset($selectedJobOrder) && $selectedJobOrder ? 'display: flex;' : '' }}"
   >
     <div class="modal-box pr-jo-style-modal">
 
@@ -347,7 +326,7 @@
 
         <div class="pr-jo-section-title full-width">
           <h3>Purchase Request Information</h3>
-          <p>Select a job order and review the auto-filled part information.</p>
+          <p>Select a job order and review the requested parts.</p>
         </div>
 
         <div class="pr-jo-form-group">
@@ -370,22 +349,11 @@
                 value="{{ $jobOrder->job_order_no }}"
                 data-bus="{{ $jobOrder->bus_no }}"
                 data-parts="{{ $jobOrder->part_needed }}"
-                {{ $autoJobOrder && $autoJobOrder->id === $jobOrder->id ? 'selected' : '' }}
+                {{ isset($selectedJobOrder) && $selectedJobOrder && $selectedJobOrder->id === $jobOrder->id ? 'selected' : '' }}
               >
                 {{ $jobOrder->job_order_no }}
               </option>
             @endforeach
-
-            @if($autoJobOrder && isset($jobOrders) && !$jobOrders->contains('id', $autoJobOrder->id))
-              <option
-                value="{{ $autoJobOrder->job_order_no }}"
-                data-bus="{{ $autoJobOrder->bus_no }}"
-                data-parts="{{ $autoJobOrder->part_needed }}"
-                selected
-              >
-                {{ $autoJobOrder->job_order_no }}
-              </option>
-            @endif
           </select>
         </div>
 
@@ -395,7 +363,7 @@
             type="text"
             name="bus_no"
             id="busNoInput"
-            value="{{ $autoJobOrder ? $autoJobOrder->bus_no : '' }}"
+            value="{{ isset($selectedJobOrder) && $selectedJobOrder ? $selectedJobOrder->bus_no : '' }}"
             placeholder="Auto-filled from Job Order"
             required
           >
@@ -407,36 +375,25 @@
         </div>
 
         <div class="pr-jo-form-group full-width">
-          <label>Requested Item / Part</label>
-          <input
-            type="text"
-            name="item"
-            id="partInput"
-            value="{{ $autoFirstPartName }}"
-            placeholder="Requested item / part"
-            required
+          <label>Requested Parts</label>
+
+          <div
+            id="newPrPartsContainer"
+            class="pr-parts-container"
+            data-initial-parts="{{ isset($selectedJobOrder) && $selectedJobOrder ? $selectedJobOrder->part_needed : '' }}"
           >
+            {{-- JS creates rows here --}}
+          </div>
+
+          <small>Add each part separately so Warehouse can check inventory correctly.</small>
         </div>
 
-        <div class="pr-jo-form-group">
-          <label>Quantity</label>
-          <input
-            type="number"
-            name="quantity"
-            id="quantityInput"
-            min="1"
-            value="{{ $autoFirstPartQty }}"
-            placeholder="Quantity"
-            required
-          >
-        </div>
-
-        <div class="pr-jo-form-group">
+        <div class="pr-jo-form-group full-width">
           <label>Remarks</label>
           <input
             type="text"
             name="remarks"
-            value="{{ $autoJobOrder ? 'Created from Job Order ' . $autoJobOrder->job_order_no : '' }}"
+            value="{{ isset($selectedJobOrder) && $selectedJobOrder ? 'Created from Job Order ' . $selectedJobOrder->job_order_no : '' }}"
             placeholder="Optional remarks..."
           >
         </div>
@@ -500,14 +457,11 @@
         </div>
 
         <div class="pr-jo-form-group full-width">
-          <label>Requested Item / Part</label>
+          <label>Requested Parts</label>
 
           <div id="editPrPartsContainer" class="pr-parts-container">
             {{-- JS creates rows here --}}
           </div>
-
-          <input type="hidden" name="item" id="edit_item">
-          <input type="hidden" name="quantity" id="edit_quantity">
         </div>
 
         <div class="pr-jo-form-group full-width">
