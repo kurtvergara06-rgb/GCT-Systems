@@ -65,4 +65,16 @@ return [
         ),
     ],
 
+    'operation_ai' => [
+    'base_url' => env(
+        'OPERATION_AI_BASE_URL',
+        'http://127.0.0.1:8000'
+    ),
+
+    'timeout' => (int) env(
+        'OPERATION_AI_TIMEOUT',
+        5
+    ),
+],
+
 ];

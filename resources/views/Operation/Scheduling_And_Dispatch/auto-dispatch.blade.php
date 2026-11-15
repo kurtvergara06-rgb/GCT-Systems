@@ -320,11 +320,6 @@
             </div>
 
             <div id="autoSchedulingConflictContent"></div>
-
-            <a href="/operation/driver-bus-assignment" class="resolve-conflict-btn">
-                <i class="fa-solid fa-screwdriver-wrench"></i>
-                Resolve Manually
-            </a>
         </section>
     </main>
 </div>
