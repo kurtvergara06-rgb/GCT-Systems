@@ -47,3 +47,7 @@ Artisan::command('activity-logs:prune {--days=}', function () {
 Schedule::command('activity-logs:prune')
     ->dailyAt('02:30')
     ->withoutOverlapping();
+
+Schedule::command('operation:mark-missed-trips')
+    ->everyMinute()
+    ->withoutOverlapping();

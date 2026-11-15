@@ -24,3 +24,33 @@
     justify-content: flex-end;
     gap: 0 !important;
 }
+
+/*
+ * Keep search and option filters level with each page's existing date filter.
+ * Date inputs themselves are deliberately excluded: their current sizing is
+ * the reference, not something this shared rule should change.
+ *
+ * The native date input is enhanced into a .gct-picker-trigger whose actual
+ * visible minimum height is 46px (date-time-picker.css), even though page CSS
+ * sets the hidden original input to 40px. Match that visible trigger, not the
+ * hidden input. Limit this to filtering toolbars to avoid form/modal changes.
+ */
+:is(.ddr-page .ddr-toolbar, .trip-records-page .trip-toolbar) {
+    --date-peer-control-height: 46px;
+}
+
+:is(.ddr-page .ddr-toolbar, .trip-records-page .trip-toolbar)
+    :is(.ddr-search input, .trip-search input, .ddr-filter select, .trip-filter select, .ddr-clear-btn, .trip-clear-btn) {
+    box-sizing: border-box;
+    height: var(--date-peer-control-height);
+    min-height: var(--date-peer-control-height);
+    max-height: var(--date-peer-control-height);
+}
+
+/* Standard toolbars that actually expose a date filter. */
+.toolbar:has(input[type="date"]) :is(.search-box input, .mini-search input, .filter-group select, .table-actions select) {
+    box-sizing: border-box;
+    height: 46px;
+    min-height: 46px;
+    max-height: 46px;
+}

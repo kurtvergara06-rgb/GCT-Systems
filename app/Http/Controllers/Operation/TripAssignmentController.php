@@ -63,8 +63,17 @@ class TripAssignmentController extends Controller
         $request->validate([
             'trip_date' => ['sometimes', 'nullable', 'date_format:Y-m-d'],
         ]);
-        $today = now(config('app.business_timezone', 'Asia/Manila'))->toDateString();
-        $selectedTripDate = $request->input('trip_date') ?: $today;
+
+        if ($request->filled('trip_date')) {
+            $request->session()->put(
+                'operation.selected_trip_date',
+                $request->input('trip_date')
+            );
+        }
+
+        $selectedTripDate = $request->input('trip_date')
+            ?: $request->session()->get('operation.selected_trip_date')
+            ?: now(config('app.business_timezone', 'Asia/Manila'))->toDateString();
         $query->whereDate('trip_date', $selectedTripDate);
 
         if (
@@ -81,18 +90,21 @@ class TripAssignmentController extends Controller
                 $now = now(config('app.business_timezone', 'Asia/Manila'))
                     ->startOfMinute();
 
-                $query
-                    ->where('assignment_status', 'Unassigned')
-                    ->where('status', 'Scheduled')
-                    ->where(function ($missedQuery) use ($now): void {
-                        $missedQuery
-                            ->whereDate('trip_date', '<', $now->toDateString())
-                            ->orWhere(function ($sameDay) use ($now): void {
-                                $sameDay
-                                    ->whereDate('trip_date', $now->toDateString())
-                                    ->whereTime('departure_time', '<', $now->format('H:i:s'));
-                            });
-                    });
+                $query->where(function ($missedQuery) use ($now): void {
+                    $missedQuery->where('status', 'Missed')
+                        ->orWhere(function ($overdue) use ($now): void {
+                            $overdue->where('assignment_status', 'Unassigned')
+                                ->where('status', 'Scheduled')
+                                ->where(function ($dateQuery) use ($now): void {
+                                    $dateQuery
+                                        ->whereDate('trip_date', '<', $now->toDateString())
+                                        ->orWhere(function ($sameDay) use ($now): void {
+                                            $sameDay->whereDate('trip_date', $now->toDateString())
+                                                ->whereTime('departure_time', '<', $now->format('H:i:s'));
+                                        });
+                                });
+                        });
+                });
             } else {
                 $query->where('status', $status);
             }

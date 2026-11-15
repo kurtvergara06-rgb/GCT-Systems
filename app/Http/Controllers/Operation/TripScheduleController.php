@@ -56,7 +56,16 @@ class TripScheduleController extends Controller
         $request->validate([
             'trip_date' => ['sometimes', 'required', 'date_format:Y-m-d'],
         ]);
+
+        if ($request->filled('trip_date')) {
+            $request->session()->put(
+                'operation.selected_trip_date',
+                $request->input('trip_date')
+            );
+        }
+
         $selectedTripDate = $request->input('trip_date')
+            ?: $request->session()->get('operation.selected_trip_date')
             ?: now(config('app.business_timezone', 'Asia/Manila'))->toDateString();
         $query->whereDate('trip_date', $selectedTripDate);
 
@@ -168,7 +177,7 @@ class TripScheduleController extends Controller
                 );
 
                 $trip = TripSchedule::create([
-                    'trip_code' => 'TMP-' . Str::upper(Str::random(20)),
+                    'trip_code' => 'TMP-'.Str::upper(Str::random(20)),
                     'trip_date' => $validated['trip_date'],
                     'shuttle_route_id' => $route->id,
                     'departure_time' => $departure->format('H:i:s'),
@@ -200,6 +209,9 @@ class TripScheduleController extends Controller
             $trip->id,
             "{$trip->trip_code} was added to Trip Schedule."
         );
+
+        // Show the date just created, including after leaving and returning.
+        $request->session()->put('operation.selected_trip_date', $validated['trip_date']);
 
         session()->flash(
             'success',
@@ -389,7 +401,7 @@ class TripScheduleController extends Controller
         ], fn ($value) => $value !== null && $value !== '');
 
         return new RedirectResponse('/operation/trip-schedule'
-            . ($filters ? '?' . http_build_query($filters) : ''));
+            .($filters ? '?'.http_build_query($filters) : ''));
     }
 
     private function validateTrip(
@@ -407,7 +419,7 @@ class TripScheduleController extends Controller
 
         if (! $allowsHistoricalCorrection) {
             $tripDateRules[] = 'after_or_equal:'
-                . now(config('app.business_timezone', 'Asia/Manila'))->toDateString();
+                .now(config('app.business_timezone', 'Asia/Manila'))->toDateString();
         }
 
         $rules = [
@@ -451,8 +463,7 @@ class TripScheduleController extends Controller
             && ! $allowsHistoricalCorrection
         ) {
             throw ValidationException::withMessages([
-                'departure_time' =>
-                    'Trip departure must be the current time or a future time.',
+                'departure_time' => 'Trip departure must be the current time or a future time.',
             ]);
         }
 
@@ -553,8 +564,7 @@ class TripScheduleController extends Controller
     ): void {
         if (! $this->tripCanBeEdited($tripSchedule)) {
             throw ValidationException::withMessages([
-                'trip_schedule' =>
-                    'This trip is no longer editable because it is assigned, dispatched, completed, or already has operational history.',
+                'trip_schedule' => 'This trip is no longer editable because it is assigned, dispatched, completed, or already has operational history.',
             ]);
         }
     }
@@ -628,7 +638,7 @@ class TripScheduleController extends Controller
     private function tripCodeFromId(
         int $tripId
     ): string {
-        return 'T-' . str_pad(
+        return 'T-'.str_pad(
             (string) $tripId,
             3,
             '0',
