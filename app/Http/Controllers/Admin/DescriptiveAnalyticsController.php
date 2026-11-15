@@ -26,24 +26,35 @@ class DescriptiveAnalyticsController extends Controller
             : 'all';
 
         [$start, $end, $periodLabel] = $this->periodBounds($period);
+        [$comparisonStart, $comparisonEnd, $comparisonLabel] = $this->comparisonBounds($period, $start, $end);
 
-        $records = GpsTripRecord::query()
-            ->whereBetween('beginning_at', [$start, $end])
-            ->whereHas('batchUpload', fn ($query) => $query->where('status', 'Processed'))
-            ->when($selectedBus !== '' && $selectedBus !== 'ALL', fn ($query) => $query->whereRaw('UPPER(TRIM(bus_no)) = ?', [$selectedBus]))
+        $records = $this->tripQuery($selectedBus, $start, $end)
+            ->orderBy('beginning_at')
+            ->get();
+        $previousRecords = $this->tripQuery($selectedBus, $comparisonStart, $comparisonEnd)
             ->orderBy('beginning_at')
             ->get();
 
-        $tripCount = $records->count();
-        $totalDistance = (float) $records->sum('mileage_km');
-        $totalIdleMinutes = (float) $records->sum('idling_minutes');
-        $totalMotionMinutes = (float) $records->sum('in_motion_minutes');
-        $durations = $records
-            ->map(fn (GpsTripRecord $record) => $this->durationMinutes($record))
-            ->filter(fn (float $minutes) => $minutes > 0);
-        $averageTripDuration = $durations->isNotEmpty() ? (float) $durations->average() : 0.0;
-        $speedMinutes = $totalMotionMinutes > 0 ? $totalMotionMinutes : (float) $durations->sum();
-        $averageSpeed = $speedMinutes > 0 ? $totalDistance / ($speedMinutes / 60) : 0.0;
+        $currentMetrics = $this->tripMetrics($records);
+        $previousMetrics = $this->tripMetrics($previousRecords);
+
+        $tripCount = $currentMetrics['tripCount'];
+        $totalDistance = $currentMetrics['totalDistance'];
+        $totalIdleMinutes = $currentMetrics['totalIdleMinutes'];
+        $averageTripDuration = $currentMetrics['averageTripDuration'];
+        $averageSpeed = $currentMetrics['averageSpeed'];
+
+        $comparison = [
+            'label' => $comparisonLabel,
+            'trips' => $this->percentChange($tripCount, $previousMetrics['tripCount']),
+            'distance' => $this->percentChange($totalDistance, $previousMetrics['totalDistance']),
+            'idle' => $this->percentChange($totalIdleMinutes, $previousMetrics['totalIdleMinutes']),
+            'duration' => $this->percentChange($averageTripDuration, $previousMetrics['averageTripDuration']),
+            'speed' => $this->percentChange($averageSpeed, $previousMetrics['averageSpeed']),
+            'previousTrips' => $previousMetrics['tripCount'],
+            'previousDistance' => $previousMetrics['totalDistance'],
+            'previousIdleMinutes' => $previousMetrics['totalIdleMinutes'],
+        ];
 
         $buses = Bus::query()->orderBy('bus_no')->get();
         $totalBuses = $buses->count();
@@ -65,6 +76,8 @@ class DescriptiveAnalyticsController extends Controller
         $inventoryHealthy = max(0, $inventoryTotal - $inventoryLow - $inventoryCritical);
 
         $fuel = app(FuelAnalyticsController::class)->data($request);
+        $notificationData = app(NotificationCenterController::class)->data($request);
+        $recentAlerts = collect($notificationData['notifications']->items())->take(3)->values();
 
         return view('Admin.Analytics.descriptive', compact(
             'period',
@@ -77,6 +90,7 @@ class DescriptiveAnalyticsController extends Controller
             'totalIdleMinutes',
             'averageTripDuration',
             'averageSpeed',
+            'comparison',
             'totalBuses',
             'activeBuses',
             'underMaintenance',
@@ -89,8 +103,51 @@ class DescriptiveAnalyticsController extends Controller
             'inventoryHealthy',
             'inventoryLow',
             'inventoryCritical',
-            'fuel'
+            'fuel',
+            'recentAlerts'
         ));
+    }
+
+    private function tripQuery(string $selectedBus, Carbon $start, Carbon $end)
+    {
+        return GpsTripRecord::query()
+            ->whereBetween('beginning_at', [$start, $end])
+            ->whereHas('batchUpload', fn ($query) => $query->where('status', 'Processed'))
+            ->when(
+                $selectedBus !== '' && $selectedBus !== 'ALL',
+                fn ($query) => $query->whereRaw('UPPER(TRIM(bus_no)) = ?', [$selectedBus])
+            );
+    }
+
+    private function tripMetrics(Collection $records): array
+    {
+        $tripCount = $records->count();
+        $totalDistance = (float) $records->sum('mileage_km');
+        $totalIdleMinutes = (float) $records->sum('idling_minutes');
+        $totalMotionMinutes = (float) $records->sum('in_motion_minutes');
+        $durations = $records
+            ->map(fn (GpsTripRecord $record) => $this->durationMinutes($record))
+            ->filter(fn (float $minutes) => $minutes > 0);
+        $averageTripDuration = $durations->isNotEmpty() ? (float) $durations->average() : 0.0;
+        $speedMinutes = $totalMotionMinutes > 0 ? $totalMotionMinutes : (float) $durations->sum();
+        $averageSpeed = $speedMinutes > 0 ? $totalDistance / ($speedMinutes / 60) : 0.0;
+
+        return compact(
+            'tripCount',
+            'totalDistance',
+            'totalIdleMinutes',
+            'averageTripDuration',
+            'averageSpeed'
+        );
+    }
+
+    private function percentChange(float|int $current, float|int $previous): ?float
+    {
+        if ((float) $previous === 0.0) {
+            return (float) $current === 0.0 ? 0.0 : null;
+        }
+
+        return (((float) $current - (float) $previous) / abs((float) $previous)) * 100;
     }
 
     private function periodBounds(string $period): array
@@ -103,6 +160,34 @@ class DescriptiveAnalyticsController extends Controller
             'this-year' => [$now->copy()->startOfYear(), $now->copy()->endOfDay(), 'This Year'],
             default => [$now->copy()->startOfMonth(), $now->copy()->endOfDay(), 'This Month'],
         };
+    }
+
+    private function comparisonBounds(string $period, Carbon $start, Carbon $end): array
+    {
+        if ($period === 'this-month') {
+            $previousStart = $start->copy()->subMonthNoOverflow()->startOfMonth();
+            $elapsedDays = max(0, $start->copy()->startOfDay()->diffInDays($end->copy()->startOfDay()));
+            $previousEnd = $previousStart->copy()->addDays($elapsedDays)->endOfDay();
+            if ($previousEnd->month !== $previousStart->month) {
+                $previousEnd = $previousStart->copy()->endOfMonth();
+            }
+
+            return [$previousStart, $previousEnd, 'vs last month'];
+        }
+
+        if ($period === 'this-year') {
+            return [
+                $start->copy()->subYear()->startOfYear(),
+                $end->copy()->subYear()->endOfDay(),
+                'vs last year',
+            ];
+        }
+
+        $days = max(1, $start->copy()->startOfDay()->diffInDays($end->copy()->startOfDay()) + 1);
+        $previousEnd = $start->copy()->subSecond();
+        $previousStart = $previousEnd->copy()->subDays($days - 1)->startOfDay();
+
+        return [$previousStart, $previousEnd, 'vs previous period'];
     }
 
     private function durationMinutes(GpsTripRecord $record): float
@@ -152,7 +237,10 @@ class DescriptiveAnalyticsController extends Controller
                 $bucketEnd = $end->copy();
             }
 
-            $count = $records->filter(fn (GpsTripRecord $record) => $record->beginning_at && $record->beginning_at->betweenIncluded($bucketStart, $bucketEnd))->count();
+            $count = $records->filter(
+                fn (GpsTripRecord $record) => $record->beginning_at
+                    && $record->beginning_at->betweenIncluded($bucketStart, $bucketEnd)
+            )->count();
             $trend->push((object) ['label' => $bucketStart->format('M j'), 'count' => $count]);
         }
 
@@ -165,7 +253,10 @@ class DescriptiveAnalyticsController extends Controller
         $routes = $records
             ->groupBy(fn (GpsTripRecord $record) => $this->routeLabel($record))
             ->map(function (Collection $rows, string $label) use ($totalTrips): object {
-                $durations = $rows->map(fn (GpsTripRecord $record) => $this->durationMinutes($record))->filter(fn (float $minutes) => $minutes > 0);
+                $durations = $rows
+                    ->map(fn (GpsTripRecord $record) => $this->durationMinutes($record))
+                    ->filter(fn (float $minutes) => $minutes > 0);
+
                 return (object) [
                     'label' => $label,
                     'trips' => $rows->count(),
@@ -178,6 +269,7 @@ class DescriptiveAnalyticsController extends Controller
             ->values();
 
         $maxTrips = max(1, (int) ($routes->max('trips') ?? 0));
+
         return $routes->map(function ($route) use ($maxTrips) {
             $route->progress = ($route->trips / $maxTrips) * 100;
             return $route;
@@ -203,6 +295,7 @@ class DescriptiveAnalyticsController extends Controller
             ->values();
 
         $maxTrips = max(1, (int) ($activity->max('trips') ?? 0));
+
         return $activity->map(function ($bus) use ($maxTrips) {
             $bus->progress = ($bus->trips / $maxTrips) * 100;
             return $bus;
