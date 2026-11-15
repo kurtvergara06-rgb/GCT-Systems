@@ -2,6 +2,42 @@ import '../../echo';
 
 window.GCTPartialNavigation.registerInitializer('operation-bus-master-list', '.bus-master-list-page', () => {
 
+    // A single floating disclosure avoids increasing table row height.
+    let busPopover = null;
+    const dismissBusPopover = () => {
+        if (!busPopover) return;
+        busPopover.node.remove();
+        busPopover.button.setAttribute('aria-expanded', 'false');
+        busPopover = null;
+    };
+    document.addEventListener('click', (event) => {
+        const button = event.target.closest('[data-bus-more]');
+        if (!button) {
+            if (busPopover && !event.target.closest('.bus-floating-popover')) dismissBusPopover();
+            return;
+        }
+        if (busPopover?.button === button) { dismissBusPopover(); return; }
+        dismissBusPopover();
+        const source = button.parentElement.querySelector('.bus-more-source');
+        if (!source) return;
+        const node = document.createElement('div');
+        node.className = 'bus-floating-popover';
+        node.innerHTML = source.innerHTML;
+        document.body.append(node);
+        const rect = button.getBoundingClientRect();
+        const width = Math.min(260, window.innerWidth - 16);
+        node.style.width = width + 'px';
+        node.style.left = Math.max(8, Math.min(rect.left, window.innerWidth - width - 8)) + 'px';
+        node.style.top = '0px';
+        const height = node.getBoundingClientRect().height;
+        node.style.top = Math.max(8, Math.min(rect.bottom + 5, window.innerHeight - height - 8)) + 'px';
+        button.setAttribute('aria-expanded', 'true');
+        busPopover = { button, node };
+    });
+    document.addEventListener('scroll', dismissBusPopover, true);
+    window.addEventListener('resize', dismissBusPopover);
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') dismissBusPopover(); });
+
     // Popovers live in the AJAX-swapped records region: bind per initializer run.
     const compactFilters = document.getElementById('busListFilters');
     if (compactFilters) {
@@ -264,6 +300,91 @@ window.GCTPartialNavigation.registerInitializer('operation-bus-master-list', '.b
     }
 
 
+    // Edit client allocations as chips while submitting the existing comma-separated
+    // client_name field to the established pivot-table validation.
+    const clientEditors = new Map();
+    document.querySelectorAll('[data-bus-multi-client]').forEach((editor) => {
+        const hidden = editor.querySelector('input[name="client_name"]');
+        const entry = editor.querySelector('.bus-multi-client-entry input');
+        const tags = editor.querySelector('[data-client-tags]');
+        const addButton = editor.querySelector('[data-add-client]');
+        if (!hidden || !entry || !tags || !addButton) return;
+        let clients = [];
+        const render = () => {
+            hidden.value = clients.join(', ');
+            tags.replaceChildren();
+            clients.forEach((name, index) => {
+                const chip = document.createElement('span');
+                chip.className = 'bus-client-tag';
+                const label = document.createElement('span');
+                label.textContent = name;
+                const remove = document.createElement('button');
+                remove.type = 'button';
+                remove.setAttribute('aria-label', 'Remove ' + name);
+                remove.textContent = '×';
+                remove.addEventListener('click', () => {
+                    clients.splice(index, 1);
+                    render();
+                    entry.focus();
+                });
+                chip.append(label, remove);
+                tags.append(chip);
+            });
+        };
+        const setClients = (value) => {
+            clients = [];
+            String(value || '').split(',').forEach((item) => {
+                const name = item.trim().replace(/\\s+/g, ' ');
+                if (name && !clients.some((existing) => existing.toLowerCase() === name.toLowerCase())) clients.push(name);
+            });
+            entry.value = '';
+            render();
+        };
+        const addClient = () => {
+            const name = entry.value.trim().replace(/\\s+/g, ' ');
+            if (!name) return;
+            if (clients.length >= 20) { entry.setCustomValidity('Maximum of 20 clients.'); entry.reportValidity(); return; }
+            entry.setCustomValidity('');
+            if (!clients.some((existing) => existing.toLowerCase() === name.toLowerCase())) clients.push(name);
+            entry.value = '';
+            render();
+            entry.focus();
+        };
+        entry.addEventListener('input', () => entry.setCustomValidity(''));
+        entry.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' || event.key === ',') {
+                event.preventDefault();
+                addClient();
+            }
+        });
+        addButton.addEventListener('click', addClient);
+        editor.closest('form')?.addEventListener('submit', () => {
+            if (entry.value.trim()) addClient();
+        });
+        setClients(hidden.value);
+        clientEditors.set(hidden.id, setClients);
+    });
+
+    // Reserve is a shared standby asset: client details belong only to Regular buses.
+    const syncBusPurposeSections = (form) => {
+        if (!form) return;
+        const purpose = form.querySelector('select[name="fleet_purpose"]');
+        const reserve = purpose?.value === 'Reserve';
+        form.querySelectorAll('[data-bus-client-panel]').forEach((section) => {
+            section.hidden = reserve;
+            section.style.display = reserve ? 'none' : '';
+            section.querySelectorAll('input[name="client_name"]').forEach((input) => {
+                if (reserve) clientEditors.get(input.id)?.('');
+                input.disabled = reserve;
+            });
+        });
+    };
+    document.querySelectorAll('.bus-master-list-page select[name="fleet_purpose"]').forEach((select) => {
+        const form = select.closest('form');
+        syncBusPurposeSections(form);
+        select.addEventListener('change', () => syncBusPurposeSections(form));
+    });
+
     // Delegated view action works after AJAX table filtering and remains read-only.
     const viewBusModal = document.getElementById('viewBusModal');
     const viewBusPage = document.querySelector('.bus-master-list-page');
@@ -280,11 +401,18 @@ window.GCTPartialNavigation.registerInitializer('operation-bus-master-list', '.b
             status: button.dataset.status,
             fleetPurpose: button.dataset.fleetPurpose,
             routeGrouping: button.dataset.displayRoute || button.dataset.routeGrouping,
+            clientAllocation: button.dataset.clientAllocationType
+                ? button.dataset.clientAllocationType + ' — ' + (button.dataset.clientNames || '')
+                : 'Not allocated',
+            authorizedDrivers: button.dataset.authorizedDrivers || 'No authorized drivers',
         };
         for (const [key, value] of Object.entries(fields)) {
             const target = viewBusModal.querySelector('[data-bus-detail="' + key + '"]');
             if (target) target.textContent = String(value || '—');
         }
+        viewBusModal.querySelectorAll('[data-bus-regular-detail]').forEach((item) => {
+            item.hidden = button.dataset.fleetPurpose === 'Reserve';
+        });
         const statusBadge = viewBusModal.querySelector('.bus-details-status');
         if (statusBadge) {
             const validStatuses = ['Active', 'Inactive', 'Under Maintenance'];
@@ -369,6 +497,14 @@ window.GCTPartialNavigation.registerInitializer('operation-bus-master-list', '.b
                 |--------------------------------------------------------------------------
                 */
 
+                const clientInput = document.getElementById('edit_client_name');
+                const clientNotice = document.getElementById('existingSharedClientNotice');
+                const isShared = button.dataset.clientAllocationType === 'Shared';
+                // Show all saved clients so editing can add/remove individual names
+                // instead of silently replacing an existing shared allocation.
+                if (clientInput) clientEditors.get('edit_client_name')?.(button.dataset.clientNames || '');
+                if (clientNotice) clientNotice.hidden = !isShared;
+
                 if (editBusNo) {
                     editBusNo.value = button.dataset.busNo || '';
                     const locked = button.dataset.busNoLocked === '1';
@@ -419,6 +555,7 @@ window.GCTPartialNavigation.registerInitializer('operation-bus-master-list', '.b
                 }
                 const editFleetPurpose = document.getElementById('edit_fleet_purpose');
                 if (editFleetPurpose) editFleetPurpose.value = button.dataset.fleetPurpose || 'Regular';
+                syncBusPurposeSections(editBusForm);
 
 
                 // Operation cannot edit any master-list field while Maintenance

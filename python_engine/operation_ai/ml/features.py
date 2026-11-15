@@ -20,18 +20,7 @@ from ..schemas import BusData, DriverData, TripData
 # Static encoding maps (kept identical to training-time maps)
 # ---------------------------------------------------------------------------
 
-_SHIFT_MAP = {"Morning": 0, "Afternoon": 1, "Night": 2, "Swing": 3}
-
-# Training normalizes driver status strings to lowercase; these are the
-# present-attendance encodings used by the driver model.
-_PRESENT_STATUS = {"present", "late", "on duty"}
-_DRIVER_STATUS_MAP = {
-    "Present": 1.0,
-    "Late": 0.5,
-    "Absent": 0.0,
-    "On Leave": 0.0,
-    "On Duty": 0.0,
-}
+_SHIFT_MAP = {"morning": 0, "afternoon": 1, "night": 2, "swing": 3}
 
 _BUS_STATUS_MAP = {
     "Active": 1.0,
@@ -69,9 +58,7 @@ def _clamp(value, lo=0.0, hi=1.0) -> float:
 # ---------------------------------------------------------------------------
 
 DRIVER_FEATURE_NAMES: List[str] = [
-    "shift_encoded",
     "attendance_rate",
-    "late_rate",
     "total_attendance",
     "distinct_dates",
 ]
@@ -80,7 +67,6 @@ DRIVER_FEATURE_NAMES: List[str] = [
 def _build_driver_history() -> Dict[str, float]:
     return {
         "attendance_rate": 0.0,
-        "late_rate": 0.0,
         "total_attendance": 0.0,
         "distinct_dates": 0.0,
         "has_history": 0.0,
@@ -99,19 +85,8 @@ def encode_driver_features(
     which the model then treats as an unobserved driver.
     """
     hist = history or _build_driver_history()
-    has_history = 1.0 if (history and _safe(hist.get("has_history"))) else 0.0
-
-    shift = str(driver.shift or "").lower()
-    shift_encoded = float(_SHIFT_MAP.get(shift, -1.0))
-    if has_history == 0.0 or not shift:
-        # No observed attendance history, or no shift on the candidate:
-        # an unknown modal shift is the safest encoding for an unobserved driver.
-        shift_encoded = -1.0
-
     values = [
-        shift_encoded,
         _clamp(_safe(hist.get("attendance_rate"))),
-        _clamp(_safe(hist.get("late_rate"))),
         _safe(hist.get("total_attendance")),
         _safe(hist.get("distinct_dates")),
     ]

@@ -5,21 +5,22 @@
     'resources/css/Main-styles/sidebar.css',
     'resources/css/Main-styles/form-components.css',
     'resources/css/Operation/Attendance/driver-attendance.css',
-    'resources/css/Operation/Attendance/batch-attendance.css',
     'resources/js/Main-js/sidebar.js',
-    'resources/js/Operation/Attendance/driver-attendance.js',
-    'resources/js/Operation/Attendance/batch-attendance.js'
+    'resources/js/Operation/Attendance/driver-attendance.js'
   ]"
 >
+  @php
+    $canEditOperation = auth()->user()?->hasSystemPermission('operation', 'edit') ?? false;
+  @endphp
 
   <div class="app">
 
     <x-layout.sidebar department="Operation" />
 
-    <main class="main driver-attendance-page">
+    <main class="main driver-attendance-page" data-attendance-business-date="{{ now(config('app.business_timezone', 'Asia/Manila'))->toDateString() }}" data-attendance-auto-today="{{ $activeTab === 'today' ? '1' : '0' }}">
       <x-layout.topbar
         title="Driver Attendance"
-        subtitle="Manage and track driver attendance and availability"
+        subtitle="DDR-verified driver attendance history"
         notification-count="6"
       />
 
@@ -34,47 +35,56 @@
       @endif
 
       <section data-ajax-region="summary" class="stats-grid">
-        <x-ui.summary-card label="Present" value="{{ $present }}" small="Drivers present" icon="fa-user-check" color="green" />
-        <x-ui.summary-card label="Absent" value="{{ $absent }}" small="Drivers absent" icon="fa-user-xmark" color="red" />
-        <x-ui.summary-card label="Late" value="{{ $late }}" small="Drivers who were late" icon="fa-clock" color="yellow" />
-        <x-ui.summary-card label="On Duty" value="{{ $onDuty }}" small="Assigned drivers" icon="fa-bus" color="blue" />
+        <x-ui.summary-card label="Present" value="{{ $present }}" small="Confirmed Present for selected date" icon="fa-user-check" color="green" />
+        <x-ui.summary-card label="Assigned Present" value="{{ $assignedPresent }}" small="Present drivers assigned to active trips" icon="fa-bus" color="blue" />
+        <x-ui.summary-card label="Unassigned Present" value="{{ $unassignedPresent }}" small="Present drivers without active trip assignments" icon="fa-user-clock" color="yellow" />
+        <x-ui.summary-card label="Attendance Records" value="{{ $attendanceRecords }}" small="All saved statuses for selected date" icon="fa-clipboard-list" color="purple" />
       </section>
 
       <section data-ajax-region="records" class="table-card attendance-card">
         <div class="section-header">
           <div>
             <h2>Driver Attendance List</h2>
-            <p>Track driver attendance, bus assignment, time-in, time-out, and attendance status</p>
+            <p>Attendance is automatically verified by a valid DDR.</p>
           </div>
-<button
-            type="button"
-            class="primary-btn batch-attendance-open"
-            data-batch-attendance-open
-          >
-            <i class="fa-solid fa-clipboard-check"></i>
-            Record Daily Attendance
-          </button>
+          <span class="gct-pill gct-pill--unassigned">Automatically verified from DDR</span>
 
         </div>
 
-        <x-ui.table-toolbar action="{{ route('driver-attendance', [], false) }}" data-server-filter="true" search-label="Search Driver Attendance" search-placeholder="Search driver name, ID, bus, or shift..." :filter-count="1 + (int) (request()->filled('status') && request('status') !== 'All Status')"  :show-filter-count="false" filter-title="Filter Driver Attendance" :sort-options="['driver_name' => 'Driver Name', 'driver_id' => 'Driver ID', 'shift' => 'Shift', 'status' => 'Status', 'time_in' => 'Time In']" default-sort="driver_name">
+        <div class="attendance-record-controls">
+          <nav class="attendance-record-tabs" aria-label="Driver attendance record groups">
+            <a class="attendance-record-tab {{ $activeTab === 'today' ? 'is-active' : '' }}"
+               href="{{ route('driver-attendance', [], false) }}?{{ http_build_query(array_merge(request()->except(['tab', 'attendance_date', 'page']), ['tab' => 'today'])) }}"
+               @if($activeTab === 'today') aria-current="page" @endif>
+              <i class="fa-solid fa-calendar-check" aria-hidden="true"></i> Today's Attendance
+            </a>
+            <a class="attendance-record-tab {{ $activeTab === 'history' ? 'is-active' : '' }}"
+               href="{{ route('driver-attendance', [], false) }}?{{ http_build_query(array_merge(request()->except(['tab', 'page']), ['tab' => 'history'])) }}"
+               @if($activeTab === 'history') aria-current="page" @endif>
+              <i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> Attendance History
+            </a>
+          </nav>
+        <x-ui.table-toolbar action="{{ route('driver-attendance', [], false) }}" data-server-filter="true" search-label="Search Driver Attendance" search-placeholder="Search driver name, ID, or bus..." :filter-count="1 + (int) (request()->filled('status') && request('status') !== 'All Status')"  :show-filter-count="false" filter-title="Filter Driver Attendance" :sort-options="['driver_name' => 'Driver Name', 'driver_id' => 'Driver ID', 'status' => 'Status', 'time_in' => 'Time In']" default-sort="driver_name">
+          <x-slot:hidden><input type="hidden" name="tab" value="{{ $activeTab }}"></x-slot:hidden>
           <x-slot:filters>
             <x-ui.table-toolbar-field label="Status" name="status" default="All Status"><option value="All Status" @selected(request('status', 'All Status') === 'All Status')>All Statuses</option>@foreach(['Present','Late','On Duty','Absent','On Leave'] as $status)<option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>@endforeach</x-ui.table-toolbar-field>
-            <x-ui.table-toolbar-field label="Attendance Date" name="attendance_date" type="date" :value="$summaryDate" />
+            @if($activeTab === 'history')
+              <x-ui.table-toolbar-field label="Attendance Date" name="attendance_date" type="date" :value="$summaryDate" />
+            @endif
           </x-slot:filters>
         </x-ui.table-toolbar>
 
-        <div class="table-wrap" style="margin-top: 16px;">
+        </div>
+
+        <div class="table-wrap attendance-record-table-wrap">
           <table class="attendance-table">
-            <colgroup><col style="width: 12%"><col style="width: 19%"><col style="width: 10%"><col style="width: 19%"><col style="width: 10%"><col style="width: 10%"><col style="width: 10%"><col style="width: 10%"></colgroup>
+            <colgroup><col style="width: 16%"><col style="width: 20%"><col style="width: 23%"><col style="width: 13%"><col style="width: 13%"><col style="width: 15%"></colgroup>
             <thead>
               <tr>
-                <th>ID</th>
+                <th>Driver ID</th>
                 <th>Driver</th>
-                <th>Shift</th>
                 <th>Current Assignment</th>
                 <th>Time-in</th>
-                <th>Time-out</th>
                 <th>Status</th>
                 <th>Actions</th>
               </tr>
@@ -93,7 +103,7 @@
                   };
 
                   $activeAssignments = $attendance
-                    ->tripAssignments
+                    ->displayTripAssignments
                     ->filter(function ($assignment) {
                       $trip = $assignment->tripSchedule;
                       return $trip && ! in_array($trip->status, ['Cancelled', 'Completed'], true);
@@ -116,8 +126,7 @@
 
                 <tr>
                   <td><x-ui.id-badge :value="$attendance->driver_id" size="small" /></td>
-                  <td><strong>{{ $attendance->driver_name }}</strong></td>
-                  <td><span class="gct-pill gct-pill--shift-{{ strtolower($attendance->shift) }}">{{ $attendance->shift }}</span></td>
+                  <td><div class="attendance-driver-identity"><span class="attendance-driver-avatar"><i class="fa-solid fa-user" aria-hidden="true"></i></span><span class="attendance-driver-details"><strong title="{{ $attendance->driver_name }}">{{ $attendance->driver_name }}</strong><small>Driver profile</small></span></div></td>
                   <td>
                     @if($primaryAssignment)
                       <div class="current-assignment-cell">
@@ -140,10 +149,10 @@
                     @endif
                   </td>
                   <td>{{ $attendance->time_in ? date('h:i A', strtotime($attendance->time_in)) : '--:--' }}</td>
-                  <td>{{ $attendance->time_out ? date('h:i A', strtotime($attendance->time_out)) : '--:--' }}</td>
                   <td><x-ui.status-badge :status="$attendance->status" class="gct-pill gct-pill--attendance {{ $statusClass }}" /></td>
                   <td>
                     <div class="actions">
+                      @if($canEditOperation)
                       <button
                         type="button"
                         class="action-btn view open-view-driver-attendance-modal"
@@ -160,50 +169,17 @@
                         <i class="fa-solid fa-eye"></i>
                       </button>
 
-                      <button
-                        type="button"
-                        class="action-btn edit open-edit-driver-attendance-modal"
-                        @if($attendance->tripAssignments->isNotEmpty()) disabled aria-disabled="true" title="Locked: linked trip or bus assignment" @else title="Edit" @endif
-                        data-id="{{ $attendance->id }}"
-                        data-driver-id="{{ $attendance->driver_id }}"
-                        data-driver-name="{{ $attendance->driver_name }}"
-                        data-shift="{{ $attendance->shift }}"
-                        data-attendance-date="{{ $attendance->attendance_date ? $attendance->attendance_date->format('Y-m-d') : '' }}"
-                        data-time-in="{{ $attendance->time_in }}"
-                        data-time-out="{{ $attendance->time_out }}"
-                        data-status="{{ $attendance->status }}"
-                        data-update-url="{{ route('driver-attendance.update', $attendance->id, false) }}"
-                      >
-                        <i class="fa-solid fa-pen-to-square"></i>
-                      </button>
 
-                      <form
-                        id="deleteDriverAttendanceForm-{{ $attendance->id }}"
-                        action="{{ route('driver-attendance.destroy', $attendance->id, false) }}"
-                        method="POST"
-                      >
-                        @csrf
-                        @method('DELETE')
-                        <button
-                          type="button"
-                          class="action-btn delete open-delete-driver-attendance-modal"
-                          title="Delete"
-                          data-id="{{ $attendance->id }}"
-                          data-driver-id="{{ $attendance->driver_id }}"
-                          data-driver-name="{{ $attendance->driver_name }}"
-                        >
-                          <i class="fa-solid fa-trash"></i>
-                        </button>
-                      </form>
+                      @endif
                     </div>
                   </td>
                 </tr>
               @empty
                 <x-ui.empty-row
-                  colspan="8"
+                  colspan="6"
                   icon="fa-user-clock"
                   message="No Driver Attendance Records Found"
-                  description="No driver attendance records match your selected date or shift filter."
+                  description="No driver attendance records match your selected filters."
                 />
               @endforelse
             </tbody>
@@ -215,65 +191,6 @@
 
         {{-- Modals are part of the navigable page so their handlers reinitialize on return. --}}
 
-
-  <x-ui.form-modal
-    id="driverAttendanceModal"
-    title="Driver Attendance Details"
-    title-id="driverAttendanceModalTitle"
-    description="Review and update driver attendance information."
-    icon="fa-id-card"
-    size="large"
-    form-id="driverAttendanceForm"
-    :action="route('driver-attendance.store', [], false)"
-    method="POST"
-    submit-text="Save Record"
-    submit-text-id="driverAttendanceSubmitText"
-    submit-icon="fa-floppy-disk"
-    cancel-text="Cancel"
-    cancel-id="cancelDriverAttendanceModal"
-    close-id="closeDriverAttendanceModal"
-    :confirm="true"
-    confirm-title="Save Driver Attendance?"
-    confirm-message="Are you sure you want to save this driver attendance record?"
-    confirm-button="Yes, Save Record"
-    confirm-type="create"
-  >
-    <input type="hidden" name="_method" id="driverAttendanceFormMethod" value="PUT" disabled>
-
-    <div class="ui-form-grid driver-attendance-form-grid">
-      <x-ui.form-field label="Driver ID" name="driver_id_display" id="driverAttendanceDriverId" :value="$nextDriverId" icon="fa-hashtag" :readonly="true" />
-      <x-ui.form-field label="Driver Name" name="driver_name" id="driverAttendanceDriverName" :value="old('driver_name')" placeholder="Example: Rowell Amano" icon="fa-user" :required="true" />
-      <x-ui.form-select
-        label="Shift"
-        name="shift"
-        id="driverAttendanceShift"
-        :options="['Morning' => 'Morning', 'Afternoon' => 'Afternoon']"
-        :selected="old('shift', 'Morning')"
-        icon="fa-business-time"
-        :required="true"
-      />
-      <x-ui.form-field label="Date" name="attendance_date" id="driverAttendanceDate" type="date" :value="old('attendance_date', now()->format('Y-m-d'))" icon="fa-calendar-day" :required="true" />
-      <x-ui.form-field label="Time-in" name="time_in" id="driverAttendanceTimeIn" type="time" :value="old('time_in')" icon="fa-clock" />
-      <x-ui.form-field label="Time-out" name="time_out" id="driverAttendanceTimeOut" type="time" :value="old('time_out')" icon="fa-clock-rotate-left" />
-      <x-ui.form-select
-        label="Status"
-        name="status"
-        id="driverAttendanceStatus"
-        :options="['Present' => 'Present', 'Absent' => 'Absent', 'On Leave' => 'On Leave', 'On Duty' => 'On Duty']"
-        :selected="old('status', 'Present')"
-        icon="fa-circle-check"
-        :required="true"
-      />
-    </div>
-
-    <div class="attendance-form-note">
-      <i class="fa-solid fa-circle-info"></i>
-      <div>
-        <strong>Automatic assignment display</strong>
-        <span>Bus and trip assignments are managed in Driver & Bus Assignment or Auto Scheduling and are displayed here automatically.</span>
-      </div>
-    </div>
-  </x-ui.form-modal>
 
   <x-ui.form-modal
     id="viewDriverAttendanceModal"
@@ -296,15 +213,7 @@
     </div>
   </x-ui.form-modal>
 
-  <x-ui.action-buttom-modal
-    mode="delete"
-    id="deleteDriverAttendanceModal"
-    delete-title="Delete Driver Attendance Record?"
-    delete-message="Are you sure you want to delete"
-    name-id="deleteDriverAttendanceName"
-    cancel-id="cancelDeleteDriverAttendance"
-    confirm-id="confirmDeleteDriverAttendance"
-  />
+
 
     </main>
   </div>

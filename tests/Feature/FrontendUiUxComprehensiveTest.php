@@ -421,10 +421,9 @@ class FrontendUiUxComprehensiveTest extends TestCase
             'Trip Schedule' => route('trip-schedule'),
             'Driver & Bus Assignment' => route('driver-bus-assignment'),
             'Auto Scheduling' => route('auto-scheduling'),
+            'Client Trip Times' => route('client-trip-times'),
             'Driver Master List' => route('operation.personnel.drivers'),
-            'Mechanic Master List' => route('operation.personnel.mechanics'),
             'Driver Attendance' => route('driver-attendance'),
-            'Mechanic Attendance' => route('mechanic-attendance'),
             'Bus Master List' => route('bus-master-list'),
             'Trip Records' => route('trip-records'),
             'Daily Drivers Report' => route('daily-driver-reports'),
@@ -476,7 +475,8 @@ class FrontendUiUxComprehensiveTest extends TestCase
         $resp->assertSee('id="tripModalTitle"', false);
         $resp->assertSee('id="tripSubmitText"', false);
         $resp->assertSee('id="viewTripModal"', false);
-        $resp->assertSee('trip-editor-intro', false);
+        $resp->assertSee('trip-editor-grid', false);
+        $resp->assertSee('id="departureTimeSlot" disabled hidden', false);
         $resp->assertSee('trip-details-hero', false);
     }
 
@@ -490,6 +490,8 @@ class FrontendUiUxComprehensiveTest extends TestCase
             'Maintenance Referrals' => route('maintenance-referrals'),
             'Job Orders' => route('job-orders'),
             'PMS Scheduling' => route('PMS-Scheduling'),
+            'Mechanic Master List' => route('maintenance.personnel.mechanics'),
+            'Mechanic Attendance' => route('mechanic-attendance'),
             'Mechanic Availability' => route('mechanic-list'),
             'Fuel Reports' => route('fuel-reports'),
             'Purchase Requests' => route('purchase-requests'),

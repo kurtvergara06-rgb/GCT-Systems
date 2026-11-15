@@ -179,6 +179,15 @@ def driver_readiness() -> ComponentReadiness:
     features_ok = _load_feature_layout(_paths["driver_features"], DRIVER_FEATURE_NAMES) is not None
     state = _component_state("driver")
 
+    if not state["ready"]:
+        return ComponentReadiness(
+            ml_ready=False,
+            source="data_fallback",
+            reason="Driver ML is not validated; using data-derived driver reliability.",
+            sample_count=state["sample_count"],
+            model_path=_paths["driver_model"],
+        )
+
     if model is None or not features_ok:
         return ComponentReadiness(
             ml_ready=False,
@@ -254,19 +263,14 @@ def data_derived_driver_score(
 
     Used when the driver ML model is not ready (insufficient training data).
     The value comes from the driver's actual attendance history:
-      reliability = attendance_rate (share of Present/Late records),
-    lightly combined with current status. This is grounded in real attendance
-    data, not arbitrary penalties.
+      reliability = attendance_rate (share of Present records),
+    This is grounded only in real historical attendance data. Scheduling's
+    assumed presence is an eligibility policy, not attendance evidence.
     """
     hist = history or {}
     attendance_rate = float(hist.get("attendance_rate", 0.0))
 
-    # Current-day status modifier, grounded in the real attendance enum.
-    # Current scheduling eligibility is Present-only. Historical Late records
-    # remain in attendance_rate for compatibility with existing model features.
-    status_bonus = 1.0 if driver.status == "Present" else 0.0
-
-    score = 0.7 * attendance_rate + 0.3 * status_bonus
+    score = attendance_rate
     return max(0.0, min(1.0, score))
 
 

@@ -13,13 +13,6 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
 from ml_runtime_policy import evaluate_model_source, synthetic_models_allowed
-from .predict import (
-    inventory_readiness,
-    predict_inventory_demand,
-    prediction_to_dict,
-    reset_cache,
-)
-from .training_data import GENUINE_SCOPE_ID
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -52,6 +45,8 @@ class InventoryPredictionRequest(BaseModel):
 
 @router.get("/status")
 def inventory_model_status() -> dict:
+    from .predict import inventory_readiness
+
     readiness = inventory_readiness()
     source = (
         readiness.source
@@ -117,7 +112,9 @@ def inventory_demand_prediction(payload: InventoryPredictionRequest) -> dict:
             ),
         )
 
-    request_bus = payload.bus_id or GENUINE_SCOPE_ID
+    from .predict import predict_inventory_demand, prediction_to_dict
+
+    request_bus = payload.bus_id or "FLEET"
     prediction = predict_inventory_demand(
         bus_id=request_bus,
         part_id=payload.part_id,
@@ -145,5 +142,7 @@ def inventory_demand_prediction(payload: InventoryPredictionRequest) -> dict:
 
 @router.post("/cache/reset")
 def reset_prediction_cache() -> dict:
+    from .predict import reset_cache
+
     reset_cache()
     return {"success": True, "message": "Inventory model cache reset."}

@@ -311,7 +311,7 @@ class IncidentTest extends TestCase
             'notes' => 'OIC instructed reserve deployment.',
         ])->assertSessionHasNoErrors();
 
-        $this->actingAs($this->user)
+        $this->actingAs($this->reserveDispatchHead())
             ->from(route('incidents.show', ['incident' => $incident->incident_no]))
             ->post(route('incidents.dispatch', ['incident' => $incident->incident_no]), [
                 'replacement_bus_id' => $replacementBus->id,
@@ -352,7 +352,7 @@ class IncidentTest extends TestCase
             'notes' => 'OIC instructed reserve deployment.',
         ])->assertSessionHasNoErrors();
 
-        $this->actingAs($this->user)
+        $this->actingAs($this->reserveDispatchHead())
             ->post(route('incidents.dispatch', ['incident' => $incident->incident_no]), [
                 'replacement_bus_id' => $regularBus->id,
                 'oic_authorized' => '1',
@@ -378,7 +378,7 @@ class IncidentTest extends TestCase
             'notes' => 'OIC instructed reserve deployment.',
         ])->assertSessionHasNoErrors();
 
-        $this->actingAs($this->user)
+        $this->actingAs($this->reserveDispatchHead())
             ->from(route('incidents.show', ['incident' => $incident->incident_no]))
             ->post(route('incidents.dispatch', ['incident' => $incident->incident_no]), [
                 'replacement_bus_id' => $inactiveBus->id,
@@ -398,7 +398,7 @@ class IncidentTest extends TestCase
             'notes' => 'OIC instructed reserve deployment.',
         ])->assertSessionHasNoErrors();
 
-        $this->actingAs($this->user)
+        $this->actingAs($this->reserveDispatchHead())
             ->from(route('incidents.show', ['incident' => $incident->incident_no]))
             ->post(route('incidents.dispatch', ['incident' => $incident->incident_no]), [
                 'replacement_bus_id' => $this->bus->id,
@@ -456,7 +456,7 @@ class IncidentTest extends TestCase
             'notes' => 'OIC noted incident.',
         ])->assertSessionHasNoErrors();
 
-        $this->actingAs($this->user)
+        $this->actingAs($this->reserveDispatchHead())
             ->from(route('incidents.show', ['incident' => $incident->incident_no]))
             ->post(route('incidents.dispatch', ['incident' => $incident->incident_no]), [
                 'replacement_bus_id' => $this->bus->id,
@@ -666,6 +666,15 @@ class IncidentTest extends TestCase
             ->assertSee('Active Incidents')
             ->assertSee('Active Breakdowns')
             ->assertSee('Resolved Today');
+    }
+
+    private function reserveDispatchHead(): User
+    {
+        return User::factory()->create([
+            'department' => 'Operation',
+            'role' => 'head',
+            'status' => 'Active',
+        ]);
     }
 
     private function createIncident(string $type): Incident

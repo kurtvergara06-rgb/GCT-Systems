@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Operation;
 
 use App\Http\Controllers\Controller;
 use App\Models\Operation\IncidentReplacement;
+use App\Models\Operation\OperationClient;
 use App\Models\Operation\ShuttleRoute;
 use App\Models\Operation\TripSchedule;
+use App\Support\ClientTripTimes;
 use App\Support\TableSort;
 use App\Traits\SystemDataUpdateBroadcaster;
 use Carbon\Carbon;
@@ -144,6 +146,32 @@ class TripScheduleController extends Controller
 
         $today = now(config('app.business_timezone', 'Asia/Manila'))->toDateString();
 
+        $operationClients = OperationClient::query()
+            ->where('status', 'Active')
+            ->with('tripTimeConfigurations.slots')
+            ->orderBy('name')
+            ->get();
+
+        $operationClientNames = $operationClients->pluck('name')->values();
+
+        // Active client trip time configurations power the trip editor's
+        // configured slot selection. Disabled configurations are excluded.
+        $clientTripTimeConfigs = [];
+
+        foreach ($operationClients as $operationClient) {
+            foreach ($operationClient->tripTimeConfigurations as $configuration) {
+                $clientTripTimeConfigs[ClientTripTimes::normalizeClientName($operationClient->name)][$configuration->category] = [
+                    'enabled' => (bool) $configuration->is_active,
+                    'start' => ClientTripTimes::inputTimeFromMinutes($configuration->startMinutes()),
+                    'end' => ClientTripTimes::inputTimeFromMinutes($configuration->endMinutes()),
+                    'slots' => array_map(
+                        ClientTripTimes::inputTimeFromMinutes(...),
+                        $configuration->enabledSlotMinutes()
+                    ),
+                ];
+            }
+        }
+
         $operationalTodayTrips = TripSchedule::query()
             ->whereDate('trip_date', $today)
             ->where('status', '!=', 'Cancelled');
@@ -192,7 +220,9 @@ class TripScheduleController extends Controller
                 'incomingServices',
                 'outgoingServices',
                 'totalBusesRequired',
-                'reserveDeployedByTrip'
+                'reserveDeployedByTrip',
+                'operationClientNames',
+                'clientTripTimeConfigs'
             )
         );
     }
@@ -209,6 +239,8 @@ class TripScheduleController extends Controller
                     ->lockForUpdate()
                     ->firstOrFail();
 
+                $this->assertActiveTripClientLocked($validated['client_name'] ?? null);
+
                 $departure = $this->departureDateTime(
                     $validated['trip_date'],
                     $validated['departure_time']
@@ -217,7 +249,10 @@ class TripScheduleController extends Controller
                 $this->assertMinimumRouteDepartureInterval(
                     $validated['trip_date'],
                     $route,
-                    $departure
+                    $departure,
+                    null,
+                    $validated['client_name'] ?? null,
+                    $validated['direction'] ?? null
                 );
 
                 $estimatedArrival = $this->resolveArrivalDateTime(
@@ -229,6 +264,7 @@ class TripScheduleController extends Controller
                     'trip_code' => 'TMP-'.Str::upper(Str::random(20)),
                     'trip_date' => $validated['trip_date'],
                     'shuttle_route_id' => $route->id,
+                    'client_name' => $validated['client_name'] ?? null,
                     'direction' => $validated['direction'] ?? null,
                     'required_buses' => $validated['required_buses'] ?? 1,
                     'departure_time' => $departure->format('H:i:s'),
@@ -311,12 +347,24 @@ class TripScheduleController extends Controller
                         $validated['departure_time']
                     );
 
+                    $effectiveClientName = filled($validated['client_name'] ?? null)
+                        ? $validated['client_name']
+                        : $lockedTrip->client_name;
+
+                    // Recheck client status while holding the client row lock.
+                    // Client deactivation takes the same lock.
+                    if ($validated['status'] !== 'Cancelled') {
+                        $this->assertActiveTripClientLocked($effectiveClientName);
+                    }
+
                     if ($validated['status'] !== 'Cancelled') {
                         $this->assertMinimumRouteDepartureInterval(
                             $validated['trip_date'],
                             $route,
                             $departure,
-                            $lockedTrip->id
+                            $lockedTrip->id,
+                            $effectiveClientName,
+                            $validated['direction'] ?? $lockedTrip->direction
                         );
                     }
 
@@ -337,6 +385,9 @@ class TripScheduleController extends Controller
                     $lockedTrip->update([
                         'trip_date' => $validated['trip_date'],
                         'shuttle_route_id' => $route->id,
+                        'client_name' => filled($validated['client_name'] ?? null)
+                            ? $validated['client_name']
+                            : $lockedTrip->client_name,
                         'direction' => $validated['direction'] ?? $lockedTrip->direction,
                         'required_buses' => $newRequiredBuses,
                         'departure_time' => $departure->format('H:i:s'),
@@ -408,6 +459,10 @@ class TripScheduleController extends Controller
                     return 'Only Scheduled or Cancelled trips may be deleted.';
                 }
 
+                if ($lockedTrip->hasDeparted()) {
+                    return 'Departed or historical trips cannot be deleted.';
+                }
+
                 if (
                     ! in_array($lockedTrip->assignment_status, ['Unassigned', null], true)
                     || $lockedTrip->assignments()->exists()
@@ -469,6 +524,24 @@ class TripScheduleController extends Controller
             .($filters ? '?'.http_build_query($filters) : ''));
     }
 
+    private function assertActiveTripClientLocked(?string $name): void
+    {
+        if (! filled($name)) {
+            return;
+        }
+
+        $client = OperationClient::query()
+            ->whereRaw('LOWER(name) = ?', [mb_strtolower(trim($name))])
+            ->lockForUpdate()
+            ->first();
+
+        if ($client && $client->status !== 'Active') {
+            throw ValidationException::withMessages([
+                'client_name' => 'This client is inactive and cannot be used for new trip scheduling.',
+            ]);
+        }
+    }
+
     private function validateTrip(
         Request $request,
         ?TripSchedule $tripSchedule = null
@@ -499,7 +572,8 @@ class TripScheduleController extends Controller
                 'required',
                 'date_format:H:i',
             ],
-            'direction' => ['nullable', Rule::in(['Incoming', 'Outgoing'])],
+            'client_name' => ['nullable', 'string', 'max:255'],
+            'direction' => [$tripSchedule === null ? 'required' : 'nullable', Rule::in(['Incoming', 'Outgoing'])],
             'required_buses' => ['sometimes', 'integer', 'min:1', 'max:30'],
             'notes' => [
                 'nullable',
@@ -534,6 +608,39 @@ class TripScheduleController extends Controller
             ]);
         }
 
+        $effectiveClientName = filled($validated['client_name'] ?? null)
+            ? $validated['client_name']
+            : $tripSchedule?->client_name;
+
+        $effectiveDirection = $validated['direction']
+            ?? $tripSchedule?->direction;
+
+        // Existing inactive clients cannot receive new or rescheduled services.
+        // Preserve historical corrections that do not change the client.
+        if (filled($effectiveClientName) && (
+            $tripSchedule === null
+            || mb_strtolower(trim((string) $tripSchedule->client_name)) !== mb_strtolower(trim((string) $effectiveClientName))
+            || $validated['trip_date'] !== $tripSchedule->trip_date?->format('Y-m-d')
+            || $validated['departure_time'] !== substr((string) $tripSchedule->departure_time, 0, 5)
+        )) {
+            $inactiveClient = OperationClient::query()
+                ->whereRaw('LOWER(name) = ?', [mb_strtolower(trim($effectiveClientName))])
+                ->where('status', 'Inactive')
+                ->exists();
+
+            if ($inactiveClient) {
+                throw ValidationException::withMessages([
+                    'client_name' => 'This client is inactive and cannot be used for new trip scheduling.',
+                ]);
+            }
+        }
+
+        ClientTripTimes::assertTripDepartureAllowed(
+            $effectiveClientName,
+            $effectiveDirection,
+            $validated['departure_time']
+        );
+
         return $validated;
     }
 
@@ -541,13 +648,17 @@ class TripScheduleController extends Controller
         string $tripDate,
         ShuttleRoute $route,
         Carbon $departure,
-        ?int $ignoreTripId = null
+        ?int $ignoreTripId = null,
+        ?string $clientName = null,
+        ?string $direction = null
     ): void {
         $conflictingTrip = $this->findRouteDepartureConflict(
             $tripDate,
             $route,
             $departure,
-            $ignoreTripId
+            $ignoreTripId,
+            $clientName,
+            $direction
         );
 
         if ($conflictingTrip === null) {
@@ -588,7 +699,9 @@ class TripScheduleController extends Controller
         string $tripDate,
         ShuttleRoute $route,
         Carbon $departure,
-        ?int $ignoreTripId = null
+        ?int $ignoreTripId = null,
+        ?string $clientName = null,
+        ?string $direction = null
     ): ?TripSchedule {
         $query = TripSchedule::query()
             ->whereDate('trip_date', $tripDate)
@@ -603,14 +716,22 @@ class TripScheduleController extends Controller
         $departureMinutes = $this->minutesFromMidnight(
             $departure
         );
+        $normalizedClient = mb_strtolower(trim((string) ($clientName ?? '')));
 
         return $query
             ->get([
                 'id',
                 'departure_time',
+                'client_name',
+                'direction',
             ])
             ->first(
-                function (TripSchedule $trip) use ($departureMinutes): bool {
+                function (TripSchedule $trip) use ($departureMinutes, $normalizedClient, $direction): bool {
+                    $existingClient = mb_strtolower(trim((string) ($trip->client_name ?? '')));
+                    if ($existingClient !== $normalizedClient || $trip->direction !== $direction) {
+                        return false;
+                    }
+
                     $existingDeparture = Carbon::parse(
                         $trip->departure_time
                     );

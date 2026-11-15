@@ -33,6 +33,11 @@
   transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
 }
 
+/* The trigger proxies its source input, including the source's visibility. */
+.gct-picker-trigger[hidden] {
+  display: none !important;
+}
+
 .gct-picker-trigger:hover {
   border-color: #b9c9df;
 }

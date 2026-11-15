@@ -70,19 +70,9 @@ class DailyDriverReportScheduleMatchService
             }
         }
 
-        $matches = $query->get();
-
-        if ($matches->isEmpty()) {
-            return null;
-        }
-
-        if ($matches->count() === 1) {
-            return $matches->first();
-        }
-
-        // More than one assignment on the same date is ambiguous without an
-        // exact trip ticket. Never silently attach operational history to the
-        // merely nearest departure.
+        // A driver and bus may run several trips in one day. Never infer
+        // the actual scheduled trip from driver, bus and date alone.
+        // Explicit assignment links or exact trip-ticket matches are required.
         return null;
     }
 
@@ -187,9 +177,9 @@ class DailyDriverReportScheduleMatchService
             }
         }
 
-        $matches = $query->limit(2)->get();
-
-        return $matches->count() === 1 ? $matches->first() : null;
+        // Additional physical DDR rows must not inherit a trip solely
+        // because it is the only eligible assignment on that date.
+        return null;
     }
 
     /**

@@ -45,6 +45,7 @@ window.realtimePageRouteMap = {
     'Purchase:MaintenanceRequest': ['/maintenance-requests','/purchase-orders','/part-requests','/purchase-requests','/job-orders','/inventory','/admin/dashboard'],
     'Admin:BatchUpload': ['/batch-file-processing','/dashboard-operation','/admin/dashboard'],
     'Operation:Attendance': ['/mechanic-attendance','/driver-attendance','/operation/driver-bus-assignment','/dashboard-operation','/admin/dashboard','/mechanic-list'],
+    'Operation:RolePermission': ['/operation/dashboard','/dashboard-operation','/bus-master-list','/driver-attendance','/mechanic-attendance','/operation/routes','/operation/personnel/drivers','/operation/personnel/mechanics','/operation/trip-schedule','/operation/driver-bus-assignment','/operation/auto-scheduling','/operation/trip-records','/operation/daily-driver-reports','/operation/incidents','/operation/bus-availability'],
     'Operation:Driver': ['/operation/personnel/drivers','/driver-attendance','/operation/driver-bus-assignment','/operation/auto-scheduling','/operation/daily-driver-reports','/dashboard-operation','/admin/dashboard'],
     'Operation:Mechanic': ['/operation/personnel/mechanics','/mechanic-attendance','/mechanic-list','/job-orders','/maintenance-dashboard','/dashboard-operation','/admin/dashboard'],
     'Operation:Bus': ['/operation/bus-availability','/bus-master-list','/operation/driver-bus-assignment','/dashboard-operation','/operation/auto-scheduling','/job-orders','/pms-scheduling','/maintenance-dashboard','/admin/dashboard'],
@@ -327,9 +328,14 @@ window.listenForSystemUpdates = function () {
             // Admin dashboard stays globally informed through the route map.
             if (!isRelevantPage) return;
 
-            if (payload?.entity !== 'RolePermission') {
-                queueRealtimeNotification(payload?.message || 'System data was updated.');
+            // Permission changes can add/remove controls outside AJAX regions,
+            // and revoking View must re-run route authorization immediately.
+            if (payload?.entity === 'RolePermission') {
+                window.location.reload();
+                return;
             }
+
+            queueRealtimeNotification(payload?.message || 'System data was updated.');
 
             if (window.systemUpdatesRegionRefreshTimer) clearTimeout(window.systemUpdatesRegionRefreshTimer);
             window.systemUpdatesRegionRefreshTimer = window.setTimeout(async () => {

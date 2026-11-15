@@ -51,3 +51,7 @@ Schedule::command('activity-logs:prune')
 Schedule::command('operation:mark-missed-trips')
     ->everyMinute()
     ->withoutOverlapping();
+
+Schedule::command('operation:advance-trip-statuses')
+    ->everyMinute()
+    ->withoutOverlapping();

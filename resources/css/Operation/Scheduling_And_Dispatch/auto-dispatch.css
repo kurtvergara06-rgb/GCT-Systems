@@ -4681,3 +4681,517 @@ body.ai-modal-open {
     color: inherit !important;
   }
 }
+
+/* Reserve choices in AI Conflict Report: readable, clearly actionable cards. */
+.auto-scheduling-page .gct-report-reserve-alternatives { display: grid; gap: 10px; }
+.auto-scheduling-page .gct-report-reserve-alternatives .gct-report-option {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 7px;
+  min-height: 100px; padding: 14px 16px !important; margin: 0 !important;
+  background: #fff; border: 1px solid #d9e4f4; border-radius: 12px;
+  font-size: 12px; line-height: 1.5; white-space: normal;
+  user-select: none;
+}
+.auto-scheduling-page .gct-report-reserve-alternatives .gct-report-option strong {
+  font-size: 13px; line-height: 1.4; color: #172d4e;
+}
+.auto-scheduling-page .gct-report-reserve-alternatives .gct-report-option small {
+  font-size: 12px; font-weight: 400; line-height: 1.5;
+  color: #5c6e88; margin: 0 !important;
+}
+.auto-scheduling-page .gct-report-reserve-alternatives .gct-report-option small:last-child {
+  color: #155bd4; font-weight: 700;
+}
+.auto-scheduling-page .gct-report-reserve-alternatives .gct-report-option:hover,
+.auto-scheduling-page .gct-report-reserve-alternatives .gct-report-option:focus-visible {
+  background: #f2f7ff; border-color: #3273dc; outline: 2px solid transparent;
+}
+
+/* Compact exclusive Reserve selection, shared with AI Conflict Report. */
+.gct-report-reserve-alternatives .gct-reserve-choice {
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: space-between;
+  align-items: center !important;
+  min-height: 46px !important;
+  padding: 10px 13px !important;
+  gap: 12px !important;
+  border: 1px solid #d8e2ef;
+  border-radius: 10px;
+  background: #fff;
+  text-align: left;
+}
+.gct-report-reserve-alternatives .gct-reserve-choice-identity {
+  display: inline-flex; align-items: center; gap: 9px; min-width: 0;
+}
+.gct-report-reserve-alternatives .gct-reserve-choice-identity strong {
+  font-size: 12px; font-weight: 700; line-height: 1.4;
+}
+.gct-report-reserve-alternatives .gct-reserve-choice-indicator {
+  width: 17px; height: 17px; flex: 0 0 17px;
+  border-radius: 50%; background: #d1d5db;
+  display: inline-flex; align-items: center; justify-content: center;
+  color: transparent; font-size: 9px;
+}
+.gct-report-reserve-alternatives .gct-reserve-choice.is-selected {
+  border-color: #2563eb; background: #f2f7ff;
+  box-shadow: 0 0 0 1px #2563eb;
+}
+.gct-report-reserve-alternatives .gct-reserve-choice.is-selected .gct-reserve-choice-indicator {
+  color: #fff; background: #2563eb;
+}
+
+/* Keep full Reserve bus labels visible in the compact, verified picker. */
+.gct-report-reserve-alternatives .gct-reserve-choice-identity {
+  flex: 1 1 auto;
+  width: auto;
+  overflow: visible;
+}
+.gct-report-reserve-alternatives .gct-reserve-choice-identity strong {
+  display: inline;
+  flex: 0 1 auto;
+  min-width: 0;
+  width: auto;
+  max-width: none;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.gct-report-reserve-alternatives .gct-reserve-choice-indicator {
+  flex-shrink: 0;
+}
+
+/* Hybrid conflict alternatives: keep eligibility groups explicit. */
+.auto-scheduling-page .gct-alternative-section {
+  display: grid;
+  gap: 10px;
+  padding: 13px;
+  border: 1px solid #d9e4f2;
+  border-radius: 12px;
+  background: #fbfdff;
+}
+.auto-scheduling-page .gct-alternative-section + .gct-alternative-section {
+  margin-top: 12px;
+}
+.auto-scheduling-page .gct-alternative-section > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.auto-scheduling-page .gct-alternative-section > header strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #172d4e;
+  font-size: 12px;
+}
+.auto-scheduling-page .gct-alternative-section > header span {
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 700;
+}
+.auto-scheduling-page .gct-valid-pair-list {
+  display: grid;
+  gap: 8px;
+}
+.auto-scheduling-page .gct-valid-pair {
+  display: grid;
+  gap: 4px;
+  padding: 11px 12px;
+  border: 1px solid #cde5d5;
+  border-radius: 10px;
+  background: #f4fbf6;
+}
+.auto-scheduling-page .gct-valid-pair strong {
+  color: #174b2d;
+  font-size: 12px;
+}
+.auto-scheduling-page .gct-valid-pair small,
+.auto-scheduling-page .gct-valid-pair span {
+  color: #52677c;
+  font-size: 10px;
+  line-height: 1.45;
+}
+.gct-report-reserve-alternatives .gct-reserve-choice-identity {
+  flex-wrap: wrap;
+}
+.gct-report-reserve-alternatives .gct-reserve-choice-identity small {
+  flex-basis: 100%;
+  padding-left: 23px;
+}
+
+/* Inline alternatives: pair cards can be selected without a second modal. */
+.auto-scheduling-page .gct-valid-pair-list .gct-valid-pair {
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  border-radius: 10px;
+}
+.auto-scheduling-page .gct-valid-pair-list .gct-valid-pair[aria-pressed="true"] {
+  border-color: #2563eb;
+  background: #eff6ff;
+  box-shadow: 0 0 0 1px #2563eb;
+}
+.auto-scheduling-page .gct-valid-pair-list .gct-valid-pair:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+/* Preview: visually keep multi-bus slots together without changing assignment data. */
+@media screen {
+  .auto-scheduling-page .auto-schedule-table tbody tr.auto-preview-trip-row td {
+    vertical-align: middle;
+    padding-top: 13px;
+    padding-bottom: 13px;
+  }
+  .auto-scheduling-page .auto-schedule-table tbody tr.auto-trip-first td {
+    border-top: 2px solid #d9e5f3;
+  }
+  .auto-scheduling-page .auto-schedule-table tbody tr.auto-trip-continuation td {
+    border-top: 1px dashed #e0e9f4;
+    background-color: #fafcff;
+  }
+  .auto-scheduling-page .auto-schedule-table tbody tr.auto-trip-first td:first-child {
+    border-left: 3px solid #3478d4;
+  }
+  .auto-scheduling-page .auto-schedule-table tbody tr.auto-trip-continuation td:first-child {
+    border-left: 3px solid #a8c6ea;
+  }
+  .auto-scheduling-page .auto-trip-main-id {
+    display: inline-flex;
+    align-items: center;
+    font-size: 12px;
+    font-weight: 800;
+    color: #173a6e;
+  }
+  .auto-scheduling-page .auto-trip-continuation-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: #607895;
+    white-space: nowrap;
+  }
+  .auto-scheduling-page .auto-bus-preview {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 5px;
+  }
+  .auto-scheduling-page .auto-reserve-note {
+    font-size: 10px;
+    line-height: 1.3;
+    white-space: normal;
+  }
+  .auto-scheduling-page .auto-schedule-table .driver-cell {
+    min-width: 0;
+    align-items: center;
+  }
+  .auto-scheduling-page .auto-schedule-table .route-cell,
+  .auto-scheduling-page .auto-schedule-table .auto-time-cell {
+    min-width: 0;
+  }
+}
+
+/* Shared Incoming/Outgoing preview column geometry; never size from row content. */
+@media screen {
+  .auto-scheduling-page .auto-schedule-table {
+    width: 100%;
+    min-width: 1120px;
+    table-layout: fixed;
+    border-collapse: collapse;
+  }
+  .auto-scheduling-page .auto-schedule-table th,
+  .auto-scheduling-page .auto-schedule-table td {
+    box-sizing: border-box;
+    width: auto !important;
+    min-width: 0;
+    text-align: left;
+    overflow-wrap: break-word;
+  }
+  .auto-scheduling-page .auto-schedule-table th:last-child,
+  .auto-scheduling-page .auto-schedule-table td:last-child {
+    text-align: center;
+  }
+  .auto-scheduling-page .auto-schedule-table .auto-conflict-decision-actions {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+  .auto-scheduling-page .auto-schedule-table .auto-conflict-decision-actions .schedule-action-btn {
+    white-space: nowrap;
+  }
+}
+
+/* With one conflict, let the detailed report use the available width. */
+@media screen and (min-width: 1101px) {
+  .auto-scheduling-page .gct-conflict-workspace.is-single-conflict:not(.is-report-closed) {
+    grid-template-columns: minmax(0, 0.95fr) minmax(430px, 1.25fr);
+  }
+  .auto-scheduling-page .gct-conflict-workspace.is-single-conflict .gct-conflict-report-panel {
+    width: 100%;
+  }
+  .auto-scheduling-page .gct-conflict-workspace.is-single-conflict .gct-conflict-list {
+    align-self: stretch;
+  }
+}
+
+
+/* Formal Auto Scheduling draft sheet: paper-only styling. */
+.gct-auto-print-header,
+.gct-auto-print-signatures { display: none; }
+@media print {
+  body:has(.auto-scheduling-page) .generated-schedule-card::before { content: none !important; }
+  body:has(.auto-scheduling-page) .gct-auto-print-header {
+    display: flex !important;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12mm;
+    padding: 0 0 5mm;
+    margin: 0 0 5mm;
+    border-bottom: 2px solid #334155;
+    color: #15253c;
+    font: 10px/1.45 Arial, sans-serif;
+  }
+  body:has(.auto-scheduling-page) .gct-auto-print-header h1 {
+    margin: 0 0 1mm; font: bold 19px/1.2 Arial, sans-serif; color: #15253c;
+  }
+  body:has(.auto-scheduling-page) .gct-auto-print-header h2 {
+    margin: 0 0 2mm; font: bold 12px/1.3 Arial, sans-serif;
+  }
+  body:has(.auto-scheduling-page) .gct-auto-print-header p {
+    margin: 0; max-width: 90mm; color: #52637b; font-size: 9px;
+  }
+  body:has(.auto-scheduling-page) .gct-auto-print-meta {
+    display: flex !important; flex-direction: column; align-items: flex-end;
+    gap: 2mm; white-space: nowrap; text-align: right; font-size: 9px;
+  }
+  body:has(.auto-scheduling-page) .gct-auto-print-meta > strong {
+    color: #172033; font-size: 10px; letter-spacing: .04em;
+  }
+  body:has(.auto-scheduling-page) .schedule-result-header {
+    padding: 0 !important; margin: 0 0 3mm !important;
+  }
+  body:has(.auto-scheduling-page) .schedule-result-header h2 {
+    font: bold 11px/1.3 Arial, sans-serif !important;
+  }
+  body:has(.auto-scheduling-page) .service-direction-header {
+    padding: 0 !important; margin: 0 0 2mm !important;
+  }
+  body:has(.auto-scheduling-page) .service-direction-header h3 {
+    font: bold 10px/1.3 Arial, sans-serif !important; color: #15253c !important;
+  }
+  body:has(.auto-scheduling-page) .service-direction-panel + .service-direction-panel {
+    margin-top: 6mm !important;
+  }
+  body:has(.auto-scheduling-page) .auto-schedule-table th,
+  body:has(.auto-scheduling-page) .auto-schedule-table td {
+    padding: 2.4mm 2mm !important;
+    border: 1px solid #cbd5e1 !important;
+    background: white !important;
+    color: #243247 !important;
+    font: 9px/1.45 Arial, sans-serif !important;
+    vertical-align: top !important;
+    text-align: left !important;
+    overflow-wrap: break-word !important;
+  }
+  body:has(.auto-scheduling-page) .auto-schedule-table th {
+    background: #edf2f8 !important;
+    color: #334155 !important;
+    font: bold 8px/1.4 Arial, sans-serif !important;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+  }
+  body:has(.auto-scheduling-page) .auto-schedule-table tbody tr:nth-child(even) td {
+    background: #fafcff !important;
+  }
+  body:has(.auto-scheduling-page) .auto-schedule-table .fa-solid,
+  body:has(.auto-scheduling-page) .auto-schedule-table .fa-regular,
+  body:has(.auto-scheduling-page) .auto-schedule-table .fa-brands,
+  body:has(.auto-scheduling-page) .auto-schedule-table button,
+  body:has(.auto-scheduling-page) .auto-schedule-table [role="button"] {
+    display: none !important;
+  }
+  body:has(.auto-scheduling-page) .auto-schedule-table .schedule-status,
+  body:has(.auto-scheduling-page) .auto-schedule-table .auto-reserve-note,
+  body:has(.auto-scheduling-page) .auto-schedule-table .required-bus-count,
+  body:has(.auto-scheduling-page) .auto-schedule-table .service-chip,
+  body:has(.auto-scheduling-page) .auto-schedule-table .auto-bus-preview {
+    color: #243247 !important; background: transparent !important;
+    border: 0 !important; box-shadow: none !important;
+    border-radius: 0 !important; padding: 0 !important;
+    font: inherit !important;
+  }
+  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(1) { width: 13% !important; }
+  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(2) { width: 13% !important; }
+  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(3) { width: 21% !important; }
+  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(4) { width: 13% !important; }
+  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(5) { width: 15% !important; }
+  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(6) { width: 14% !important; }
+  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(7) { width: 11% !important; }
+  body:has(.auto-scheduling-page) .gct-auto-print-signatures {
+    display: flex !important; justify-content: space-between;
+    gap: 14mm; margin-top: 18mm;
+    font: 9px/1.4 Arial, sans-serif;
+    color: #243247;
+    break-inside: avoid;
+  }
+  body:has(.auto-scheduling-page) .gct-auto-print-signatures > div {
+    flex: 1; padding: 2mm 0 0; border-top: 1px solid #64748b; text-align: center;
+  }
+}
+
+
+/* Print refinement: readable text columns and consistent seven-column width. */
+@media print {
+  body:has(.auto-scheduling-page) .auto-schedule-table {
+    width: 100% !important;
+    table-layout: fixed !important;
+  }
+  body:has(.auto-scheduling-page) .auto-schedule-table colgroup col:nth-child(1) { width: 11% !important; }
+  body:has(.auto-scheduling-page) .auto-schedule-table colgroup col:nth-child(2) { width: 12% !important; }
+  body:has(.auto-scheduling-page) .auto-schedule-table colgroup col:nth-child(3) { width: 21% !important; }
+  body:has(.auto-scheduling-page) .auto-schedule-table colgroup col:nth-child(4) { width: 13% !important; }
+  body:has(.auto-scheduling-page) .auto-schedule-table colgroup col:nth-child(5) { width: 17% !important; }
+  body:has(.auto-scheduling-page) .auto-schedule-table colgroup col:nth-child(6) { width: 16% !important; }
+  body:has(.auto-scheduling-page) .auto-schedule-table colgroup col:nth-child(7) { width: 10% !important; }
+  body:has(.auto-scheduling-page) .auto-schedule-table colgroup col:nth-child(8) { display: none !important; }
+  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(1) { width: 11% !important; }
+  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(2) { width: 12% !important; }
+  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(3) { width: 21% !important; }
+  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(4) { width: 13% !important; }
+  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(5) { width: 17% !important; }
+  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(6) { width: 16% !important; }
+  body:has(.auto-scheduling-page) .auto-schedule-table th:nth-child(7) { width: 10% !important; }
+  body:has(.auto-scheduling-page) .auto-schedule-table td,
+  body:has(.auto-scheduling-page) .auto-schedule-table th {
+    box-sizing: border-box !important;
+    overflow-wrap: anywhere !important;
+  }
+  body:has(.auto-scheduling-page) .auto-schedule-table .driver-cell,
+  body:has(.auto-scheduling-page) .auto-schedule-table .driver-cell.unassigned {
+    display: block !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    text-align: left !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+  }
+  body:has(.auto-scheduling-page) .auto-schedule-table .driver-avatar {
+    display: none !important;
+  }
+  body:has(.auto-scheduling-page) .auto-schedule-table .driver-cell > div:last-child {
+    display: block !important; min-width: 0 !important;
+  }
+  body:has(.auto-scheduling-page) .auto-schedule-table .driver-cell strong,
+  body:has(.auto-scheduling-page) .auto-schedule-table .bus-chip,
+  body:has(.auto-scheduling-page) .auto-schedule-table .unassigned-text {
+    display: block !important; width: auto !important; max-width: 100% !important;
+    margin: 0 !important; padding: 0 !important;
+    background: transparent !important; border: 0 !important;
+    border-radius: 0 !important; box-shadow: none !important;
+    color: #243247 !important; font: bold 9px/1.4 Arial, sans-serif !important;
+    white-space: normal !important; overflow-wrap: anywhere !important;
+    text-align: left !important;
+  }
+  body:has(.auto-scheduling-page) .auto-schedule-table .driver-cell span,
+  body:has(.auto-scheduling-page) .auto-schedule-table .auto-reserve-note {
+    display: block !important; margin-top: 1mm !important;
+    color: #52637b !important; font: 8px/1.35 Arial, sans-serif !important;
+    white-space: normal !important; overflow-wrap: anywhere !important;
+  }
+  body:has(.auto-scheduling-page) .auto-schedule-table .auto-bus-preview {
+    display: block !important; width: 100% !important; min-width: 0 !important;
+  }
+  body:has(.auto-scheduling-page) .auto-schedule-table .schedule-status {
+    display: block !important; white-space: normal !important;
+    font: 9px/1.4 Arial, sans-serif !important; text-align: left !important;
+  }
+  body:has(.auto-scheduling-page) .auto-schedule-table .auto-trip-main-id,
+  body:has(.auto-scheduling-page) .auto-schedule-table .auto-trip-continuation-label {
+    border: 0 !important; background: transparent !important;
+    color: #243247 !important; padding: 0 !important;
+    font: bold 9px/1.4 Arial, sans-serif !important;
+  }
+}
+
+/* Final draft print polish: display per-slot state, not repeated trip totals. */
+.gct-auto-print-slot-status { display: none; }
+@media print {
+  body:has(.auto-scheduling-page) .auto-schedule-table .auto-bus-assignment-progress {
+    display: none !important;
+  }
+  body:has(.auto-scheduling-page) .auto-schedule-table .gct-auto-print-slot-status {
+    display: block !important;
+    margin-top: 1mm !important;
+    color: #52637b !important;
+    font: 8px/1.35 Arial, sans-serif !important;
+  }
+  body:has(.auto-scheduling-page) .gct-auto-print-signatures {
+    margin-top: 9mm !important;
+  }
+}
+
+
+/* Group Auto Scheduling slots by their saved client and shuttle route. */
+.auto-scheduling-page .auto-schedule-table .auto-preview-group-row th {
+  padding: 11px 14px !important;
+  background: #eaf1fb !important;
+  border-top: 2px solid #cad9ed !important;
+  color: #173557 !important;
+  text-align: left !important;
+  font-size: 12px !important;
+}
+.auto-scheduling-page .auto-preview-group-client {
+  display: inline-block;
+  margin-right: 18px;
+  color: #52637b;
+  font-weight: 600;
+}
+.auto-scheduling-page .auto-preview-group-route {
+  font-weight: 800;
+}
+@media print {
+  body:has(.auto-scheduling-page) .auto-schedule-table .auto-preview-group-row th {
+    padding: 2mm !important;
+    border: 1px solid #cbd5e1 !important;
+    background: #edf2f8 !important;
+    font: bold 9px/1.4 Arial, sans-serif !important;
+  }
+}
+
+
+/* Compact conflict resolution: review a complete validated pair first. */
+.auto-scheduling-page .gct-compact-pair-selector { padding: 12px; border-bottom: 1px solid #e2e8f0; }
+.auto-scheduling-page .gct-compact-pair-selector > header { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:9px; font-size:12px; }
+.auto-scheduling-page .gct-compact-pair-selector > header span { color:#64748b; font-size:11px; }
+.auto-scheduling-page .gct-compact-pair-list { display:grid; gap:7px; max-height:215px; overflow-y:auto; overscroll-behavior:contain; }
+.auto-scheduling-page .gct-compact-pair { width:100%; padding:10px 12px; text-align:left; border:1px solid #d9e4f2; border-radius:9px; background:#f8fafc; cursor:pointer; }
+.auto-scheduling-page .gct-compact-pair strong { display:block; color:#1e3a5f; font-size:12px; }
+.auto-scheduling-page .gct-compact-pair small { display:block; margin-top:4px; color:#52677f; font-size:10px; }
+.auto-scheduling-page .gct-compact-pair.is-selected { border-color:#2563eb; background:#eaf2ff; box-shadow:inset 0 0 0 1px #2563eb; }
+.auto-scheduling-page .gct-compact-pair:disabled { opacity:.5; cursor:not-allowed; }
+.auto-scheduling-page .gct-compact-details { margin:9px 12px; padding:9px 11px; border:1px solid #dce6f2; border-radius:9px; background:#f8fafc; }
+.auto-scheduling-page .gct-compact-details summary { cursor:pointer; font-weight:700; font-size:11px; color:#334155; }
+.auto-scheduling-page .gct-compact-details-content { margin-top:9px; color:#475569; font-size:11px; line-height:1.6; }
+.auto-scheduling-page .gct-conflict-report-body { display:flex; flex-direction:column; }
+.auto-scheduling-page .gct-report-actions { position:sticky; bottom:0; z-index:3; background:#fff; border-top:1px solid #e2e8f0; }
+
+/* Single-path AI conflict selector: top ranked pairs with optional overflow. */
+.auto-scheduling-page .gct-more-pairs { margin-top:10px; border-top:1px solid #e2e8f0; padding-top:10px; }
+.auto-scheduling-page .gct-more-pairs > summary { cursor:pointer; font-size:11px; font-weight:700; color:#2563eb; padding:5px 2px; }
+.auto-scheduling-page .gct-more-pairs > .gct-compact-pair-list { margin-top:9px; max-height:200px; }
+.auto-scheduling-page .gct-compact-pair-selector > .gct-compact-pair-list { max-height:none; overflow:visible; }
+
+/* Client Trip Times entry point on the Advanced Scheduling page. */
+.auto-scheduling-page .auto-header-side-actions{display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap;justify-content:flex-end}
+.auto-scheduling-page .auto-header-side-actions .auto-client-trip-times-link{display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;text-decoration:none}
+@media(max-width:660px){.auto-scheduling-page .auto-header-side-actions{max-width:100%;justify-content:flex-start}}
+
+/* Two active scheduling filters: date and route (Shift was retired). */
+.auto-scheduling-page .schedule-form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 660px) { .auto-scheduling-page .schedule-form-grid { grid-template-columns: 1fr; } }

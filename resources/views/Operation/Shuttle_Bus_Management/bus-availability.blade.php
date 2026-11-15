@@ -33,14 +33,28 @@
                     </div>
                 </div>
 
+                <div class="availability-record-controls">
+                <nav class="availability-record-tabs personnel-record-tabs" aria-label="Bus readiness groups">
+                    @foreach(['all' => ['All Buses', 'fa-bus'], 'available' => ['Available', 'fa-circle-check'], 'unavailable' => ['Unavailable', 'fa-circle-exclamation']] as $tabKey => [$tabLabel, $tabIcon])
+                        <a class="personnel-record-tab {{ request('tab', 'all') === $tabKey ? 'is-active' : '' }}"
+                           href="{{ route('bus-availability', [], false) }}?{{ http_build_query(array_merge(request()->except(['tab', 'page']), ['tab' => $tabKey])) }}"
+                           @if(request('tab', 'all') === $tabKey) aria-current="page" @endif>
+                            <i class="fa-solid {{ $tabIcon }}" aria-hidden="true"></i> {{ $tabLabel }}
+                        </a>
+                    @endforeach
+                </nav>
+
                 <x-ui.table-toolbar action="{{ route('bus-availability') }}" search-label="Search Bus Availability" search-placeholder="Search Bus ID, plate, or model..." :filter-count="(int) request()->filled('status') + (int) request()->filled('model')" filter-title="Filter Bus Availability" :sort-options="['bus_no' => 'Bus ID', 'plate_no' => 'Plate Number', 'bus_model' => 'Model', 'status' => 'Status']" default-sort="bus_no">
+                    <x-slot:hidden><input type="hidden" name="tab" value="{{ in_array(request('tab'), ['available', 'unavailable'], true) ? request('tab') : 'all' }}"></x-slot:hidden>
                     <x-slot:filters>
                         <x-ui.table-toolbar-field label="Status" name="status"><option value="">All Statuses</option><option value="Active" @selected(request('status') === 'Active')>Active</option><option value="Under Maintenance" @selected(request('status') === 'Under Maintenance')>Under Maintenance</option><option value="Inactive" @selected(request('status') === 'Inactive')>Inactive</option></x-ui.table-toolbar-field>
                         <x-ui.table-toolbar-field label="Model" name="model"><option value="">All Models</option>@foreach($models as $model)<option value="{{ $model }}" @selected(request('model') === $model)>{{ $model }}</option>@endforeach</x-ui.table-toolbar-field>
                     </x-slot:filters>
                 </x-ui.table-toolbar>
 
-                <div class="table-wrap availability-table-wrap" style="margin-top: 16px;">
+                </div>
+
+                <div class="table-wrap availability-table-wrap">
                     <table class="bus-table availability-table">
                         <thead>
                             <tr>

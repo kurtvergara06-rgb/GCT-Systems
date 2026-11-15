@@ -31,28 +31,28 @@ class AiModelStatusService
             $responses = Http::pool(fn (Pool $pool): array => [
                 $pool->as('eta')
                     ->acceptJson()
-                    ->connectTimeout(1)
-                    ->timeout(3)
+                    ->connectTimeout(5)
+                    ->timeout(12)
                     ->get($nlpBaseUrl.'/eta/status'),
                 $pool->as('fuel')
                     ->acceptJson()
-                    ->connectTimeout(1)
-                    ->timeout(3)
+                    ->connectTimeout(5)
+                    ->timeout(12)
                     ->get($nlpBaseUrl.'/fuel/status'),
                 $pool->as('delay')
                     ->acceptJson()
-                    ->connectTimeout(1)
-                    ->timeout(3)
+                    ->connectTimeout(5)
+                    ->timeout(12)
                     ->get($nlpBaseUrl.'/delay/status'),
                 $pool->as('inventory')
                     ->acceptJson()
-                    ->connectTimeout(1)
-                    ->timeout(3)
+                    ->connectTimeout(5)
+                    ->timeout(12)
                     ->get($nlpBaseUrl.'/inventory/status'),
                 $pool->as('scheduling')
                     ->acceptJson()
-                    ->connectTimeout(1)
-                    ->timeout(3)
+                    ->connectTimeout(5)
+                    ->timeout(12)
                     ->get($operationBaseUrl.'/operation/auto-scheduling/ai/training/status'),
             ]);
         } catch (\Throwable $exception) {

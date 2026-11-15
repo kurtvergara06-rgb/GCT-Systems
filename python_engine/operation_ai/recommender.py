@@ -168,17 +168,6 @@ def build_driver_findings(
         not in ELIGIBLE_DRIVER_STATUSES
     ]
 
-    wrong_shift = [
-        driver
-        for driver in drivers
-        if (
-            payload.trip.shift
-            and driver.shift
-            and driver.shift
-            != payload.trip.shift
-        )
-    ]
-
     overlapping = [
         driver
         for driver in drivers
@@ -194,18 +183,6 @@ def build_driver_findings(
                     f"{len(unavailable_status)} driver(s) "
                     "are absent, on leave, on duty, "
                     "or otherwise unavailable."
-                ),
-            )
-        )
-
-    if wrong_shift:
-        findings.append(
-            ConflictFinding(
-                category="shift_mismatch",
-                count=len(wrong_shift),
-                explanation=(
-                    f"{len(wrong_shift)} driver(s) "
-                    "belong to a different shift."
                 ),
             )
         )
@@ -385,7 +362,7 @@ def build_conflict(
 
         explanation = (
             f"Trip {payload.trip.trip_code} has no driver "
-            "who satisfies the attendance, shift, "
+            "who satisfies the attendance "
             "and availability requirements."
         )
 

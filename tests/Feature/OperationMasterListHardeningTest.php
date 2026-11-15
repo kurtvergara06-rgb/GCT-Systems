@@ -11,6 +11,7 @@ use App\Models\Operation\Driver;
 use App\Models\Operation\DriverAttendance;
 use App\Models\Operation\Mechanic;
 use App\Models\Operation\MechanicAttendance;
+use App\Models\Operation\OperationClient;
 use App\Models\Operation\ShuttleRoute;
 use App\Models\Operation\TripAssignment;
 use App\Models\Operation\TripSchedule;
@@ -458,7 +459,7 @@ class OperationMasterListHardeningTest extends TestCase
         $this->assertSame('Reserve', $reserveBus->fresh()->fleet_purpose);
     }
 
-    public function test_driver_morning_kpi_counts_only_active_morning_shift_drivers(): void
+    public function test_driver_kpis_count_active_and_inactive_drivers_independent_of_legacy_shift(): void
     {
         $user = $this->operationUser();
         $this->driver(['shift' => 'Morning']);
@@ -478,10 +479,52 @@ class OperationMasterListHardeningTest extends TestCase
         $this->actingAs($user)
             ->get(route('operation.personnel.drivers'))
             ->assertOk()
-            ->assertViewHas('stats', fn (array $stats) => $stats['morning'] === 1
+            ->assertViewHas('stats', fn (array $stats) => $stats['total'] === 3
                 && $stats['active'] === 2
                 && $stats['inactive'] === 1
             );
+    }
+
+    public function test_multiple_active_drivers_can_be_authorized_for_the_same_bus(): void
+    {
+        $user = $this->operationUser();
+        $bus = $this->bus();
+        $first = $this->driver();
+        $first->authorizedBuses()->sync([$bus->id]);
+
+        $this->actingAs($user)->post(
+            route('operation.personnel.drivers.store'),
+            array_merge(
+                $this->driverPayload('D-002', 'Driver Two'),
+                ['bus_ids_present' => 1, 'bus_ids' => [$bus->id]]
+            )
+        )->assertSessionHasNoErrors();
+
+        $second = Driver::query()->where('driver_id', 'D-002')->firstOrFail();
+        $this->assertEqualsCanonicalizing(
+            [$first->id, $second->id],
+            $bus->fresh()->authorizedDrivers()->pluck('drivers.id')->all()
+        );
+    }
+
+    public function test_regular_bus_allocation_can_be_cleared_back_to_unallocated(): void
+    {
+        $user = $this->operationUser();
+        $bus = $this->bus(['client_allocation_type' => 'Exclusive']);
+        $client = OperationClient::create(['name' => 'EPSON', 'status' => 'Active']);
+        $bus->operationClients()->sync([$client->id]);
+
+        $this->actingAs($user)->put(
+            route('bus-master-list.update', $bus),
+            array_merge($this->busPayload($bus->bus_no), [
+                'fleet_purpose' => 'Regular',
+                'client_name' => '',
+                'client_allocation_submitted' => 1,
+            ])
+        )->assertSessionHasNoErrors();
+
+        $this->assertNull($bus->fresh()->client_allocation_type);
+        $this->assertCount(0, $bus->fresh()->operationClients);
     }
 
     public function test_edit_validation_preserves_personnel_record_identity_and_update_action(): void
@@ -644,7 +687,7 @@ class OperationMasterListHardeningTest extends TestCase
         $this->assertStringContainsString('!$isLocked', $template);
         $this->assertStringNotContainsString('resource-assign-bus', $template);
         $this->assertStringNotContainsString('resource-assign-driver', $template);
-        $this->assertStringContainsString("'Night'", $template);
+        $this->assertStringNotContainsString("'Night'", $template);
     }
 
     public function test_unresolved_maintenance_job_order_excludes_bus_from_manual_dispatch_options(): void
@@ -665,6 +708,79 @@ class OperationMasterListHardeningTest extends TestCase
             ->get(route('driver-bus-assignment', ['trip_date' => $date]))
             ->assertOk()
             ->assertViewHas('availableBuses', fn ($buses) => $buses->total() === 1);
+    }
+
+    public function test_mechanic_pages_are_listed_in_maintenance_navigation_and_attendance_uses_module_permissions(): void
+    {
+        $operationUser = $this->operationUser();
+        $maintenanceUser = User::factory()->create([
+            'department' => 'Maintenance',
+            'role' => 'staff',
+            'status' => 'Active',
+            'must_change_password' => false,
+            'onboarding_completed' => true,
+        ]);
+
+        $this->actingAs($operationUser)
+            ->get(route('dashboard-operation'))
+            ->assertOk()
+            ->assertDontSee('Mechanic Attendance')
+            ->assertDontSee('Mechanic Master List');
+
+        // Preserve the legacy Operation master-list URL while the visible navigation is moved.
+        $this->actingAs($operationUser)
+            ->get(route('operation.personnel.mechanics'))
+            ->assertOk();
+
+        $this->actingAs($maintenanceUser)
+            ->get(route('maintenance-dashboard'))
+            ->assertOk()
+            ->assertSee('Mechanic Availability')
+            ->assertSee('Mechanic Master List')
+            ->assertSee('Mechanic Attendance');
+
+        $this->actingAs($maintenanceUser)
+            ->get(route('maintenance.personnel.mechanics'))
+            ->assertOk()
+            ->assertSee('Mechanic Master List');
+
+        $this->actingAs($maintenanceUser)
+            ->get(route('mechanic-list'))
+            ->assertOk();
+
+        $this->actingAs($maintenanceUser)
+            ->get(route('job-orders.available-mechanics'))
+            ->assertOk();
+
+        $this->actingAs($maintenanceUser)
+            ->get(route('mechanic-attendance'))
+            ->assertOk();
+
+        $operationPermission = RolePermission::query()
+            ->where('role_key', $operationUser->permissionRoleKey())
+            ->firstOrFail();
+        $operationPermissions = $operationPermission->permissions;
+        data_set($operationPermissions, 'operation.view', false);
+        $operationPermission->update(['permissions' => $operationPermissions]);
+
+        $this->actingAs($operationUser)
+            ->get(route('mechanic-attendance'))
+            ->assertForbidden();
+
+        $maintenancePermission = RolePermission::query()
+            ->where('role_key', $maintenanceUser->permissionRoleKey())
+            ->firstOrFail();
+        $maintenancePermissions = $maintenancePermission->permissions;
+        data_set($maintenancePermissions, 'maintenance.view', false);
+        $maintenancePermission->update(['permissions' => $maintenancePermissions]);
+
+        $this->actingAs($maintenanceUser)
+            ->get(route('mechanic-attendance'))
+            ->assertForbidden();
+
+        $this->actingAs($maintenanceUser)
+            ->get(route('maintenance.personnel.mechanics'))
+            ->assertForbidden();
     }
 
     private function operationUser(string $role = 'head'): User

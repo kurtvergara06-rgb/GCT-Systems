@@ -143,6 +143,21 @@
                                                 </select>
                                                 <button type="submit" class="inc-wf-outline-btn" @disabled($eligibleReplacementBuses->isEmpty() || !$hasOicResponse)><i class="fa-solid fa-bus"></i>Record Bus Deployment</button>
                                             </div>
+                                            @if($incident->trip_schedule_id)
+                                                <label for="wf_replacement_driver_attendance_id" style="display:block;margin-top:8px;">Driver for trip continuation</label>
+                                                <div class="inc-wf-inline-fields is-select" style="margin-top:4px;">
+                                                    <select name="replacement_driver_attendance_id" id="wf_replacement_driver_attendance_id">
+                                                        <option value="">Keep original driver ({{ $incident->driver_name ?: 'Assigned Driver' }})</option>
+                                                        @foreach(($eligibleReplacementDrivers ?? collect()) as $driverOption)
+                                                            @if(!$incident->driver_id || $driverOption->driver_id !== $incident->driver_id)
+                                                                <option value="{{ $driverOption->id }}">
+                                                                    Replace with: {{ $driverOption->driver_name }} ({{ $driverOption->driver_id }} · {{ $driverOption->status }})
+                                                                </option>
+                                                            @endif
+                                                        @endforeach
+                                                    </select>
+                                                </div>
+                                            @endif
                                             @unless($hasOicResponse)
                                                 <p class="inc-wf-step-note">Record the OIC response above before confirming deployment.</p>
                                             @endunless

@@ -10,18 +10,34 @@ from __future__ import annotations
 import re
 from typing import Iterable
 
-try:
-    import spacy
+from threading import Lock
 
-    try:
-        _NLP = spacy.load("en_core_web_sm")
-        _SPACY_READY = True
-    except Exception:
-        _NLP = None
-        _SPACY_READY = False
-except Exception:
-    _NLP = None
-    _SPACY_READY = False
+# spaCy is optional enrichment, not a requirement for operational rule NER.
+# Avoid importing torch/spaCy and the language model at service startup.
+_NLP = None
+_SPACY_READY = False
+_SPACY_ATTEMPTED = False
+_SPACY_LOCK = Lock()
+
+
+def _get_spacy_model():
+    global _NLP, _SPACY_READY, _SPACY_ATTEMPTED
+    if _SPACY_ATTEMPTED:
+        return _NLP
+    with _SPACY_LOCK:
+        if _SPACY_ATTEMPTED:
+            return _NLP
+        try:
+            import spacy
+
+            _NLP = spacy.load("en_core_web_sm")
+            _SPACY_READY = True
+        except Exception:
+            _NLP = None
+            _SPACY_READY = False
+        finally:
+            _SPACY_ATTEMPTED = True
+    return _NLP
 
 
 _EVENT_PATTERNS: dict[str, tuple[str, ...]] = {
@@ -153,9 +169,10 @@ def extract_entities(text: str | None) -> dict[str, object]:
     organizations: list[str] = []
     source = "domain_rules"
 
-    if _NLP is not None:
+    nlp = _get_spacy_model()
+    if nlp is not None:
         try:
-            doc = _NLP(text)
+            doc = nlp(text)
             for entity in doc.ents:
                 if entity.label_ in {"GPE", "LOC", "FAC"}:
                     locations.append(entity.text)
@@ -180,7 +197,7 @@ def extract_entities(text: str | None) -> dict[str, object]:
 
 
 def readiness() -> dict[str, object]:
-    """Report real capability without claiming an unavailable spaCy model."""
+    """Report actual loaded capability, not a guess based on installation."""
     return {
         "ready": True,
         "required": True,

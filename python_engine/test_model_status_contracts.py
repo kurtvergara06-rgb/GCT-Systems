@@ -5,6 +5,7 @@ from fastapi.testclient import TestClient
 
 from eta.router import router as eta_router
 from operation_ai.router import router as operation_ai_router
+from operation_ai.ml.features import DRIVER_FEATURE_NAMES
 
 
 def check(name: str, condition: bool) -> None:
@@ -57,6 +58,10 @@ def main() -> None:
         scheduling["driver_is_production_model"]
         is (scheduling["driver_model_ready"] and scheduling["driver_source"] == "ml"),
     )
+    check("Scheduling driver model is quarantined", scheduling["driver_model_ready"] is False)
+    check("Scheduling driver uses data fallback", scheduling["driver_source"] == "data_fallback")
+    check("Driver features omit obsolete shift", "shift_encoded" not in DRIVER_FEATURE_NAMES)
+    check("Driver features omit obsolete late rate", "late_rate" not in DRIVER_FEATURE_NAMES)
 
 
 if __name__ == "__main__":

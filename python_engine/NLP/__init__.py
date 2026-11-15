@@ -1,16 +1,10 @@
-"""Required NLP capability package for the GCT Python engine.
+"""Required NLP capability package.
 
-Importing :mod:`NLP` verifies that the annotation modules shipped with the
-engine are present. Runtime record-level errors are still handled gracefully,
-but a checkout missing one of these required modules is no longer considered
-a complete deployment.
+Avoid importing heavyweight NLP dependencies just by importing this package.
+The FastAPI lifespan still calls assert_required_modules() and checks each
+required module before serving requests.
 """
 
-from . import anomaly_detector as anomaly_detector
-from . import ingestion as ingestion
-from . import ner_extractor as ner_extractor
-from . import severity_ner_predictor as severity_ner_predictor
-from . import severity_predictor as severity_predictor
 from .readiness import assert_required_modules, required_module_status
 
 __all__ = [

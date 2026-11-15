@@ -49,12 +49,19 @@ class OperationMultiBusWorkflowTest extends TestCase
 
     private function createDriver(string $suffix, string $status = 'Active'): Driver
     {
-        return Driver::create([
+        $driver = Driver::create([
             'driver_id' => 'DRV-' . $suffix,
             'driver_name' => 'Driver ' . $suffix,
             'shift' => 'Morning',
             'employment_status' => $status,
         ]);
+
+        $busIds = Bus::query()->pluck('id')->all();
+        if ($busIds !== []) {
+            $driver->authorizedBuses()->syncWithoutDetaching($busIds);
+        }
+
+        return $driver;
     }
 
     private function createAttendance(Driver $driver, string $date, string $status = 'Present'): DriverAttendance
@@ -70,7 +77,7 @@ class OperationMultiBusWorkflowTest extends TestCase
 
     private function createBus(string $suffix, string $status = 'Active', string $fleetPurpose = 'Regular'): Bus
     {
-        return Bus::create([
+        $bus = Bus::create([
             'bus_no' => 'BUS-' . $suffix,
             'plate_no' => 'PLT-' . $suffix,
             'bus_model' => 'Hino Multi',
@@ -78,6 +85,10 @@ class OperationMultiBusWorkflowTest extends TestCase
             'status' => $status,
             'fleet_purpose' => $fleetPurpose,
         ]);
+
+        Driver::query()->each(fn (Driver $driver) => $driver->authorizedBuses()->syncWithoutDetaching([$bus->id]));
+
+        return $bus;
     }
 
     private function createTripSchedule(int $requiredBuses = 1, array $overrides = []): TripSchedule
@@ -412,16 +423,19 @@ class OperationMultiBusWorkflowTest extends TestCase
             'driver_attendance_id' => $aAbsent->id,
             'bus_id' => $bus->id,
         ]);
-        $respAbsent->assertSessionHasErrors('driver_attendance_id');
+        $respAbsent->assertSessionHasNoErrors();
+
+        $inactiveTrip = $this->createTripSchedule(1);
+        $inactiveBus = $this->createBus('T8-INACTIVE');
 
         // Inactive master list driver
         $dInactive = $this->createDriver('T8-INA', 'Inactive');
         $aInactive = $this->createAttendance($dInactive, $date, 'Present');
 
         $respInactive = $this->actingAs($this->admin)->post(route('driver-bus-assignment.store'), [
-            'trip_schedule_id' => $trip->id,
+            'trip_schedule_id' => $inactiveTrip->id,
             'driver_attendance_id' => $aInactive->id,
-            'bus_id' => $bus->id,
+            'bus_id' => $inactiveBus->id,
         ]);
         $respInactive->assertSessionHasErrors('driver_attendance_id');
     }
@@ -501,8 +515,8 @@ class OperationMultiBusWorkflowTest extends TestCase
             'decisions' => [[
                 'trip_schedule_id' => $trip->id,
                 'slot' => $conflicts[0]['slot'],
-                'decision' => 'external_bus',
-                'notes' => 'External transport arrangement is pending.',
+                'decision' => 'manual_later',
+                'notes' => 'Assign an available company bus and driver later.'
             ]],
         ]);
         $confResp->assertOk();
@@ -515,7 +529,7 @@ class OperationMultiBusWorkflowTest extends TestCase
         $this->assertDatabaseHas('auto_schedule_slot_decisions', [
             'trip_schedule_id' => $trip->id,
             'slot_number' => 3,
-            'decision' => 'external_bus',
+            'decision' => 'manual_later',
             'status' => 'Pending',
         ]);
     }
@@ -599,6 +613,37 @@ class OperationMultiBusWorkflowTest extends TestCase
         $trip->refresh();
         $this->assertFalse($trip->canBeDispatched());
         $this->assertEquals('Scheduled', $trip->status);
+    }
+
+    public function test_active_driver_can_be_assigned_before_attendance_is_verified_by_ddr(): void
+    {
+        $trip = $this->createTripSchedule();
+        $driver = $this->createDriver('NO-DDR');
+        $bus = $this->createBus('NO-DDR');
+
+        $this->assertDatabaseMissing('driver_attendances', [
+            'driver_id' => $driver->driver_id,
+            'attendance_date' => $trip->trip_date->toDateString(),
+        ]);
+
+        $this->actingAs($this->admin)
+            ->post(route('driver-bus-assignment.store'), [
+                'trip_schedule_id' => $trip->id,
+                'driver_id' => $driver->driver_id,
+                'bus_id' => $bus->id,
+            ])
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('trip_assignments', [
+            'trip_schedule_id' => $trip->id,
+            'driver_id' => $driver->driver_id,
+            'bus_id' => $bus->id,
+            'driver_attendance_id' => null,
+        ]);
+        $this->assertDatabaseMissing('driver_attendances', [
+            'driver_id' => $driver->driver_id,
+            'attendance_date' => $trip->trip_date->toDateString(),
+        ]);
     }
 
     /**

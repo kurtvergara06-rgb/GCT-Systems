@@ -464,10 +464,6 @@ function initIncidentReportModal() {
     trigger.addEventListener('click', () => open());
     closeButtons.forEach((button) => button.addEventListener('click', close));
 
-    modal.addEventListener('click', (event) => {
-        if (event.target === modal) close();
-    });
-
     modal.addEventListener('keydown', (event) => {
         if (event.key === 'Escape') {
             event.preventDefault();

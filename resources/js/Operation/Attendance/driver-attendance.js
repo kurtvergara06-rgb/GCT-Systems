@@ -1,4 +1,30 @@
 window.GCTPartialNavigation.registerInitializer('operation-driver-attendance', '.driver-attendance-page', () => {
+  // Driver attendance is daily. Refresh a page left open across Philippine
+  // midnight; selected historical dates must stay on their chosen date.
+  if (window.__gctDriverAttendanceDayWatcher) {
+    window.clearInterval(window.__gctDriverAttendanceDayWatcher);
+    window.__gctDriverAttendanceDayWatcher = null;
+  }
+  const attendancePage = document.querySelector('.driver-attendance-page');
+  if (attendancePage?.dataset.attendanceAutoToday === '1') {
+    const loadedDay = attendancePage.dataset.attendanceBusinessDate;
+    window.__gctDriverAttendanceDayWatcher = window.setInterval(() => {
+      if (!document.querySelector('.driver-attendance-page')) {
+        window.clearInterval(window.__gctDriverAttendanceDayWatcher);
+        window.__gctDriverAttendanceDayWatcher = null;
+        return;
+      }
+      const currentDay = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Asia/Manila', year: 'numeric', month: '2-digit', day: '2-digit'
+      }).format(new Date());
+      if (currentDay !== loadedDay) {
+        window.clearInterval(window.__gctDriverAttendanceDayWatcher);
+        window.__gctDriverAttendanceDayWatcher = null;
+        window.location.reload();
+      }
+    }, 30000);
+  }
+
   function normalizeDriverAttendancePath(
     value,
     fallback = '/driver-attendance'
@@ -49,7 +75,7 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-attendance', '
   const submitText = document.getElementById('driverAttendanceSubmitText');
   const driverId = document.getElementById('driverAttendanceDriverId');
   const driverName = document.getElementById('driverAttendanceDriverName');
-  const shift = document.getElementById('driverAttendanceShift');
+  const shift = null;
   const attendanceDate = document.getElementById('driverAttendanceDate');
   const timeIn = document.getElementById('driverAttendanceTimeIn');
   const timeOut = document.getElementById('driverAttendanceTimeOut');
@@ -153,7 +179,7 @@ window.GCTPartialNavigation.registerInitializer('operation-driver-attendance', '
           ['Current Assignment', button.dataset.busAssignment || 'Unassigned'],
           ['Date', button.dataset.attendanceDate],
           ['Time-in', button.dataset.timeIn],
-          ['Time-out', button.dataset.timeOut],
+
         ];
 
         if (viewAttendanceContent) {

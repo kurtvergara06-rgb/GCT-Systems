@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field
 
 DriverStatus = Literal[
     "Present",
+    "Assumed Present",
     "Late",
     "Absent",
     "On Leave",

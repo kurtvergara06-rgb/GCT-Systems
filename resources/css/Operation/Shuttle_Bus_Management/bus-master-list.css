@@ -2525,3 +2525,404 @@
   text-align: center;
   font-variant-numeric: tabular-nums;
 }
+
+/* Phase 1: client selection and compact reverse driver allocation display. */
+.bus-client-editor { padding: 12px 16px; min-width: 0; display: grid; gap: 8px; }
+.bus-client-editor > label { font-weight: 650; font-size: 12px; color: #273f64; }
+.bus-client-editor > select, .bus-client-trigger { display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 41px; border: 1px solid #d8e2f1; background: white; border-radius: 9px; padding: 9px 12px; color: #243b60; font: inherit; font-size: 12px; }
+.bus-client-trigger { text-align: left; cursor: pointer; gap: 12px; }
+.bus-client-trigger:hover { border-color: #98b9eb; }
+.bus-client-trigger:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+.bus-client-picker { position: relative; min-width: 0; }
+.bus-client-options-panel { position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 400; padding: 8px; border: 1px solid #d8e2f1; border-radius: 9px; background: white; box-shadow: 0 10px 24px #18335624; }
+.bus-client-options-panel[hidden], .bus-client-option[hidden], .bus-client-add[hidden] { display: none !important; }
+.bus-client-options-panel input[type="search"] { display: block; width: 100%; min-height: 36px; padding: 8px; border: 1px solid #d8e2f1; border-radius: 7px; font: inherit; }
+.bus-client-options { max-height: 165px; overflow-y: auto; margin-top: 6px; }
+.bus-client-option { display: flex !important; flex-direction: row !important; align-items: center !important; justify-content: flex-start !important; gap: 10px; min-height: 34px; margin: 0; padding: 6px 8px; cursor: pointer; font-size: 12px; }
+.bus-client-option:hover { background: #eef5ff; border-radius: 7px; }
+.bus-client-option input[type="checkbox"] { display: block !important; width: 16px !important; height: 16px !important; min-height: 0 !important; flex: 0 0 16px; padding: 0 !important; margin: 0 !important; accent-color: #2563eb; }
+.bus-client-add { padding: 8px; border: 0; border-radius: 6px; background: #eef5ff; color: #2253a5; cursor: pointer; text-align: left; width: 100%; }
+.bus-client-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.bus-client-chips:empty { display: none; }
+.bus-client-chip { display: inline-flex; gap: 8px; align-items: center; border-radius: 999px; padding: 4px 8px; border: 1px solid #cedef5; background: #eef5ff; color: #234c89; font-size: 11px; }
+.bus-client-chip button { border: 0; background: transparent; cursor: pointer; font-size: 15px; color: inherit; }
+.bus-client-editor > small { font-size: 10px; color: #73839b; }
+.bus-table .bus-allocation-type { display: block; font-size: 10px; color: #586f90; }
+.bus-table .bus-table-disclosure { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; font-size: 11px; min-width: 0; }
+.bus-table .bus-more-trigger { padding: 4px 7px; border: 1px solid #d0e1fa; border-radius: 6px; background: #eff5ff; color: #2453a0; font-size: 10px; cursor: pointer; white-space: nowrap; }
+.bus-table .bus-no-drivers { color: #75849b; font-size: 11px; }
+.bus-more-source[hidden] { display: none !important; }
+.bus-floating-popover { position: fixed; z-index: 10050; padding: 8px; max-height: min(260px, 55vh); overflow-y: auto; background: white; border: 1px solid #d7e3f5; border-radius: 10px; box-shadow: 0 12px 28px #162e562a; }
+.bus-more-entry { display: flex; align-items: center; gap: 9px; padding: 8px 5px; font-size: 11px; border-bottom: 1px solid #e8eef8; color: #28436c; }
+.bus-more-entry:last-child { border-bottom: 0; }
+.bus-more-entry i { color: #2563eb; }
+
+/* Bus Master List visual refinement — page-scoped and non-destructive. */
+.bus-master-list-page .stats-grid { gap: 14px; margin-bottom: 16px; }
+.bus-master-list-page .stats-grid .stat-card,
+.bus-master-list-page .stats-grid .stat-card-link {
+  min-height: 104px; border-radius: 14px; padding: 16px 18px;
+  box-shadow: 0 2px 9px rgba(21, 47, 82, .035);
+}
+.bus-master-list-page .stats-grid .stat-card:hover,
+.bus-master-list-page .stats-grid .stat-card-link:hover { transform: none; box-shadow: 0 3px 12px rgba(21,47,82,.08); }
+.bus-master-list-page .table-card { border-radius: 14px; padding: 16px; box-shadow: 0 2px 10px rgba(21,47,82,.035); }
+.bus-master-list-page .section-header { align-items: center; gap: 16px; }
+.bus-master-list-page .section-header p { line-height: 1.55; }
+.bus-master-list-page .bus-record-controls { gap: 12px; }
+.bus-master-list-page .bus-fleet-tabs { max-width: 100%; }
+.bus-master-list-page .table-wrap { border-radius: 11px; border: 1px solid #d9e4f3; }
+.bus-master-list-page .bus-table {
+    width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 0;
+}
+.bus-master-list-page .bus-table th,
+.bus-master-list-page .bus-table td { box-sizing: border-box; }
+.bus-master-list-page .bus-table thead th {
+    height: 41px; padding: 10px 12px; background: #f3f7fc;
+    color: #435672; letter-spacing: .035em;
+    font-size: 10px; font-weight: 750; vertical-align: middle; white-space: nowrap;
+    border-bottom: 1px solid #dae4f2;
+}
+.bus-master-list-page .bus-table tbody td {
+    padding: 11px 12px; height: 58px; vertical-align: middle;
+    background: #fff; border-bottom: 1px solid #e9eff8;
+}
+.bus-master-list-page .bus-table tbody tr:hover td { background: #f8fbff; }
+.bus-master-list-page .bus-table tbody tr:last-child td { border-bottom: 0; }
+.bus-master-list-page .bus-table th:nth-child(1) { width: 22%; }
+.bus-master-list-page .bus-table th:nth-child(2) { width: 12%; }
+.bus-master-list-page .bus-table th:nth-child(3) { width: 14%; }
+.bus-master-list-page .bus-table th:nth-child(4) { width: 14%; }
+.bus-master-list-page .bus-table th:nth-child(5) { width: 14%; }
+.bus-master-list-page .bus-table th:nth-child(6) { width: 15%; }
+.bus-master-list-page .bus-table th:nth-child(7) { width: 9%; text-align: center; }
+.bus-master-list-page .bus-id-cell { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.bus-master-list-page .bus-id-text {
+    display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis;
+    white-space: nowrap; font-weight: 750; font-size: 12px; color: #152c4c;
+}
+.bus-master-list-page .bus-plate-text { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #334865; font-size: 11px; font-weight: 600; }
+.bus-master-list-page .bus-model-text { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #43536e; font-size: 11px; }
+.bus-master-list-page .bus-allocation-cell,
+.bus-master-list-page .bus-drivers-cell { overflow: visible; }
+.bus-master-list-page .bus-allocation-type {
+    display: inline-flex; width: fit-content; max-width: 100%;
+    padding: 3px 7px; margin-bottom: 5px; border-radius: 6px;
+    font-size: 10px; font-weight: 750; line-height: 1.3;
+    background: #f2f5fa; color: #63728a;
+}
+.bus-master-list-page .bus-allocation-type.is-exclusive { color: #855b10; background: #fff4d9; }
+.bus-master-list-page .bus-allocation-type.is-shared { color: #2252a3; background: #e9f1ff; }
+.bus-master-list-page .bus-allocation-type.is-unallocated { background: #f5f7fa; color: #738198; }
+.bus-master-list-page .bus-table .bus-table-disclosure { display: flex; gap: 5px; align-items: center; flex-wrap: nowrap; max-width: 100%; }
+.bus-master-list-page .bus-disclosure-primary { overflow: hidden; min-width: 0; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; font-size: 11px; }
+.bus-master-list-page .bus-more-trigger { flex-shrink: 0; }
+.bus-master-list-page .bus-actions-cell .actions { display: flex; flex-wrap: nowrap; justify-content: center; align-items: center; gap: 5px; }
+.bus-master-list-page .bus-actions-cell .actions form { display: contents; }
+.bus-master-list-page .bus-actions-cell .action-btn { width: 29px; height: 29px; min-width: 29px; padding: 0; display: inline-flex; align-items: center; justify-content: center; }
+.bus-master-list-page .bus-actions-cell .action-btn:disabled { opacity: .65; cursor: not-allowed; }
+@media (max-width: 1250px) {
+  .bus-master-list-page .bus-table { min-width: 1040px; }
+  .bus-master-list-page .table-wrap { overflow-x: auto; }
+}
+@media (max-width: 760px) {
+  .bus-master-list-page .stats-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .bus-master-list-page .bus-record-controls { flex-wrap: wrap; }
+  .bus-master-list-page .bus-fleet-tabs { overflow-x: auto; }
+}
+
+/* Readability: bus plate, model, client allocation and authorized drivers. */
+.bus-master-list-page .bus-table thead th:nth-child(2),
+.bus-master-list-page .bus-table thead th:nth-child(3),
+.bus-master-list-page .bus-table thead th:nth-child(5),
+.bus-master-list-page .bus-table thead th:nth-child(6) {
+  font-size: 11px;
+  font-weight: 800;
+}
+.bus-master-list-page .bus-plate-text,
+.bus-master-list-page .bus-model-text {
+  font-size: 13px;
+  line-height: 1.45;
+}
+.bus-master-list-page .bus-allocation-type { font-size: 11px; }
+.bus-master-list-page .bus-disclosure-primary,
+.bus-master-list-page .bus-no-drivers { font-size: 12px; line-height: 1.4; }
+.bus-master-list-page .bus-more-trigger { font-size: 11px; }
+
+/* Simple client field and calmer, more coherent bus modal composition. */
+.bus-master-list-page .bus-client-editor--simple,
+.bus-client-editor--simple {
+    display: grid; gap: 9px; margin: 14px 0 16px; padding: 15px 16px;
+    border: 1px solid #e0e8f3; border-radius: 12px; background: #f7faff;
+}
+.bus-client-section-heading { display: flex; align-items: center; gap: 10px; margin-bottom: 3px; }
+.bus-client-section-icon { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 34px; height: 34px; border-radius: 9px; background: #e6efff; color: #235dbe; }
+.bus-client-section-heading strong { display: block; font-size: 13px; color: #18345f; }
+.bus-client-section-heading small { display: block; font-size: 11px; color: #667b9a; margin-top: 2px; }
+.bus-client-editor--simple > label { margin-top: 3px; font-size: 12px; font-weight: 700; color: #2a4163; }
+.bus-client-input-shell { display: flex; align-items: center; gap: 10px; min-height: 42px; width: 100%; padding: 0 12px; border: 1px solid #d7e2f1; border-radius: 9px; background: #fff; box-sizing: border-box; }
+.bus-client-input-shell:focus-within { border-color: #5a91e9; box-shadow: 0 0 0 3px rgba(59,130,246,.11); }
+.bus-client-input-shell > i { font-size: 13px; color: #6c84a6; }
+.bus-client-input-shell > input[type="text"] { width: 100%; min-width: 0; height: 40px; min-height: 40px; padding: 0; border: 0; outline: 0; background: transparent; box-shadow: none; color: #1d3659; font-size: 13px; }
+.bus-client-input-shell > input[type="text"]:focus { outline: 0; box-shadow: none; }
+.bus-client-editor--simple > small, .bus-client-existing-note { margin: 0; font-size: 11px; line-height: 1.5; color: #667b99; }
+.bus-client-existing-note[hidden] { display: none !important; }
+.bus-client-existing-note { border-left: 3px solid #5089db; padding: 6px 10px; background: #eaf2ff; border-radius: 4px; }
+#editBusModal .bus-edit-scroll, #busModal .modal-body { scrollbar-gutter: stable; }
+#editBusModal .bus-modal-basic, #busModal .bus-modal-basic { border-radius: 12px; }
+#editBusModal .bus-modal-lower, #busModal .bus-modal-lower { gap: 12px; }
+#editBusModal .bus-modal-panel, #busModal .bus-modal-panel { border-radius: 12px; }
+#editBusModal .bus-modal-field-grid, #busModal .bus-modal-field-grid { gap: 13px 16px; }
+@media (max-width: 720px) {
+  .bus-client-editor--simple { margin: 10px 0 12px; padding: 12px; }
+}
+
+/* Authorized driver identity — consistent with Driver Master List. */
+.bus-master-list-page .bus-table .bus-driver-summary { display: flex; align-items: center; gap: 9px; min-width: 0; flex-wrap: nowrap; }
+.bus-master-list-page .bus-driver-avatar { flex: 0 0 32px; display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: 1px solid #cfe0ff; background: #e9f1ff; border-radius: 9px; color: #2363d5; font-size: 13px; }
+.bus-master-list-page .bus-driver-details { min-width: 0; flex: 1 1 auto; display: flex; flex-direction: column; gap: 3px; }
+.bus-master-list-page .bus-driver-details strong { font-size: 12px; font-weight: 750; line-height: 1.3; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.bus-master-list-page .bus-driver-details small { color: #72839e; font-size: 10px; line-height: 1.2; }
+.bus-master-list-page .bus-driver-summary .bus-more-trigger { align-self: center; }
+
+/* Phase 1: matching compact company and driver identity cells. */
+.bus-master-list-page .bus-table .bus-identity-summary { display: flex; align-items: center; flex-wrap: nowrap; gap: 8px; min-width: 0; width: 100%; }
+.bus-master-list-page .bus-identity-avatar { flex: 0 0 32px; display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; box-sizing: border-box; border: 1px solid #cfe0ff; background: #e9f1ff; border-radius: 9px; color: #2363d5; font-size: 13px; }
+.bus-master-list-page .bus-company-avatar { border-color: #d9e4f0; background: #eef3f8; color: #42658b; }
+.bus-master-list-page .bus-identity-details { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 3px; overflow: hidden; }
+.bus-master-list-page .bus-identity-details strong { display: block; min-width: 0; max-width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: #1b365b; font-size: 12px; font-weight: 750; line-height: 1.3; }
+.bus-master-list-page .bus-identity-details small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #72839e; font-size: 10px; line-height: 1.2; }
+.bus-master-list-page .bus-identity-empty { display: inline-block; color: #75849b; font-size: 12px; line-height: 1.4; }
+.bus-master-list-page .bus-table .bus-identity-summary .bus-more-trigger { flex: 0 0 auto; align-self: center; padding: 4px 6px; font-size: 10px; }
+.bus-floating-popover .bus-identity-entry { padding: 8px 6px; min-width: 0; }
+.bus-floating-popover .bus-identity-avatar { flex: 0 0 32px; display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; box-sizing: border-box; border: 1px solid #cfe0ff; border-radius: 9px; color: #2363d5; background: #e9f1ff; }
+.bus-floating-popover .bus-company-avatar { border-color: #d9e4f0; background: #eef3f8; color: #42658b; }
+.bus-floating-popover .bus-identity-details { display: flex; flex-direction: column; min-width: 0; gap: 3px; flex: 1; overflow: hidden; }
+.bus-floating-popover .bus-identity-details strong { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; color: #1b365b; }
+.bus-floating-popover .bus-identity-details small { font-size: 10px; color: #72839e; }
+
+/* Keep the company avatar and name adjacent, matching Authorized Drivers. */
+.bus-master-list-page .bus-table td.bus-allocation-cell .bus-identity-summary {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 9px;
+  width: 100%;
+  min-width: 0;
+  text-align: left;
+}
+.bus-master-list-page .bus-table td.bus-allocation-cell .bus-identity-summary > .bus-company-avatar {
+  flex: 0 0 32px;
+  margin: 0;
+}
+.bus-master-list-page .bus-table td.bus-allocation-cell .bus-identity-summary > .bus-identity-details {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  min-width: 0;
+  margin: 0;
+  text-align: left;
+}
+.bus-master-list-page .bus-table td.bus-allocation-cell .bus-identity-details > strong,
+.bus-master-list-page .bus-table td.bus-allocation-cell .bus-identity-details > small {
+  width: 100%;
+  text-align: left;
+}
+
+/* Match empty and allocated client rows to the driver's left-aligned identity cells. */
+.bus-master-list-page .bus-table tbody td.bus-allocation-cell {
+  text-align: left;
+}
+.bus-master-list-page .bus-table tbody td.bus-allocation-cell > .bus-identity-empty {
+  display: block;
+  margin: 0;
+  text-align: left;
+}
+
+/* Empty labels line up with the name after each 32px avatar + 9px gap. */
+.bus-master-list-page .bus-table tbody td.bus-allocation-cell > .bus-identity-empty,
+.bus-master-list-page .bus-table tbody td.bus-drivers-cell > .bus-identity-empty {
+  display: block;
+  box-sizing: border-box;
+  padding-left: 41px;
+  margin: 0;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+}
+
+/* Client column: align its company avatar beneath the header label,
+   just as the driver avatar aligns beneath Authorized Drivers. */
+.bus-master-list-page .bus-table tbody td.bus-allocation-cell > .bus-identity-summary {
+  box-sizing: border-box;
+  padding-left: 35px;
+}
+
+/* Client / Company now occupies the second lower modal panel. */
+.bus-modal-lower .bus-modal-client-panel { min-width: 0; }
+.bus-modal-lower .bus-modal-client-panel .bus-client-editor--simple {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+}
+.bus-modal-lower .bus-modal-client-panel .bus-client-section-heading { margin-bottom: 4px; }
+.bus-modal-lower .bus-modal-client-panel .bus-client-input-shell { min-width: 0; }
+.bus-modal-lower .bus-modal-client-panel .bus-client-editor--simple > small {
+  line-height: 1.45;
+}
+
+/* Reserve units are a shared standby pool, not permanently owned. */
+.bus-master-list-page .bus-table--reserve thead th:nth-child(1) { width: 28%; }
+.bus-master-list-page .bus-table--reserve thead th:nth-child(2) { width: 20%; }
+.bus-master-list-page .bus-table--reserve thead th:nth-child(3) { width: 24%; }
+.bus-master-list-page .bus-table--reserve thead th:nth-child(4) { width: 18%; }
+.bus-master-list-page .bus-table--reserve thead th:nth-child(5) { width: 10%; text-align: center; }
+.bus-master-list-page .bus-table--reserve tbody td:nth-child(5) { text-align: center; }
+
+
+/* Multi-client chip editor in Add/Edit Bus modals. */
+.bus-multi-client { min-width: 0; }
+.bus-multi-client-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.bus-multi-client-tags:empty { display: none; }
+.bus-client-tag { display: inline-flex; align-items: center; gap: 7px; min-width: 0; max-width: 100%; padding: 5px 7px 5px 10px; border: 1px solid #c9daf8; border-radius: 7px; background: #edf4ff; color: #183963; font-size: 12px; font-weight: 600; }
+.bus-client-tag > span { overflow-wrap: anywhere; }
+.bus-client-tag > button { border: 0; border-radius: 5px; background: transparent; color: #485f82; cursor: pointer; font-size: 18px; line-height: 1; padding: 0 3px; }
+.bus-client-tag > button:hover { background: #dae6fa; color: #a52525; }
+.bus-multi-client-entry { display: flex; gap: 7px; min-width: 0; }
+.bus-multi-client-entry input { flex: 1; min-width: 0; width: 100%; padding: 10px 11px; border: 1px solid #d3e0f4; border-radius: 7px; background: white; font: inherit; }
+.bus-multi-client-entry input:focus { outline: 2px solid #86b4ff; outline-offset: 0; }
+.bus-multi-client-entry button { display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0; padding: 0 12px; border: 1px solid #b9d1fb; border-radius: 7px; background: #eaf2ff; color: #174785; font: inherit; font-weight: 700; cursor: pointer; }
+.bus-multi-client-entry button:hover { background: #dce9fe; }
+
+
+/* Unified multi-client field: chips and input share one clean control. */
+.bus-master-list-page .bus-modal-client-panel .bus-multi-client {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  width: 100%;
+  min-height: 46px;
+  padding: 7px;
+  border: 1px solid #cfdcf0;
+  border-radius: 9px;
+  background: #fff;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.bus-master-list-page .bus-modal-client-panel .bus-multi-client:focus-within {
+  border-color: #7daaff;
+  box-shadow: 0 0 0 3px rgba(64, 122, 225, .12);
+}
+.bus-master-list-page .bus-modal-client-panel .bus-multi-client-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  margin: 0;
+}
+.bus-master-list-page .bus-modal-client-panel .bus-multi-client-tags:empty {
+  display: none;
+}
+.bus-master-list-page .bus-modal-client-panel .bus-client-tag {
+  min-height: 27px;
+  padding: 3px 6px 3px 9px;
+  gap: 6px;
+  border-radius: 6px;
+  font-size: 11px;
+  line-height: 1.3;
+}
+.bus-master-list-page .bus-modal-client-panel .bus-client-tag > button {
+  width: 19px;
+  height: 19px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.bus-master-list-page .bus-modal-client-panel .bus-multi-client-entry {
+  display: flex;
+  align-items: stretch;
+  gap: 7px;
+  width: 100%;
+}
+.bus-master-list-page .bus-modal-client-panel .bus-multi-client-entry input {
+  box-sizing: border-box;
+  flex: 1 1 auto;
+  width: 0;
+  height: 33px;
+  min-width: 0;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  box-shadow: none;
+  font-size: 12px;
+}
+.bus-master-list-page .bus-modal-client-panel .bus-multi-client-entry input:focus {
+  outline: none;
+  box-shadow: none;
+}
+.bus-master-list-page .bus-modal-client-panel .bus-multi-client-entry button {
+  min-height: 33px;
+  padding: 0 12px;
+  border-radius: 6px;
+  white-space: nowrap;
+  font-size: 12px;
+}
+.bus-master-list-page .bus-modal-client-panel .bus-client-editor--simple > label {
+  display: block;
+  margin: 12px 0 6px;
+}
+.bus-master-list-page .bus-modal-client-panel .bus-client-editor--simple > small {
+  display: block;
+  margin-top: 8px;
+  line-height: 1.4;
+}
+@media (max-width: 520px) {
+  .bus-master-list-page .bus-modal-client-panel .bus-multi-client-entry button { padding: 0 9px; }
+}
+
+
+/* Keep selected client chips OUTSIDE the client-name fill-up field. */
+.bus-master-list-page .bus-modal-client-panel .bus-multi-client {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  gap: 8px;
+  min-height: 0;
+}
+.bus-master-list-page .bus-modal-client-panel .bus-multi-client:focus-within {
+  border: 0;
+  box-shadow: none;
+}
+.bus-master-list-page .bus-modal-client-panel .bus-multi-client-tags {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+}
+.bus-master-list-page .bus-modal-client-panel .bus-multi-client-entry {
+  box-sizing: border-box;
+  min-height: 43px;
+  padding: 5px;
+  gap: 7px;
+  border: 1px solid #cfdcf0;
+  border-radius: 8px;
+  background: #fff;
+}
+.bus-master-list-page .bus-modal-client-panel .bus-multi-client-entry:focus-within {
+  border-color: #7daaff;
+  box-shadow: 0 0 0 3px rgba(64, 122, 225, .12);
+}
+.bus-master-list-page .bus-modal-client-panel .bus-multi-client-entry input {
+  height: 32px;
+}

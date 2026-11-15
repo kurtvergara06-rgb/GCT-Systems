@@ -78,7 +78,7 @@
                     <td>{{ $assignment->bus?->bus_no ?? '—' }}<div>{{ $assignment->bus?->plate_no ?? '—' }}</div>
                         @if($assignment->bus?->fleet_purpose === 'Reserve')
                             <div style="font-weight:700;color:#1e6b44;">
-                                {{ $assignment->reserveApproval ? 'Reserve · OIC Approved' : 'Reserve · Approval Not Recorded' }}
+                                {{ ($assignment->reserveApproval || $assignment->incidents->contains(fn ($inc) => $inc->replacement !== null)) ? 'Reserve · OIC Approved' : 'Reserve · Approval Not Recorded' }}
                             </div>
                         @endif
                     </td>

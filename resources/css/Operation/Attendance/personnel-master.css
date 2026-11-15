@@ -2073,3 +2073,300 @@
     .personnel-master-page .personnel-record-controls { align-items: stretch; }
     .personnel-master-page .personnel-record-controls > .gct-table-toolbar { margin-left: 0; }
 }
+
+
+/* Driver authorized-bus picker: compact, searchable, and keyboard accessible. */
+.driver-bus-picker { position: relative; width: 100%; min-width: 0; }
+.driver-bus-picker-trigger {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    width: 100%; min-height: 42px; padding: 9px 12px;
+    border: 1px solid #d6e1f0; border-radius: 9px;
+    background: #fff; color: #172b4d; text-align: left; font: inherit; cursor: pointer;
+}
+.driver-bus-picker-trigger:hover { border-color: #93b9f5; }
+.driver-bus-picker-trigger:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+.driver-bus-picker-trigger:disabled { cursor: default; background: #f4f7fb; }
+.driver-bus-picker-trigger span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.driver-bus-picker-panel {
+    position: relative; width: 100%; margin-top: 5px; z-index: 1;
+    padding: 8px; background: white; border: 1px solid #d6e1f0;
+    border-radius: 10px; box-shadow: 0 10px 30px rgba(15, 35, 75, .16);
+}
+.driver-bus-picker-panel[hidden], .driver-bus-picker-option[hidden], .driver-bus-picker-empty[hidden] { display: none !important; }
+.driver-bus-picker-search {
+    width: 100%; height: 36px; padding: 8px 10px; border: 1px solid #d6e1f0;
+    border-radius: 7px; background: #fff; font: inherit;
+}
+.driver-bus-picker-options { max-height: 174px; overflow-y: auto; margin-top: 7px; }
+.driver-bus-picker-option {
+    display: flex; align-items: center; gap: 10px; padding: 9px 10px;
+    border-radius: 7px; cursor: pointer; font-size: 12px;
+}
+.driver-bus-picker-option:hover { background: #eff5ff; }
+.driver-bus-picker-option input[type="checkbox"] { flex: none; width: 16px; height: 16px; accent-color: #2563eb; }
+.driver-bus-picker-empty { display: block; padding: 12px; color: #64748b; font-size: 12px; }
+
+/* Phase 1: ensure each bus option remains one compact horizontal row. */
+.personnel-modal-driver .driver-bus-field { display: block; }
+.personnel-modal-driver .driver-bus-picker-option {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 10px !important;
+    width: 100%;
+    min-height: 46px;
+    padding: 7px 10px;
+    margin: 0;
+    box-sizing: border-box;
+}
+.personnel-modal-driver .driver-bus-picker-option input[type="checkbox"] {
+    flex: 0 0 16px !important;
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: 16px !important;
+    width: 16px !important;
+    min-height: 0 !important;
+    border-radius: 4px;
+}
+.personnel-modal-driver .driver-bus-option-text {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    flex: 1 1 auto;
+    min-width: 0;
+    gap: 2px;
+    line-height: 1.25;
+}
+.personnel-modal-driver .driver-bus-option-text strong { font-size: 12px; font-weight: 700; }
+.personnel-modal-driver .driver-bus-option-text small { color: #64748b; font-size: 11px; }
+.personnel-modal-driver .driver-bus-picker-options { max-height: 208px; }
+.personnel-modal-driver .driver-bus-chips {
+    display: flex; flex-wrap: wrap; align-items: center;
+    gap: 6px; margin-top: 8px;
+}
+.personnel-modal-driver .driver-bus-chips:empty { display: none; }
+.personnel-modal-driver .driver-bus-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 8px; border: 1px solid #cfddf1;
+    border-radius: 999px; background: #f0f5ff;
+    color: #234e92; font-size: 11px; font-weight: 650;
+}
+.personnel-modal-driver .driver-bus-chip-remove {
+    display: inline-flex; align-items: center; justify-content: center;
+    border: 0; background: transparent; padding: 0;
+    width: 16px; height: 16px; color: #45648d;
+    font-size: 16px; line-height: 1; cursor: pointer;
+}
+.personnel-modal-driver .driver-bus-chip-remove:focus-visible { outline: 2px solid #2563eb; border-radius: 50%; }
+.personnel-modal-driver .driver-bus-help { display: block; margin-top: 6px; }
+
+/* Compact assigned-bus summary with disclosure for remaining buses. */
+.personnel-master-page .driver-bus-summary { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-width: 0; }
+.personnel-master-page .driver-bus-primary { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; font-size: 12px; font-weight: 700; color: #223b61; }
+.personnel-master-page .driver-bus-primary i { color: #2563eb; }
+.personnel-master-page .driver-bus-none { color: #78869a; font-size: 12px; }
+.personnel-master-page .driver-bus-more { position: relative; }
+.personnel-master-page .driver-bus-more summary {
+    display: inline-flex; align-items: center; gap: 7px; list-style: none;
+    cursor: pointer; padding: 5px 9px; border: 1px solid #d4e3fb;
+    border-radius: 7px; background: #eef5ff; color: #2357a5; font: inherit;
+    font-size: 11px; font-weight: 650; white-space: nowrap;
+}
+.personnel-master-page .driver-bus-more summary::-webkit-details-marker { display: none; }
+.personnel-master-page .driver-bus-more summary:hover { background: #e0edff; }
+.personnel-master-page .driver-bus-more summary:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+.personnel-master-page .driver-bus-more[open] summary i { transform: rotate(180deg); }
+.driver-bus-more-panel {
+    margin-top: 6px; padding: 10px; min-width: 195px; max-width: 245px;
+    background: #fff; border: 1px solid #d7e4f6; border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(20, 45, 88, .10);
+}
+.driver-bus-more-panel > strong { display: block; padding: 3px 5px 8px; font-size: 11px; color: #526c90; }
+.driver-bus-more-row { display: flex; align-items: center; gap: 9px; padding: 7px 5px; border-top: 1px solid #edf2f9; color: #253c5d; }
+.driver-bus-more-row i { color: #2563eb; }
+.driver-bus-more-row span { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.driver-bus-more-row b { font-size: 11px; }
+.driver-bus-more-row small { font-size: 10px; color: #71819b; }
+
+/* Driver modal: compact assigned-bus control alongside contact number. */
+.personnel-modal-driver .driver-bus-field { display: flex; flex-direction: column; min-width: 0; gap: 5px; }
+.personnel-modal-driver .driver-bus-field > span { display: inline-flex; align-items: center; gap: 7px; }
+.personnel-modal-driver .driver-bus-field > span i { color: #2563eb; }
+.personnel-modal-driver .driver-bus-picker-trigger {
+    min-height: 40px; height: 40px; padding: 8px 11px; font-size: 12px;
+    border: 1px solid #d3e0f1; border-radius: 8px; background: #fdfefe;
+}
+.personnel-modal-driver .driver-bus-picker-trigger:hover { background: #f7faff; }
+.personnel-modal-driver .driver-bus-picker-panel { margin-top: 5px; padding: 7px; border-radius: 9px; }
+.personnel-modal-driver .driver-bus-picker-options { max-height: 144px; }
+.personnel-modal-driver .driver-bus-picker-option { min-height: 39px; padding: 6px 8px; }
+.personnel-modal-driver .driver-bus-option-text strong { font-size: 11px; }
+.personnel-modal-driver .driver-bus-option-text small { font-size: 10px; }
+.personnel-modal-driver .driver-bus-chips { gap: 5px; margin-top: 2px; }
+.personnel-modal-driver .driver-bus-chip { padding: 3px 7px; font-size: 10px; }
+.personnel-modal-driver .driver-bus-help { font-size: 10px; color: #7285a3; margin-top: 2px; }
+
+/* Keep Assigned Buses dropdown out of the driver form grid flow. */
+.personnel-modal-driver .driver-bus-field,
+.personnel-modal-driver .driver-bus-picker { min-height: 0; }
+.personnel-modal-driver .driver-bus-picker { position: relative; isolation: isolate; }
+.personnel-modal-driver .driver-bus-picker-panel,
+.personnel-modal-driver .driver-bus-picker-panel:not([hidden]) {
+    position: absolute !important;
+    top: calc(100% + 5px) !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    z-index: 200 !important;
+    box-sizing: border-box;
+}
+.personnel-modal-driver .driver-bus-picker:has(.driver-bus-picker-panel:not([hidden])) { z-index: 201; }
+.personnel-modal-driver .driver-bus-picker-option { flex-direction: row !important; }
+
+/* Driver modal: keep the contact control aligned with the bus selector,
+   without stretching it to match the selected-chip stack. */
+.personnel-modal-driver .personnel-driver-form .driver-contact-field {
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  min-width: 0;
+  gap: 8px;
+}
+.personnel-modal-driver .personnel-driver-form .driver-contact-field .driver-input-shell {
+  flex: 0 0 auto;
+  height: 44px;
+  min-height: 44px;
+}
+.personnel-modal-driver .personnel-driver-form .driver-bus-field {
+  align-self: start;
+  min-width: 0;
+}
+.personnel-modal-driver .personnel-driver-form .driver-bus-chips {
+  display: flex;
+  align-content: flex-start;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+.personnel-modal-driver .personnel-driver-form .driver-bus-chip {
+  max-width: 100%;
+}
+@media (max-width: 680px) {
+  .personnel-modal-driver .personnel-driver-form .driver-contact-field,
+  .personnel-modal-driver .personnel-driver-form .driver-bus-field {
+    grid-column: 1;
+  }
+}
+
+/* Attendance-backed driver master records are view-only. */
+.personnel-master-page .personnel-master-table .action-btn.edit:disabled,
+.personnel-master-page .personnel-master-table .action-btn.edit:disabled:hover {
+  background: #e5e7eb;
+  border-color: #d1d5db;
+  color: #8792a2;
+  box-shadow: none;
+  opacity: 1;
+  cursor: not-allowed;
+  transform: none;
+  pointer-events: none;
+}
+
+/* Locked deactivation remains visible and neutral, not actionable. */
+.personnel-master-page .personnel-master-table .action-btn.delete:disabled,
+.personnel-master-page .personnel-master-table .action-btn.delete:disabled:hover {
+  background: #e5e7eb;
+  border-color: #d1d5db;
+  color: #8792a2;
+  box-shadow: none;
+  opacity: 1;
+  cursor: not-allowed;
+  transform: none;
+  pointer-events: none;
+}
+
+
+/* Driver Master List only: keep column headers and cells on the same grid. */
+.personnel-master-page .driver-master-records-table {
+    width: 100%;
+    min-width: 920px;
+    table-layout: fixed;
+    border-collapse: collapse;
+}
+.personnel-master-page .driver-master-records-table .driver-col-id { width: 16%; }
+.personnel-master-page .driver-master-records-table .driver-col-name { width: 17%; }
+.personnel-master-page .driver-master-records-table .driver-col-contact { width: 16%; }
+.personnel-master-page .driver-master-records-table .driver-col-buses { width: 21%; }
+.personnel-master-page .driver-master-records-table .driver-col-status { width: 14%; }
+.personnel-master-page .driver-master-records-table .driver-col-actions { width: 16%; }
+.personnel-master-page .driver-master-records-table th,
+.personnel-master-page .driver-master-records-table td {
+    box-sizing: border-box;
+    vertical-align: middle;
+}
+.personnel-master-page .driver-master-records-table th:nth-child(5),
+.personnel-master-page .driver-master-records-table td:nth-child(5),
+.personnel-master-page .driver-master-records-table th:nth-child(6),
+.personnel-master-page .driver-master-records-table td:nth-child(6) {
+    text-align: center;
+}
+.personnel-master-page .driver-master-records-table td:nth-child(6) .actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    flex-wrap: nowrap;
+}
+.personnel-master-page .driver-master-records-table td:nth-child(4) .driver-bus-summary {
+    justify-content: flex-start;
+}
+.personnel-master-page .driver-master-records-table .personnel-id {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+}
+
+
+/* Driver table bus cells mirror the two-line Client Allocation / Authorized Drivers pattern. */
+.personnel-master-page .driver-master-records-table td.driver-buses-cell .driver-bus-summary {
+    display: flex; align-items: center; flex-wrap: nowrap; gap: 10px; min-width: 0;
+}
+.personnel-master-page .driver-master-records-table .driver-bus-primary {
+    display: inline-flex; align-items: center; gap: 9px; min-width: 0; white-space: normal;
+}
+.personnel-master-page .driver-master-records-table .driver-bus-avatar {
+    display: inline-flex; align-items: center; justify-content: center;
+    flex: 0 0 32px; width: 32px; height: 32px;
+    border: 1px solid #d5e4fb; background: #eaf3ff; border-radius: 9px; color: #2563eb;
+}
+.personnel-master-page .driver-master-records-table .driver-bus-details {
+    display: flex; flex-direction: column; gap: 3px; min-width: 0; line-height: 1.15;
+}
+.personnel-master-page .driver-master-records-table .driver-bus-details strong {
+    font-size: 12px; font-weight: 700; color: #1e3556; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis;
+}
+.personnel-master-page .driver-master-records-table .driver-bus-details small {
+    font-size: 10px; color: #8290a6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.personnel-master-page .driver-master-records-table .driver-bus-primary .driver-bus-avatar i {
+    color: inherit;
+}
+.personnel-master-page .driver-master-records-table .driver-bus-more { flex: 0 0 auto; }
+.personnel-master-page .driver-master-records-table .driver-bus-none { display: inline-block; padding-left: 4px; }
+
+
+/* Consistent Operations record tabs and section divider. */
+.personnel-master-page .personnel-master-panel > .personnel-section-header {
+    padding-bottom: 15px;
+    margin-bottom: 12px;
+    border-bottom: 0;
+}
+.personnel-master-page .personnel-record-tab {
+    min-height: 38px;
+    padding: 9px 16px;
+    font-size: 12px;
+    font-weight: 700;
+}
+.personnel-master-page .personnel-record-tabs { min-height: 44px; }

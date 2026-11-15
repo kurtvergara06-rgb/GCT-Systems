@@ -51,15 +51,24 @@ class BatchAttendanceController extends Controller
         $people = $personModel::query()
             ->where('employment_status', 'Active')
             ->when($type === 'mechanic', fn ($query) => $query->where('shift', 'Morning'))
-            ->when($shift !== 'all', fn ($query) => $query->where('shift', $shift))
+            ->when($type === 'mechanic' && $shift !== 'all', fn ($query) => $query->where('shift', $shift))
             ->orderBy($nameColumn)
             ->get();
 
         $dateRecords = $attendanceModel::query()
             ->whereDate('attendance_date', $date)
-            ->when($shift !== 'all', fn ($query) => $query->where('shift', $shift))
             ->get()
             ->keyBy($idColumn);
+
+        // For drivers, show only personnel who still need attendance for
+        // this date. A saved Present, Absent or On Leave record must not
+        // reappear in the new-entry modal.
+        if ($type === 'driver') {
+            $people = $people->reject(
+                fn ($person) => ($record = $dateRecords->get((string) $person->{$idColumn}))
+                    && ! in_array($record->status, ['Unmarked', null, ''], true)
+            )->values();
+        }
 
         $rows = $people->map(function ($person) use (
             $dateRecords,
@@ -78,12 +87,13 @@ class BatchAttendanceController extends Controller
 
             return [
                 'person_id' => $personId,
+                'recorded' => $record !== null && ! in_array($record->status, ['Unmarked', null, ''], true),
                 'name' => (string) $person->{$nameColumn},
-                'shift' => (string) $person->shift,
+                'shift' => $type === 'driver' ? 'Morning' : (string) $person->shift,
                 'attendance_date' => $date,
                 'time_in' => $this->timeValue($record?->time_in),
                 'time_out' => $this->timeValue($record?->time_out),
-                'status' => $status ?: 'Present',
+                'status' => $status ?: ($type === 'driver' ? 'Unmarked' : 'Present'),
                 'availability' => $this->availabilityLabel($type, $record, $personId),
                 'assigned_job' => $type === 'mechanic'
                     ? (string) ($record?->assigned_job ?? '')
@@ -175,6 +185,14 @@ class BatchAttendanceController extends Controller
                         ->whereDate('attendance_date', $date)
                         ->lockForUpdate()->first();
 
+                    // A batch is create-only: never silently replace an existing
+                    // daily record, including one linked to a trip or job order.
+                    if ($existing && ! in_array($existing->status, ['Unmarked', null, ''], true)) {
+                        throw ValidationException::withMessages([
+                            "rows.{$index}.person_id" => 'Attendance is already recorded for this person on the selected date. Refresh the roster.',
+                        ]);
+                    }
+
                     // Match the individual attendance controllers: linked records
                     // cannot be rewritten through the batch endpoint.
                     if ($type === 'driver' && $existing?->tripAssignments()->exists()) {
@@ -212,9 +230,9 @@ class BatchAttendanceController extends Controller
 
                     $values = [
                         $nameColumn => (string) $person->{$nameColumn},
-                        'shift' => $row['shift'],
+                        'shift' => $type === 'driver' ? 'Morning' : $row['shift'],
                         'time_in' => $timeIn ? $timeIn . ':00' : null,
-                        'time_out' => $timeOut ? $timeOut . ':00' : null,
+                        'time_out' => $type === 'driver' ? null : ($timeOut ? $timeOut . ':00' : null),
                         'status' => $status,
                     ];
 
@@ -223,6 +241,8 @@ class BatchAttendanceController extends Controller
                     }
 
                     if ($existing) {
+                        // Finalize a previously created Unmarked placeholder in place.
+                        // Never change an attendance row already linked to a trip.
                         $existing->update($values);
                     } else {
                         $attendanceModel::query()->create(array_merge([

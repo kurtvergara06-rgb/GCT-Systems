@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Operation;
 use App\Http\Controllers\Controller;
 use App\Models\Maintenance\JobOrder;
 use App\Models\Operation\Driver;
+use App\Models\Maintenance\Bus;
 use App\Models\Operation\Mechanic;
 use App\Models\Operation\TripAssignment;
 use App\Support\TableSort;
@@ -51,9 +52,9 @@ class PersonnelController extends Controller
             'total' => (clone $query)->count(),
             'active' => (clone $query)->where('employment_status', 'Active')->count(),
             'inactive' => (clone $query)->where('employment_status', 'Inactive')->count(),
-            'morning' => (clone $query)
+            'authorized' => (clone $query)
                 ->where('employment_status', 'Active')
-                ->where('shift', 'Morning')
+                ->whereHas('authorizedBuses')
                 ->count(),
         ];
 
@@ -68,9 +69,12 @@ class PersonnelController extends Controller
                 });
             })
             ->where('employment_status', $request->query('tab') === 'history' ? 'Inactive' : 'Active')
-            ->when(in_array($request->query('shift'), ['Morning', 'Afternoon', 'Night'], true), fn ($query) => $query->where('shift', $request->query('shift')));
+            ->when($request->query('bus_authorization') === 'assigned', fn ($query) => $query->whereHas('authorizedBuses'))
+            ->when($request->query('bus_authorization') === 'unassigned', fn ($query) => $query->whereDoesntHave('authorizedBuses'));
         TableSort::apply($driversQuery, $request, ['driver_name' => 'driver_name', 'driver_id' => 'driver_id', 'shift' => 'shift', 'employment_status' => 'employment_status'], 'driver_name');
         $drivers = $driversQuery
+            ->with('authorizedBuses')
+            ->withExists('attendances')
             ->paginate(12)
             ->withQueryString();
 
@@ -83,7 +87,15 @@ class PersonnelController extends Controller
             $driver->deactivation_locked = $lockedDriverIds->contains($driver->driver_id);
         });
 
-        return view('Operation.Personnel Management.driver_master_list', compact('drivers', 'stats'));
+        $availableBuses = Bus::query()
+            ->where('fleet_purpose', 'Regular')
+            ->with(['authorizedDrivers' => fn ($query) => $query
+                ->where('employment_status', 'Active')
+                ->orderBy('driver_name')])
+            ->orderBy('bus_no')
+            ->get(['id', 'bus_no', 'plate_no']);
+
+        return view('Operation.Personnel Management.driver_master_list', compact('drivers', 'stats', 'availableBuses'));
     }
 
     public function mechanics(Request $request): View
@@ -162,7 +174,14 @@ class PersonnelController extends Controller
 
     public function storeDriver(Request $request): RedirectResponse
     {
-        $driver = Driver::create($this->validateDriver($request));
+        $validated = $this->validateDriver($request);
+        $busIds = $validated['bus_ids'] ?? [];
+        unset($validated['bus_ids']);
+        $driver = DB::transaction(function () use ($validated, $busIds): Driver {
+            $driver = Driver::create($validated);
+            $driver->authorizedBuses()->sync($busIds);
+            return $driver;
+        });
 
         $this->broadcastSystemDataUpdated(
             'Operation',
@@ -178,19 +197,25 @@ class PersonnelController extends Controller
     public function updateDriver(Request $request, Driver $driver): RedirectResponse
     {
         $validated = $this->validateDriver($request, $driver);
+        $busIds = $validated['bus_ids'] ?? null;
+        unset($validated['bus_ids']);
 
-        $driver = DB::transaction(function () use ($driver, $validated): Driver {
+        $driver = DB::transaction(function () use ($driver, $validated, $busIds): Driver {
             $lockedDriver = Driver::query()
                 ->whereKey($driver->id)
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            if (
+            // Driver ID and name are historical join keys in attendance and
+            // trip records. They cannot change after linked records exist.
+            $hasHistory = $lockedDriver->attendances()->exists()
+                || TripAssignment::query()->where('driver_id', $lockedDriver->driver_id)->exists();
+            if ($hasHistory && (
                 $validated['driver_id'] !== $lockedDriver->driver_id
-                && $lockedDriver->attendances()->exists()
-            ) {
+                || $validated['driver_name'] !== $lockedDriver->driver_name
+            )) {
                 throw ValidationException::withMessages([
-                    'driver_id' => 'Driver ID cannot be changed after attendance history exists.',
+                    'driver_id' => 'Driver ID and name cannot be changed after attendance or trip history exists.',
                 ]);
             }
 
@@ -201,7 +226,26 @@ class PersonnelController extends Controller
                 $this->assertDriverCanBeDeactivated($lockedDriver);
             }
 
+            if ($busIds !== null) {
+                $oldIds = $lockedDriver->authorizedBuses()->pluck('buses.id')->all();
+                $removedIds = array_diff($oldIds, $busIds);
+                if ($removedIds && TripAssignment::query()
+                    ->where('driver_id', $lockedDriver->driver_id)
+                    ->whereIn('bus_id', $removedIds)
+                    ->whereHas('tripSchedule', fn ($query) => $query
+                        ->whereDate('trip_date', '>=', today(config('app.business_timezone', 'Asia/Manila'))->toDateString())
+                        ->whereNotIn('status', ['Cancelled', 'Completed', 'Missed']))
+                    ->exists()) {
+                    throw ValidationException::withMessages(['bus_ids' => 'Cannot remove a bus linked to an ongoing or future trip assignment. Reassign that trip first.']);
+                }
+            }
+
             $lockedDriver->update($validated);
+            if ($validated['employment_status'] === 'Inactive') {
+                $lockedDriver->authorizedBuses()->detach();
+            } elseif ($busIds !== null) {
+                $lockedDriver->authorizedBuses()->sync($busIds);
+            }
 
             return $lockedDriver;
         });
@@ -227,6 +271,7 @@ class PersonnelController extends Controller
 
             $this->assertDriverCanBeDeactivated($lockedDriver);
             $lockedDriver->update(['employment_status' => 'Inactive']);
+            $lockedDriver->authorizedBuses()->detach();
 
             return $lockedDriver;
         });
@@ -344,7 +389,12 @@ class PersonnelController extends Controller
         $request->merge([
             'driver_id' => trim((string) $request->input('driver_id')),
             'driver_name' => trim((string) $request->input('driver_name')),
+            // Preserve the existing shift on edit; use legacy Morning default only
+            // for newly created drivers until the scheduling/attendance phase is migrated.
+            'shift' => $driver?->shift ?? 'Morning',
         ]);
+
+        if ($request->boolean('bus_ids_present')) $request->merge(['bus_ids' => $request->input('bus_ids', [])]);
 
         $validated = $request->validate([
             'driver_id' => ['required', 'string', 'max:100', Rule::unique('drivers', 'driver_id')->ignore($driver?->id)],
@@ -352,6 +402,8 @@ class PersonnelController extends Controller
             'shift' => ['required', Rule::in(['Morning', 'Afternoon'])],
             'contact_number' => ['nullable', 'string', 'max:50'],
             'employment_status' => ['required', Rule::in(['Active', 'Inactive'])],
+            'bus_ids' => ['sometimes', 'array'],
+            'bus_ids.*' => ['integer', 'distinct', Rule::exists('buses', 'id')->where('fleet_purpose', 'Regular')],
         ]);
 
         $duplicateName = Driver::query()
@@ -402,6 +454,7 @@ class PersonnelController extends Controller
 
     private function assertDriverCanBeDeactivated(Driver $driver): void
     {
+        // Past attendance does not block deactivation; unresolved trips do.
         $hasActiveOrUpcomingTrip = TripAssignment::query()
             ->where('driver_id', $driver->driver_id)
             ->whereHas('tripSchedule', fn ($query) => $query

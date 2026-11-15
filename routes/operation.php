@@ -3,6 +3,8 @@
 use App\Http\Controllers\Operation\AutoSchedulingController;
 use App\Http\Controllers\Operation\BusAvailabilityController;
 use App\Http\Controllers\Operation\BusController;
+use App\Http\Controllers\Operation\ClientMasterListController;
+use App\Http\Controllers\Operation\ClientTripTimeController;
 use App\Http\Controllers\Operation\DailyDriverReportController;
 use App\Http\Controllers\Operation\DriverAttendanceController;
 use App\Http\Controllers\Operation\IncidentController;
@@ -73,6 +75,13 @@ Route::middleware('role:operation:head,operation:staff,admin:head')->group(funct
     Route::get('/operation/routes/reverse-location', [RouteController::class, 'reverseLocation'])->middleware(['system.permission:operation,view', 'throttle:60,1'])->name('operation.routes.reverse-location');
     Route::post('/operation/routes/calculate', [RouteController::class, 'calculateRoute'])->middleware(['system.permission:operation,view', 'throttle:60,1'])->name('operation.routes.calculate');
 
+    Route::post('/operation/clients', [ClientMasterListController::class, 'store'])
+        ->middleware('system.permission:operation,edit')
+        ->name('operation.clients.store');
+    Route::patch('/operation/clients/{operationClient}/status', [ClientMasterListController::class, 'updateStatus'])
+        ->middleware('system.permission:operation,edit')
+        ->name('operation.clients.status');
+
     Route::controller(TripScheduleController::class)
         ->prefix('operation/trip-schedule')
         ->middleware('system.permission:operation,view')
@@ -89,13 +98,29 @@ Route::middleware('role:operation:head,operation:staff,admin:head')->group(funct
                 ->name('trip-schedule.destroy');
         });
 
-    Route::post('operation/external-bus-rentals', [\App\Http\Controllers\Operation\ExternalBusRentalController::class, 'store'])
-        ->middleware('system.permission:operation,edit')
-        ->name('external-bus-rentals.store');
-
-    Route::post('operation/external-bus-rentals/{rental}/assign', [\App\Http\Controllers\Operation\ExternalBusRentalController::class, 'assign'])
-        ->middleware('system.permission:operation,edit')
-        ->name('external-bus-rentals.assign');
+    Route::controller(ClientTripTimeController::class)
+        ->prefix('operation/client-trip-times')
+        ->middleware('system.permission:operation,view')
+        ->group(function () {
+            Route::get('/', 'index')->name('client-trip-times');
+            Route::get('/panels/{operationClient}/{category}', 'panel')
+                ->name('client-trip-times.panel');
+            Route::post('/', 'store')
+                ->middleware('system.permission:operation,edit')
+                ->name('client-trip-times.store');
+            Route::put('/{clientTripTimeConfiguration}', 'update')
+                ->middleware('system.permission:operation,edit')
+                ->name('client-trip-times.update');
+            Route::post('/{clientTripTimeConfiguration}/slots', 'addSlot')
+                ->middleware('system.permission:operation,edit')
+                ->name('client-trip-times.slots.store');
+            Route::put('/slots/{clientTripTimeSlot}', 'updateSlot')
+                ->middleware('system.permission:operation,edit')
+                ->name('client-trip-times.slots.update');
+            Route::delete('/slots/{clientTripTimeSlot}', 'destroySlot')
+                ->middleware('system.permission:operation,edit')
+                ->name('client-trip-times.slots.destroy');
+        });
 
     Route::controller(TripAssignmentController::class)
         ->prefix('operation/driver-bus-assignment')
@@ -121,6 +146,7 @@ Route::middleware('role:operation:head,operation:staff,admin:head')->group(funct
         ->middleware('system.permission:operation,view')
         ->group(function () {
             Route::get('/', 'index')->name('auto-scheduling');
+            Route::get('/ai/training/status', 'trainingStatus')->name('auto-scheduling.ai.training-status');
             Route::get('/drafts', 'listDrafts')->name('auto-scheduling.drafts.index');
             Route::get('/draft', 'loadDraft')->name('auto-scheduling.draft.load');
             Route::post('/draft', 'saveDraft')->middleware('system.permission:operation,edit')->name('auto-scheduling.draft.save');
@@ -130,7 +156,10 @@ Route::middleware('role:operation:head,operation:staff,admin:head')->group(funct
                 ->middleware('system.permission:operation,edit')
                 ->name('auto-scheduling.edit-preview');
             Route::post('/confirm', 'confirm')
-                ->middleware('system.permission:operation,edit')
+                ->middleware([
+                    'system.permission:operation,edit',
+                    'system.permission:operation,approve',
+                ])
                 ->name('auto-scheduling.confirm');
             Route::post('/resolve', 'resolve')
                 ->middleware('system.permission:operation,edit')
@@ -145,6 +174,7 @@ Route::middleware('role:operation:head,operation:staff,admin:head')->group(funct
         Route::get('/', 'index')->name('daily-driver-reports');
         Route::post('/', 'store')->middleware('system.permission:operation,edit')->name('daily-driver-reports.store');
         Route::get('/schedule-lookup', 'scheduleLookup')->middleware('throttle:60,1')->name('daily-driver-reports.schedule-lookup');
+        Route::get('/assigned-drivers', 'assignedDrivers')->middleware('throttle:60,1')->name('daily-driver-reports.assigned-drivers');
         Route::put('/{dailyDriverReport}', 'update')->middleware('system.permission:operation,edit')->name('daily-driver-reports.update');
         Route::delete('/{dailyDriverReport}', 'destroy')->middleware('system.permission:operation,edit')->name('daily-driver-reports.destroy');
     });
@@ -161,22 +191,22 @@ Route::middleware('role:operation:head,operation:staff,admin:head')->group(funct
         Route::delete('/{incident}', 'destroy')->middleware('system.permission:operation,edit')->name('incidents.destroy');
         Route::get('/{incident}', 'show')->name('incidents.show');
         Route::put('/{incident}', 'update')->middleware('system.permission:operation,edit')->name('incidents.update');
-        Route::post('/{incident}/dispatch', 'dispatchReplacement')->middleware('system.permission:operation,edit')->name('incidents.dispatch');
+        Route::post('/{incident}/dispatch', 'dispatchReplacement')->middleware(['system.permission:operation,edit', 'system.permission:operation,approve'])->name('incidents.dispatch');
         Route::post('/{incident}/response', 'addResponse')->middleware('system.permission:operation,edit')->name('incidents.response');
     });
 });
 
-Route::middleware('role:operation:head,operation:staff,maintenance:head,maintenance:staff,admin:head')
+Route::middleware(['role:operation:head,operation:staff,maintenance:head,maintenance:staff,maintenance:admin,maintenance:maintenance head,maintenance:maintenance staff,maintenance:maintenance admin,admin:head,admin:admin,admin:system admin'])
     ->controller(MechanicAttendanceController::class)
     ->prefix('mechanic-attendance')
     ->group(function () {
         Route::get('/', 'index')->name('mechanic-attendance');
-        Route::post('/', 'store')->middleware(['role:operation:head,operation:staff,admin:head', 'system.permission:operation,edit'])->name('mechanic-attendance.store');
-        Route::put('/{mechanicAttendance}', 'update')->middleware(['role:operation:head,operation:staff,admin:head', 'system.permission:operation,edit'])->name('mechanic-attendance.update');
-        Route::delete('/{mechanicAttendance}', 'destroy')->middleware(['role:operation:head,operation:staff,admin:head', 'system.permission:operation,edit'])->name('mechanic-attendance.destroy');
-        Route::post('/import', 'import')->middleware(['role:operation:head,operation:staff,admin:head', 'system.permission:operation,edit'])->name('mechanic-attendance.import');
+        Route::post('/', 'store')->name('mechanic-attendance.store');
+        Route::put('/{mechanicAttendance}', 'update')->name('mechanic-attendance.update');
+        Route::delete('/{mechanicAttendance}', 'destroy')->name('mechanic-attendance.destroy');
+        Route::post('/import', 'import')->name('mechanic-attendance.import');
     });
 
 Route::redirect('/available-mechanics', '/mechanic-attendance')
-    ->middleware('role:operation:head,operation:staff,maintenance:head,maintenance:staff,admin:head')
+    ->middleware(['role:operation:head,operation:staff,admin:head', 'system.permission:operation,view'])
     ->name('available-mechanics');

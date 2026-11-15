@@ -6,7 +6,6 @@
 
         return match (true) {
             $trip->status === 'Cancelled' => 'Cancelled',
-            $trip->status === 'Completed' => 'Completed',
             $trip->status === 'Missed' => 'Missed',
             $assigned === 0 => 'Missed',
             $assigned < $required => 'Partially Missed',
@@ -49,10 +48,9 @@
         </x-ui.table-toolbar>
     </x-slot:toolbar>
 
-    <x-slot:helper><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Scheduling outcomes reflect assignments, not verified vehicle arrivals.</x-slot:helper>
 
     <table class="trip-table trip-history-table">
-        <thead><tr><th>Trip ID</th><th>Schedule</th><th>Route</th><th>Assigned Resources</th><th>Bus Slots</th><th>Outcome</th></tr></thead>
+        <thead><tr><th>Trip ID</th><th>Schedule</th><th>Route</th><th>Assigned Resources</th><th>Bus Slots</th><th>Scheduling Outcome</th><th>Operational Status</th></tr></thead>
         <tbody>
             @forelse($assignmentHistoryTrips as $trip)
                 @php
@@ -92,10 +90,19 @@
                         @endif
                     </td>
                     <td><span class="trip-history-slots {{ $assigned >= $required ? 'is-full' : ($assigned > 0 ? 'is-partial' : 'is-empty') }}">{{ $assigned }}/{{ $required }}</span></td>
-                    <td><x-ui.status-badge class="trip-history-outcome" :status="$outcome" :title="$outcome === 'Scheduled Done' ? 'Scheduled window ended; actual arrival has not been verified.' : 'Scheduling fulfillment outcome'" /></td>
+                    <td><x-ui.status-badge class="trip-history-outcome" :status="$outcome" :title="$outcome === 'Scheduled Done' ? 'All required bus slots were assigned. This does not confirm DDR submission.' : 'Scheduling fulfillment outcome'" /></td>
+                    <td>
+                        @php
+                            $operationalLabel = match ($trip->status) {
+                                'Dispatched' => 'In Progress',
+                                default => $trip->status,
+                            };
+                        @endphp
+                        <x-ui.status-badge class="trip-history-operational-status" :status="$operationalLabel" :title="$trip->status === 'Pending DDR' ? 'This trip is awaiting required DDR submissions, even though its scheduling window ended.' : 'Current operational trip status'" />
+                    </td>
                 </tr>
             @empty
-                <x-ui.empty-row colspan="6" icon="fa-clock-rotate-left" message="No Assignment History Found" description="No historical assignments matched your search or filter criteria." />
+                <x-ui.empty-row colspan="7" icon="fa-clock-rotate-left" message="No Assignment History Found" description="No historical assignments matched your search or filter criteria." />
             @endforelse
         </tbody>
     </table>

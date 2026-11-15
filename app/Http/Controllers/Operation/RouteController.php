@@ -1422,31 +1422,7 @@ class RouteController extends Controller
             abort(403);
         }
 
-        $department =
-            strtolower(
-                trim(
-                    (string) $user->department
-                )
-            );
-
-        $role =
-            strtolower(
-                trim(
-                    (string) $user->role
-                )
-            );
-
-        $isOperationHead =
-            $department === 'operation'
-            && $role === 'head';
-
-        if (
-            $isOperationHead
-            || $user->hasSystemPermission(
-                'operation',
-                'edit'
-            )
-        ) {
+        if ($user->hasSystemPermission('operation', 'edit')) {
             return;
         }
 

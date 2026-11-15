@@ -19,6 +19,7 @@ class TripSchedule extends Model
         'trip_code',
         'trip_date',
         'shuttle_route_id',
+        'client_name',
         'direction',
         'required_buses',
         'route_code_snapshot',
@@ -165,7 +166,7 @@ class TripSchedule extends Model
             $this->status,
             ['Scheduled', 'Cancelled'],
             true
-        ) && ! $this->hasOperationalHistory();
+        ) && ! $this->hasDeparted() && ! $this->hasOperationalHistory();
     }
 
     public function getAssignedBusesCountAttribute(): int

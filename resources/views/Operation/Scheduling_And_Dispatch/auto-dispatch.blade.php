@@ -10,6 +10,8 @@
 >
 @php
     $canEditOperation = auth()->user()?->hasSystemPermission('operation', 'edit') ?? false;
+    $canApproveOperation = auth()->user()?->hasSystemPermission('operation', 'approve') ?? false;
+    $canAssignReserve = auth()->user()?->canAssignReserveBus() ?? false;
 @endphp
 
 <div class="app">
@@ -18,10 +20,12 @@
     <main
         class="main auto-scheduling-page"
         data-operation-edit="{{ $canEditOperation ? 'true' : 'false' }}"
+        data-operation-approve="{{ $canApproveOperation ? 'true' : 'false' }}"
+        data-reserve-head="{{ $canAssignReserve ? 'true' : 'false' }}"
     >
         <x-layout.topbar
             title="Auto Scheduling"
-            subtitle="Automatically assign available drivers and shuttle buses to scheduled trips"
+            subtitle="Generate rule-eligible driver and bus recommendations for Operations review"
             notification-count="4"
         />
 
@@ -40,25 +44,25 @@
                 <div>
                     <p>Available Drivers</p>
                     <h2 id="summaryDrivers">{{ $availableDrivers }}</h2>
-                    <small>Present or late</small>
+                    <small>Active · assumed present</small>
                 </div>
             </article>
 
             <article class="auto-summary-card">
                 <div class="summary-icon purple"><i class="fa-solid fa-bus"></i></div>
                 <div>
-                    <p>Available Buses</p>
+                    <p>Available Regular Buses</p>
                     <h2 id="summaryBuses">{{ $availableBuses }}</h2>
-                    <small>Active buses</small>
+                    <small>Active · no unresolved job order</small>
                 </div>
             </article>
 
             <article class="auto-summary-card">
                 <div class="summary-icon yellow"><i class="fa-solid fa-triangle-exclamation"></i></div>
                 <div>
-                    <p>Potential Conflicts</p>
+                    <p>Capacity Shortfall Estimate</p>
                     <h2 id="summaryConflicts">{{ $potentialConflicts }}</h2>
-                    <small>Needs review</small>
+                    <small>Preliminary count · generate to check actual conflicts</small>
                 </div>
             </article>
         </section>
@@ -69,9 +73,14 @@
                     <div>
                         <span class="section-eyebrow">Scheduling Setup</span>
                         <h2>Generate Dispatch Schedule</h2>
-                        <p>Select the date, shift, and route to prepare driver and bus recommendations.</p>
+                        <p>Select the date and route to prepare driver and bus recommendations.</p>
                     </div>
-                    <div class="auto-scheduling-assurance"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i><span>The system checks attendance, bus availability, and schedule conflicts before confirming assignments.</span></div>
+                    <div class="auto-header-side-actions">
+                        <div class="auto-scheduling-assurance"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i><span>The system checks active drivers, authorization, bus availability, and schedule conflicts before confirming assignments. No attendance record is created.</span></div>
+                        <a class="schedule-secondary-btn auto-client-trip-times-link" href="{{ route('client-trip-times') }}">
+                            <i class="fa-solid fa-clock" aria-hidden="true"></i> Client Trip Times
+                        </a>
+                    </div>
                 </div>
 
                 <form id="autoSchedulingForm" class="auto-scheduling-form">
@@ -91,19 +100,7 @@
                                 >
                             </div>
                         </div>
-
-                        <div class="schedule-field">
-                            <label for="autoScheduleShift">Shift</label>
-                            <div class="field-control">
-                                <i class="fa-solid fa-clock"></i>
-                                <select name="shift" id="autoScheduleShift">
-                                    <option value="all" @selected($selectedShift === 'all')>All Shifts</option>
-                                    <option value="Morning" @selected($selectedShift === 'Morning')>Morning</option>
-                                    <option value="Afternoon" @selected($selectedShift === 'Afternoon')>Afternoon</option>
-                                    <option value="Night" @selected($selectedShift === 'Night')>Night</option>
-                                </select>
-                            </div>
-                        </div>
+                        <input type="hidden" name="shift" value="all">
 
                         <div class="schedule-field">
                             <label for="autoScheduleRoute">Route</label>
@@ -136,15 +133,21 @@
                         </div>
                         <div class="generation-arrow"><i class="fa-solid fa-plus"></i></div>
                         <div class="generation-summary-item">
-                            <span>Buses</span>
+                            <span>Regular Buses</span>
                             <strong id="generationBusCount">{{ $availableBuses }}</strong>
                         </div>
                     </div>
 
-                    <div class="ai-ml-status" id="aiMlStatus" role="status" aria-live="polite">
-                        <span class="ai-status-label"><i class="fa-solid fa-microchip" aria-hidden="true"></i> Ranking Source</span>
-                        <span class="ai-status-badge is-pending"><i class="fa-solid fa-bus" aria-hidden="true"></i> Bus: Not evaluated</span>
-                        <span class="ai-status-badge is-pending"><i class="fa-solid fa-user" aria-hidden="true"></i> Driver: Not evaluated</span>
+                    <div
+                        class="ai-ml-status"
+                        id="aiMlStatus"
+                        role="status"
+                        aria-live="polite"
+                        data-status-url="{{ route('auto-scheduling.ai.training-status') }}"
+                    >
+                        <span class="ai-status-label"><i class="fa-solid fa-microchip" aria-hidden="true"></i> Alternative Score Sources</span>
+                        <span class="ai-status-badge is-pending"><i class="fa-solid fa-bus" aria-hidden="true"></i> Bus: Checking...</span>
+                        <span class="ai-status-badge is-pending"><i class="fa-solid fa-user" aria-hidden="true"></i> Driver: Checking...</span>
                     </div>
 
                     <button
@@ -172,7 +175,7 @@
                     <div class="resource-item">
                         <div class="resource-info">
                             <div class="resource-icon green"><i class="fa-solid fa-user-check"></i></div>
-                            <div><strong>Available Drivers</strong><span>Present or late</span></div>
+                            <div><strong>Available Drivers</strong><span>Active · assumed present</span></div>
                         </div>
                         <strong class="resource-count" id="resourceAvailableDrivers">{{ $availableDrivers }}</strong>
                     </div>
@@ -188,7 +191,7 @@
                     <div class="resource-item">
                         <div class="resource-info">
                             <div class="resource-icon red"><i class="fa-solid fa-user-xmark"></i></div>
-                            <div><strong>Unavailable Drivers</strong><span>Absent, on leave, or on duty</span></div>
+                            <div><strong>Unavailable Drivers</strong><span>Inactive Driver Master records</span></div>
                         </div>
                         <strong class="resource-count">{{ $unavailableDrivers }}</strong>
                     </div>
@@ -219,7 +222,7 @@
 
             <div class="rules-grid" id="autoSchedulingRulesGrid" hidden>
                 @foreach([
-                    ['Driver must be present', 'Only Present or Late drivers can be assigned.'],
+                    ['Driver must be active', 'Active drivers are assumed present for planning; no attendance row is created.'],
                     ['Driver must be available', 'Prevent overlapping driver assignments.'],
                     ['Bus must be operational', 'Only Active buses are eligible.'],
                     ['Exclude maintenance buses', 'Buses under maintenance cannot be assigned.'],
@@ -235,6 +238,18 @@
         </section>
 
         <section class="auto-card generated-schedule-card" id="generatedScheduleSection">
+            <div class="gct-auto-print-header" aria-hidden="true">
+                <div>
+                    <h1>GCT-Systems</h1>
+                    <h2>Auto Scheduling — Draft Assignment Sheet</h2>
+                    <p>Proposed assignments for Operations review. Not authorized for dispatch.</p>
+                </div>
+                <div class="gct-auto-print-meta">
+                    <strong>DRAFT — NOT CONFIRMED</strong>
+                    <span>Schedule date: <span id="gctAutoPrintDate">—</span></span>
+                    <span>Printed: <span id="gctAutoPrintGenerated">—</span></span>
+                </div>
+            </div>
             <div class="auto-card-header schedule-result-header">
                 <div>
                     <span class="section-eyebrow">Auto-Generated Result</span>
@@ -289,13 +304,22 @@
                                     <span><strong id="incomingReviewCount">0</strong> Slots to Review</span>
                                 </span>
                                 <span class="service-chip auto-chip-manual"><i class="fa-solid fa-user-gear" aria-hidden="true"></i><span><strong id="incomingManualCount">0</strong> Manual</span></span>
-                                <span class="service-chip auto-chip-external"><i class="fa-solid fa-building" aria-hidden="true"></i><span><strong id="incomingExternalCount">0</strong> External</span></span>
                             </div>
                         </div>
                     </header>
 
                     <div class="auto-table-wrap" role="region" aria-label="Incoming trip recommendations" tabindex="0">
                         <table class="auto-schedule-table">
+                            <colgroup>
+                                <col style="width:9%">
+                                <col style="width:11%">
+                                <col style="width:18%">
+                                <col style="width:12%">
+                                <col style="width:14%">
+                                <col style="width:14%">
+                                <col style="width:10%">
+                                <col style="width:12%">
+                            </colgroup>
                             <thead>
                                 <tr>
                                     <th>Trip ID</th>
@@ -354,13 +378,22 @@
                                     <span><strong id="outgoingReviewCount">0</strong> Slots to Review</span>
                                 </span>
                                 <span class="service-chip auto-chip-manual"><i class="fa-solid fa-user-gear" aria-hidden="true"></i><span><strong id="outgoingManualCount">0</strong> Manual</span></span>
-                                <span class="service-chip auto-chip-external"><i class="fa-solid fa-building" aria-hidden="true"></i><span><strong id="outgoingExternalCount">0</strong> External</span></span>
                             </div>
                         </div>
                     </header>
 
                     <div class="auto-table-wrap" role="region" aria-label="Outgoing trip recommendations" tabindex="0">
                         <table class="auto-schedule-table">
+                            <colgroup>
+                                <col style="width:9%">
+                                <col style="width:11%">
+                                <col style="width:18%">
+                                <col style="width:12%">
+                                <col style="width:14%">
+                                <col style="width:14%">
+                                <col style="width:10%">
+                                <col style="width:12%">
+                            </colgroup>
                             <thead>
                                 <tr>
                                     <th>Trip ID</th>
@@ -402,6 +435,8 @@
                         <button type="button" class="schedule-secondary-btn" id="saveAutoScheduleDraftButton">
                             <i class="fa-solid fa-floppy-disk"></i> Save Draft
                         </button>
+                    @else
+                        <span title="You don't have authorized access to this action." aria-label="You don't have authorized access to this action." style="display:inline-flex;cursor:not-allowed"><button type="button" class="schedule-secondary-btn" disabled aria-disabled="true" tabindex="-1" style="opacity:.45;filter:grayscale(1);pointer-events:none"><i class="fa-solid fa-floppy-disk"></i> Save Draft</button></span>
                     @endif
                     <button type="button" class="schedule-secondary-btn" id="printAutoScheduleDraftButton">
                         <i class="fa-solid fa-print"></i> Print Draft
@@ -411,18 +446,21 @@
                         Regenerate
                     </button>
 
-                    @if($canEditOperation)
+                    @if($canEditOperation && $canApproveOperation)
                         <button type="button" class="schedule-primary-btn" id="confirmScheduleButton" disabled>
                             <i class="fa-solid fa-circle-check"></i>
                             Confirm Schedule
                         </button>
                     @else
-                        <span class="schedule-readonly-note">
-                            <i class="fa-solid fa-eye"></i>
-                            View-only access
+                        <span title="You don't have authorized access to this action." aria-label="You don't have authorized access to this action." style="display:inline-flex;cursor:not-allowed">
+                          <button type="button" class="schedule-primary-btn" disabled aria-disabled="true" tabindex="-1" style="opacity:.45;filter:grayscale(1);pointer-events:none"><i class="fa-solid fa-circle-check"></i> Confirm Schedule</button>
                         </span>
                     @endif
                 </div>
+            </div>
+            <div class="gct-auto-print-signatures" aria-hidden="true">
+                <div>Prepared by / Operations Staff</div>
+                <div>Reviewed by / Operations Head</div>
             </div>
         </section>
 

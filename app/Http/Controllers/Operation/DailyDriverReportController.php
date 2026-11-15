@@ -7,8 +7,10 @@ use App\Models\Maintenance\Bus;
 use App\Models\Operation\DailyDriverReport;
 use App\Models\Operation\DailyDriverReportTripEntry;
 use App\Models\Operation\Driver;
+use App\Models\Operation\DriverAttendance;
 use App\Models\Operation\TripSchedule;
 use App\Services\Operation\DailyDriverReportScheduleMatchService;
+use App\Services\Operation\TripDdrLifecycleService;
 use App\Services\Operation\OperationNumberSequenceService;
 use App\Support\TableSort;
 use Carbon\Carbon;
@@ -176,6 +178,9 @@ class DailyDriverReportController extends Controller
                     }
                 },
             ],
+            'selected_trip_schedule_id' => ['nullable', 'integer', Rule::exists('trip_schedules', 'id')],
+            'unscheduled_mode' => ['sometimes', 'boolean'],
+            'unscheduled_reason' => ['nullable', 'required_if:unscheduled_mode,1', 'string', 'min:10', 'max:500'],
             'driver_id' => [
                 'required',
                 'string',
@@ -218,6 +223,7 @@ class DailyDriverReportController extends Controller
             'km' => ['nullable', 'numeric', 'min:0', 'max:99999999.99'],
             'additional_trips' => ['sometimes', 'array', 'max:30'],
             'additional_trips.*.trip_ticket' => ['required', 'string', 'max:50'],
+            'additional_trips.*.selected_trip_schedule_id' => ['nullable', 'integer', Rule::exists('trip_schedules', 'id')],
             'additional_trips.*.from_location' => ['required', 'string', 'max:150'],
             'additional_trips.*.to_location' => ['required', 'string', 'max:150'],
             'additional_trips.*.departure_time' => ['required', 'date_format:H:i'],
@@ -225,6 +231,88 @@ class DailyDriverReportController extends Controller
             'additional_trips.*.passengers' => ['required', 'integer', 'min:0'],
             'additional_trips.*.km' => ['nullable', 'numeric', 'min:0', 'max:99999999.99'],
         ]);
+
+        $unscheduled = (bool) ($validated['unscheduled_mode'] ?? false);
+        if (! $unscheduled && empty($validated['selected_trip_schedule_id'])) {
+            throw ValidationException::withMessages([
+                'selected_trip_schedule_id' => 'Select an assigned trip, or choose Record Unscheduled Trip and provide a reason.',
+            ]);
+        }
+        if ($unscheduled && ! empty($validated['selected_trip_schedule_id'])) {
+            throw ValidationException::withMessages([
+                'selected_trip_schedule_id' => 'An unscheduled report cannot also select a scheduled trip.',
+            ]);
+        }
+        if (! $unscheduled && ! empty($validated['unscheduled_reason'])) {
+            throw ValidationException::withMessages([
+                'unscheduled_reason' => 'Unscheduled reasons are only permitted for unscheduled reports.',
+            ]);
+        }
+
+        $selectedSchedule = null;
+        $selectedAssignment = null;
+        if (! empty($validated['selected_trip_schedule_id'])) {
+            $selectedSchedule = TripSchedule::query()
+                ->whereKey($validated['selected_trip_schedule_id'])
+                ->whereDate('trip_date', $validated['report_date'])
+                ->whereIn('status', ['Scheduled', 'Ready', 'Dispatched', 'Pending DDR', 'Completed', 'Delayed'])
+                ->first();
+            $selectedAssignment = $selectedSchedule?->assignments()
+                ->where('driver_id', $validated['driver_id'])
+                ->where('bus_id', $validated['bus_id'])
+                ->first();
+            if (! $selectedSchedule || ! $selectedAssignment || $selectedSchedule->estimatedArrivalDateTime()->isFuture()) {
+                throw ValidationException::withMessages([
+                    'selected_trip_schedule_id' => 'The selected trip does not match the report date, driver, and bus. Re-select the assigned trip.',
+                ]);
+            }
+            if (DailyDriverReport::query()->where('trip_assignment_id', $selectedAssignment->id)->exists()
+                || DailyDriverReportTripEntry::query()->where('trip_assignment_id', $selectedAssignment->id)->exists()) {
+                throw ValidationException::withMessages([
+                    'selected_trip_schedule_id' => 'A DDR is already linked to this assigned trip. Select another trip or review the existing report.',
+                ]);
+            }
+
+        }
+
+
+        $additionalScheduleLinks = [];
+        $claimedAssignmentIds = $selectedAssignment ? [$selectedAssignment->id] : [];
+        foreach (($validated['additional_trips'] ?? []) as $index => $entry) {
+            $scheduleId = $entry['selected_trip_schedule_id'] ?? null;
+            if ($unscheduled && $scheduleId) {
+                throw ValidationException::withMessages([
+                    "additional_trips.{$index}.selected_trip_schedule_id" => 'Unscheduled reports cannot select assigned trips.',
+                ]);
+            }
+            if (! $unscheduled && ! $scheduleId) {
+                throw ValidationException::withMessages([
+                    "additional_trips.{$index}.selected_trip_schedule_id" => 'Choose the assigned trip for this entry.',
+                ]);
+            }
+            if (! $scheduleId) {
+                continue;
+            }
+            $schedule = TripSchedule::query()
+                ->whereKey($scheduleId)
+                ->whereDate('trip_date', $validated['report_date'])
+                ->whereIn('status', ['Ready', 'Dispatched', 'Pending DDR', 'Completed', 'Delayed'])
+                ->first();
+            $assignment = $schedule?->assignments()
+                ->where('driver_id', $validated['driver_id'])
+                ->where('bus_id', $validated['bus_id'])
+                ->first();
+            if (! $schedule || ! $assignment || $schedule->estimatedArrivalDateTime()->isFuture()
+                || in_array($assignment->id, $claimedAssignmentIds, true)
+                || DailyDriverReport::query()->where('trip_assignment_id', $assignment->id)->exists()
+                || DailyDriverReportTripEntry::query()->where('trip_assignment_id', $assignment->id)->exists()) {
+                throw ValidationException::withMessages([
+                    "additional_trips.{$index}.selected_trip_schedule_id" => 'The selected assignment is invalid, duplicated, or already reported.',
+                ]);
+            }
+            $claimedAssignmentIds[] = $assignment->id;
+            $additionalScheduleLinks[$index] = [$schedule->id, $assignment->id];
+        }
 
         $allTickets = collect([$validated['trip_ticket']])
             ->merge(collect($validated['additional_trips'] ?? [])->pluck('trip_ticket'))
@@ -288,7 +376,11 @@ class DailyDriverReportController extends Controller
                 $arrival,
                 $allTickets,
                 $normalizedTickets,
-                $ddrNo
+                $ddrNo,
+                $selectedSchedule,
+                $selectedAssignment,
+                $additionalScheduleLinks,
+                $unscheduled
             ): void {
                 $report = DailyDriverReport::create([
                     'ddr_no' => $ddrNo,
@@ -297,6 +389,10 @@ class DailyDriverReportController extends Controller
                     'driver_name' => $driver?->driver_name
                         ?: $validated['driver_id'],
                     'bus_id' => $validated['bus_id'],
+                    'trip_schedule_id' => $selectedSchedule?->id,
+                    'trip_assignment_id' => $selectedAssignment?->id,
+                    'unscheduled_reason' => $unscheduled ? trim($validated['unscheduled_reason']) : null,
+                    'route_deviation_reason' => $validated['route_deviation_reason'] ?? null,
                     'trip_ticket' => $validated['trip_ticket'],
                     'from_location' => $validated['from_location'],
                     'to_location' => $validated['to_location'],
@@ -327,6 +423,9 @@ class DailyDriverReportController extends Controller
                 foreach (($validated['additional_trips'] ?? []) as $index => $trip) {
                     $report->additionalTrips()->create([
                         'sequence' => $index + 2,
+                        'trip_schedule_id' => $additionalScheduleLinks[$index][0] ?? null,
+                        'trip_assignment_id' => $additionalScheduleLinks[$index][1] ?? null,
+                        'route_deviation_reason' => $trip['route_deviation_reason'] ?? null,
                         'trip_ticket' => trim($trip['trip_ticket']),
                         'from_location' => $trip['from_location'],
                         'to_location' => $trip['to_location'],
@@ -335,6 +434,34 @@ class DailyDriverReportController extends Controller
                         'passengers' => $trip['passengers'],
                         'km' => $trip['km'] ?? null,
                     ]);
+                }
+                // DDR is GCT's evidence of actual attendance. Active drivers
+                // remain eligible for planning even without this record.
+                if ($driver) {
+                    $lockedDriver = Driver::query()
+                        ->whereKey($driver->id)->lockForUpdate()->firstOrFail();
+                    $attendance = DriverAttendance::query()
+                        ->where('driver_id', $lockedDriver->driver_id)
+                        ->whereDate('attendance_date', $validated['report_date'])
+                        ->first();
+
+                    if ($attendance) {
+                        if ($attendance->status !== 'Present') {
+                            $attendance->update(['status' => 'Present']);
+                        }
+                    } else {
+                        DriverAttendance::create([
+                            'driver_id' => $lockedDriver->driver_id,
+                            'driver_name' => $lockedDriver->driver_name,
+                            'shift' => 'Morning',
+                            'attendance_date' => $validated['report_date'],
+                            'status' => 'Present',
+                        ]);
+                    }
+                }
+
+                foreach (collect([$selectedSchedule?->id])->merge(collect($additionalScheduleLinks)->pluck(0))->filter()->unique() as $scheduleId) {
+                    app(TripDdrLifecycleService::class)->reconcile((int) $scheduleId);
                 }
             }, 5);
         } catch (ValidationException $exception) {
@@ -432,81 +559,123 @@ class DailyDriverReportController extends Controller
             $report = DailyDriverReport::query()
                 ->whereKey($dailyDriverReport->id)->lockForUpdate()->firstOrFail();
 
-            // Encoded records linked to operational trips are historical evidence.
-            if ($report->trip_schedule_id !== null || $report->trip_assignment_id !== null
-                || $report->incidents()->exists()
-                || $report->additionalTrips()->whereNotNull('trip_schedule_id')->exists()) {
-                throw ValidationException::withMessages([
-                    'report' => 'This report is linked to operational history and cannot be deleted.',
-                ]);
-            }
+            // Apply the same protection to update and delete, including an
+            // additional entry linked through its assignment alone.
+            $this->assertDdrEditable($report);
+
+            $reportDate = $report->report_date?->toDateString();
+            $driverId = $report->driver_id;
 
             // Only erroneous standalone records may be removed.
             $report->additionalTrips()->delete();
             DB::table('daily_driver_report_ticket_claims')
                 ->where('daily_driver_report_id', $report->id)->delete();
             $report->delete();
+
+            // Remove only an unlinked, time-free Present entry when there is
+            // no remaining DDR evidence for this driver and date.
+            // Records used by trip assignments or containing manual punch
+            // times must be preserved as independent historical evidence.
+            if ($driverId && $reportDate
+                && ! DailyDriverReport::query()
+                    ->where('driver_id', $driverId)
+                    ->whereDate('report_date', $reportDate)->exists()) {
+                $attendance = DriverAttendance::query()
+                    ->where('driver_id', $driverId)
+                    ->whereDate('attendance_date', $reportDate)
+                    ->lockForUpdate()->first();
+
+                if ($attendance && $attendance->status === 'Present'
+                    && $attendance->time_in === null && $attendance->time_out === null
+                    && ! $attendance->tripAssignments()->exists()) {
+                    $attendance->delete();
+                }
+            }
         });
 
         return redirect()->route('daily-driver-reports')
             ->with('success', 'The unlinked daily driver report was deleted.');
     }
 
+    public function assignedDrivers(Request $request): JsonResponse
+    {
+        $validated = $request->validate(['report_date' => ['required', 'date_format:Y-m-d']]);
+        $driverIds = \App\Models\Operation\TripAssignment::query()
+            ->whereHas('tripSchedule', fn ($query) => $query
+                ->whereDate('trip_date', $validated['report_date'])
+                ->whereNotIn('status', ['Cancelled', 'Missed']))
+            ->distinct()
+            ->pluck('driver_id')
+            ->values();
+
+        return response()->json(['driver_ids' => $driverIds]);
+    }
+
     public function scheduleLookup(Request $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
-            'report_date' => ['required', 'date'],
-            'driver_id' => ['required', 'string'],
-            'bus_id' => ['required', 'integer'],
+        $validated = $request->validate([
+            'report_date' => ['required', 'date_format:Y-m-d'],
+            'driver_id' => ['nullable', 'string', Rule::exists('drivers', 'driver_id')],
+            'bus_id' => ['nullable', 'integer', Rule::exists('buses', 'id')],
         ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'schedules' => [],
-                'message' => 'Schedule match unavailable.',
-            ], 422);
+        if (empty($validated['driver_id']) && empty($validated['bus_id'])) {
+            return response()->json(['schedules' => [], 'message' => 'Choose a driver or bus to see assignments.']);
         }
 
         $schedules = TripSchedule::query()
-            ->with('shuttleRoute')
-            ->whereDate('trip_date', $validator->validated()['report_date'])
-            ->whereHas('assignments', function ($assignmentQuery) use ($validator) {
-                $assignmentQuery
-                    ->where('driver_id', $validator->validated()['driver_id'])
-                    ->where('bus_id', $validator->validated()['bus_id']);
+            ->with([
+                'shuttleRoute',
+                'assignments' => fn ($query) => $query
+                    ->when(! empty($validated['driver_id']), fn ($q) => $q->where('driver_id', $validated['driver_id']))
+                    ->when(! empty($validated['bus_id']), fn ($q) => $q->where('bus_id', $validated['bus_id']))
+                    ->with('bus'),
+            ])
+            ->whereDate('trip_date', $validated['report_date'])
+            ->whereNotIn('status', ['Cancelled', 'Missed'])
+            ->whereHas('assignments', function ($query) use ($validated): void {
+                if (! empty($validated['driver_id'])) {
+                    $query->where('driver_id', $validated['driver_id']);
+                }
+                if (! empty($validated['bus_id'])) {
+                    $query->where('bus_id', $validated['bus_id']);
+                }
             })
             ->orderBy('departure_time')
             ->get([
-                'id',
-                'shuttle_route_id',
-                'trip_code',
-                'shift',
-                'departure_time',
-                'estimated_arrival_time',
-                'status',
+                'id', 'shuttle_route_id', 'trip_code', 'shift', 'trip_date',
+                'departure_time', 'estimated_arrival_time', 'estimated_arrival_date', 'status',
             ]);
 
-        $rows = $schedules->map(fn (TripSchedule $schedule) => [
-            'trip_code' => $schedule->trip_code,
-            'route_label' => $schedule->shuttleRoute
-                ? ($schedule->shuttleRoute->route_code
-                    .' - '.$schedule->shuttleRoute->route_name)
-                : null,
-            'origin' => $schedule->shuttleRoute?->origin,
-            'destination' => $schedule->shuttleRoute?->destination,
-            'shift' => $schedule->shift,
-            'departure_time' => substr($schedule->departure_time, 0, 5),
-            'estimated_arrival_time' => substr($schedule->estimated_arrival_time, 0, 5),
-            'status' => $schedule->status,
-        ]);
+        $rows = $schedules->filter(fn (TripSchedule $schedule) => ! $schedule->estimatedArrivalDateTime()->isFuture())
+            ->flatMap(function (TripSchedule $schedule) use ($validated) {
+            return $schedule->assignments
+                ->filter(fn ($assignment) => empty($validated['bus_id'])
+                    || (int) $assignment->bus_id === (int) $validated['bus_id'])
+                ->map(fn ($assignment) => [
+                    'id' => $schedule->id,
+                    'trip_code' => $schedule->trip_code,
+                    'driver_id' => $assignment->driver_id,
+                    'driver_name' => $assignment->driver_name,
+                    'bus_id' => $assignment->bus_id,
+                    'bus_no' => $assignment->bus?->bus_no,
+                    'route_label' => $schedule->shuttleRoute
+                        ? ($schedule->shuttleRoute->route_code.' - '.$schedule->shuttleRoute->route_name)
+                        : null,
+                    'origin' => $schedule->shuttleRoute?->origin,
+                    'destination' => $schedule->shuttleRoute?->destination,
+                    'shift' => $schedule->shift,
+                    'departure_time' => substr((string) $schedule->departure_time, 0, 5),
+                    'estimated_arrival_time' => substr((string) $schedule->estimated_arrival_time, 0, 5),
+                    'status' => $schedule->status,
+                ]);
+        })->values();
 
         return response()->json([
             'schedules' => $rows,
             'message' => $rows->isEmpty()
-                ? 'No scheduled trip matches the selected driver and bus on this date.'
-                : ($rows->count() === 1
-                    ? 'Scheduled trip found for this driver and bus.'
-                    : count($rows).' scheduled trips found. Select an exact trip ticket so the report is not linked to the wrong trip.'),
+                ? 'No assigned trips were found. You may still encode an unscheduled physical DDR.'
+                : 'Choose the correct assigned trip to prefill its planned route and bus.',
         ]);
     }
 }

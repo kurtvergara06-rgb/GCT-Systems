@@ -26,21 +26,15 @@ class FrontendAssetOptimizationTest extends TestCase
 
     public function test_attendance_pages_load_batch_assets_only_where_needed(): void
     {
-        foreach ([
-            resource_path('views/Operation/Attendance/driver-attendance.blade.php'),
-            resource_path('views/Operation/Attendance/mechanic-attendance.blade.php'),
-        ] as $view) {
-            $source = file_get_contents($view);
+        $driver = file_get_contents(resource_path('views/Operation/Attendance/driver-attendance.blade.php'));
+        $mechanic = file_get_contents(resource_path('views/Operation/Attendance/mechanic-attendance.blade.php'));
 
-            $this->assertStringContainsString(
-                'resources/css/Operation/Attendance/batch-attendance.css',
-                $source
-            );
-            $this->assertStringContainsString(
-                'resources/js/Operation/Attendance/batch-attendance.js',
-                $source
-            );
-        }
+        // DDR-based driver attendance is read-only; legacy batch assets remain
+        // available only to the separate attendance workflow.
+        $this->assertStringNotContainsString('resources/css/Operation/Attendance/batch-attendance.css', $driver);
+        $this->assertStringNotContainsString('resources/js/Operation/Attendance/batch-attendance.js', $driver);
+        $this->assertStringContainsString('resources/css/Operation/Attendance/batch-attendance.css', $mechanic);
+        $this->assertStringContainsString('resources/js/Operation/Attendance/batch-attendance.js', $mechanic);
     }
 
     public function test_batch_attendance_uses_partial_navigation_initializer(): void

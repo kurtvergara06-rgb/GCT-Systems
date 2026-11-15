@@ -123,6 +123,7 @@ class GctDateTimePicker {
         trigger.type = 'button';
         trigger.className = 'gct-picker-trigger';
         trigger.dataset.pickerFor = input.id || input.name || '';
+        trigger.hidden = input.hidden;
         trigger.innerHTML = `
             <span class="gct-picker-trigger-icon" aria-hidden="true">
                 <i class="fa-solid ${input.type === 'time' ? 'fa-clock' : 'fa-calendar-days'}"></i>
@@ -147,12 +148,13 @@ class GctDateTimePicker {
 
         const observer = new MutationObserver(() => {
             trigger.disabled = input.disabled;
+            trigger.hidden = input.hidden;
             this.syncTrigger(input, trigger);
         });
 
         observer.observe(input, {
             attributes: true,
-            attributeFilter: ['disabled', 'value'],
+            attributeFilter: ['disabled', 'hidden', 'value'],
         });
     }
 

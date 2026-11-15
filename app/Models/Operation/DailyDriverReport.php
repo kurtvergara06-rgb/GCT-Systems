@@ -22,6 +22,8 @@ class DailyDriverReport extends Model
         'bus_id',
         'trip_schedule_id',
         'trip_assignment_id',
+        'unscheduled_reason',
+        'route_deviation_reason',
         'trip_ticket',
         'from_location',
         'to_location',
@@ -43,6 +45,12 @@ class DailyDriverReport extends Model
     protected static function booted(): void
     {
         static::created(function (DailyDriverReport $report): void {
+            // An explicitly documented unscheduled service must not be
+            // silently attached to an unrelated trip by fallback matching.
+            if ($report->unscheduled_reason !== null) {
+                return;
+            }
+
             app(DailyDriverReportScheduleMatchService::class)
                 ->persistMatch($report);
         });

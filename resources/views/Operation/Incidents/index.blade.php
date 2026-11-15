@@ -9,6 +9,9 @@
         'resources/js/Operation/Incidents/incidents.js',
     ]"
 >
+    @php
+        $canEditOperation = auth()->user()?->hasSystemPermission('operation', 'edit') ?? false;
+    @endphp
     <div class="app">
         <x-layout.sidebar department="Operation" />
 
@@ -52,10 +55,16 @@
                     </div>
 
 
+                    @if($canEditOperation)
                     <button type="button" id="openIncidentReportModal" class="inc-new-btn">
                         <i class="fa-solid fa-plus" aria-hidden="true"></i>
                         Report Incident
                     </button>
+                    @else
+                    <span title="You don't have authorized access to this action." aria-label="You don't have authorized access to this action." style="display:inline-flex;cursor:not-allowed">
+                      <button type="button" class="inc-new-btn" disabled aria-disabled="true" tabindex="-1" style="opacity:.45;filter:grayscale(1);pointer-events:none"><i class="fa-solid fa-plus" aria-hidden="true"></i> Report Incident</button>
+                    </span>
+                    @endif
                 </div>
 
 
@@ -100,12 +109,12 @@
                                     $currentUser = auth()->user();
                                     $currentDepartment = strtolower(trim((string) ($currentUser?->department ?? '')));
                                     $currentRole = strtolower(trim((string) ($currentUser?->role ?? '')));
-                                    $canReferToMaintenance = (in_array($currentDepartment, ['operation', 'operations'], true)
+                                    $canReferToMaintenance = $canEditOperation && ((in_array($currentDepartment, ['operation', 'operations'], true)
                                             && in_array($currentRole, ['head', 'admin', 'operation head', 'operations head', 'operation admin'], true))
-                                        || ($currentDepartment === 'admin' && in_array($currentRole, ['head', 'admin', 'system admin'], true));
+                                        || ($currentDepartment === 'admin' && in_array($currentRole, ['head', 'admin', 'system admin'], true)));
                                     $maintenanceReferral = $incident->maintenanceReferral;
                                     $canDeployReplacement = $currentUser?->hasSystemPermission('operation', 'edit') && $incident->incident_type === 'Bus Breakdown' && !$incident->replacement && !in_array($incident->status, ['Resolved', 'Cancelled'], true);
-                                    $canModifyIncident = $incident->status === 'Reported' && !$maintenanceReferral && !$incident->replacement && $incident->responses->count() <= 1;
+                                    $canModifyIncident = $canEditOperation && $incident->status === 'Reported' && !$maintenanceReferral && !$incident->replacement && $incident->responses->count() <= 1;
                                     $canArchiveIncident = $canModifyIncident && $incident->incident_type !== 'Bus Breakdown';
                                     $editLockReason = $incident->status !== 'Reported'
                                         ? 'Editing locked: incident status is ' . $incident->status
@@ -327,6 +336,7 @@
             </div>
         </section>
     </div>
+    @if($canEditOperation)
     <x-ui.form-modal
         id="incidentReportModal"
         title="Report Incident"
@@ -370,6 +380,7 @@
             </div>
         </div>
     </x-ui.form-modal>
+    @endif
 <div id="incidentWorkflowModal" class="inc-workflow-overlay" hidden>
     <section class="inc-workflow-dialog" role="dialog" aria-modal="true" aria-labelledby="incidentWorkflowModalTitle" tabindex="-1">
         <header class="inc-workflow-header">

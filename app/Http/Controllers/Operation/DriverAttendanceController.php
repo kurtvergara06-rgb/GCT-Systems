@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Operation;
 use App\Http\Controllers\Controller;
 use App\Models\Operation\Driver;
 use App\Models\Operation\DriverAttendance;
+use App\Models\Operation\TripAssignment;
 use App\Support\TableSort;
 use App\Traits\SystemDataUpdateBroadcaster;
 use Carbon\Carbon;
@@ -46,9 +47,19 @@ class DriverAttendanceController extends Controller
         }
 
         // Keep the attendance record list in sync with the selected KPI date.
-        $request->validate(['attendance_date' => ['sometimes', 'required', 'date_format:Y-m-d']]);
-        $summaryDate = $request->input('attendance_date')
-            ?: now(config('app.business_timezone', 'Asia/Manila'))->toDateString();
+        $request->validate([
+            'tab' => ['sometimes', 'in:today,history'],
+            'attendance_date' => ['sometimes', 'required', 'date_format:Y-m-d'],
+        ]);
+        $today = now(config('app.business_timezone', 'Asia/Manila'))->toDateString();
+        $activeTab = $request->input('tab') === 'history' ? 'history' : 'today';
+        $summaryDate = $activeTab === 'today'
+            ? $today
+            : ($request->input('attendance_date')
+                ?: now(config('app.business_timezone', 'Asia/Manila'))->subDay()->toDateString());
+        if ($activeTab === 'history' && $summaryDate >= $today) {
+            $summaryDate = now(config('app.business_timezone', 'Asia/Manila'))->subDay()->toDateString();
+        }
         $query->whereDate('attendance_date', $summaryDate);
 
         TableSort::apply($query, $request, ['driver_name' => 'driver_name', 'driver_id' => 'driver_id', 'shift' => 'shift', 'status' => 'status', 'time_in' => 'time_in'], 'driver_name');
@@ -56,10 +67,38 @@ class DriverAttendanceController extends Controller
             ->paginate(10)
             ->withQueryString();
 
+        // Assignment display follows the actual driver ID and selected service
+        // date. Older scheduling records may not carry driver_attendance_id.
+        $assignmentsByDriver = TripAssignment::query()
+            ->with(['bus', 'tripSchedule.shuttleRoute'])
+            ->whereIn('driver_id', $driverAttendances->getCollection()->pluck('driver_id'))
+            ->whereHas('tripSchedule', fn ($trip) => $trip
+                ->whereDate('trip_date', $summaryDate)
+                ->whereNotIn('status', ['Cancelled', 'Missed', 'Completed']))
+            ->get()
+            ->groupBy('driver_id');
+
+        $driverAttendances->getCollection()->each(function (DriverAttendance $attendance) use ($assignmentsByDriver): void {
+            $attendance->setRelation('displayTripAssignments', $assignmentsByDriver->get($attendance->driver_id, collect()));
+        });
+
         $summaryQuery = DriverAttendance::query()
             ->whereDate('attendance_date', $summaryDate);
 
         $present = (clone $summaryQuery)->where('status', 'Present')->count();
+        // These KPIs describe DDR-confirmed Present drivers only, not all
+        // Active drivers who remain eligible for scheduling without a DDR.
+        $assignedPresent = TripAssignment::query()
+            ->whereIn('driver_id', (clone $summaryQuery)
+                ->where('status', 'Present')
+                ->select('driver_id'))
+            ->whereHas('tripSchedule', fn ($trip) => $trip
+                ->whereDate('trip_date', $summaryDate)
+                ->whereNotIn('status', ['Cancelled', 'Missed', 'Completed']))
+            ->distinct()
+            ->count('driver_id');
+        $unassignedPresent = max(0, $present - $assignedPresent);
+        $attendanceRecords = (clone $summaryQuery)->count();
         $absent = (clone $summaryQuery)->where('status', 'Absent')->count();
         $late = (clone $summaryQuery)->where('status', 'Late')->count();
         $onDuty = (clone $summaryQuery)->where('status', 'On Duty')->count();
@@ -69,11 +108,15 @@ class DriverAttendanceController extends Controller
         return view('Operation.Attendance.driver-attendance', compact(
             'driverAttendances',
             'present',
+            'assignedPresent',
+            'unassignedPresent',
+            'attendanceRecords',
             'absent',
             'late',
             'onDuty',
             'nextDriverId',
-            'summaryDate'
+            'summaryDate',
+            'activeTab'
         ));
     }
 
@@ -108,7 +151,7 @@ class DriverAttendanceController extends Controller
         $this->normalizeAttendanceTimes($request);
         $validated = $request->validate([
             'driver_name' => 'required|string|max:255',
-            'shift' => 'required|string|in:Morning,Afternoon',
+            'shift' => 'sometimes|nullable|string|in:Morning,Afternoon',
             'attendance_date' => 'required|date_format:Y-m-d',
             'time_in' => ['nullable', 'date_format:H:i'],
             'time_out' => ['nullable', 'date_format:H:i'],
@@ -140,7 +183,8 @@ class DriverAttendanceController extends Controller
 
         $validated['driver_id'] = $driver->driver_id;
         $validated['driver_name'] = $driver->driver_name;
-        $validated['shift'] = $validated['shift'];
+        $validated['shift'] = 'Morning'; // Legacy column only; drivers are not shift-restricted.
+        $validated['time_out'] = null; // Drivers do not clock out.
 
         // Serialize attendance writes per master-list employee to protect the
         // model's duplicate-date check against simultaneous requests.
@@ -180,7 +224,7 @@ class DriverAttendanceController extends Controller
         }
 
         $validated = $request->validate([
-            'shift' => 'required|string|in:Morning,Afternoon',
+            'shift' => 'sometimes|nullable|string|in:Morning,Afternoon',
             'attendance_date' => 'required|date_format:Y-m-d',
             'time_in' => ['nullable', 'date_format:H:i'],
             'time_out' => ['nullable', 'date_format:H:i'],
@@ -207,7 +251,8 @@ class DriverAttendanceController extends Controller
 
         $validated['driver_id'] = $driver->driver_id;
         $validated['driver_name'] = $driver->driver_name;
-        $validated['shift'] = $validated['shift'];
+        $validated['shift'] = 'Morning'; // Legacy column only; drivers are not shift-restricted.
+        $validated['time_out'] = null; // Drivers do not clock out.
 
         if ($driverAttendance->tripAssignments()->exists()
             && ($driverAttendance->attendance_date?->toDateString() !== $validated['attendance_date']
@@ -353,9 +398,9 @@ class DriverAttendanceController extends Controller
                         ],
                         [
                             'driver_name' => $driver->driver_name,
-                            'shift' => $driver->shift ?: trim($data['shift'] ?? 'Morning'),
+                            'shift' => 'Morning', // Legacy required column, not a driver assignment.
                             'time_in' => $this->parseCsvTime($data['time_in'] ?? null),
-                            'time_out' => $this->parseCsvTime($data['time_out'] ?? null),
+                            'time_out' => null, // Drivers do not clock out.
                             'status' => $status,
                         ]
                     );
