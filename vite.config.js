@@ -21,6 +21,7 @@ export default defineConfig({
                 'resources/css/Main-styles/theme.css',
                 'resources/css/Main-styles/main.css',
                 'resources/css/Main-styles/sidebar.css',
+                'resources/css/Main-styles/admin-records.css',
                 'resources/css/Main-styles/form-components.css',
                 'resources/css/Main-styles/system-toast.css',
                 'resources/css/Account/account.css',
