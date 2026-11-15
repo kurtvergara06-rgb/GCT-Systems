@@ -317,6 +317,7 @@ window.GCTPartialNavigation.registerInitializer('operation-personnel-master', '.
             const ownerId = String(check.dataset.authorizedDriverId || '');
             const assignedToAnotherDriver = ownerId !== '' && ownerId !== currentDriverId;
             check.disabled = assignedToAnotherDriver;
+            // Never retain a checked option from a previously edited driver.
             if (assignedToAnotherDriver) check.checked = false;
             option.hidden = assignedToAnotherDriver;
             option.title = '';
@@ -335,7 +336,12 @@ window.GCTPartialNavigation.registerInitializer('operation-personnel-master', '.
 
     const resetForm = () => {
         form.reset();
-        busChecks.forEach((check) => { check.checked = false; check.disabled = false; });
+        // Reset saved state explicitly; form.reset() restores Blade defaults.
+        busChecks.forEach((check) => {
+            check.checked = false;
+            check.defaultChecked = false;
+            check.disabled = false;
+        });
         if (busTrigger) busTrigger.disabled = false;
         if (busSearch) busSearch.value = '';
         busOptions.forEach((option) => {

@@ -116,8 +116,7 @@
                 </div>
 
                 <div class="table-footer availability-footer">
-                    <span>Showing {{ $buses->firstItem() ?? 0 }} to {{ $buses->lastItem() ?? 0 }} of {{ $buses->total() }} buses</span>
-                    {{ $buses->links() }}
+                    <span>Showing all {{ $buses->count() }} matching buses</span>
                 </div>
             </section>
             <p class="availability-note">A future assignment does not make a bus unavailable now. Availability reflects recorded bus status, unresolved Maintenance Job Orders and trip status, not live GPS position.</p>

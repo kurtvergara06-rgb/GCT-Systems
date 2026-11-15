@@ -79,13 +79,13 @@ class BusAvailabilityController extends Controller
         }
 
         TableSort::apply($query, $request, ['bus_no' => 'bus_no', 'plate_no' => 'plate_no', 'bus_model' => 'bus_model', 'status' => 'status'], 'bus_no');
-        $buses = $query->paginate(15)->withQueryString();
+        $buses = $query->get();
 
         // Upcoming assignments are informational. An assignment tomorrow does
         // not make an operational bus unavailable for the entire day today.
         $assignments = TripAssignment::query()
             ->with('tripSchedule.shuttleRoute')
-            ->whereIn('bus_id', $buses->getCollection()->pluck('id'))
+            ->whereIn('bus_id', $buses->pluck('id'))
             ->whereHas('tripSchedule', fn ($query) => $query
                 ->whereDate('trip_date', '>=', $today)
                 ->whereNotIn('status', ['Cancelled', 'Completed', 'Missed']))
@@ -94,7 +94,7 @@ class BusAvailabilityController extends Controller
             ->sortBy(fn ($assignment) => $assignment->tripSchedule->trip_date->format('Y-m-d').' '.$assignment->tripSchedule->departure_time)
             ->groupBy('bus_id');
 
-        $buses->getCollection()->each(function (Bus $bus) use ($assignments, $restrictedBusNumbers): void {
+        $buses->each(function (Bus $bus) use ($assignments, $restrictedBusNumbers): void {
             $bus->has_unresolved_job_order = $restrictedBusNumbers->contains($bus->bus_no);
             $bus->next_assignment = $assignments->get($bus->id)?->first()?->tripSchedule;
             $bus->is_on_trip = $assignments->get($bus->id)?->contains(

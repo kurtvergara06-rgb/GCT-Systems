@@ -170,3 +170,68 @@
     margin-left: auto;
   }
 }
+
+/* Laravel's default paginator uses utility classes that are not present in
+   this module's styles. Constrain its navigation and SVG chevrons explicitly. */
+.bus-availability-page .availability-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  min-height: 48px;
+}
+.bus-availability-page .availability-footer nav {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  max-width: 100%;
+  font-size: 12px;
+}
+.bus-availability-page .availability-footer nav > div:first-child { display: none; }
+.bus-availability-page .availability-footer nav > div:last-child {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.bus-availability-page .availability-footer nav > div:last-child > div:first-child { display: none; }
+.bus-availability-page .availability-footer nav > div:last-child > div:last-child {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.bus-availability-page .availability-footer nav a,
+.bus-availability-page .availability-footer nav span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.bus-availability-page .availability-footer nav > div:last-child > div:last-child > a,
+.bus-availability-page .availability-footer nav > div:last-child > div:last-child > span {
+  min-width: 32px;
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid #dce5f2;
+  border-radius: 8px;
+  text-decoration: none;
+  color: #385474;
+  background: #fff;
+}
+.bus-availability-page .availability-footer nav [aria-current="page"] > span {
+  color: #0b56b2;
+  font-weight: 800;
+}
+.bus-availability-page .availability-footer nav svg {
+  display: block;
+  width: 16px !important;
+  height: 16px !important;
+  max-width: 16px;
+  max-height: 16px;
+  flex: none;
+}
+@media (max-width: 650px) {
+  .bus-availability-page .availability-footer { justify-content: center; }
+  .bus-availability-page .availability-footer nav { margin-left: 0; }
+}
