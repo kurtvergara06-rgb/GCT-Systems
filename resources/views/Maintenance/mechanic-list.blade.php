@@ -5,7 +5,6 @@
     'resources/css/Main-styles/sidebar.css',
     'resources/css/Maintenance/mechanic-list.css',
     'resources/js/Main-js/sidebar.js',
-    'resources/js/Maintenance/mechanic-list.js'
   ]"
 >
 
@@ -102,12 +101,12 @@
               id="dateFilter"
               onchange="this.form.submit()"
             >
-              <option
-                value="Month Dates"
-                {{ request('date_filter', 'Month Dates') === 'Month Dates' ? 'selected' : '' }}
-              >
-                Month Dates
-              </option>
+             <option
+              value="All Dates"
+              {{ request('date_filter', 'All Dates') === 'All Dates' ? 'selected' : '' }}
+            >
+              All Dates
+            </option>
 
               <option
                 value="Today"

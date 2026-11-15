@@ -189,7 +189,7 @@ class FuelReportController extends Controller
         ]);
 
         return redirect()
-            ->route('fuel-reports')
+            ->to(route('fuel-reports', [], false))
             ->with('success', 'Fuel record saved successfully.');
     }
 
@@ -229,7 +229,7 @@ class FuelReportController extends Controller
         ]);
 
         return redirect()
-            ->route('fuel-reports')
+            ->to(route('fuel-reports', [], false))
             ->with('success', 'Fuel record updated successfully.');
     }
 
@@ -238,7 +238,7 @@ class FuelReportController extends Controller
         $fuelReport->delete();
 
         return redirect()
-            ->route('fuel-reports')
+            ->to(route('fuel-reports', [], false))
             ->with('success', 'Fuel record deleted successfully.');
     }
 
