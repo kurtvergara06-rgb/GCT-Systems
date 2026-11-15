@@ -2,6 +2,7 @@
     title="FROMS - Analytics Overview"
     :assets="[
         'resources/css/Admin/Analytics/overview/overview.css',
+        'resources/css/Admin/Analytics/design-system.css',
     ]"
 >
     <div class="app">
@@ -86,38 +87,40 @@
             {{-- =====================================================
                 5.1 DESCRIPTIVE ANALYTICS
             ====================================================== --}}
-            <section data-ajax-region="summary" class="stats-grid analytics-kpi-grid">
-                <x-ui.summary-card
+            <section data-ajax-region="summary" class="analytics-kpi-strip">
+
+                <x-analytics.kpi
+                    icon="fa-road"
                     label="Distance Traveled"
                     value="26,126 km"
-                    small="Recorded fleet trip distance"
-                    icon="fa-road"
-                    color="blue"
+                    description="Recorded fleet trip distance"
+                    icon-variant="blue"
                 />
 
-                <x-ui.summary-card
+                <x-analytics.kpi
+                    icon="fa-gas-pump"
                     label="Fuel Used"
                     value="3,842 L"
-                    small="Recorded fleet fuel usage"
-                    icon="fa-gas-pump"
-                    color="yellow"
+                    description="Recorded fleet fuel usage"
+                    icon-variant="yellow"
                 />
 
-                <x-ui.summary-card
+                <x-analytics.kpi
+                    icon="fa-screwdriver-wrench"
                     label="PMS Attention"
                     value="2"
-                    small="Priority buses nearing next PMS"
-                    icon="fa-screwdriver-wrench"
-                    color="red"
+                    description="Priority buses nearing next PMS"
+                    icon-variant="red"
                 />
 
-                <x-ui.summary-card
+                <x-analytics.kpi
+                    icon="fa-box-open"
                     label="Stock Threshold Alerts"
                     value="20"
-                    small="Items at or below reorder threshold"
-                    icon="fa-box-open"
-                    color="red"
+                    description="Items at or below reorder threshold"
+                    icon-variant="red"
                 />
+
             </section>
 
             {{-- =====================================================

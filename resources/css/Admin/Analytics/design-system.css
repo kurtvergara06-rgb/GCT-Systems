@@ -1,0 +1,1484 @@
+/* =========================================================
+   GCT SYSTEM — ANALYTICS DESIGN SYSTEM
+   ---------------------------------------------------------
+   Single visual language shared by every Analytics page:
+   Analytics Overview, Descriptive, Diagnostic, Predictive,
+   and Prescriptive stages.
+
+   Loaded AFTER stage-specific CSS so it wins the cascade.
+   ========================================================= */
+
+/* =========================================================
+   1. TOKENS
+   ========================================================= */
+
+.analytics-overview-page,
+.analytics-stage-page,
+.predictive-page,
+.descriptive-analytics-page,
+.diagnostic-analytics-page {
+    --ds-bg: #f5f7fb;
+    --ds-surface: #ffffff;
+    --ds-navy: #0b1f44;
+    --ds-text: #1e293b;
+    --ds-muted: #64748b;
+    --ds-border: #e4eaf2;
+
+    --ds-blue: #2563eb;
+    --ds-blue-dark: #1d4ed8;
+    --ds-blue-soft: #eff6ff;
+
+    --ds-green: #16a34a;
+    --ds-green-dark: #15803d;
+    --ds-green-soft: #f0fdf4;
+
+    --ds-yellow: #f59e0b;
+    --ds-yellow-dark: #b45309;
+    --ds-yellow-soft: #fffbeb;
+
+    --ds-red: #ef4444;
+    --ds-red-dark: #b91c1c;
+    --ds-red-soft: #fef2f2;
+
+    --ds-purple: #7c3aed;
+    --ds-purple-dark: #6d28d9;
+    --ds-purple-soft: #f5f3ff;
+
+    --ds-radius: 14px;
+    --ds-shadow-card: 0 2px 8px rgba(11, 31, 68, 0.04);
+    --ds-shadow-hover: 0 10px 24px rgba(11, 31, 68, 0.09);
+
+    font-family: "Poppins", "Inter", Arial, Helvetica, sans-serif;
+    color: var(--ds-text);
+}
+
+/* =========================================================
+   2. KPI CARDS — UNIFIED COMPONENT
+   ========================================================= */
+
+.analytics-kpi-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+.analytics-kpi-card {
+    min-width: 0;
+    min-height: 104px;
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr);
+    gap: 12px;
+    align-items: center;
+    padding: 14px 16px;
+    border: 1px solid var(--ds-border);
+    border-radius: var(--ds-radius);
+    background: var(--ds-surface);
+    box-shadow: var(--ds-shadow-card);
+    transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+}
+
+.analytics-kpi-card:hover {
+    transform: translateY(-2px);
+    border-color: #cbdcf5;
+    box-shadow: var(--ds-shadow-hover);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .analytics-kpi-card {
+        transition: none;
+    }
+    .analytics-kpi-card:hover {
+        transform: none;
+    }
+}
+
+.analytics-kpi-card__icon {
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
+    background: var(--icon-bg, var(--ds-blue-soft));
+    color: var(--icon-color, var(--ds-blue));
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+.analytics-kpi-card__content {
+    min-width: 0;
+}
+
+.analytics-kpi-card__label {
+    display: block;
+    color: var(--ds-muted);
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 1.25;
+}
+
+.analytics-kpi-card__value {
+    display: block;
+    margin-top: 3px;
+    overflow-wrap: anywhere;
+    color: var(--ds-navy);
+    font-size: 21px;
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+}
+
+.analytics-kpi-card__description {
+    display: block;
+    margin-top: 4px;
+    color: var(--ds-muted);
+    font-size: 9.5px;
+    font-weight: 500;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+}
+
+.analytics-kpi-card__change {
+    display: block;
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px dashed var(--ds-border);
+    min-height: 12px;
+    font-size: 9px;
+    font-weight: 600;
+    color: var(--change-color, var(--ds-muted));
+}
+
+/* Legacy KPI markup compatibility */
+.analytics-overview-page .analytics-kpi,
+.analytics-stage-page .analytics-kpi,
+.predictive-page .analytics-kpi,
+.descriptive-analytics-page .analytics-kpi,
+.diagnostic-analytics-page .analytics-kpi {
+    min-width: 0;
+    min-height: 104px;
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr);
+    gap: 12px;
+    align-items: center;
+    padding: 14px 16px;
+    border: 1px solid var(--ds-border);
+    border-radius: var(--ds-radius);
+    background: var(--ds-surface);
+    box-shadow: var(--ds-shadow-card);
+    transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+}
+
+.analytics-overview-page .analytics-kpi:hover,
+.analytics-stage-page .analytics-kpi:hover,
+.predictive-page .analytics-kpi:hover,
+.descriptive-analytics-page .analytics-kpi:hover,
+.diagnostic-analytics-page .analytics-kpi:hover {
+    transform: translateY(-2px);
+    border-color: #cbdcf5;
+    box-shadow: var(--ds-shadow-hover);
+}
+
+.analytics-overview-page .analytics-kpi-icon,
+.analytics-stage-page .analytics-kpi-icon,
+.predictive-page .analytics-kpi-icon,
+.descriptive-analytics-page .analytics-kpi-icon,
+.diagnostic-analytics-page .analytics-kpi-icon {
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
+    background: var(--ds-blue-soft);
+    color: var(--ds-blue);
+    font-size: 16px;
+}
+
+.analytics-overview-page .analytics-kpi-icon.blue,
+.analytics-stage-page .analytics-kpi-icon.blue,
+.predictive-page .analytics-kpi-icon.blue,
+.descriptive-analytics-page .analytics-kpi-icon.blue,
+.diagnostic-analytics-page .analytics-kpi-icon.blue {
+    background: var(--ds-blue-soft);
+    color: var(--ds-blue);
+}
+
+.analytics-overview-page .analytics-kpi-icon.green,
+.analytics-overview-page .analytics-kpi-icon.success,
+.analytics-stage-page .analytics-kpi-icon.green,
+.analytics-stage-page .analytics-kpi-icon.success,
+.predictive-page .analytics-kpi-icon.green,
+.predictive-page .analytics-kpi-icon.success,
+.descriptive-analytics-page .analytics-kpi-icon.green,
+.descriptive-analytics-page .analytics-kpi-icon.success,
+.diagnostic-analytics-page .analytics-kpi-icon.green,
+.diagnostic-analytics-page .analytics-kpi-icon.success {
+    background: var(--ds-green-soft);
+    color: var(--ds-green);
+}
+
+.analytics-overview-page .analytics-kpi-icon.yellow,
+.analytics-overview-page .analytics-kpi-icon.warning,
+.analytics-overview-page .analytics-kpi-icon.orange,
+.analytics-stage-page .analytics-kpi-icon.yellow,
+.analytics-stage-page .analytics-kpi-icon.warning,
+.analytics-stage-page .analytics-kpi-icon.orange,
+.predictive-page .analytics-kpi-icon.yellow,
+.predictive-page .analytics-kpi-icon.warning,
+.predictive-page .analytics-kpi-icon.orange,
+.descriptive-analytics-page .analytics-kpi-icon.yellow,
+.descriptive-analytics-page .analytics-kpi-icon.warning,
+.descriptive-analytics-page .analytics-kpi-icon.orange,
+.diagnostic-analytics-page .analytics-kpi-icon.yellow,
+.diagnostic-analytics-page .analytics-kpi-icon.warning,
+.diagnostic-analytics-page .analytics-kpi-icon.orange {
+    background: var(--ds-yellow-soft);
+    color: var(--ds-yellow-dark);
+}
+
+.analytics-overview-page .analytics-kpi-icon.red,
+.analytics-overview-page .analytics-kpi-icon.danger,
+.analytics-stage-page .analytics-kpi-icon.red,
+.analytics-stage-page .analytics-kpi-icon.danger,
+.predictive-page .analytics-kpi-icon.red,
+.predictive-page .analytics-kpi-icon.danger,
+.descriptive-analytics-page .analytics-kpi-icon.red,
+.descriptive-analytics-page .analytics-kpi-icon.danger,
+.diagnostic-analytics-page .analytics-kpi-icon.red,
+.diagnostic-analytics-page .analytics-kpi-icon.danger {
+    background: var(--ds-red-soft);
+    color: var(--ds-red);
+}
+
+.analytics-overview-page .analytics-kpi-icon.purple,
+.analytics-stage-page .analytics-kpi-icon.purple,
+.predictive-page .analytics-kpi-icon.purple,
+.descriptive-analytics-page .analytics-kpi-icon.purple,
+.diagnostic-analytics-page .analytics-kpi-icon.purple {
+    background: var(--ds-purple-soft);
+    color: var(--ds-purple);
+}
+
+.analytics-overview-page .analytics-kpi-copy,
+.analytics-stage-page .analytics-kpi-copy,
+.predictive-page .analytics-kpi-copy,
+.descriptive-analytics-page .analytics-kpi-copy,
+.diagnostic-analytics-page .analytics-kpi-copy {
+    min-width: 0;
+}
+
+.analytics-overview-page .analytics-kpi .analytics-kpi-label,
+.analytics-stage-page .analytics-kpi .analytics-kpi-label,
+.predictive-page .analytics-kpi .analytics-kpi-label,
+.descriptive-analytics-page .analytics-kpi .analytics-kpi-label,
+.diagnostic-analytics-page .analytics-kpi .analytics-kpi-label {
+    display: block;
+    color: var(--ds-muted);
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 1.25;
+}
+
+.analytics-overview-page .analytics-kpi .analytics-kpi-value,
+.analytics-stage-page .analytics-kpi .analytics-kpi-value,
+.predictive-page .analytics-kpi .analytics-kpi-value,
+.descriptive-analytics-page .analytics-kpi .analytics-kpi-value,
+.diagnostic-analytics-page .analytics-kpi .analytics-kpi-value {
+    display: block;
+    margin-top: 3px;
+    overflow-wrap: anywhere;
+    color: var(--ds-navy);
+    font-size: 21px;
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+}
+
+.analytics-overview-page .analytics-kpi .analytics-kpi-description,
+.analytics-overview-page .analytics-kpi .analytics-kpi-status,
+.analytics-stage-page .analytics-kpi .analytics-kpi-description,
+.analytics-stage-page .analytics-kpi .analytics-kpi-status,
+.predictive-page .analytics-kpi .analytics-kpi-description,
+.predictive-page .analytics-kpi .analytics-kpi-status,
+.descriptive-analytics-page .analytics-kpi .analytics-kpi-description,
+.descriptive-analytics-page .analytics-kpi .analytics-kpi-status,
+.diagnostic-analytics-page .analytics-kpi .analytics-kpi-description,
+.diagnostic-analytics-page .analytics-kpi .analytics-kpi-status {
+    display: block;
+    margin-top: 4px;
+    color: var(--ds-muted);
+    font-size: 9.5px;
+    font-weight: 500;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+}
+
+.analytics-overview-page .analytics-kpi .analytics-kpi-status,
+.analytics-stage-page .analytics-kpi .analytics-kpi-status,
+.predictive-page .analytics-kpi .analytics-kpi-status,
+.descriptive-analytics-page .analytics-kpi .analytics-kpi-status,
+.diagnostic-analytics-page .analytics-kpi .analytics-kpi-status {
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px dashed var(--ds-border);
+    min-height: 12px;
+    font-size: 9px;
+}
+
+.analytics-overview-page .analytics-kpi .analytics-kpi-status.positive,
+.analytics-overview-page .analytics-kpi .analytics-kpi-status.success,
+.analytics-overview-page .analytics-kpi .analytics-kpi-status.green,
+.analytics-stage-page .analytics-kpi .analytics-kpi-status.positive,
+.analytics-stage-page .analytics-kpi .analytics-kpi-status.success,
+.analytics-stage-page .analytics-kpi .analytics-kpi-status.green,
+.predictive-page .analytics-kpi .analytics-kpi-status.positive,
+.predictive-page .analytics-kpi .analytics-kpi-status.success,
+.predictive-page .analytics-kpi .analytics-kpi-status.green,
+.descriptive-analytics-page .analytics-kpi .analytics-kpi-status.positive,
+.descriptive-analytics-page .analytics-kpi .analytics-kpi-status.success,
+.descriptive-analytics-page .analytics-kpi .analytics-kpi-status.green,
+.diagnostic-analytics-page .analytics-kpi .analytics-kpi-status.positive,
+.diagnostic-analytics-page .analytics-kpi .analytics-kpi-status.success,
+.diagnostic-analytics-page .analytics-kpi .analytics-kpi-status.green {
+    color: var(--ds-green);
+}
+
+.analytics-overview-page .analytics-kpi .analytics-kpi-status.negative,
+.analytics-overview-page .analytics-kpi .analytics-kpi-status.danger,
+.analytics-overview-page .analytics-kpi .analytics-kpi-status.red,
+.analytics-stage-page .analytics-kpi .analytics-kpi-status.negative,
+.analytics-stage-page .analytics-kpi .analytics-kpi-status.danger,
+.analytics-stage-page .analytics-kpi .analytics-kpi-status.red,
+.predictive-page .analytics-kpi .analytics-kpi-status.negative,
+.predictive-page .analytics-kpi .analytics-kpi-status.danger,
+.predictive-page .analytics-kpi .analytics-kpi-status.red,
+.descriptive-analytics-page .analytics-kpi .analytics-kpi-status.negative,
+.descriptive-analytics-page .analytics-kpi .analytics-kpi-status.danger,
+.descriptive-analytics-page .analytics-kpi .analytics-kpi-status.red,
+.diagnostic-analytics-page .analytics-kpi .analytics-kpi-status.negative,
+.diagnostic-analytics-page .analytics-kpi .analytics-kpi-status.danger,
+.diagnostic-analytics-page .analytics-kpi .analytics-kpi-status.red {
+    color: var(--ds-red);
+}
+
+.analytics-overview-page .analytics-kpi .analytics-kpi-status.warning,
+.analytics-overview-page .analytics-kpi .analytics-kpi-status.yellow,
+.analytics-stage-page .analytics-kpi .analytics-kpi-status.warning,
+.analytics-stage-page .analytics-kpi .analytics-kpi-status.yellow,
+.predictive-page .analytics-kpi .analytics-kpi-status.warning,
+.predictive-page .analytics-kpi .analytics-kpi-status.yellow,
+.descriptive-analytics-page .analytics-kpi .analytics-kpi-status.warning,
+.descriptive-analytics-page .analytics-kpi .analytics-kpi-status.yellow,
+.diagnostic-analytics-page .analytics-kpi .analytics-kpi-status.warning,
+.diagnostic-analytics-page .analytics-kpi .analytics-kpi-status.yellow {
+    color: var(--ds-yellow-dark);
+}
+
+.analytics-overview-page .analytics-kpi .analytics-kpi-status.info,
+.analytics-overview-page .analytics-kpi .analytics-kpi-status.blue,
+.analytics-stage-page .analytics-kpi .analytics-kpi-status.info,
+.analytics-stage-page .analytics-kpi .analytics-kpi-status.blue,
+.predictive-page .analytics-kpi .analytics-kpi-status.info,
+.predictive-page .analytics-kpi .analytics-kpi-status.blue,
+.descriptive-analytics-page .analytics-kpi .analytics-kpi-status.info,
+.descriptive-analytics-page .analytics-kpi .analytics-kpi-status.blue,
+.diagnostic-analytics-page .analytics-kpi .analytics-kpi-status.info,
+.diagnostic-analytics-page .analytics-kpi .analytics-kpi-status.blue {
+    color: var(--ds-blue);
+}
+
+.analytics-overview-page .analytics-kpi .analytics-kpi-status.purple,
+.analytics-stage-page .analytics-kpi .analytics-kpi-status.purple,
+.predictive-page .analytics-kpi .analytics-kpi-status.purple,
+.descriptive-analytics-page .analytics-kpi .analytics-kpi-status.purple,
+.diagnostic-analytics-page .analytics-kpi .analytics-kpi-status.purple {
+    color: var(--ds-purple);
+}
+
+.analytics-overview-page .analytics-kpi .analytics-kpi-status.neutral,
+.analytics-stage-page .analytics-kpi .analytics-kpi-status.neutral,
+.predictive-page .analytics-kpi .analytics-kpi-status.neutral,
+.descriptive-analytics-page .analytics-kpi .analytics-kpi-status.neutral,
+.diagnostic-analytics-page .analytics-kpi .analytics-kpi-status.neutral {
+    color: var(--ds-muted);
+}
+
+/* Legacy KPI markup that could not be migrated yet inherits the same look. */
+.analytics-stage-page .predictive-kpi,
+.analytics-stage-page .predictive-kpi-card,
+.analytics-stage-page .diag-kpi,
+.analytics-stage-page .ft-kpi-card {
+    min-width: 0;
+    min-height: 104px;
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr);
+    gap: 12px;
+    align-items: center;
+    padding: 14px 16px;
+    border: 1px solid var(--ds-border);
+    border-radius: var(--ds-radius);
+    background: var(--ds-surface);
+    box-shadow: var(--ds-shadow-card);
+}
+
+.analytics-stage-page .predictive-kpi-icon,
+.analytics-stage-page .diag-kpi-icon,
+.analytics-stage-page .ft-kpi-icon {
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
+    background: var(--ds-blue-soft);
+    color: var(--ds-blue);
+    font-size: 16px;
+    margin: 0;
+}
+
+.analytics-stage-page .predictive-kpi-copy span,
+.analytics-stage-page .predictive-kpi-copy .kpi-label,
+.analytics-stage-page .diag-kpi-label,
+.analytics-stage-page .ft-kpi-label {
+    display: block;
+    color: var(--ds-muted);
+    font-size: 10px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.analytics-stage-page .predictive-kpi-copy strong,
+.analytics-stage-page .diag-kpi-value,
+.analytics-stage-page .ft-kpi-value {
+    display: block;
+    margin-top: 3px;
+    color: var(--ds-navy);
+    font-size: 21px;
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+}
+
+.analytics-stage-page .predictive-kpi-copy small,
+.analytics-stage-page .diag-kpi small,
+.analytics-stage-page .ft-kpi-desc {
+    display: block;
+    margin-top: 4px;
+    color: var(--ds-muted);
+    font-size: 9.5px;
+    font-weight: 500;
+    line-height: 1.3;
+}
+
+/* =========================================================
+   3. STANDARD CARDS
+   ========================================================= */
+
+.analytics-card,
+.predictive-page .predictive-card,
+.analytics-stage-page .diag-card,
+.analytics-stage-page .ft-card,
+.predictive-page .analytics-card,
+.diagnostic-analytics-page .analytics-card {
+    min-width: 0;
+    padding: 16px;
+    border: 1px solid var(--ds-border);
+    border-radius: var(--ds-radius);
+    background: var(--ds-surface);
+    box-shadow: var(--ds-shadow-card);
+}
+
+.analytics-card__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.analytics-card__header-main {
+    min-width: 0;
+}
+
+.analytics-card__title {
+    margin: 0;
+    color: var(--ds-navy);
+    font-size: 13.5px;
+    font-weight: 800;
+    line-height: 1.3;
+}
+
+.analytics-card__description {
+    margin: 4px 0 0;
+    color: var(--ds-muted);
+    font-size: 10.5px;
+    line-height: 1.45;
+}
+
+.analytics-card__header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.analytics-card__badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 9px;
+    border-radius: 999px;
+    font-size: 9px;
+    font-weight: 700;
+    line-height: 1.1;
+    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    background: #f1f5f9;
+    color: #475569;
+    border: 0;
+}
+
+.analytics-card__body {
+    min-width: 0;
+}
+
+/* Card headers — all stage-specific wrappers share one look. */
+.descriptive-overview-card-heading,
+.analytics-card-header,
+.diag-card-head,
+.card-heading,
+.ft-card-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.descriptive-overview-card-heading h3,
+.diag-card-head h3,
+.card-heading h3,
+.ft-card-head h4 {
+    margin: 0;
+    color: var(--ds-navy);
+    font-size: 13.5px;
+    font-weight: 800;
+    line-height: 1.3;
+}
+
+.descriptive-overview-card-heading p,
+.diag-card-head p,
+.card-heading p,
+.ft-card-head p {
+    margin: 4px 0 0;
+    color: var(--ds-muted);
+    font-size: 10.5px;
+    line-height: 1.45;
+}
+
+.predictive-page .card-heading span,
+.predictive-page .card-heading p {
+    display: block;
+    margin: 4px 0 0;
+    color: var(--ds-muted);
+    font-size: 10.5px;
+    line-height: 1.45;
+}
+
+/* =========================================================
+   4. BADGES
+   ========================================================= */
+
+.analytics-badge,
+.risk-badge,
+.diag-badge,
+.ft-badge,
+.fuel-status-pill,
+.issue-pill,
+.descriptive-alert-state,
+.analytics-card__badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 9px;
+    border-radius: 999px;
+    font-size: 9px;
+    font-weight: 700;
+    line-height: 1.1;
+    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    background: #f1f5f9;
+    color: #475569;
+    border: 0;
+}
+
+.analytics-badge.low,
+.analytics-badge.success,
+.analytics-badge.green,
+.analytics-badge.completed,
+.analytics-badge.healthy,
+.analytics-badge.stable,
+.risk-badge.success,
+.risk-badge.low,
+.diag-badge.low,
+.ft-badge.low,
+.ft-badge.healthy,
+.ft-badge.stable,
+.diag-badge.completed {
+    background: var(--ds-green-soft);
+    color: var(--ds-green-dark);
+}
+
+.analytics-badge.medium,
+.analytics-badge.warning,
+.analytics-badge.investigate,
+.risk-badge.warning,
+.risk-badge.medium,
+.diag-badge.medium,
+.ft-badge.medium,
+.diag-badge.investigate {
+    background: var(--ds-yellow-soft);
+    color: var(--ds-yellow-dark);
+}
+
+.analytics-badge.high,
+.analytics-badge.danger,
+.analytics-badge.critical,
+.risk-badge.danger,
+.risk-badge.high,
+.diag-badge.high,
+.ft-badge.high,
+.ft-badge.critical {
+    background: var(--ds-red-soft);
+    color: var(--ds-red-dark);
+}
+
+.analytics-badge.info,
+.analytics-badge.scheduled,
+.diag-badge.info,
+.ft-badge.blue,
+.ft-badge.info {
+    background: var(--ds-blue-soft);
+    color: var(--ds-blue-dark);
+}
+
+.analytics-badge.purple,
+.ft-badge.purple {
+    background: var(--ds-purple-soft);
+    color: var(--ds-purple-dark);
+}
+
+/* =========================================================
+   5. BUTTONS
+   ========================================================= */
+
+.analytics-btn,
+.predictive-toolbar-refresh,
+.snapshot-primary,
+.snapshot-secondary {
+    min-height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 0 15px;
+    border-radius: 9px;
+    font-size: 10.5px;
+    font-weight: 700;
+    font-family: "Poppins", "Inter", Arial, sans-serif;
+    text-decoration: none;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+.analytics-btn:hover,
+.predictive-toolbar-refresh:hover,
+.snapshot-primary:hover,
+.snapshot-secondary:hover {
+    transform: translateY(-1px);
+}
+
+.analytics-btn-primary,
+.snapshot-primary,
+.analytics-stage-filters button {
+    border: 0;
+    background: var(--ds-blue);
+    color: #fff;
+}
+
+.analytics-btn-primary:hover,
+.snapshot-primary:hover {
+    background: var(--ds-blue-dark);
+    box-shadow: 0 7px 14px rgba(37, 99, 235, 0.2);
+}
+
+.analytics-btn-secondary,
+.snapshot-secondary,
+.predictive-toolbar-refresh {
+    border: 1px solid var(--ds-border);
+    background: #fff;
+    color: var(--ds-text);
+}
+
+.analytics-btn-secondary:hover,
+.snapshot-secondary:hover,
+.predictive-toolbar-refresh:hover {
+    border-color: #c3d4ee;
+    background: #f8fbff;
+}
+
+.predictive-toolbar-refresh {
+    align-self: flex-end;
+}
+
+/* Text links used inside cards (View all …). */
+.view-link,
+.view-all-link,
+.ft-view-link,
+.card-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--ds-blue);
+    font-size: 10px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.view-link:hover,
+.view-all-link:hover,
+.ft-view-link:hover,
+.card-link:hover {
+    color: var(--ds-blue-dark);
+    text-decoration: underline;
+}
+
+/* =========================================================
+   6. TABLES
+   ========================================================= */
+
+.table-responsive,
+.responsive-table,
+.diag-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.analytics-table,
+.diag-table,
+.predictive-table,
+.ft-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: transparent;
+    font-size: 10.5px;
+}
+
+.analytics-table thead th,
+.diag-table thead th,
+.predictive-table thead th,
+.ft-table thead th {
+    padding: 9px 12px;
+    background: #f6f8fb;
+    border-bottom: 1px solid var(--ds-border);
+    color: var(--ds-muted);
+    font-size: 8.5px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.analytics-table tbody td,
+.diag-table tbody td,
+.predictive-table tbody td,
+.ft-table tbody td {
+    padding: 9px 12px;
+    border-bottom: 1px solid #edf1f5;
+    color: #334155;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.analytics-table tbody tr:hover td,
+.diag-table tbody tr:hover td,
+.predictive-table tbody tr:hover td,
+.ft-table tbody tr:hover td {
+    background: #f8fbff;
+}
+
+.analytics-table tbody tr:last-child td,
+.diag-table tbody tr:last-child td,
+.predictive-table tbody tr:last-child td,
+.ft-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* =========================================================
+   7. TOOLBAR / FILTERS (shared across stages)
+   ========================================================= */
+
+.analytics-domain-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 12px 16px;
+    border: 1px solid var(--ds-border);
+    border-radius: var(--ds-radius);
+    background: var(--ds-surface);
+    box-shadow: var(--ds-shadow-card);
+    margin-bottom: 16px;
+}
+
+.analytics-domain-tabs {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.analytics-domain-tabs a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border: 1px solid var(--ds-border);
+    border-radius: 8px;
+    background: var(--ds-surface);
+    color: var(--ds-text);
+    font-size: 11px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.15s ease;
+}
+
+.analytics-domain-tabs a:hover {
+    border-color: #c3d4ee;
+    background: #f8fbff;
+}
+
+.analytics-domain-tabs a.active {
+    border-color: #9ebbf1;
+    background: var(--ds-blue-soft);
+    color: var(--ds-blue-dark);
+}
+
+.analytics-stage-filters {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.analytics-stage-filters label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.analytics-stage-filters label > span {
+    display: none;
+    font-weight: 700;
+    font-size: 10.5px;
+    color: var(--ds-muted);
+}
+
+@media (min-width: 768px) {
+    .analytics-stage-filters label > span {
+        display: inline-block;
+    }
+}
+
+.analytics-stage-filters select {
+    min-width: 140px;
+    height: 36px;
+    padding: 0 12px;
+    border: 1px solid var(--ds-border);
+    border-radius: 8px;
+    background: var(--ds-surface);
+    color: var(--ds-text);
+    font-family: "Poppins", "Inter", Arial, sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 32px;
+}
+
+.analytics-stage-filters select:focus {
+    outline: none;
+    border-color: var(--ds-blue);
+    box-shadow: 0 0 0 3px var(--ds-blue-soft);
+}
+
+.analytics-stage-filters button {
+    height: 36px;
+    border-radius: 8px;
+    font-family: "Poppins", "Inter", Arial, sans-serif;
+}
+
+/* =========================================================
+   8. DASHBOARD STRUCTURE
+   ========================================================= */
+
+.analytics-overview-page .main,
+.main.analytics-stage-page {
+    background: var(--ds-bg);
+}
+
+.analytics-overview-page section,
+.analytics-stage-page section {
+    margin-bottom: 16px;
+}
+
+.predictive-page {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.predictive-lower-grid,
+.predictive-bottom-grid,
+.predictive-detail-grid,
+.prediction-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 14px;
+}
+
+.predictive-main-grid {
+    display: grid;
+    gap: 14px;
+}
+
+/* =========================================================
+   9. CHART CONTAINERS
+   ========================================================= */
+
+.chart-container,
+.small-chart,
+.large-chart,
+.ft-chart-wrapper,
+.analytics-chart-wrapper {
+    position: relative;
+    width: 100%;
+    background: transparent;
+}
+
+.chart-container {
+    height: 270px;
+}
+
+.small-chart {
+    height: 190px;
+}
+
+.large-chart,
+.ft-chart-wrapper.ft-large-chart,
+.analytics-chart-wrapper.large {
+    height: 320px;
+}
+
+.chart-container canvas,
+.small-chart canvas,
+.large-chart canvas,
+.ft-chart-wrapper canvas,
+.analytics-chart-wrapper canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* =========================================================
+   10. INSIGHT / ALERT CARDS
+   ========================================================= */
+
+.insight-grid,
+.ft-insights-list,
+.prediction-insights .insight-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 12px;
+}
+
+.insight-item,
+.ft-insight,
+.analytics-insight-card {
+    min-width: 0;
+    min-height: 116px;
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr);
+    gap: 11px;
+    align-items: start;
+    padding: 13px;
+    border: 1px solid var(--ds-border);
+    border-radius: 12px;
+    background: var(--ds-surface);
+    box-shadow: var(--ds-shadow-card);
+}
+
+.insight-icon,
+.ft-kpi-icon,
+.analytics-insight-icon {
+    width: 40px;
+    height: 40px;
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.insight-icon.blue,
+.ft-kpi-icon.blue,
+.analytics-insight-icon.blue {
+    background: var(--ds-blue-soft);
+    color: var(--ds-blue);
+}
+
+.insight-icon.green,
+.insight-icon.success,
+.ft-kpi-icon.green,
+.ft-kpi-icon.success,
+.analytics-insight-icon.green,
+.analytics-insight-icon.success {
+    background: var(--ds-green-soft);
+    color: var(--ds-green);
+}
+
+.insight-icon.yellow,
+.insight-icon.warning,
+.ft-kpi-icon.yellow,
+.ft-kpi-icon.warning,
+.analytics-insight-icon.yellow,
+.analytics-insight-icon.warning {
+    background: var(--ds-yellow-soft);
+    color: var(--ds-yellow-dark);
+}
+
+.insight-icon.red,
+.insight-icon.danger,
+.ft-kpi-icon.red,
+.ft-kpi-icon.danger,
+.analytics-insight-icon.red,
+.analytics-insight-icon.danger {
+    background: var(--ds-red-soft);
+    color: var(--ds-red);
+}
+
+.insight-icon.purple,
+.ft-kpi-icon.purple,
+.analytics-insight-icon.purple {
+    background: var(--ds-purple-soft);
+    color: var(--ds-purple);
+}
+
+.insight-item strong,
+.ft-insight-copy strong,
+.analytics-insight-content strong {
+    display: block;
+    color: var(--ds-navy);
+    font-size: 12px;
+    line-height: 1.35;
+    font-weight: 800;
+}
+
+.insight-item p,
+.ft-insight-copy p,
+.analytics-insight-content p {
+    margin: 5px 0 0;
+    color: var(--ds-muted);
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+.ft-insight-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+/* =========================================================
+   11. PRIORITY FINDINGS / ISSUES
+   ========================================================= */
+
+.priority-findings-grid,
+.ft-issues-list,
+.issue-list,
+.diag-list {
+    display: grid;
+    gap: 10px;
+}
+
+.priority-finding,
+.ft-issue,
+.issue-row,
+.diag-list-row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: start;
+    padding: 12px 14px;
+    border: 1px solid var(--ds-border);
+    border-radius: 12px;
+    background: var(--ds-surface);
+    box-shadow: var(--ds-shadow-card);
+}
+
+.finding-icon,
+.ft-issue-icon,
+.issue-icon,
+.diag-list-rank {
+    width: 36px;
+    height: 36px;
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.finding-icon.maintenance,
+.ft-issue-icon.maintenance,
+.issue-icon.maintenance {
+    background: var(--ds-yellow-soft);
+    color: var(--ds-yellow-dark);
+}
+
+.finding-icon.inventory,
+.ft-issue-icon.inventory,
+.issue-icon.inventory {
+    background: var(--ds-red-soft);
+    color: var(--ds-red);
+}
+
+.finding-icon.fuel,
+.ft-issue-icon.fuel,
+.issue-icon.fuel {
+    background: var(--ds-blue-soft);
+    color: var(--ds-blue);
+}
+
+.finding-icon.fleet,
+.ft-issue-icon.fleet,
+.issue-icon.fleet {
+    background: var(--ds-purple-soft);
+    color: var(--ds-purple);
+}
+
+.finding-top,
+.ft-issue-content {
+    min-width: 0;
+}
+
+.finding-module,
+.ft-insight-head span {
+    display: block;
+    color: var(--ds-muted);
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.finding-priority,
+.ft-badge,
+.risk-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 9px;
+    border-radius: 999px;
+    font-size: 9px;
+    font-weight: 700;
+    line-height: 1.1;
+    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.finding-priority.high,
+.ft-badge.high,
+.risk-badge.high {
+    background: var(--ds-red-soft);
+    color: var(--ds-red-dark);
+}
+
+.finding-priority.medium,
+.ft-badge.medium,
+.risk-badge.medium {
+    background: var(--ds-yellow-soft);
+    color: var(--ds-yellow-dark);
+}
+
+.finding-priority.low,
+.ft-badge.low,
+.risk-badge.low {
+    background: var(--ds-green-soft);
+    color: var(--ds-green-dark);
+}
+
+.priority-finding h3,
+.ft-issue h5,
+.issue-info strong {
+    margin: 0 0 4px;
+    color: var(--ds-navy);
+    font-size: 12.5px;
+    font-weight: 800;
+    line-height: 1.3;
+}
+
+.priority-finding p,
+.ft-issue p,
+.issue-info span {
+    margin: 0;
+    color: var(--ds-muted);
+    font-size: 10.5px;
+    line-height: 1.45;
+}
+
+.priority-finding a,
+.ft-view-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+    color: var(--ds-blue);
+    font-size: 10px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.priority-finding a:hover,
+.ft-view-link:hover {
+    color: var(--ds-blue-dark);
+    text-decoration: underline;
+}
+
+.ft-issue-count,
+.issue-count {
+    color: var(--ds-navy);
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.ft-issue-number {
+    width: 28px;
+    height: 28px;
+    display: grid;
+    place-items: center;
+    border-radius: 8px;
+    background: var(--ds-blue-soft);
+    color: var(--ds-blue);
+    font-size: 10px;
+    font-weight: 800;
+}
+
+/* =========================================================
+   12. EMPTY STATES
+   ========================================================= */
+
+.analytics-compact-empty,
+.diag-empty,
+.ft-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 24px 16px;
+    border: 1px dashed var(--ds-border);
+    border-radius: 12px;
+    background: #fbfdff;
+    color: var(--ds-muted);
+    font-size: 11px;
+    font-weight: 500;
+    text-align: center;
+}
+
+.analytics-compact-empty i,
+.diag-empty i,
+.ft-empty-state i {
+    font-size: 24px;
+    color: var(--ds-muted);
+}
+
+/* =========================================================
+   13. RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 1100px) {
+    .analytics-kpi-strip {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 700px) {
+    .analytics-kpi-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .analytics-domain-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .analytics-domain-tabs {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .analytics-stage-filters {
+        width: 100%;
+        justify-content: flex-start;
+    }
+}
+
+@media (max-width: 480px) {
+    .analytics-kpi-strip {
+        grid-template-columns: 1fr;
+    }
+
+    .analytics-kpi-card {
+        grid-template-columns: 40px minmax(0, 1fr);
+        gap: 10px;
+        padding: 12px 14px;
+        min-height: 96px;
+    }
+
+    .analytics-kpi-card__icon {
+        width: 40px;
+        height: 40px;
+        font-size: 14px;
+    }
+
+    .analytics-kpi-card__value {
+        font-size: 18px;
+    }
+
+    .analytics-stage-filters select {
+        min-width: 100%;
+    }
+}
+
+/* =========================================================
+   14. LEGACY COMPATIBILITY
+   ========================================================= */
+
+/* Ensure old classes still work */
+.analytics-overview-page .analytics-kpi-strip-six {
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+}
+
+.analytics-overview-page .analytics-kpi-strip-four {
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+}
+
+.predictive-page .analytics-kpi-strip {
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+}
+
+.diagnostic-analytics-page .analytics-kpi-strip {
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+}
+
+.descriptive-analytics-page .analytics-kpi-strip {
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+}
+
+.predictive-main-grid-two {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.predictive-bottom-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(280px, 1.15fr);
+    gap: 14px;
+}
+
+.ft-top-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.45fr) minmax(340px, .85fr);
+    gap: 14px;
+}
+
+.ft-lower-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.diag-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.diag-domain-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 14px;
+}
+
+.diag-grid-3-equal,
+.diag-all-bottom,
+.diag-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 14px;
+}
+
+.fleet-main-grid,
+.fuel-main-grid,
+.health-overview-grid,
+.inventory-main-grid,
+.fleet-lower-grid,
+.fuel-secondary-grid,
+.health-secondary-grid,
+.inventory-secondary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 14px;
+}
+
+.descriptive-overview-main-grid,
+.descriptive-overview-lower-grid,
+.descriptive-overview-footer-grid,
+.descriptive-overview-side-stack {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 14px;
+}
+
+.overview-panel,
+.executive-main-grid,
+.performance-panel {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 14px;
+}
+
+.executive-snapshot {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 280px;
+    gap: 24px;
+    align-items: start;
+}
+
+@media (max-width: 900px) {
+    .executive-snapshot {
+        grid-template-columns: 1fr;
+    }
+}

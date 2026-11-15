@@ -9,7 +9,7 @@
 
     $domainViews = [
         'all' => 'Admin.Analytics.descriptive.all',
-        'fleet-trip' => 'Admin.Analytics.descriptive.fleet-trip',
+        'fleet-trip' => 'Admin.Analytics.descriptive.all',
         'fuel' => 'Admin.Analytics.descriptive.fuel',
         'bus-health' => 'Admin.Analytics.descriptive.bus-health',
         'inventory' => 'Admin.Analytics.descriptive.inventory',
@@ -26,10 +26,11 @@
     $activeDomain = array_key_exists($domain, $domainViews) ? $domain : 'all';
 
     /*
-     * All and Fleet & Trip share the same overview layout (KPI strip, main
-     * grid, rankings, side stack, and footer grids). descriptive/all.css is
-     * scoped under the shared descriptive-overview-domain class so both
-     * domains are covered consistently.
+     * All and Fleet & Trip share the same overview partial
+     * (descriptive/all), which renders the KPI strip, main grid,
+     * rankings, side stack, and footer grids for both tabs.
+     * descriptive/all.css is scoped under the shared
+     * descriptive-overview-domain class so both domains are covered.
      */
     $usesOverviewLayout = in_array($activeDomain, ['all', 'fleet-trip'], true);
 
@@ -124,6 +125,8 @@
     if ($domainStyles[$activeDomain] !== $overviewStyle || !$usesOverviewLayout) {
         $pageAssets[] = $domainStyles[$activeDomain];
     }
+
+    $pageAssets[] = 'resources/css/Admin/Analytics/design-system.css';
 @endphp
 
 <x-layout.app title="FROMS - Descriptive Analytics" :assets="$pageAssets">

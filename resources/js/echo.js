@@ -73,7 +73,9 @@ const refreshAjaxRegions = async () => {
         });
 
         if (replacedCount > 0) {
-            window.dispatchEvent(new CustomEvent('system-regions-refreshed', { detail: { regions: names } }));
+            const detail = { regions: names };
+            window.dispatchEvent(new CustomEvent('system-regions-refreshed', { detail }));
+            window.dispatchEvent(new CustomEvent('ajax:content-updated', { detail }));
         }
 
         return replacedCount > 0;

@@ -12,48 +12,48 @@
         ->take(5);
 @endphp
 
-<section class="analytics-kpi-strip analytics-kpi-strip-four">
+<section class="analytics-kpi-strip">
     <x-analytics.kpi
+        icon="fa-bus"
         label="Active Buses"
         :value="number_format($activeBuses)"
         description="Available buses"
-        :status="number_format($activePct, 1) . '% of total fleet'"
-        status-tone="positive"
-        icon="fa-bus"
-        tone="green"
+        :change="number_format($activePct, 1) . '% of total fleet'"
+        change-type="positive"
+        icon-variant="green"
     />
     <x-analytics.kpi
+        icon="fa-screwdriver-wrench"
         label="Under Maintenance"
         :value="number_format($underMaintenance)"
         description="Current Bus Master List status"
-        :status="number_format($maintenancePct, 1) . '% of total fleet'"
-        status-tone="warning"
-        icon="fa-screwdriver-wrench"
-        tone="yellow"
+        :change="number_format($maintenancePct, 1) . '% of total fleet'"
+        change-type="warning"
+        icon-variant="yellow"
     />
     <x-analytics.kpi
+        icon="fa-circle-exclamation"
         label="Inactive Buses"
         :value="number_format($inactiveBuses)"
         description="Unavailable buses"
-        :status="number_format($inactivePct, 1) . '% of total fleet'"
-        status-tone="negative"
-        icon="fa-circle-exclamation"
-        tone="red"
+        :change="number_format($inactivePct, 1) . '% of total fleet'"
+        change-type="negative"
+        icon-variant="red"
     />
     <x-analytics.kpi
+        icon="fa-chart-pie"
         label="Fleet Availability"
         :value="number_format($fleetAvailability, 1) . '%'"
         description="Active share of Bus Master List"
-        :status="number_format($activeBuses) . ' of ' . number_format($totalBuses) . ' buses active'"
-        status-tone="info"
-        icon="fa-chart-pie"
-        tone="blue"
+        :change="number_format($activeBuses) . ' of ' . number_format($totalBuses) . ' buses active'"
+        change-type="info"
+        icon-variant="blue"
     />
 </section>
 
 <section class="bus-health-dashboard-grid">
-    <x-analytics.panel
-        class="bus-health-panel bus-health-status-panel"
+    <x-analytics.card
+        class="analytics-domain-card bus-health-panel bus-health-status-panel"
         title="Fleet Status Overview"
         description="Current operational status from the Bus Master List"
         :badge="$totalBuses . ' buses'"
@@ -88,10 +88,10 @@
                 </div>
             </div>
         </div>
-    </x-analytics.panel>
+    </x-analytics.card>
 
-    <x-analytics.panel
-        class="bus-health-panel bus-health-mix-panel"
+    <x-analytics.card
+        class="analytics-domain-card bus-health-panel bus-health-mix-panel"
         title="Current Status Mix"
         description="Current fleet distribution; no historical health trend is inferred"
     >
@@ -117,10 +117,10 @@
                 <small>{{ number_format($activeBuses) }} active buses out of {{ number_format($totalBuses) }} recorded units</small>
             </div>
         </div>
-    </x-analytics.panel>
+    </x-analytics.card>
 
-    <x-analytics.panel
-        class="bus-health-panel bus-health-units-panel"
+    <x-analytics.card
+        class="analytics-domain-card bus-health-panel bus-health-units-panel"
         title="Current Fleet Units"
         description="Real-time status snapshot from the Bus Master List"
         :badge="'5 of ' . $totalBuses"
@@ -142,12 +142,12 @@
                 <div class="analytics-compact-empty"><i class="fa-solid fa-bus"></i><span>No buses are recorded in the Bus Master List.</span></div>
             @endforelse
         </div>
-    </x-analytics.panel>
+    </x-analytics.card>
 </section>
 
 <section class="bus-health-lower-grid">
-    <x-analytics.panel
-        class="bus-health-panel bus-health-coverage-panel"
+    <x-analytics.card
+        class="analytics-domain-card bus-health-panel bus-health-coverage-panel"
         title="Status Coverage"
         description="How completely current fleet units are classified"
     >
@@ -165,10 +165,10 @@
             <div><span><i class="status-dot inactive"></i>Inactive</span><strong>{{ $inactiveBuses }}</strong></div>
             <div><span><i class="status-dot unspecified"></i>Unspecified</span><strong>{{ $unspecifiedBuses }}</strong></div>
         </div>
-    </x-analytics.panel>
+    </x-analytics.card>
 
-    <x-analytics.panel
-        class="bus-health-panel bus-health-attention-panel"
+    <x-analytics.card
+        class="analytics-domain-card bus-health-panel bus-health-attention-panel"
         title="Buses Requiring Attention"
         description="Current units that are not in Active status"
         :badge="($underMaintenance + $inactiveBuses) . ' buses'"
@@ -190,10 +190,10 @@
                 <div class="analytics-compact-empty"><i class="fa-solid fa-circle-check"></i><span>No buses currently require status follow-up.</span></div>
             @endforelse
         </div>
-    </x-analytics.panel>
+    </x-analytics.card>
 
-    <x-analytics.panel
-        class="bus-health-panel bus-health-boundary-panel"
+    <x-analytics.card
+        class="analytics-domain-card bus-health-panel bus-health-boundary-panel"
         title="Health Data Boundary Insights"
         description="What this descriptive view can verify from current records"
     >
@@ -214,5 +214,5 @@
                 <b>As Recorded</b>
             </div>
         </div>
-    </x-analytics.panel>
+    </x-analytics.card>
 </section>

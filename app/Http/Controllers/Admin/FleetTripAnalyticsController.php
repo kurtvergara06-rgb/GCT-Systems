@@ -27,11 +27,25 @@ class FleetTripAnalyticsController extends Controller
     ): array {
         $period = $this->normalizePeriod((string) $request->input('period', 'this-month'));
         $selectedBus = strtoupper(trim((string) $request->input('bus', 'all')));
+        $selectedRoute = trim((string) $request->input('route', 'all'));
         [$periodStart, $periodEnd, $periodLabel] = $this->periodBounds($period);
 
         $records = $this->recordsQuery($periodStart, $periodEnd, $selectedBus)
             ->orderBy('beginning_at')
             ->get();
+
+        $routeOptions = $records
+            ->map(fn (GpsTripRecord $record) => $this->routeLabel($record))
+            ->filter(fn (string $label) => trim($label) !== '')
+            ->unique()
+            ->sort()
+            ->values();
+
+        if ($selectedRoute !== '' && strtolower($selectedRoute) !== 'all') {
+            $records = $records
+                ->filter(fn (GpsTripRecord $record): bool => $this->routeLabel($record) === $selectedRoute)
+                ->values();
+        }
 
         $totalDistance = (float) $records->sum('mileage_km');
         $totalIdleMinutes = (int) $records->sum('idling_minutes');
@@ -90,6 +104,8 @@ class FleetTripAnalyticsController extends Controller
             'period' => $period,
             'periodLabel' => $periodLabel,
             'selectedBus' => $selectedBus,
+            'selectedRoute' => $selectedRoute,
+            'routeOptions' => $routeOptions,
             'busOptions' => $busLookup->values(),
             'tripCount' => $currentTripCount,
             'totalDistance' => $totalDistance,
@@ -127,9 +143,12 @@ class FleetTripAnalyticsController extends Controller
 
     private function normalizePeriod(string $period): string
     {
-        return in_array($period, ['this-month', 'last-30-days', 'last-3-months', 'this-year'], true)
-            ? $period
-            : 'this-month';
+        return match (true) {
+            in_array($period, ['this-week', 'this-month', 'last-30-days', 'last-90-days', 'last-12-months'], true) => $period,
+            $period === 'last-3-months' => 'last-90-days',
+            $period === 'this-year' => 'last-12-months',
+            default => 'this-month',
+        };
     }
 
     private function periodBounds(string $period): array
@@ -142,15 +161,20 @@ class FleetTripAnalyticsController extends Controller
                 $now->copy()->endOfDay(),
                 'Last 30 Days',
             ],
-            'last-3-months' => [
-                $now->copy()->subMonths(3)->startOfDay(),
+            'last-90-days' => [
+                $now->copy()->subDays(89)->startOfDay(),
                 $now->copy()->endOfDay(),
-                'Last 3 Months',
+                'Last 90 Days',
             ],
-            'this-year' => [
-                $now->copy()->startOfYear(),
+            'last-12-months' => [
+                $now->copy()->subMonths(12)->startOfDay(),
                 $now->copy()->endOfDay(),
-                'This Year',
+                'Last 12 Months',
+            ],
+            'this-week' => [
+                $now->copy()->startOfWeek()->startOfDay(),
+                $now->copy()->endOfDay(),
+                'This Week',
             ],
             default => [
                 $now->copy()->startOfMonth(),

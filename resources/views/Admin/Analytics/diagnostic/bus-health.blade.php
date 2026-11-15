@@ -10,12 +10,38 @@
 @endphp
 
 <section class="diag-stack">
-    <div class="diag-kpis">
-        <article class="diag-kpi"><div class="diag-kpi-icon"><i class="fa-solid fa-bus"></i></div><div class="diag-kpi-copy"><span class="diag-kpi-label">Total Buses</span><div class="diag-kpi-value">{{ number_format($d->total) }}</div><small>Bus master records in the selected scope.</small></div></article>
-        <article class="diag-kpi" data-tone="green"><div class="diag-kpi-icon"><i class="fa-solid fa-circle-check"></i></div><div class="diag-kpi-copy"><span class="diag-kpi-label">Active</span><div class="diag-kpi-value">{{ number_format($d->active) }}</div><small>{{ number_format($activePct,1) }}% of scoped buses.</small></div></article>
-        <article class="diag-kpi" data-tone="orange"><div class="diag-kpi-icon"><i class="fa-solid fa-screwdriver-wrench"></i></div><div class="diag-kpi-copy"><span class="diag-kpi-label">Under Maintenance</span><div class="diag-kpi-value">{{ number_format($d->maintenance) }}</div><small>{{ number_format($maintenancePct,1) }}% of scoped buses.</small></div></article>
-        <article class="diag-kpi" data-tone="red"><div class="diag-kpi-icon"><i class="fa-solid fa-clock-rotate-left"></i></div><div class="diag-kpi-copy"><span class="diag-kpi-label">Overdue Work Orders</span><div class="diag-kpi-value">{{ number_format($d->overdue_orders->count()) }}</div><small>Open work beyond its recorded estimated duration.</small></div></article>
-    </div>
+    <section class="analytics-kpi-strip" aria-label="Bus health diagnostics summary">
+        <x-analytics.kpi
+            label="Total Buses"
+            :value="number_format($d->total)"
+            description="Bus master records in the selected scope."
+            icon="fa-bus"
+        />
+
+        <x-analytics.kpi
+            label="Active"
+            :value="number_format($d->active)"
+            :description="number_format($activePct, 1) . '% of scoped buses.'"
+            icon="fa-circle-check"
+            tone="green"
+        />
+
+        <x-analytics.kpi
+            label="Under Maintenance"
+            :value="number_format($d->maintenance)"
+            :description="number_format($maintenancePct, 1) . '% of scoped buses.'"
+            icon="fa-screwdriver-wrench"
+            tone="yellow"
+        />
+
+        <x-analytics.kpi
+            label="Overdue Work Orders"
+            :value="number_format($d->overdue_orders->count())"
+            description="Open work beyond its recorded estimated duration."
+            icon="fa-clock-rotate-left"
+            tone="red"
+        />
+    </section>
 
     <div class="health-overview-grid">
         <article class="diag-card">

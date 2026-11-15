@@ -16,18 +16,21 @@
 <div class="predictive-page predictive-health-page">
 
     {{-- KPI STRIP --}}
-    <section class="predictive-kpis">
+    <section class="analytics-kpi-strip">
         @foreach($health->kpis as $kpi)
-            <article class="predictive-kpi">
-                <div class="predictive-kpi-icon {{ $kpi['tone'] }}">
-                    <i class="fa-solid {{ $kpi['icon'] }}"></i>
-                </div>
-                <div class="predictive-kpi-copy">
-                    <span>{{ $kpi['label'] }}</span>
-                    <strong>{{ $kpi['value'] }}</strong>
-                    <small>{{ $kpi['caption'] }}</small>
-                </div>
-            </article>
+            <x-analytics.kpi
+                :label="$kpi['label']"
+                :value="$kpi['value']"
+                :description="$kpi['caption']"
+                :icon="$kpi['icon']"
+                :tone="match ($kpi['tone']) {
+                    'danger' => 'red',
+                    'warning', 'orange' => 'yellow',
+                    'success' => 'green',
+                    'info' => 'blue',
+                    default => $kpi['tone'],
+                }"
+            />
         @endforeach
     </section>
 

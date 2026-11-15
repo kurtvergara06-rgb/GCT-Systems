@@ -18,6 +18,7 @@
     $normalizedSelectedBus = strtolower(trim((string) $selectedBus));
     $pageAssets = [
         'resources/css/Admin/Analytics/overview/analytics-stage-hub.css',
+        'resources/css/Admin/Analytics/design-system.css',
     ];
 @endphp
 

@@ -26,6 +26,13 @@
     $activeDomain = array_key_exists($domain, $domainViews) ? $domain : 'all';
     $predictiveUrl = route('analytics.stage', ['stage' => 'predictive'], false);
     $normalizedSelectedBus = strtolower(trim((string) $selectedBus));
+    $selectedRoute = strtolower(trim((string) ($fleet['selectedRoute'] ?? request('route', 'all'))));
+    $routeOptions = collect($fleet['routeOptions'] ?? [])
+        ->filter(fn ($label) => trim((string) $label) !== '')
+        ->unique()
+        ->values();
+
+    $activeRoute = request('route');
 
     $pageAssets = [
         'resources/css/Admin/Analytics/overview/analytics-stage-hub.css',
@@ -36,7 +43,11 @@
         $pageAssets[] = $domainStyles[$activeDomain];
     }
 
-    $pageAssets[] = 'resources/js/Admin/Analytics/predictive/charts.js';
+    $pageAssets[] = 'resources/css/Admin/Analytics/design-system.css';
+
+    $pageAssets[] = $activeDomain === 'fleet-trip'
+        ? 'resources/js/Admin/Analytics/predictive/fleet.js'
+        : 'resources/js/Admin/Analytics/predictive/charts.js';
 @endphp
 
 <x-layout.app title="FROMS - Predictive Analytics" :assets="$pageAssets">
@@ -44,13 +55,18 @@
         <x-layout.sidebar department="Admin" />
 
         <main class="main analytics-stage-page predictive-analytics-page predictive-domain-{{ $activeDomain }}">
-            <x-layout.topbar title="Predictive Analytics" subtitle="What may happen next based on validated historical evidence and forecast readiness." />
+            <x-layout.topbar title="Predictive Analytics" subtitle="AI-powered predictions and forecasts for proactive decision making." />
 
             <section class="analytics-domain-toolbar predictive-toolbar">
                 <nav class="analytics-domain-tabs" aria-label="Predictive analytics domains">
                     @foreach($tabs as $key => $tab)
                         <a
-                            href="{{ $predictiveUrl }}?{{ http_build_query(['domain' => $key, 'period' => $period, 'bus' => $normalizedSelectedBus !== 'all' ? $selectedBus : null]) }}"
+                            href="{{ $predictiveUrl }}?{{ http_build_query(array_filter([
+                                'domain' => $key,
+                                'period' => $period,
+                                'bus' => $normalizedSelectedBus !== 'all' ? $selectedBus : null,
+                                'route' => $selectedRoute !== 'all' ? $activeRoute : null,
+                            ])) }}"
                             class="{{ $activeDomain === $key ? 'active' : '' }}"
                         >
                             <i class="fa-solid {{ $tab[1] }}"></i>{{ $tab[0] }}
@@ -65,9 +81,10 @@
                         <span>Period</span>
                         <select name="period">
                             <option value="this-month" @selected($period === 'this-month')>This Month</option>
+                            <option value="this-week" @selected($period === 'this-week')>This Week</option>
                             <option value="last-30-days" @selected($period === 'last-30-days')>Last 30 Days</option>
-                            <option value="last-3-months" @selected($period === 'last-3-months')>Last 3 Months</option>
-                            <option value="this-year" @selected($period === 'this-year')>This Year</option>
+                            <option value="last-90-days" @selected($period === 'last-90-days')>Last 90 Days</option>
+                            <option value="last-12-months" @selected($period === 'last-12-months')>Last 12 Months</option>
                         </select>
                     </label>
 
@@ -81,7 +98,22 @@
                         </select>
                     </label>
 
+                    @if ($activeDomain === 'fleet-trip')
+                        <label>
+                            <span>Route</span>
+                            <select name="route">
+                                <option value="all" @selected($selectedRoute === 'all')>All Routes</option>
+                                @foreach($routeOptions as $routeOption)
+                                    <option value="{{ $routeOption }}" @selected($selectedRoute === strtolower((string) $routeOption))>{{ $routeOption }}</option>
+                                @endforeach
+                            </select>
+                        </label>
+                    @endif
+
                     <button type="submit"><i class="fa-solid fa-filter"></i> Apply</button>
+                    <button type="button" id="refreshAnalytics" class="predictive-toolbar-refresh" aria-label="Refresh predictive analytics">
+                        <i class="fa-solid fa-rotate-right"></i>
+                    </button>
                 </form>
             </section>
 
