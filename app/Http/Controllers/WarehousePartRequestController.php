@@ -38,6 +38,8 @@ class WarehousePartRequestController extends Controller
 
         $approved = PurchaseRequest::where('status', 'Approved')->count();
         $forPurchase = PurchaseRequest::where('status', 'For Purchase')->count();
+        $pendingPurchase = PurchaseRequest::where('status', 'Pending Purchase')->count();
+        $delivering = PurchaseRequest::where('status', 'Delivering')->count();
         $delivered = PurchaseRequest::where('status', 'Delivered')->count();
         $issued = PurchaseRequest::where('status', 'Issued')->count();
 
@@ -45,6 +47,8 @@ class WarehousePartRequestController extends Controller
             'partRequests',
             'approved',
             'forPurchase',
+            'pendingPurchase',
+            'delivering',
             'delivered',
             'issued'
         ));

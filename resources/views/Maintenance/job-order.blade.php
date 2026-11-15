@@ -2,6 +2,7 @@
   title="FROMS - Job Orders"
   :assets="[
     'resources/css/Maintenance/job-order.css',
+    'resources/css/Main-style/main.css',
     'resources/js/Maintenance/job-order.js'
   ]"
 >

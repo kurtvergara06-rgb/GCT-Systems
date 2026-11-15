@@ -2,6 +2,7 @@
   title="FROMS - Warehouse Part Requests"
   :assets="[
     'resources/css/Warehouse/part-requests.css',
+    'resources/css/Main-style/main.css',
     'resources/js/Warehouse/part-requests.js'
   ]"
 >
@@ -162,20 +163,25 @@
                   <td>{{ $request->quantity }}</td>
 
                   <td>
-                    @php
+                   @php
                       $badgeClass = match($request->status) {
-                        'Approved' => 'approved',
+                        'Approved' => 'under-review',
                         'For Purchase' => 'for-purchase',
-                        'Pending Purchase' => 'pending',
-                        'Delivering' => 'monitor',
-                        'Delivered' => 'low',
-                        'Issued' => 'in-stock',
-                        default => 'pending'
+                        'Pending Purchase' => 'pending-purchase',
+                        'Delivering' => 'delivering',
+                        'Delivered' => 'delivered',
+                        'Issued' => 'issued',
+                        default => 'pending-purchase'
+                      };
+
+                      $statusLabel = match($request->status) {
+                        'Approved' => 'Under Review',
+                        default => $request->status
                       };
                     @endphp
 
                     <span class="badge {{ $badgeClass }}">
-                      {{ $request->status }}
+                      {{ $statusLabel }}
                     </span>
                   </td>
 
