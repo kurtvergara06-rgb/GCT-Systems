@@ -208,20 +208,20 @@
                     <div class="actions">
 
                       <button
-                        type="button"
-                        class="action-btn edit openEditModal"
-                        title="Edit Item"
-                        data-action="{{ route('inventory.update', $item->id) }}"
-                        data-code="{{ $item->item_code }}"
-                        data-name="{{ $item->item_name }}"
-                        data-category="{{ $item->category }}"
-                        data-quantity="{{ $item->quantity_available }}"
-                        data-unit="{{ $item->unit_of_measurement }}"
-                        data-reorder="{{ $item->reorder_level }}"
-                        data-supplier="{{ $item->supplier }}"
-                        data-location="{{ $item->storage_location }}"
+                          type="button"
+                          class="action-btn edit openEditModal"
+                          title="Edit Item"
+                          data-action="{{ route('inventory.update', $item->id) }}"
+                          data-code="{{ $item->item_code }}"
+                          data-name="{{ $item->item_name }}"
+                          data-category="{{ $item->category }}"
+                          data-quantity="{{ $item->on_hand }}"
+                          data-unit="{{ $item->unit_of_measurement }}"
+                          data-reorder="{{ $item->reorder_level }}"
+                          data-supplier="{{ $item->supplier }}"
+                          data-location="{{ $item->storage_location }}"
                       >
-                        <i class="fa-solid fa-pen-to-square"></i>
+                          <i class="fa-solid fa-pen-to-square"></i>
                       </button>
 
                       <form
@@ -328,7 +328,7 @@
 
           <div class="form-group">
             <label>Quantity Available</label>
-            <input type="number" name="quantity_available" min="0" required>
+            <input type="number" name="on_hand" min="0" required>
           </div>
 
           <div class="form-group">
@@ -380,7 +380,7 @@
         data-confirm-message="Are you sure you want to update this inventory item?"
         data-confirm-button="Yes, Update Item"
         data-confirm-type="update"
-      >
+    >
         @csrf
         @method('PUT')
 
@@ -403,7 +403,7 @@
 
           <div class="form-group">
             <label>Quantity Available</label>
-            <input type="number" name="quantity_available" id="edit_quantity" min="0" required>
+            <input type="number" name="on_hand" id="edit_quantity" min="0" required>
           </div>
 
           <div class="form-group">
