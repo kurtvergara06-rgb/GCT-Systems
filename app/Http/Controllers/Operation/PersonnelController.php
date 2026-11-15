@@ -80,12 +80,22 @@ class PersonnelController extends Controller
             ->withQueryString();
 
         $driverIds = $drivers->getCollection()->pluck('driver_id');
+        // A single batched lookup replaces one TripAssignment EXISTS query per
+        // driver in the Blade table. Identity locking includes historical trips;
+        // deactivation locking retains its separate nonterminal-trip rule.
+        $identityLockedDriverIds = $driverIds->isEmpty() ? collect() : TripAssignment::query()
+            ->whereIn('driver_id', $driverIds)
+            ->distinct()
+            ->pluck('driver_id');
         $lockedDriverIds = $driverIds->isEmpty() ? collect() : TripAssignment::query()
             ->whereIn('driver_id', $driverIds)
             ->whereHas('tripSchedule', fn ($query) => $query->whereNotIn('status', ['Cancelled', 'Completed']))
             ->pluck('driver_id');
-        $drivers->getCollection()->each(function (Driver $driver) use ($lockedDriverIds): void {
-            $driver->deactivation_locked = $lockedDriverIds->contains($driver->driver_id);
+        $identityLocked = $identityLockedDriverIds->flip();
+        $deactivationLocked = $lockedDriverIds->flip();
+        $drivers->getCollection()->each(function (Driver $driver) use ($identityLocked, $deactivationLocked): void {
+            $driver->identity_locked = (bool) $driver->attendances_exists || $identityLocked->has($driver->driver_id);
+            $driver->deactivation_locked = $deactivationLocked->has($driver->driver_id);
         });
 
         $availableBuses = Bus::query()

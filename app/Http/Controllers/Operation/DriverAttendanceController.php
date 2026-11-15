@@ -22,10 +22,7 @@ class DriverAttendanceController extends Controller
 
     public function index(Request $request)
     {
-        $query = DriverAttendance::query()->with([
-            'tripAssignments.bus',
-            'tripAssignments.tripSchedule.shuttleRoute',
-        ]);
+        $query = DriverAttendance::query();
 
         // Only attendance supported by an actual saved DDR belongs on this page.
         // Match the driver and service date; avoid duplicates when several DDRs
@@ -98,10 +95,14 @@ class DriverAttendanceController extends Controller
             $summaryQuery->whereDate('attendance_date', $summaryDate);
         }
 
-        $verifiedDrivers = (clone $summaryQuery)->distinct()->count('driver_id');
-        $attendanceRecords = (clone $summaryQuery)->count();
-        $verifiedTripDays = (clone $summaryQuery)->distinct()->count('attendance_date');
-        $lastVerifiedDate = (clone $summaryQuery)->max('attendance_date');
+        $summary = $summaryQuery->selectRaw(
+            'COUNT(*) AS attendance_records, COUNT(DISTINCT driver_id) AS verified_drivers, '
+            .'COUNT(DISTINCT attendance_date) AS verified_days, MAX(attendance_date) AS last_verified_date'
+        )->first();
+        $verifiedDrivers = (int) $summary->verified_drivers;
+        $attendanceRecords = (int) $summary->attendance_records;
+        $verifiedTripDays = (int) $summary->verified_days;
+        $lastVerifiedDate = $summary->last_verified_date;
 
         return view('Operation.Attendance.driver-attendance', compact(
             'driverAttendances',

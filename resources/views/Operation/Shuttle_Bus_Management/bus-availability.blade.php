@@ -72,7 +72,7 @@
                                     <td>
                                         <div style="display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                                             <x-ui.id-badge :value="$bus->bus_no" />
-                                            <span style="font-size: 12px; font-weight: 600; color: #475569;">({{ $bus->plate_no ?: 'Plate not recorded' }})</span>
+                                            <span style="font-size: 12px; font-weight: 600; color: var(--gct-screen-muted, #475569);">({{ $bus->plate_no ?: 'Plate not recorded' }})</span>
                                         </div>
                                     </td>
                                     <td><strong>{{ $bus->bus_model ?: '—' }}</strong></td>

@@ -111,3 +111,20 @@ it('keeps table toolbar filter fields excluded from legacy inline toolbar label 
         ->toContain('.gct-table-filter-field{display:grid!important;gap:6px!important}')
         ->toContain('.gct-table-filter-field>span:first-child{display:block!important');
 });
+
+
+it('uses shared dark mode styling for Search Filter Sort and picker controls', function (): void {
+    $toolbarStyles = file_get_contents(resource_path('css/Main-styles/table-toolbar.css'));
+    $pickerStyles = file_get_contents(resource_path('css/Main-styles/date-time-picker.css'));
+
+    expect($toolbarStyles)
+        ->toContain('html[data-gct-theme="dark"] .gct-table-toolbar')
+        ->toContain('.gct-table-filter-field .gct-picker-trigger')
+        ->toContain('var(--gct-toolbar-dark-input)')
+        ->toContain('color-scheme: dark;');
+
+    expect($pickerStyles)
+        ->toContain('html[data-gct-theme="dark"] .gct-picker-trigger')
+        ->toContain('html[data-gct-theme="dark"] .gct-picker-popover')
+        ->toContain('var(--gct-theme-surface, #162235)');
+});

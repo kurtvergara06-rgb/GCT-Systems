@@ -23,7 +23,7 @@ class TopbarSummaryService
 
         $notificationModels = (clone $notificationQuery)
             ->latest()
-            ->limit(12)
+            ->limit(5)
             ->get();
         $individuallyReadIds = $this->individuallyReadIds(
             (int) $user->id,
@@ -54,12 +54,64 @@ class TopbarSummaryService
             'notifications' => $notifications,
             'pending_actions' => $this->pendingActions($user),
             'recent_activity' => $notifications
-                ->take(8)
                 ->map(fn (array $item) => array_merge($item, [
                     'unread' => false,
                 ]))
                 ->values(),
         ];
+    }
+
+    /**
+     * Accessible to every authenticated department using the same module
+     * visibility rules as the topbar preview. No cross-department leakage.
+     */
+    public function notificationHistory(User $user, int $page = 1, bool $unreadOnly = false): array
+    {
+        $page = max(1, min($page, 10000));
+        $readAt = Schema::hasTable('topbar_read_states')
+            ? DB::table('topbar_read_states')->where('user_id', $user->id)->value('notifications_read_at')
+            : null;
+        $query = $this->notificationQueryFor($user);
+
+        if ($unreadOnly) {
+            if ($readAt) {
+                $query->where('created_at', '>', $readAt);
+            }
+            if (Schema::hasTable('topbar_notification_reads')) {
+                $query->whereNotExists(function ($builder) use ($user) {
+                    $builder->selectRaw('1')
+                        ->from('topbar_notification_reads')
+                        ->whereColumn('topbar_notification_reads.notification_id', 'topbar_notifications.id')
+                        ->where('topbar_notification_reads.user_id', $user->id);
+                });
+            }
+        }
+
+        $records = $query->orderByDesc('created_at')->orderByDesc('id')->paginate(20, ['*'], 'page', $page);
+        $ids = $records->getCollection()->modelKeys();
+        $individualReads = $this->individuallyReadIds((int) $user->id, $ids);
+
+        return [
+            'items' => $records->getCollection()
+                ->map(fn (TopbarNotification $notification) => $this->formatNotification($notification, $readAt, $individualReads))
+                ->values(),
+            'page' => $records->currentPage(),
+            'last_page' => $records->lastPage(),
+            'total' => $records->total(),
+        ];
+    }
+
+    private function professionalMessage(string $message): string
+    {
+        // Normalize older scheduler notifications without rewriting audit data.
+        if (preg_match('/^(\\d+) trip status\\(es\\) advanced by scheduled times\\.$/i', trim($message), $matches)) {
+            $count = (int) $matches[1];
+            return $count === 1
+                ? 'The status of 1 trip was automatically updated based on its schedule.'
+                : "The statuses of {$count} trips were automatically updated based on their schedules.";
+        }
+
+        return $message;
     }
 
     private function individuallyReadIds(int $userId, array $notificationIds): Collection
@@ -119,7 +171,7 @@ class TopbarSummaryService
             'id' => $notification->id,
             'module' => $notification->module ?: 'System',
             'action' => $notification->action,
-            'message' => $notification->message,
+            'message' => $this->professionalMessage((string) $notification->message),
             'url' => $this->notificationUrl($notification),
             'unread' => ! $coveredByMarkAll && ! $markedIndividually,
             'time' => $notification->created_at->diffForHumans(),

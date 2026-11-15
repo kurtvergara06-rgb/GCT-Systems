@@ -1,20 +1,8 @@
 window.GCTPartialNavigation.registerInitializer('operation-client-trip-times', '.client-trip-times-page', () => {
     const baseUrl = '/operation/client-trip-times';
 
-    const configModal = document.getElementById('cttConfigModal');
     const slotModal = document.getElementById('cttSlotModal');
-    const configForm = document.getElementById('cttConfigForm');
     const slotForm = document.getElementById('cttSlotForm');
-
-    const configClientId = document.getElementById('cttConfigClientId');
-    const configCategory = document.getElementById('cttConfigCategory');
-    const configClientName = document.getElementById('cttConfigClientName');
-    const configCategoryLabel = document.getElementById('cttConfigCategoryLabel');
-    const configStart = document.getElementById('cttConfigStart');
-    const configEnd = document.getElementById('cttConfigEnd');
-    const configActive = document.getElementById('cttConfigActive');
-    const configTitle = document.getElementById('cttConfigTitle');
-    const configSubmitText = document.getElementById('cttConfigSubmitText');
 
     const slotId = document.getElementById('cttSlotId');
     const slotTime = document.getElementById('cttSlotTime');
@@ -30,7 +18,7 @@ window.GCTPartialNavigation.registerInitializer('operation-client-trip-times', '
     const searchEmpty = document.getElementById('cttSearchEmpty');
 
     let activeSlotContainer = null;
-    let configUpdateUrl = null;
+    let activeRangeEditor = null;
 
     const categoryLabels = {
         incoming_am: 'Incoming AM',
@@ -40,7 +28,7 @@ window.GCTPartialNavigation.registerInitializer('operation-client-trip-times', '
     };
 
     function getCsrfToken() {
-        return configForm?.querySelector('[name="_token"]')?.value
+        return document.querySelector('meta[name="csrf-token"]')?.content
             || slotForm?.querySelector('[name="_token"]')?.value
             || '';
     }
@@ -76,7 +64,7 @@ window.GCTPartialNavigation.registerInitializer('operation-client-trip-times', '
     }
 
     function panelContainerFor(element) {
-        return element?.closest?.('.ctt-category-panel') || null;
+        return element?._cttOwnerPanel || element?.closest?.('.ctt-category-panel') || null;
     }
 
     async function refreshPanel(container) {
@@ -218,74 +206,142 @@ window.GCTPartialNavigation.registerInitializer('operation-client-trip-times', '
         return `${hour % 12 || 12}:${String(minute).padStart(2, '0')} ${hour < 12 ? 'AM' : 'PM'}`;
     }
 
-    function openConfigModal({ clientId, clientName, category, startTime, endTime, isActive, updateUrl }) {
-        if (!configForm) return;
+    // Portal the range editor into the page overlay so it cannot resize the
+    // four-card grid or be clipped by an accordion's scroll container.
+    const rangeOverlayHost = document.querySelector('.client-trip-times-page');
+    const rangeBackdrop = document.createElement('div');
+    rangeBackdrop.className = 'ctt-range-overlay-backdrop';
+    rangeBackdrop.hidden = true;
+    rangeOverlayHost?.appendChild(rangeBackdrop);
+    let rangeEditorReturnFocus = null;
+    let rangeAnchor = null;
 
-        clearErrors(configForm);
-        configUpdateUrl = updateUrl || null;
-
-        configClientId.value = clientId || '';
-        configCategory.value = category || '';
-        configClientName.textContent = clientName || '—';
-        configCategoryLabel.textContent = categoryLabels[category] || category || '—';
-        const isAm = String(category || '').endsWith('_am');
-        configStart.min = isAm ? '00:00' : '12:00';
-        configStart.max = isAm ? '11:59' : '23:59';
-        configEnd.min = configStart.min;
-        configEnd.max = configStart.max;
-        configStart.value = startTime || '';
-        configEnd.value = endTime || '';
-        configActive.checked = isActive !== false;
-
-        if (configTitle) {
-            configTitle.textContent = updateUrl ? 'Edit Trip Time Range' : 'New Trip Time Range';
-        }
-
-        if (configSubmitText) {
-            configSubmitText.textContent = updateUrl ? 'Save Configuration' : 'Create Configuration';
-        }
-
-        configForm.setAttribute('action', updateUrl || baseUrl);
-        openModal(configModal);
+    function positionRangeDropdown() {
+        if (!activeRangeEditor || !rangeAnchor?.isConnected) return;
+        const editor = activeRangeEditor;
+        const anchor = rangeAnchor.getBoundingClientRect();
+        const margin = 12;
+        const gap = 8;
+        const width = Math.min(460, window.innerWidth - margin * 2);
+        editor.style.width = `${width}px`;
+        editor.style.maxHeight = `${Math.max(170, window.innerHeight - margin * 2)}px`;
+        const height = editor.getBoundingClientRect().height;
+        const below = window.innerHeight - anchor.bottom - gap - margin;
+        const above = anchor.top - gap - margin;
+        // Open above the trigger when there isn't enough room below.
+        const openAbove = below < Math.min(height, 260) && above > below;
+        const wantedTop = openAbove ? anchor.top - gap - height : anchor.bottom + gap;
+        const top = Math.max(margin, Math.min(wantedTop, window.innerHeight - height - margin));
+        const left = Math.max(margin, Math.min(anchor.right - width, window.innerWidth - width - margin));
+        editor.style.top = `${top}px`;
+        editor.style.left = `${left}px`;
     }
 
-    configForm?.addEventListener('submit', async (event) => {
-        event.preventDefault();
-
-        clearErrors(configForm);
-
-        const payload = {
-            start_time: configStart.value,
-            end_time: configEnd.value,
-            is_active: configActive.checked ? 1 : 0,
-        };
-
-        if (!configUpdateUrl) {
-            payload.operation_client_id = configClientId.value;
-            payload.category = configCategory.value;
+    function closeRangeEditor(editor, restoreFocus = true) {
+        if (!editor) return;
+        const panel = panelContainerFor(editor);
+        editor.hidden = true;
+        panel?.classList.remove('is-range-editor-open');
+        editor.reset();
+        clearErrors(editor);
+        panel?.querySelector('.ctt-add-config')?.setAttribute('aria-expanded', 'false');
+        panel?.querySelectorAll('.ctt-edit-range').forEach((button) => button.setAttribute('aria-expanded', 'false'));
+        if (editor._cttOwnerPanel) {
+            editor._cttOwnerPanel.appendChild(editor);
+            delete editor._cttOwnerPanel;
         }
+        if (rangeBackdrop) rangeBackdrop.hidden = true;
+        editor.style.removeProperty('top');
+        editor.style.removeProperty('left');
+        editor.style.removeProperty('width');
+        editor.style.removeProperty('max-height');
+        rangeAnchor = null;
+        if (activeRangeEditor === editor) activeRangeEditor = null;
+        if (restoreFocus && rangeEditorReturnFocus?.isConnected) rangeEditorReturnFocus.focus();
+        rangeEditorReturnFocus = null;
+    }
 
+    function openRangeEditor(panel, trigger) {
+        const editor = panel?.querySelector('[data-ctt-range-editor]');
+        if (!editor || !rangeOverlayHost) return;
+        if (activeRangeEditor && activeRangeEditor !== editor) closeRangeEditor(activeRangeEditor, false);
+        if (!editor.hidden) {
+            closeRangeEditor(editor);
+            return;
+        }
+        rangeEditorReturnFocus = trigger || document.activeElement;
+        rangeAnchor = trigger || panel.querySelector('.ctt-add-config, .ctt-edit-range');
+        editor.reset();
+        clearErrors(editor);
+        editor._cttOwnerPanel = panel;
+        rangeOverlayHost.appendChild(editor);
+        editor.hidden = false;
+        rangeBackdrop.hidden = false;
+        panel.classList.add('is-range-editor-open');
+        activeRangeEditor = editor;
+        positionRangeDropdown();
+        panel.querySelector('.ctt-add-config')?.setAttribute('aria-expanded', 'true');
+        panel.querySelectorAll('.ctt-edit-range').forEach((button) => button.setAttribute('aria-expanded', 'true'));
+        editor.querySelector('input[name="start_time"]')?.focus();
+    }
+
+    window.addEventListener('resize', positionRangeDropdown);
+    // Close if scrolling moves the trigger; reopening anchors to its new position.
+    window.addEventListener('scroll', (event) => {
+        if (!activeRangeEditor) return;
+        if (activeRangeEditor.contains(event.target)) return;
+        positionRangeDropdown();
+    }, true);
+
+    document.addEventListener('submit', async (event) => {
+        const editor = event.target.closest('[data-ctt-range-editor]');
+        if (!editor) return;
+        event.preventDefault();
+        if (editor.hidden || !editor.reportValidity()) return;
+        clearErrors(editor);
+        const button = editor.querySelector('button[type="submit"]');
+        if (button?.disabled) return;
+        const start = editor.querySelector('input[name="start_time"]')?.value || '';
+        const end = editor.querySelector('input[name="end_time"]')?.value || '';
+        const category = editor.dataset.category;
+        const minimum = category.endsWith('_am') ? '00:00' : '12:00';
+        const maximum = category.endsWith('_am') ? '11:59' : '23:59';
+        if (start < minimum || end > maximum || start >= end) {
+            renderErrors(editor, { end_time: ['Select a valid time range within this category. End Time must be later than Start Time.'] });
+            return;
+        }
+        const updateUrl = editor.dataset.updateUrl;
+        const payload = {
+            start_time: start,
+            end_time: end,
+            is_active: editor.querySelector('[name="is_active"]')?.checked ? 1 : 0,
+        };
+        if (!updateUrl) {
+            payload.operation_client_id = editor.dataset.clientId;
+            payload.category = category;
+        }
+        if (button) {
+            button.disabled = true;
+            button.setAttribute('aria-busy', 'true');
+        }
         try {
-            const data = await postJson(
-                configUpdateUrl
-                    ? `${configUpdateUrl}`
-                    : baseUrl,
-                configUpdateUrl
-                    ? { ...payload, _method: 'PUT' }
-                    : payload
-            );
-
-            closeModal(configModal);
+            const data = await postJson(updateUrl || baseUrl, updateUrl ? { ...payload, _method: 'PUT' } : payload);
+            const panel = panelContainerFor(editor);
+            closeRangeEditor(editor, false);
             await refreshPanelByUrl(data.panel_url);
+            // The refreshed server-side card reflects saved settings.
+            if (panel && editor.isConnected) await refreshPanel(panel);
         } catch (error) {
             if (error.errors && Object.keys(error.errors).length) {
-                renderErrors(configForm, error.errors);
-                return;
+                renderErrors(editor, error.errors);
+            } else {
+                renderErrors(editor, { start_time: [error.message || 'The configuration could not be saved.'] });
             }
-
-            renderErrors(configForm, {
-                start_time: [error.message || 'The configuration could not be saved.'],
-            });
+        } finally {
+            if (button?.isConnected) {
+                button.disabled = false;
+                button.removeAttribute('aria-busy');
+            }
         }
     });
 
@@ -344,14 +400,13 @@ window.GCTPartialNavigation.registerInitializer('operation-client-trip-times', '
 
     document.addEventListener('click', async (event) => {
         const addConfigButton = event.target.closest('.ctt-add-config');
-
         if (addConfigButton) {
-            openConfigModal({
-                clientId: addConfigButton.dataset.clientId,
-                clientName: addConfigButton.dataset.clientName,
-                category: addConfigButton.dataset.category,
-                isActive: true,
-            });
+            openRangeEditor(panelContainerFor(addConfigButton), addConfigButton);
+            return;
+        }
+        const rangeCancel = event.target.closest('[data-ctt-range-cancel]');
+        if (rangeCancel) {
+            closeRangeEditor(rangeCancel.closest('[data-ctt-range-editor]'));
             return;
         }
 
@@ -381,19 +436,8 @@ window.GCTPartialNavigation.registerInitializer('operation-client-trip-times', '
         }
 
         const editRangeButton = event.target.closest('.ctt-edit-range');
-
         if (editRangeButton) {
-            const container = panelContainerFor(editRangeButton);
-            openConfigModal({
-                clientId: container?.dataset.clientId,
-                clientName: container?.closest('.ctt-client-card')
-                    ?.querySelector('.ctt-client-heading h3')?.textContent?.trim(),
-                category: container?.dataset.category,
-                startTime: editRangeButton.dataset.startTime,
-                endTime: editRangeButton.dataset.endTime,
-                isActive: editRangeButton.dataset.isActive === '1',
-                updateUrl: `${baseUrl}/${editRangeButton.dataset.configId}`,
-            });
+            openRangeEditor(panelContainerFor(editRangeButton), editRangeButton);
             return;
         }
 
@@ -488,16 +532,22 @@ window.GCTPartialNavigation.registerInitializer('operation-client-trip-times', '
         }
     });
 
-    [configModal, slotModal].forEach((modal) => {
+    [slotModal].forEach((modal) => {
         modal?.querySelectorAll('[data-ui-modal-close]').forEach((button) => {
             button.addEventListener('click', () => closeModal(modal));
         });
     });
 
     document.addEventListener('keydown', (event) => {
-        if (event.key !== 'Escape') return;
-        closeModal(configModal);
-        closeModal(slotModal);
+        if (activeRangeEditor) {
+            if (event.key === 'Escape') {
+                event.preventDefault();
+                closeRangeEditor(activeRangeEditor);
+                return;
+            }
+            return;
+        }
+        if (event.key === 'Escape') closeModal(slotModal);
     });
 
     function applyClientSearch() {
@@ -548,6 +598,196 @@ window.GCTPartialNavigation.registerInitializer('operation-client-trip-times', '
             searchEmpty.hidden = !(visible === 0 && cards.length > 0);
         }
     }
+
+    // One reusable crop editor for all client logos. Upload occurs only after Save.
+    const cropModal = document.getElementById('cttLogoCropModal');
+    const cropCanvas = document.getElementById('cttLogoCropCanvas');
+    const cropContext = cropCanvas?.getContext('2d');
+    const cropZoom = document.getElementById('cttLogoCropZoom');
+    const cropError = cropModal?.querySelector('.ctt-logo-crop-error');
+    const cropSave = cropModal?.querySelector('.ctt-logo-crop-save');
+    let cropSession = null;
+    let previousFocus = null;
+
+    function cropRender() {
+        if (!cropSession || !cropContext) return;
+        const { image, zoom, x, y } = cropSession;
+        const side = cropCanvas.width;
+        const scale = Math.max(side / image.naturalWidth, side / image.naturalHeight) * zoom;
+        const dw = image.naturalWidth * scale;
+        const dh = image.naturalHeight * scale;
+        const dx = (side - dw) / 2 + x;
+        const dy = (side - dh) / 2 + y;
+        cropContext.clearRect(0, 0, side, side);
+        cropContext.fillStyle = '#ffffff';
+        cropContext.fillRect(0, 0, side, side);
+        cropContext.drawImage(image, dx, dy, dw, dh);
+    }
+
+    function clampCrop() {
+        if (!cropSession) return;
+        const { image, zoom } = cropSession;
+        const side = cropCanvas.width;
+        const scale = Math.max(side / image.naturalWidth, side / image.naturalHeight) * zoom;
+        const maxX = Math.max(0, (image.naturalWidth * scale - side) / 2);
+        const maxY = Math.max(0, (image.naturalHeight * scale - side) / 2);
+        cropSession.x = Math.min(maxX, Math.max(-maxX, cropSession.x));
+        cropSession.y = Math.min(maxY, Math.max(-maxY, cropSession.y));
+    }
+
+    function closeCrop() {
+        if (!cropModal) return;
+        cropModal.hidden = true;
+        cropModal.classList.remove('is-open');
+        if (cropSession?.url) URL.revokeObjectURL(cropSession.url);
+        if (cropSession?.input && !cropSession.saving) cropSession.input.value = '';
+        cropSession = null;
+        if (cropError) { cropError.hidden = true; cropError.textContent = ''; }
+        previousFocus?.focus?.();
+        previousFocus = null;
+    }
+
+    function openCrop(input, file) {
+        if (!cropModal || !cropCanvas || !cropContext) return;
+        if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 2 * 1024 * 1024) {
+            input.value = '';
+            window.alert('Choose a PNG, JPG, or WebP image under 2 MB.');
+            return;
+        }
+        const url = URL.createObjectURL(file);
+        const image = new Image();
+        const form = input.closest('.ctt-client-logo-form');
+        image.onload = () => {
+            if (cropSession?.url) URL.revokeObjectURL(cropSession.url);
+            cropSession = { input, form, image, url, zoom: 1, x: 0, y: 0, dragging: false, saving: false };
+            previousFocus = document.activeElement;
+            cropZoom.value = '100';
+            cropModal.hidden = false;
+            cropModal.classList.add('is-open');
+            cropRender();
+            cropModal.querySelector('.ctt-logo-crop-close')?.focus();
+        };
+        image.onerror = () => {
+            URL.revokeObjectURL(url);
+            input.value = '';
+            window.alert('This image could not be opened. Please choose another file.');
+        };
+        image.src = url;
+    }
+
+    cropCanvas?.addEventListener('pointerdown', (event) => {
+        if (!cropSession) return;
+        cropSession.dragging = true;
+        cropSession.lastX = event.clientX;
+        cropSession.lastY = event.clientY;
+        cropCanvas.setPointerCapture(event.pointerId);
+    });
+    cropCanvas?.addEventListener('pointermove', (event) => {
+        if (!cropSession?.dragging) return;
+        const factor = cropCanvas.width / cropCanvas.getBoundingClientRect().width;
+        cropSession.x += (event.clientX - cropSession.lastX) * factor;
+        cropSession.y += (event.clientY - cropSession.lastY) * factor;
+        cropSession.lastX = event.clientX;
+        cropSession.lastY = event.clientY;
+        clampCrop();
+        cropRender();
+    });
+    for (const eventName of ['pointerup', 'pointercancel', 'lostpointercapture']) {
+        cropCanvas?.addEventListener(eventName, () => {
+            if (cropSession) cropSession.dragging = false;
+        });
+    }
+    cropZoom?.addEventListener('input', () => {
+        if (!cropSession) return;
+        cropSession.zoom = Number(cropZoom.value) / 100;
+        clampCrop();
+        cropRender();
+    });
+    cropModal?.querySelectorAll('.ctt-logo-crop-close, .ctt-logo-crop-cancel').forEach((button) => {
+        button.addEventListener('click', closeCrop);
+    });
+    cropModal?.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+            event.preventDefault();
+            closeCrop();
+        }
+        if (event.key === 'Tab') {
+            const controls = Array.from(cropModal.querySelectorAll('button:not(:disabled), input:not(:disabled)'));
+            const first = controls[0], last = controls[controls.length - 1];
+            if (event.shiftKey && document.activeElement === first) {
+                event.preventDefault();
+                last?.focus();
+            } else if (!event.shiftKey && document.activeElement === last) {
+                event.preventDefault();
+                first?.focus();
+            }
+        }
+    });
+
+    cropSave?.addEventListener('click', async () => {
+        if (!cropSession || cropSession.saving) return;
+        cropSession.saving = true;
+        cropSave.disabled = true;
+        if (cropError) cropError.hidden = true;
+        try {
+            const blob = await new Promise((resolve) => cropCanvas.toBlob(resolve, 'image/webp', 0.9));
+            if (!blob) throw new Error('Unable to crop this image.');
+            if (blob.size > 2 * 1024 * 1024) throw new Error('Cropped logo exceeds 2 MB.');
+            const file = new File([blob], 'client-logo.webp', { type: 'image/webp' });
+            const dt = new DataTransfer();
+            dt.items.add(file);
+            cropSession.input.files = dt.files;
+            const form = cropSession.form;
+            cropSession.input.dispatchEvent(new Event('change', { bubbles: false, composed: false }));
+            cropSession.saving = true;
+            cropModal.hidden = true;
+            cropModal.classList.remove('is-open');
+            form.requestSubmit();
+        } catch (error) {
+            cropSession.saving = false;
+            if (cropError) {
+                cropError.textContent = error.message || 'Unable to save the cropped logo.';
+                cropError.hidden = false;
+            }
+        } finally {
+            cropSave.disabled = false;
+        }
+    });
+
+    // Removal continues to use the existing validated server endpoint.
+    document.querySelectorAll('.ctt-client-logo-form').forEach((form) => {
+        const input = form.querySelector('input[type="file"][name="logo"]');
+        const removal = form.querySelector('input[name="remove_logo"]');
+        const save = form.querySelector('.ctt-logo-save');
+        const filename = form.querySelector('.ctt-logo-file-name');
+        if (save) save.hidden = true;
+        input?.addEventListener('change', () => {
+            const file = input.files?.[0];
+            if (!file) return;
+            if (cropSession?.saving) return;
+            openCrop(input, file);
+        });
+        removal?.addEventListener('change', () => {
+            if (save) save.hidden = !removal.checked;
+        });
+        form.addEventListener('submit', (event) => {
+            if (removal?.checked && input?.files?.length) removal.checked = false;
+        });
+        if (filename) filename.hidden = true;
+    });
+
+    // Expand large allocation lists only when requested; leave the client card open.
+    document.querySelectorAll('[data-ctt-buses-toggle]').forEach((button) => {
+        const list = document.getElementById(button.getAttribute('aria-controls') || '');
+        if (!list) return;
+        button.addEventListener('click', () => {
+            const expanding = list.hidden;
+            list.hidden = !expanding;
+            button.setAttribute('aria-expanded', String(expanding));
+            const label = button.querySelector('span');
+            if (label) label.textContent = expanding ? 'Show fewer buses' : button.dataset.collapsedLabel;
+        });
+    });
 
     const toggleAllButton = document.getElementById('cttToggleAllClients');
     const clientCards = Array.from(document.querySelectorAll('.ctt-client-card'));

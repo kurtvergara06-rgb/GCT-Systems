@@ -310,7 +310,7 @@ class OperationTripIntegrityTest extends TestCase
         // Running again before ETA must not count, save or notify the same transition.
         $this->travelTo(\Carbon\Carbon::parse('2026-09-22 05:31:00', 'Asia/Manila'));
         $this->artisan('operation:advance-trip-statuses')
-            ->expectsOutput('Advanced 0 trip status(es).')
+            ->expectsOutput('Updated 0 trip statuses.')
             ->assertSuccessful();
         $this->assertSame('Dispatched', $this->schedule->fresh()->status);
         $this->assertSame($firstDispatchUpdatedAt, $this->schedule->fresh()->updated_at->toDateTimeString());

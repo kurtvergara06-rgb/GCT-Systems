@@ -154,6 +154,28 @@ main.gct-main-after-loader {
     white-space: nowrap;
 }
 
+/* Dark Operation navigation loading screen.
+ * The theme is captured when loading starts, so it cannot flash light while
+ * navigation swaps the old Operation page for its destination. */
+.gct-navigation-loader[data-gct-loader-theme="dark"] {
+    background: rgba(11, 18, 32, 0.985);
+}
+.gct-navigation-loader[data-gct-loader-theme="dark"] .gct-navigation-loader__content {
+    background: #162235;
+    border-color: #35465e;
+    color: #edf3fc;
+    box-shadow: 0 14px 38px rgba(0, 0, 0, 0.35);
+}
+.gct-navigation-loader[data-gct-loader-theme="dark"] .gct-navigation-loader__spinner {
+    border-color: #35465e;
+    border-top-color: #f9b817;
+    border-right-color: #9bc7ff;
+    box-shadow: 0 0 0 1px rgba(139, 186, 255, 0.14);
+}
+.gct-navigation-loader[data-gct-loader-theme="dark"] .gct-navigation-loader__spinner::after {
+    background: #162235;
+}
+
 @keyframes gctNavigationSpin {
     to {
         transform: rotate(360deg);

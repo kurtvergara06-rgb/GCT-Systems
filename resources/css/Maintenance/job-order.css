@@ -1,4 +1,4 @@
-﻿/* =========================================================
+/* =========================================================
    JOB ORDER PAGE ONLY
 ========================================================= */
 
@@ -2488,10 +2488,6 @@ textarea[readonly] {
     margin-left: 49px;
   }
 
-  :is(#jobModal, #editJobModal) .jo-create-parts-table {
-    overflow-x: auto;
-  }
-
   :is(#jobModal, #editJobModal) .jo-create-parts-table-head,
   :is(#jobModal, #editJobModal) .jo-create-parts-repeater .jo-part-row {
     min-width: 650px;
@@ -3330,7 +3326,6 @@ textarea[readonly] {
     :is(#jobModal, #editJobModal) .jo-create-job-details-grid { grid-template-columns: minmax(0, 1fr); }
     :is(#jobModal, #editJobModal) .jo-create-job-details-grid > * { grid-column: auto !important; }
     :is(#jobModal, #editJobModal) .jo-create-parts-table { overflow-x: hidden; }
-    :is(#jobModal, #editJobModal) .jo-create-parts-table-head { display: none; }
     :is(#jobModal, #editJobModal) .jo-create-parts-repeater .jo-part-row {
         min-width: 0;
         grid-template-columns: 28px minmax(0, 1fr) 80px 86px 38px;
@@ -3568,15 +3563,12 @@ body > .jo-custom-skill-panel .jo-custom-skill-choice input[type="checkbox"] {
 }
 @media (max-width: 700px) {
   :is(#jobModal, #editJobModal) .jo-parts-policy-grid { grid-template-columns: minmax(0, 1fr); }
-  :is(#jobModal, #editJobModal) .jo-create-parts-table-head { display: none; }
   :is(#jobModal, #editJobModal) .jo-create-parts-repeater .jo-part-row {
     grid-template-columns: 24px minmax(0, 1fr) minmax(72px, .45fr) 40px;
     gap: 8px;
   }
   :is(#jobModal, #editJobModal) .jo-create-parts-repeater .jo-part-row input:first-of-type { grid-column: 2 / 4; }
-  :is(#jobModal, #editJobModal) .jo-create-parts-repeater .jo-part-row input[type="number"] { grid-column: 2; }
   :is(#jobModal, #editJobModal) .jo-create-parts-repeater .jo-part-row select { grid-column: 3; }
-  :is(#jobModal, #editJobModal) .jo-create-parts-repeater .remove-part-btn { grid-column: 4; }
 }
 
 
@@ -4383,8 +4375,6 @@ body.jo-head-review-open { overflow: hidden; }
 .jo-page .job-orders-table th:nth-child(3) { width: 18%; }
 .jo-page .job-orders-table th:nth-child(4) { width: 13%; }
 .jo-page .job-orders-table th:nth-child(5) { width: 15%; }
-.jo-page .job-orders-table th:nth-child(6) { width: 11%; }
-.jo-page .job-orders-table th:nth-child(7) { width: 10%; }
 .jo-page .job-orders-table th:nth-child(8) { width: 7%; }
 .jo-page .job-orders-table tbody td {
   vertical-align: middle;
@@ -4652,7 +4642,6 @@ body.jo-readonly-open { overflow: hidden; }
   white-space: nowrap;
   min-height: 23px;
 }
-:is(#jobModal, #editJobModal) .jo-create-parts-repeater .jo-row-stock-badge[hidden] { display: none !important; }
 :is(#jobModal, #editJobModal) .jo-create-parts-repeater .remove-part-btn { grid-column: 6; grid-row: 1; }
 :is(#jobModal, #editJobModal) .jo-create-parts-repeater .jo-inventory-search-trigger { padding-right: 12px; }
 @media (max-width: 700px) {
@@ -5797,7 +5786,6 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
 :is(#jobModal, #editJobModal) .jo-create-section-header .jo-create-step-description { line-height: 1.45; }
 @media (max-width: 580px) {
   :is(#jobModal, #editJobModal) .jo-coverage-table-head { display: none !important; }
-  :is(#jobModal, #editJobModal) .jo-coverage-table .jo-coverage-row { grid-template-columns: 1fr auto !important; }
   :is(#jobModal, #editJobModal) .jo-coverage-table .jo-coverage-row > span:last-child { grid-column: 1/-1; }
 }
 
@@ -6863,7 +6851,6 @@ body > .jo-part-picker-menu[hidden] {display:none!important}
 .jo-head-review-body .jo-review-details {padding:14px 16px!important;}
 .jo-head-review-body .jo-review-details-heading {margin-bottom:8px;}
 .jo-head-review-body .jo-review-detail-grid {column-gap:24px;row-gap:12px;}
-.jo-head-review-body .jo-review-detail-grid > div {min-width:0;}
 .jo-head-review-body .jo-review-requested-parts {overflow-x:auto;overscroll-behavior-x:contain;}
 .jo-head-review-body .jo-review-parts-list {min-width:620px;}
 .jo-head-review-body .jo-review-parts-table-header,
@@ -6873,7 +6860,6 @@ body > .jo-part-picker-menu[hidden] {display:none!important}
 .jo-head-review-body .jo-review-footer {margin:0 -20px;padding:12px 20px;gap:8px;}
 @media(max-width:640px) {
  .jo-head-review-body .jo-review-panel {padding:12px 12px 0!important;}
- .jo-head-review-body .jo-review-detail-grid {grid-template-columns:1fr;}
  .jo-head-review-body .jo-review-footer {margin:0 -12px;padding:10px 12px;}
 }
 

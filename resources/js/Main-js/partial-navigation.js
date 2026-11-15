@@ -58,6 +58,29 @@ const PERSISTENT_OVERLAY_SELECTOR = [
     '[data-gct-persistent-ui]',
 ].join(', ');
 
+// Opt-in navigation diagnostics: set window.GCTNavigationDiagnostics = true in
+// DevTools. No timing/logging overhead is added to normal user navigation.
+const getNavigationClock = () => {
+    if (window.GCTNavigationDiagnostics !== true) return null;
+    const startedAt = performance.now();
+    const checkpoints = [];
+    return {
+        checkpoint(stage) {
+            checkpoints.push({ stage, elapsedMs: Math.round((performance.now() - startedAt) * 10) / 10 });
+        },
+        finish(url) {
+            // Limit output to the pathname, not query values or record identifiers.
+            const pathname = new URL(url, window.location.href).pathname;
+            console.table(checkpoints.map((point, i) => ({
+                stage: point.stage,
+                elapsedMs: point.elapsedMs,
+                stepMs: Math.round((point.elapsedMs - (checkpoints[i - 1]?.elapsedMs ?? 0)) * 10) / 10,
+            })));
+            console.info('[GCT navigation diagnostics]', pathname, 'total ms:', Math.round((performance.now() - startedAt) * 10) / 10);
+        },
+    };
+};
+
 let activeRequest = null;
 
 const cleanupInitializer = (key) => {
@@ -79,7 +102,9 @@ const runInitializer = (key, rootSelector, initializer) => {
     if (!root) return;
 
     const controller = new AbortController();
+    const initializationStartedAt = window.GCTNavigationDiagnostics === true ? performance.now() : null;
     const observers = [];
+    const externalListenerCleanups = [];
     const intervals = [];
     const timeouts = [];
     const nativeAddEventListener = EventTarget.prototype.addEventListener;
@@ -89,6 +114,9 @@ const runInitializer = (key, rootSelector, initializer) => {
 
     EventTarget.prototype.addEventListener = function (type, listener, options) {
         if (options?.signal) {
+            // Preserve the caller's cancellation semantics, but do not let an
+            // explicit signal bypass page teardown or failed-init cleanup.
+            externalListenerCleanups.push(() => this.removeEventListener(type, listener, options));
             return nativeAddEventListener.call(this, type, listener, options);
         }
 
@@ -119,21 +147,33 @@ const runInitializer = (key, rootSelector, initializer) => {
         return id;
     };
 
+    const cleanup = () => {
+        controller.abort();
+        externalListenerCleanups.forEach(removeListener => removeListener());
+        observers.forEach((observer) => observer.disconnect());
+        intervals.forEach((id) => window.clearInterval(id));
+        timeouts.forEach((id) => window.clearTimeout(id));
+    };
+
     try {
         initializer(root);
+        // Only a successfully initialized page may retain its resources.
+        initializerCleanups.set(key, cleanup);
+    } catch (error) {
+        // An initializer can throw after registering some handlers or timers.
+        // Release those resources now, instead of leaking them on each revisit.
+        cleanup();
+        throw error;
     } finally {
         EventTarget.prototype.addEventListener = nativeAddEventListener;
         window.MutationObserver = NativeMutationObserver;
         window.setInterval = nativeSetInterval;
         window.setTimeout = nativeSetTimeout;
+        if (initializationStartedAt !== null) {
+            window.GCTInitializationTimings = (window.GCTInitializationTimings || []).slice(-29);
+            window.GCTInitializationTimings.push({ key, ms: Math.round((performance.now() - initializationStartedAt) * 10) / 10 });
+        }
     }
-
-    initializerCleanups.set(key, () => {
-        controller.abort();
-        observers.forEach((observer) => observer.disconnect());
-        intervals.forEach((id) => window.clearInterval(id));
-        timeouts.forEach((id) => window.clearTimeout(id));
-    });
 };
 
 const registerInitializer = (key, rootSelector, initializer) => {
@@ -455,7 +495,8 @@ const syncBodyScripts = async (nextDocument, baseUrl) => {
 
     const nextMain = nextDocument.querySelector(MAIN_SELECTOR);
     const scripts = Array.from(nextDocument.body.querySelectorAll('script'))
-        .filter((script) => !nextMain?.contains(script));
+        .filter((script) => !nextMain?.contains(script)
+            && !script.hasAttribute('data-gct-full-load-only'));
 
     for (const source of scripts) {
         if (source.src) {
@@ -551,6 +592,13 @@ const replaceMain = async (nextDocument, finalUrl, { push = true, restoreScroll 
     const nextMain = document.importNode(parsedMain, true);
     nextMain.classList.add('gct-main-entering');
     currentMain.replaceWith(nextMain);
+    // Navigation swaps <main>, not <body>. Update the Operation theme scope
+    // before applying the destination page's styles (including other modules).
+    if (nextDocument.body.dataset.gctOperationPage === '1') {
+        document.body.dataset.gctOperationPage = '1';
+    } else {
+        delete document.body.dataset.gctOperationPage;
+    }
     syncPageOwnedElements(nextDocument);
 
     syncStylesheetState(nextDocument, finalUrl);
@@ -606,6 +654,7 @@ const navigate = async (url, options = {}) => {
     activeRequest?.abort();
     const controller = new AbortController();
     activeRequest = controller;
+    const navClock = getNavigationClock();
     const currentMain = document.querySelector(MAIN_SELECTOR);
     if (!currentMain) {
         fallback(targetUrl);
@@ -626,7 +675,10 @@ const navigate = async (url, options = {}) => {
         });
 
         await exitPromise;
+        navClock?.checkpoint('exit animation');
         const response = await responsePromise;
+        if (controller.signal.aborted || activeRequest !== controller) return;
+        navClock?.checkpoint('server response');
 
         const contentType = response.headers.get('content-type') || '';
         if (!response.ok || !contentType.includes('text/html')) {
@@ -635,15 +687,25 @@ const navigate = async (url, options = {}) => {
         }
 
         const html = await response.text();
+        if (controller.signal.aborted || activeRequest !== controller) return;
         const nextDocument = new DOMParser().parseFromString(html, 'text/html');
+        navClock?.checkpoint('HTML parsed');
         if (!isCompatibleDocument(nextDocument)) {
             fallback(response.url || targetUrl);
             return;
         }
 
         await loadDocumentAssets(nextDocument, response.url || targetUrl);
+        navClock?.checkpoint('assets ready');
+        // Fetch abortion alone does not stop an already-parsed response while
+        // its CSS and scripts are loading. Never let a superseded navigation
+        // replace the newer page after those asynchronous asset loads.
+        if (controller.signal.aborted || activeRequest !== controller) return;
         await replaceMain(nextDocument, response.url || targetUrl, options);
+        navClock?.checkpoint('page initialized');
+        navClock?.finish(response.url || targetUrl);
     } catch (error) {
+        if (controller.signal.aborted || activeRequest !== controller) return;
         if (error.name === 'AbortError') {
             if (activeRequest === controller) {
                 cleanupTransitionState();

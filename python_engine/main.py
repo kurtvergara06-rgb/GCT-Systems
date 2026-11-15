@@ -5,6 +5,13 @@ import os
 import shutil
 import uuid
 
+# Constrain native math thread pools before importing NumPy/scikit-learn through
+# API routers. Render Free has limited RAM/CPU; one BLAS worker avoids extra
+# thread stacks and competing CPU pools on a single-process deployment.
+# Explicit deployment settings always take precedence.
+for _thread_setting in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS", "NUMEXPR_NUM_THREADS"):
+    os.environ.setdefault(_thread_setting, "1")
+
 from fastapi import FastAPI, File, HTTPException, UploadFile
 
 from NLP.readiness import assert_required_modules, required_module_status
@@ -239,6 +246,14 @@ def health_check() -> dict:
 def extract_pdf_data(
     pdf_file: UploadFile = File(...),
 ) -> dict:
+    # The 512 MB deployment uses Laravel's local pdftotext parser.
+    # Retain the legacy FastAPI PDF workflow only when explicitly enabled
+    # and its optional PyMuPDF dependency has been installed.
+    if os.getenv("GCT_ENABLE_PYTHON_PDF", "false").strip().lower() not in {"1", "true", "yes", "on"}:
+        raise HTTPException(
+            status_code=503,
+            detail="Python PDF extraction is disabled. Use Laravel GPS PDF import or enable the optional Python PDF extractor.",
+        )
     from NLP.entity_extractor import extract_entities, infer_records_from_table_rows
     from NLP.pdf_extractor import extract_pdf_rows, extract_pdf_text, extract_engine_hours_records
     from NLP.text_cleaner import clean_text

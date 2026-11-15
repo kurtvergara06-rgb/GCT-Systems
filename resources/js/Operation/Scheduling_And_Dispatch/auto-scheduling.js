@@ -190,7 +190,9 @@ window.GCTPartialNavigation.registerInitializer('operation-auto-scheduling', '.a
                 || data.success !== true
                 || typeof data.bus_source !== 'string'
                 || typeof data.driver_source !== 'string') {
-                throw new Error(data.message || 'Invalid readiness response.');
+                const statusError = new Error(data.message || 'Invalid readiness response.');
+                statusError.status = response.status;
+                throw statusError;
             }
 
             if (!pageRoot?.isConnected) return;
@@ -200,9 +202,11 @@ window.GCTPartialNavigation.registerInitializer('operation-auto-scheduling', '.a
         } catch (error) {
             if (error.name === 'AbortError' || !pageRoot?.isConnected) return;
             mlReadiness = null;
-            mlReadinessState = 'unavailable';
+            mlReadinessState = error?.status === 401 || error?.status === 403
+                ? 'unavailable'
+                : 'offline';
             updateMlStatus(schedulingConflicts);
-            console.warn('Auto Scheduling ranking source could not be loaded:', error);
+            console.warn('Auto Scheduling AI/ML engine status could not be loaded:', error);
         }
     }
     // Drafts persist preview decisions, but never reserve a vehicle.
@@ -319,6 +323,16 @@ window.GCTPartialNavigation.registerInitializer('operation-auto-scheduling', '.a
                 updateReadyBadgeOnly();
             } finally {
                 draftRestoreInProgress = false;
+            }
+            // Restored draft alternatives are historical; recheck each removed
+            // slot against the current eligible resources without changing data.
+            for (const conflict of schedulingConflicts) {
+                if (conflict.issue_type !== 'recommendation_removed') continue;
+                try {
+                    await refreshRemovedConflictAlternatives(conflict);
+                } catch (error) {
+                    console.warn('Could not refresh restored slot alternatives:', error);
+                }
             }
             setDraftSaveStatus('Draft restored', 'saved');
             if (footerMessage) footerMessage.textContent = 'Saved draft restored. Availability will be revalidated before confirmation.';
@@ -449,6 +463,38 @@ window.GCTPartialNavigation.registerInitializer('operation-auto-scheduling', '.a
         const data = await response.json();
         if (!response.ok) throw new Error(getErrorMessage(data));
         return data;
+    }
+    async function refreshRemovedConflictAlternatives(item) {
+        if (!item || item.issue_type !== 'recommendation_removed') return;
+        const scopeAtRequest = currentScope();
+        const key = conflictIdentity(item);
+        const refreshed = await previewEditRequest({
+            trip_schedule_id: item.trip_schedule_id,
+            list_alternative_pairs: true,
+            recommendations: recommendations.map((recommendation) => ({
+                trip_schedule_id: recommendation.trip_schedule_id,
+                driver_attendance_id: recommendation.driver_attendance_id,
+                driver_reference_type: recommendation.driver_reference_type,
+                bus_id: recommendation.bus_id,
+            })),
+        });
+        if (scopeAtRequest !== currentScope()) return;
+        const current = schedulingConflicts.find((conflict) =>
+            conflictIdentity(conflict) === key && conflict.issue_type === 'recommendation_removed'
+        );
+        if (!current) return;
+        const pairs = Array.isArray(refreshed.valid_pairs) ? refreshed.valid_pairs : [];
+        current.ai = {
+            ...(current.ai || {}),
+            valid_pairs: pairs,
+            alternative_drivers: Array.isArray(refreshed.alternative_drivers)
+                ? refreshed.alternative_drivers : [],
+            alternative_buses: Array.isArray(refreshed.alternative_buses)
+                ? refreshed.alternative_buses : [],
+        };
+        current.missing_driver = !pairs.length;
+        current.missing_bus = !pairs.length;
+        renderConflicts(schedulingConflicts);
     }
     const conflictIdentity = (conflict) => [
         Number(conflict?.trip_schedule_id || 0),
@@ -922,82 +968,54 @@ function renderMlProvenance(ai) {
 
 
 function updateMlStatus(conflicts) {
-    if (!aiMlStatus) {
-        return;
-    }
+    if (!aiMlStatus) return;
 
-    let busReady = mlReadiness?.bus_model_ready === true;
-    let driverReady = mlReadiness?.driver_model_ready === true;
-    let busSource = mlReadiness?.bus_source || 'rule_fallback';
-    let driverSource = mlReadiness?.driver_source || 'rule_fallback';
-    let found = mlReadinessState === 'ready' && mlReadiness !== null;
+    // A successful training-status response is authoritative for engine
+    // connectivity. Conflict provenance may describe model scoring, but it
+    // must never turn an unreachable service into an "Online" service.
+    const online = mlReadinessState === 'ready' && mlReadiness !== null;
+    const checking = mlReadinessState === 'loading';
+    const engineLabel = checking ? 'Checking' : online ? 'Online'
+        : mlReadinessState === 'offline' ? 'Offline' : 'Unavailable';
+    const engineClass = checking ? 'is-pending' : online ? 'is-ready'
+        : mlReadinessState === 'offline' ? 'is-offline' : 'is-pending';
 
-    for (const item of conflicts) {
-        const ml = item?.ai?.ml || {};
-
-        if (typeof ml.bus_ready !== 'boolean'
-            && typeof ml.driver_ready !== 'boolean') {
-            continue;
-        }
-
-        if (found) {
-            continue;
-        }
-
-        found = true;
-        busReady = Boolean(ml.bus_ready);
-        driverReady = Boolean(ml.driver_ready);
-
-        if (ml.bus_source) {
-            busSource = ml.bus_source;
-        }
-
-        if (ml.driver_source) {
-            driverSource = ml.driver_source;
-        }
-    }
-
-    if (!found) {
-        const pendingLabel = mlReadinessState === 'unavailable'
-            ? 'Unavailable'
-            : 'Checking...';
-        aiMlStatus.innerHTML = `
-            <span class="ai-status-label"><i class="fa-solid fa-microchip" aria-hidden="true"></i> Ranking Source</span>
-            <span class="ai-status-badge is-pending"><i class="fa-solid fa-bus" aria-hidden="true"></i> Bus: ${pendingLabel}</span>
-            <span class="ai-status-badge is-pending"><i class="fa-solid fa-user" aria-hidden="true"></i> Driver: ${pendingLabel}</span>
-        `;
-        return;
-    }
-
-    const sourceLabel = (source) => {
-        if (source === 'ml') return 'ML';
+    const sourceLabel = (source, ready) => {
+        if (ready && source === 'ml') return 'ML Ready';
         if (source === 'data' || source === 'data_fallback') return 'Data Fallback';
         return 'Rule Fallback';
     };
-    const badge = (ready, source, label, sampleCount, reason) => {
+    const modelBadge = (label, icon, ready, source, samples, reason) => {
+        if (!online) {
+            return `<span class="ai-status-badge is-pending">
+                <i class="fa-solid fa-${icon}" aria-hidden="true"></i>
+                ${label}: ${checking ? 'Checking...' : 'Unavailable'}
+            </span>`;
+        }
         const details = [
-            Number.isFinite(Number(sampleCount)) ? `${Number(sampleCount)} training samples` : '',
+            Number.isFinite(Number(samples)) ? `${Number(samples)} training samples` : '',
             reason || '',
         ].filter(Boolean).join(' - ');
-
-        return `
-        <span class="ai-status-badge ${
-            ready ? 'is-ready' : 'is-fallback'
-        }"${details ? ` title="${escapeHtml(details)}"` : ''}>
-            <i class="fa-solid fa-microchip"></i>
-            ${escapeHtml(label)}:
-            ${escapeHtml(sourceLabel(source))}
-        </span>
-    `;
+        return `<span class="ai-status-badge ${ready && source === 'ml' ? 'is-ready' : 'is-fallback'}"
+            ${details ? `title="${escapeHtml(details)}"` : ''}>
+            <i class="fa-solid fa-${icon}" aria-hidden="true"></i>
+            ${label}: ${escapeHtml(sourceLabel(source, ready))}
+        </span>`;
     };
 
     aiMlStatus.innerHTML = `
         <span class="ai-status-label">
-            <i class="fa-solid fa-microchip"></i>
-            Ranking Source
+            <i class="fa-solid fa-microchip" aria-hidden="true"></i>
+            AI / ML Engine
         </span>
-        ${badge(busReady, busSource, 'Bus', mlReadiness?.bus_sample_count, mlReadiness?.bus_reason)}
-        ${badge(driverReady, driverSource, 'Driver', mlReadiness?.driver_sample_count, mlReadiness?.driver_reason)}
+        <span class="ai-status-badge ${engineClass}" aria-label="AI engine ${engineLabel}">
+            <i class="fa-solid fa-${online ? 'circle-check' : checking ? 'spinner fa-spin' : 'circle-exclamation'}" aria-hidden="true"></i>
+            ${engineLabel}
+        </span>
+        ${modelBadge('Bus Model', 'bus', mlReadiness?.bus_model_ready === true,
+            mlReadiness?.bus_source, mlReadiness?.bus_sample_count, mlReadiness?.bus_reason)}
+        ${modelBadge('Driver Model', 'user', mlReadiness?.driver_model_ready === true,
+            mlReadiness?.driver_source, mlReadiness?.driver_sample_count, mlReadiness?.driver_reason)}
     `;
 }
 
@@ -1592,7 +1610,7 @@ function updateMlStatus(conflicts) {
 
 
         document.querySelectorAll('[data-remove-index]').forEach((button) => {
-            button.addEventListener('click', () => {
+            button.addEventListener('click', async () => {
                 const index = Number(button.dataset.removeIndex);
 
                 if (
@@ -1607,6 +1625,7 @@ function updateMlStatus(conflicts) {
                     ...removed,
                     result: 'Conflict',
                     issue_type: 'recommendation_removed',
+                    ai: { ...(removed.ai || {}), valid_pairs: [], alternative_drivers: [], alternative_buses: [] },
                     missing_driver: true,
                     missing_bus: true,
                     driver_attendance_id: null,
@@ -1626,6 +1645,18 @@ function updateMlStatus(conflicts) {
                 updateMlStatus(schedulingConflicts);
 
                 updateReadyBadgeOnly();
+
+                // Recheck eligible regular/reserve driver-bus combinations on
+                // the server after Remove, without regenerating the whole draft.
+                try {
+                    await refreshRemovedConflictAlternatives(removed);
+                } catch (error) {
+                    window.showSystemToast?.(
+                        'Alternative check unavailable. Regenerate or review the slot manually.',
+                        'warning',
+                        'Could not refresh alternatives'
+                    );
+                }
             });
         });
 
@@ -1777,14 +1808,18 @@ function updateMlStatus(conflicts) {
         const required = Math.max(1, Number(item.required_buses || 1));
         const slotNumber = Math.max(1, Number(item.slot || 1));
         const assigned = Math.min(required, Math.max(0, Number(item.tripAssignedCount || 0)));
-        const slotLabel = `Bus Slot ${slotNumber}`;
+        const slotLabel = `Slot ${slotNumber} of ${required}`;
 
         const isConflict = item.result === 'Conflict';
 
         return `
             <tr class="auto-preview-trip-row ${isContinuation ? 'auto-trip-continuation' : 'auto-trip-first'} ${isConflict ? 'conflict-row' : ''}">
                 <td>
-                    ${isContinuation ? `<span class="auto-trip-continuation-label" aria-label="Additional slot for trip ${cleanTripCode}"><i class="fa-solid fa-turn-down" aria-hidden="true"></i> Same trip</span>` : `<strong class="auto-trip-main-id">${cleanTripCode}</strong>`}
+                    <div class="auto-preview-trip-time">
+                        <strong class="auto-trip-main-id">${cleanTripCode}</strong>
+                        <span class="auto-preview-departure">${escapeHtml(item.departure_display || formatDisplayTime(item.departure_time))}</span>
+                        <small class="auto-preview-arrival">to ${escapeHtml(item.arrival_display || formatDisplayTime(item.estimated_arrival_time))}</small>
+                    </div>
                 </td>
 
                 <td>
@@ -3235,10 +3270,12 @@ function updateMlStatus(conflicts) {
             </button>`;
         };
         const regularPairs = validPairs.filter(pair => !String(pair.bus_label || '').includes('(Reserve)'));
+        const reservePairs = validPairs.filter(pair => String(pair.bus_label || '').includes('(Reserve)'));
         const recommendedPair = regularPairs[0] || null;
-        const alternativePairs = validPairs.filter(pair => pair !== recommendedPair);
-        const activeTab = recommendationTabs.get(index) || (recommendedPair ? 'recommended' : 'alternative');
-        const hasReservePair = validPairs.some(pair => String(pair.bus_label || '').includes('(Reserve)'));
+        const alternativePairs = regularPairs.slice(1);
+        const activeTab = recommendationTabs.get(index)
+            || (recommendedPair ? 'recommended' : reservePairs.length ? 'reserve' : 'alternative');
+        const hasReservePair = reservePairs.length > 0;
         const reserveOnlyOptions = validPairs.length > 0 && validPairs.every(pair => String(pair.bus_label || '').includes('(Reserve)'));
         const issueTitle = reserveOnlyOptions
             ? 'No automatic Regular Bus assignment available.'
@@ -3323,9 +3360,13 @@ function updateMlStatus(conflicts) {
                         data-gct-conflict-index="${index}" class="${activeTab === 'recommended' ? 'active' : ''}">
                         Recommended Assignments (${recommendedPair ? 1 : 0})
                     </button>
+                    <button type="button" role="tab" data-gct-option-tab="reserve"
+                        data-gct-conflict-index="${index}" class="${activeTab === 'reserve' ? 'active' : ''}">
+                        Reserve Options (${reservePairs.length})
+                    </button>
                     <button type="button" role="tab" data-gct-option-tab="alternative"
                         data-gct-conflict-index="${index}" class="${activeTab === 'alternative' ? 'active' : ''}">
-                        Alternative Options (${alternativePairs.length})
+                        Other Alternatives (${alternativePairs.length})
                     </button>
                 </div>
                 <section class="gct-compact-pair-selector">
@@ -3333,9 +3374,13 @@ function updateMlStatus(conflicts) {
                         ? (recommendedPair
                             ? `<header><strong>Best eligible Regular Bus assignment</strong></header><div class="gct-compact-pair-list">${renderPairCard(recommendedPair)}</div>`
                             : '<div class="gct-report-empty">No eligible Regular Bus pair. Review alternatives for Head-approved Reserve options or defer this slot.</div>')
-                        : (alternativePairs.length
-                            ? `<header><strong>Other eligible pairs · Reserve requires Head review</strong><span>${alternativePairs.length} choices</span></header><div class="gct-compact-pair-list">${alternativePairs.map(renderPairCard).join('')}</div>`
-                            : '<div class="gct-report-empty">No additional eligible pair is available.</div>')}
+                        : activeTab === 'reserve'
+                            ? (reservePairs.length
+                                ? `<header><strong>Reserve buses · Operations Head only</strong><span>${reservePairs.length} choices</span></header><div class="gct-compact-pair-list">${reservePairs.map(renderPairCard).join('')}</div>`
+                                : '<div class="gct-report-empty">No eligible Reserve Bus–Driver pair is available.</div>')
+                            : (alternativePairs.length
+                                ? `<header><strong>Other eligible Regular Bus pairs</strong><span>${alternativePairs.length} choices</span></header><div class="gct-compact-pair-list">${alternativePairs.map(renderPairCard).join('')}</div>`
+                                : '<div class="gct-report-empty">No additional eligible Regular Bus pair is available.</div>')}
                 </section>
                                 <details class="gct-compact-details">
                     <summary>Detailed explanation and AI findings</summary>
@@ -3452,8 +3497,6 @@ function updateMlStatus(conflicts) {
             const direction = item.direction || 'Incoming';
             const issue = String(item.reason || 'Resources unavailable')
                 .replace(/\s*\(Bus\s+\d+\/\d+\)\.?\s*$/i, '.');
-            // Keep the queue scannable; the full reason remains available in
-            // the cell tooltip and the selected AI Conflict Report.
             const driverUnavailable = /no eligible driver is available/i.test(issue);
             const busUnavailable = /no active bus is available/i.test(issue);
             const issuePreview = driverUnavailable && busUnavailable
@@ -3462,29 +3505,37 @@ function updateMlStatus(conflicts) {
             const trip = item.base_trip_code || item.trip_code || 'Trip';
             const severity = getConflictSeverity(item);
             const required = Math.max(1, Number(item.required_buses || 1));
-            const tripKey = String(item.trip_schedule_id || item.base_trip_code || item.trip_code || '');
-            const ready = Math.min(required, Math.max(0,
-                Number(readyCountsByTrip.get(tripKey) ?? item.ready_buses ?? 0)));
             const slot = Math.min(required, Math.max(1, Number(item.slot || 1)));
-            const slotLabel = `Bus Slot ${slot}`;
-            return `<tr class="${index === selectedConflictIndex ? 'is-selected' : ''}" data-gct-report-index="${index}" tabindex="0" role="button" aria-selected="${index === selectedConflictIndex}" aria-label="View AI conflict report for ${escapeHtml(trip)}, ${escapeHtml(item.slot_label || '')}">
-                <td><span class="gct-conflict-trip-cell">
-                    <span class="gct-conflict-dir ${direction === 'Incoming' ? 'in' : 'out'}">${direction === 'Incoming' ? 'IN' : 'OUT'}</span>
-                    <span class="gct-conflict-trip-meta"><strong>${escapeHtml(trip)}</strong><span class="gct-conflict-slot-tag"><i class="fa-solid fa-bus" aria-hidden="true"></i> ${escapeHtml(slotLabel)}</span></span>
-                </span></td>
-                <td><strong>${escapeHtml(item.route_code || '—')}</strong><small>${escapeHtml(item.route_name || '')}</small></td>
-                <td>${escapeHtml(item.departure_display || displayTime(item.departure_time))}</td>
-                <td class="gct-conflict-issue" title="${escapeHtml(issue)}">${escapeHtml(issuePreview)}</td>
-                <td><span class="gct-conflict-severity ${severity.key}"><i class="fa-solid ${severity.key === 'low' ? 'fa-circle-info' : 'fa-triangle-exclamation'}"></i> ${severity.label}</span></td>
-                <td><span class="gct-conflict-state"><i class="fa-regular fa-clock"></i> Needs Review</span></td>
-            </tr>`;
+            const departure = item.departure_display || displayTime(item.departure_time);
+            return `
+                <button type="button"
+                    class="gct-conflict-queue-item ${index === selectedConflictIndex ? 'is-selected' : ''}"
+                    data-gct-report-index="${index}"
+                    aria-pressed="${index === selectedConflictIndex}"
+                    aria-label="View AI conflict report for ${escapeHtml(trip)}, bus slot ${slot}">
+                    <span class="gct-queue-head">
+                        <strong>${escapeHtml(trip)} <small>· Slot ${slot} of ${required}</small></strong>
+                        <span class="gct-conflict-severity ${severity.key}">
+                            <i class="fa-solid ${severity.key === 'low' ? 'fa-circle-info' : 'fa-triangle-exclamation'}" aria-hidden="true"></i>
+                            ${severity.label}
+                        </span>
+                    </span>
+                    <span class="gct-queue-meta">
+                        <span><i class="fa-regular fa-clock" aria-hidden="true"></i> ${escapeHtml(departure)}</span>
+                        <span class="gct-conflict-dir ${direction === 'Incoming' ? 'in' : 'out'}">${escapeHtml(direction)}</span>
+                    </span>
+                    <span class="gct-queue-route">${escapeHtml(item.route_code || '—')} · ${escapeHtml(item.route_name || 'Route')}</span>
+                    <span class="gct-queue-issue" title="${escapeHtml(issue)}">${escapeHtml(issuePreview)}</span>
+                    <span class="gct-queue-foot"><span class="gct-conflict-state"><i class="fa-regular fa-clock" aria-hidden="true"></i> Needs Review</span><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></span>
+                </button>
+            `;
         }).join('');
         // Rebuilding the report must not move the page or reset its independent scroll.
         const previousPageScroll = window.scrollY;
         const previousReportScroll = container.querySelector('.gct-conflict-report-body')?.scrollTop ?? 0;
         const previousTableScroll = container.querySelector('.gct-conflict-table-scroll')?.scrollTop ?? 0;
         container.innerHTML = `
-            <div class="gct-conflict-workspace ${conflicts.length === 1 ? 'is-single-conflict' : ''} ${conflictReportClosed ? 'is-report-closed' : ''}">
+            <div class="gct-conflict-workspace ${conflictReportClosed ? 'is-report-closed' : ''}">
                 <div class="gct-conflict-list">
                     <div class="gct-conflict-toolbar">
                         <div class="gct-conflict-tabs">
@@ -3494,17 +3545,20 @@ function updateMlStatus(conflicts) {
                         </div>
                         <input type="search" data-gct-conflict-search placeholder="Search trip, route or issue..." value="${escapeHtml(conflictSearch)}" aria-label="Search scheduling conflicts">
                     </div>
-                    <div class="gct-conflict-table-scroll"><table class="gct-conflict-table">
-                        <thead><tr>
-                            <th>${renderConflictSortHeader('Trip / Slot', 'trip')}</th>
-                            <th>${renderConflictSortHeader('Route', 'route')}</th>
-                            <th>${renderConflictSortHeader('Time', 'time')}</th>
-                            <th>${renderConflictSortHeader('Issue', 'issue')}</th>
-                            <th>${renderConflictSortHeader('Severity', 'severity')}</th>
-                            <th>${renderConflictSortHeader('Status', 'status')}</th>
-                        </tr></thead>
-                        <tbody>${rows || '<tr><td colspan="6">No conflicts match your filters.</td></tr>'}</tbody>
-                    </table></div>
+                    <details class="gct-conflict-sort-menu">
+                        <summary><i class="fa-solid fa-arrow-down-wide-short" aria-hidden="true"></i> Sort conflicts <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
+                        <div class="gct-conflict-sort-options">
+                            ${renderConflictSortHeader('Trip / Slot', 'trip')}
+                            ${renderConflictSortHeader('Route', 'route')}
+                            ${renderConflictSortHeader('Time', 'time')}
+                            ${renderConflictSortHeader('Issue', 'issue')}
+                            ${renderConflictSortHeader('Severity', 'severity')}
+                            ${renderConflictSortHeader('Status', 'status')}
+                        </div>
+                    </details>
+                    <div class="gct-conflict-table-scroll gct-conflict-queue" role="group" aria-label="Select scheduling conflict">
+                        ${rows || '<p class="gct-conflict-queue-empty">No conflicts match your filters.</p>'}
+                    </div>
                     <p class="gct-conflict-count">Showing ${shown.length} of ${conflicts.length} conflicts</p>
                 </div>
                 ${conflictReportClosed ? '' : `

@@ -1,11 +1,11 @@
 /* Client Master List — records only. Does not override trip-time editing. */
 .client-master-page { min-width:0; }
 .client-master-stats { display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px; }
-.client-master-panel { min-width:0;padding:20px;background:#fff;border:1px solid #dce6f4;border-radius:18px;box-shadow:0 12px 30px rgba(24,54,88,.05); }
+.client-master-panel { min-width:0;padding:20px;background:var(--gct-ui-surface, #fff);border:1px solid #dce6f4;border-radius:18px;box-shadow:0 12px 30px rgba(24,54,88,.05); }
 .client-master-header { display:flex;flex-direction:row;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:18px; }
 .client-master-header > div { flex:1 1 260px;min-width:0; }
-.client-master-header h2 { margin:0 0 5px;color:#102b4d;font-size:18px;font-weight:800; }
-.client-master-header p { margin:0;color:#6b7f9c;font-size:12px;line-height:1.6; }
+.client-master-header h2 { margin:0 0 5px;color: var(--gct-ui-text, #102b4d);font-size:18px;font-weight:800; }
+.client-master-header p { margin:0;color: var(--gct-ui-muted, #6b7f9c);font-size:12px;line-height:1.6; }
 .client-master-add { display:inline-flex;align-items:center;justify-content:center;gap:8px;flex:0 0 auto;min-height:39px;padding:0 16px;margin-left:auto;border:1px solid #e5ae00;border-radius:9px;background:#ffc400;color:#102848;font-size:12px;font-weight:800;white-space:nowrap;cursor:pointer; }
 .client-master-add:hover { background:#ffcf36; }
 .client-master-notice,.client-master-error { border-radius:9px;padding:11px 13px;margin-bottom:14px;font-size:12px; }
@@ -17,7 +17,7 @@
 }
 .client-master-record-tabs {
   display:inline-flex;align-items:center;gap:4px;max-width:100%;
-  padding:4px;border:1px solid #d9e2ee;border-radius:12px;background:#f2f5fa;
+  padding:4px;border:1px solid #d9e2ee;border-radius:12px;background:var(--gct-ui-surface-raised, #f2f5fa);
 }
 .client-master-record-tab {
   display:inline-flex;align-items:center;justify-content:center;gap:8px;
@@ -42,9 +42,9 @@
   .client-master-record-tabs { flex-wrap:wrap; }
 }
 .client-master-table-wrap { border:1px solid #dfe8f3;border-radius:11px;max-height:none!important;overflow-x:auto; }
-.client-master-table { width:100%;min-width:1020px;table-layout:fixed;border-collapse:separate;border-spacing:0; }
-.client-master-table th { padding:13px 12px;background:#f4f8fd;text-align:left;font-size:10px;font-weight:800;letter-spacing:.04em;color:#4c6683;white-space:nowrap;border-bottom:1px solid #dfe8f3; }
-.client-master-table td { padding:12px;border-bottom:1px solid #e6edf6;background:#fff;color:#26415f;font-size:12px;vertical-align:middle; }
+.client-master-table { width:100%;min-width:960px;table-layout:fixed;border-collapse:separate;border-spacing:0; }
+.client-master-table th { padding:13px 12px;background:var(--gct-ui-surface-raised, #f4f8fd);text-align:left;font-size:10px;font-weight:800;letter-spacing:.04em;color:#4c6683;white-space:nowrap;border-bottom:1px solid #dfe8f3; }
+.client-master-table td { padding:12px;border-bottom:1px solid #e6edf6;background:var(--gct-ui-surface, #fff);color: var(--gct-ui-text, #26415f);font-size:12px;vertical-align:middle; }
 .client-master-table tbody tr:last-child td { border-bottom:0; }
 .client-master-table th:nth-child(1){width:12%}.client-master-table th:nth-child(2){width:25%}.client-master-table th:nth-child(3){width:13%}.client-master-table th:nth-child(4){width:16%}.client-master-table th:nth-child(5){width:12%}.client-master-table th:nth-child(6){width:22%}
 .client-master-id { display:inline-block;padding:5px 8px;border:1px solid #dce6f4;border-radius:6px;background:#f5f8fc;color:#183c64;font-size:11px;font-weight:800;white-space:nowrap; }
@@ -52,16 +52,15 @@
 .client-master-avatar { flex:0 0 32px;width:32px;height:32px;display:grid;place-items:center;border-radius:9px;background:#eaf2ff;color:#1a61c4; }
 .client-master-name-text { display:flex;flex-direction:column;min-width:0;gap:3px; }
 .client-master-name-text strong { max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#162e4e;font-size:12px; }
-.client-master-name-text small { color:#7b8da5;font-size:10px; }
+.client-master-name-text small { color: var(--gct-ui-muted, #7b8da5);font-size:10px; }
 .client-master-count,.client-master-coverage,.client-master-status { display:inline-flex;align-items:center;border-radius:8px;font-size:11px;font-weight:700;white-space:nowrap; }
-.client-master-count { color:#274c78; }
+.client-master-count { color:var(--gct-ui-text, #274c78); }
 .client-master-coverage { padding:6px 9px;background:#fff7e5;color:#996000; }
 .client-master-coverage.is-complete { background:#e8f9ef;color:#167145; }
 .client-master-status { padding:6px 9px;border:1px solid transparent; }
 .client-master-status.is-active { background:#e9f9ef;border-color:#b8eacb;color:#147140; }
 .client-master-status.is-inactive { background:#f1f5f9;border-color:#dde5ed;color:#64748b; }
-.client-master-page .gct-sticky-actions .client-master-actions { min-width:220px; }
-.client-master-action-row { display:flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap; }
+.client-master-action-row { white-space: nowrap; }
 .client-master-action-row form { margin:0; }
 .client-master-action { min-height:32px;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:0 9px;border:1px solid #cdddff;border-radius:7px;background:#eff6ff;color:#1655a5;font-size:11px;font-weight:700;text-decoration:none;cursor:pointer; }
 .client-master-action.is-disable { background:#fff5eb;border-color:#f7d3ab;color:#9a5811; }
@@ -89,15 +88,15 @@
     white-space:nowrap;
 }
 .client-master-form-section + .client-master-form-section {
-    margin-top:20px;
-    padding-top:18px;
+    margin-top:12px;
+    padding-top:12px;
     border-top:1px solid #e3eaf4;
 }
 .client-master-form-section h3 {
     display:flex;
     align-items:center;
     gap:9px;
-    margin:0 0 14px;
+    margin:0 0 9px;
     color:#153353;
     font-size:13px;
     font-weight:800;
@@ -115,7 +114,7 @@
 .client-master-form-grid {
     display:grid;
     grid-template-columns:repeat(2,minmax(0,1fr));
-    gap:14px;
+    gap:10px 12px;
 }
 .client-master-form-grid .ui-form-group { min-width:0; }
 .client-master-form-wide { grid-column:1/-1; }
@@ -126,8 +125,8 @@
 }
 .client-master-form-grid textarea {
     resize:vertical;
-    min-height:66px;
-    padding:11px 13px;
+    min-height:50px;
+    padding:9px 12px;
     border:1px solid #dce5f2;
     border-radius:9px;
     color:#142d4f;
@@ -196,7 +195,7 @@
     box-sizing: border-box;
     min-width: 184px;
     width: 19%;
-    background: #fff;
+    background: var(--gct-ui-surface, #fff);
 }
 .client-master-page .client-master-action-row {
     justify-content: center;
@@ -234,12 +233,12 @@
 .client-master-detail-summary {
     display: grid;
     grid-template-columns: repeat(4,minmax(0,1fr));
-    gap: 9px;
-    margin-bottom: 17px;
+    gap: 8px;
+    margin-bottom: 10px;
 }
 .client-master-detail-summary > div {
     min-width: 0;
-    padding: 10px;
+    padding: 8px 10px;
     border: 1px solid #dce6f4;
     border-radius: 9px;
     background: #f6f9fd;
@@ -282,8 +281,8 @@
 }
 #clientMasterCreateModal .ui-form-modal-header,
 #clientMasterDetailModal .ui-form-modal-header {
-    padding: 18px 22px 16px;
-    gap: 14px;
+    padding: 12px 18px;
+    gap: 12px;
     border-bottom: 1px solid #e5edf7;
 }
 #clientMasterCreateModal .ui-form-modal-header h2,
@@ -298,7 +297,7 @@
 }
 #clientMasterCreateModal .ui-form-modal-body,
 #clientMasterDetailModal .ui-form-modal-body {
-    padding: 18px 22px 16px;
+    padding: 12px 18px 10px;
 }
 #clientMasterCreateModal .ui-form-modal-scrollable,
 #clientMasterDetailModal .ui-form-modal-scrollable {
@@ -306,31 +305,31 @@
 }
 #clientMasterCreateModal .ui-form-actions,
 #clientMasterDetailModal .ui-form-actions {
-    margin-top: 16px;
+    margin-top: 10px;
     border-top: 1px solid #e8edf6;
-    padding-top: 14px;
+    padding-top: 10px;
 }
 #clientMasterCreateModal .client-master-form-section,
 #clientMasterDetailModal .client-master-form-section {
-    padding: 16px;
+    padding: 12px 14px;
     background: #f7f9fd;
     border: 1px solid #e4eaf4;
     border-radius: 12px;
 }
 #clientMasterCreateModal .client-master-form-section + .client-master-form-section,
 #clientMasterDetailModal .client-master-form-section + .client-master-form-section {
-    margin-top: 12px;
-    padding-top: 16px;
+    margin-top: 9px;
+    padding-top: 12px;
     border-top: 1px solid #e4eaf4;
 }
 #clientMasterCreateModal .client-master-form-section h3,
 #clientMasterDetailModal .client-master-form-section h3 {
-    margin-bottom: 12px;
+    margin-bottom: 9px;
     font-size: 12px;
 }
 #clientMasterCreateModal .client-master-form-grid,
 #clientMasterDetailModal .client-master-form-grid {
-    gap: 12px 14px;
+    gap: 9px 12px;
 }
 #clientMasterCreateModal .client-master-form-grid :is(input,textarea),
 #clientMasterDetailModal .client-master-form-grid :is(input,textarea) {
@@ -341,25 +340,26 @@
 }
 #clientMasterCreateModal .client-master-form-grid textarea,
 #clientMasterDetailModal .client-master-form-grid textarea {
-    min-height: 58px;
+    min-height: 48px;
     resize: vertical;
 }
 #clientMasterDetailModal .client-master-detail-summary {
     gap: 8px;
-    margin-bottom: 14px;
+    margin-bottom: 9px;
 }
 #clientMasterDetailModal .client-master-detail-summary > div {
-    padding: 12px;
+    padding: 8px 10px;
     background: #f4f8fe;
     border: 1px solid #dce8fa;
     border-radius: 10px;
 }
 #clientMasterDetailModal .client-master-detail-summary small {
     font-size: 10px;
+    margin-bottom: 3px;
     color: #617b98;
 }
 #clientMasterDetailModal .client-master-detail-summary strong {
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 800;
 }
 #clientMasterDetailModal .client-profile-view[hidden],
@@ -499,3 +499,12 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* Registered client logos preserve the building icon fallback. */
+.client-master-avatar, .client-profile-identity-icon { overflow: hidden; }
+.client-master-avatar img, .client-profile-identity-icon img { display: block; width: 100%; height: 100%; object-fit: contain; background: #fff; }
+.client-profile-identity-icon img[hidden] { display: none !important; }
+.client-logo-field input[type="file"] { width: 100%; max-width: 100%; font: inherit; font-size: 12px; }
+.client-logo-field > small { display: block; margin-top: 5px; color: var(--gct-ui-muted, #64748b); }
+.client-logo-remove { display: flex; gap: 7px; align-items: center; margin-top: 7px; }
+.client-logo-remove[hidden] { display: none !important; }

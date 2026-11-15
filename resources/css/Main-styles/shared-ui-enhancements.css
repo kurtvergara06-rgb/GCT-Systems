@@ -17,38 +17,11 @@ body {
   font-weight: 400;
 }
 
-.topbar,
-.topbar-heading,
-.page-header,
-.dashboard-header,
-header.topbar {
-  border-bottom: none !important;
-  box-shadow: none !important;
-}
-
-.topbar::after,
-.topbar::before,
-.topbar-heading::after,
-.topbar-heading::before,
-.page-header::after,
-.page-header::before,
-.dashboard-header::after,
-.dashboard-header::before,
-header.topbar::after,
-header.topbar::before {
-  display: none !important;
-  content: none !important;
-  border: none !important;
-  border-bottom: none !important;
-  height: 0 !important;
-}
-
 .topbar h1,
 .page-title,
 .dashboard-title {
   font-weight: 800;
   letter-spacing: -0.025em;
-  border-bottom: none !important;
 }
 
 .section-header h2,
@@ -113,10 +86,10 @@ button,
   max-width: 100% !important;
   min-height: 24px !important;
   padding: 2.5px 8.5px !important;
-  border: 1px solid #d4deec !important;
+  border: 1px solid var(--gct-id-border, #d4deec) !important;
   border-radius: 6px !important;
-  background: #f8fbff !important;
-  color: #0b2347 !important;
+  background: var(--gct-id-background, #f8fbff) !important;
+  color: var(--gct-id-foreground, #0b2347) !important;
   font-family: inherit !important;
   font-size: 11px !important;
   font-weight: 700 !important;
@@ -154,9 +127,9 @@ button,
 .route-code:hover,
 .trip-code:hover,
 .assignment-reference:hover {
-  background: #f8fbff !important;
-  color: #0b2347 !important;
-  border-color: #d4deec !important;
+  background: var(--gct-id-background, #f8fbff) !important;
+  color: var(--gct-id-foreground, #0b2347) !important;
+  border-color: var(--gct-id-border, #d4deec) !important;
   box-shadow: none !important;
   transform: none !important;
   filter: none !important;
@@ -177,9 +150,9 @@ button,
 }
 
 .system-id-badge--neutral {
-  border-color: #d4deec !important;
-  background: #f8fbff !important;
-  color: #0b2347 !important;
+  border-color: var(--gct-id-border, #d4deec) !important;
+  background: var(--gct-id-background, #f8fbff) !important;
+  color: var(--gct-id-foreground, #0b2347) !important;
 }
 
 .system-id-empty {

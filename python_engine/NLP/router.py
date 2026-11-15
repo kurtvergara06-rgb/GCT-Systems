@@ -25,6 +25,29 @@ class IngestionReviewRequest(BaseModel):
     reviewer: str | None = None
 
 
+class TextAnalysisRequest(BaseModel):
+    """Text-only NLP request: no PDF parsing or large language model required."""
+
+    text: str = Field(min_length=1, max_length=20000)
+
+
+@router.post("/analyze-text")
+def analyze_text(payload: TextAnalysisRequest) -> dict[str, Any]:
+    """Extract operational entities and rule-based severity without spaCy."""
+    from .ner_extractor import extract_entities
+    from .severity_predictor import predict_record
+
+    entities = extract_entities(payload.text)
+    severity = predict_record({"description": payload.text})
+    return {
+        "success": True,
+        "entities": entities,
+        "severity": severity,
+        "source": "operational_rules",
+        "trained_model": False,
+    }
+
+
 @router.get("/status")
 def nlp_status() -> dict[str, Any]:
     """Return truthful readiness for every required NLP capability."""

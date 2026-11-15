@@ -1521,7 +1521,6 @@
 .permissions-page #additionalEmployeeSearch { box-sizing:border-box; width:100%; height:38px; padding:0 10px; border:1px solid var(--rp-border); border-radius:8px; margin:7px 0 12px; font:inherit; }
 .permissions-page .permission-employee-list { display:grid; gap:7px; }
 .permissions-page .permission-employee-choice { display:flex; align-items:center; gap:10px; width:100%; min-width:0; padding:10px; border:1px solid #dfe7f3; border-radius:9px; background:#fff; text-align:left; cursor:pointer; color:#0f2853; }
-.permissions-page .permission-employee-choice[hidden] { display:none; }
 .permissions-page .permission-employee-choice.active { background:#edf5ff; border-color:#0759ed; }
 .permissions-page .permission-employee-choice span { display:grid; min-width:0; flex:1; gap:3px; }
 .permissions-page .permission-employee-choice strong { font-size:12px; overflow-wrap:anywhere; }
@@ -1537,7 +1536,7 @@
 .permissions-page .permission-access-actions button { padding:10px 13px; border-radius:9px; }
 .permissions-page .permission-access-actions button:disabled { opacity:.55; cursor:not-allowed; }
 @media(max-width:980px) { .permissions-page .permission-access-grid { grid-template-columns:minmax(0, 1fr); } }
-@media(max-width:620px) { .permissions-page .permission-access-intro { flex-wrap:wrap; } .permissions-page .permission-access-intro > span { margin-left:0; } }
+@media(max-width:620px) { }
 
 
 /* Additional Access uses FROMS base tokens and the shared Poppins font.

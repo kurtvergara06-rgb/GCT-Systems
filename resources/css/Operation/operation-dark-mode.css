@@ -1,0 +1,1998 @@
+/*
+ * Operation dark theme.
+ * Scoped to server-marked Operation pages. Keep all other modules and Light
+ * Mode untouched; never recolor workflow/status indicators globally.
+ *
+ * These semantic tokens are defined in Main-styles/theme.css.
+ */
+/* Shared Operation dark tokens and sticky Action surfaces.
+   Screen-only overrides remain in their own @media screen scope below. */
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] {
+    color-scheme: dark;
+    --gct-trip-group-heading-bg: var(--gct-theme-surface-raised);
+    --gct-trip-group-heading-fg: var(--gct-theme-fg);
+    --gct-sticky-actions-background: var(--gct-theme-surface);
+    --gct-sticky-actions-heading: var(--gct-theme-surface-raised);
+    --gct-sticky-actions-hover: var(--gct-theme-hover);
+}
+
+/* Application shell and shared panels */
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(.app, .main) {
+    background-color: var(--gct-theme-canvas);
+    color: var(--gct-theme-fg);
+}
+
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .table-card, .stat-card, .stat-card-link, .card, .panel-card,
+    .assignment-card, .assignment-summary-card, .trip-summary-card,
+    .service-controls-card, .operation-command-header, .account-card
+) {
+    background-color: var(--gct-theme-surface);
+    border-color: var(--gct-theme-border);
+    color: var(--gct-theme-fg);
+}
+
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .section-header, .topbar-dropdown,
+    .topbar-dropdown-header, .topbar-list-item,
+    .sidebar-profile-menu
+) {
+    background-color: var(--gct-theme-surface);
+    border-color: var(--gct-theme-border);
+    color: var(--gct-theme-fg);
+}
+
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .topbar h1, .topbar h2, .section-header h2, .section-header h3,
+    .operation-command-heading, .topbar-dropdown-header h3,
+    .topbar-list-title, .topbar-empty-state strong
+) {
+    color: var(--gct-theme-fg);
+}
+
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .topbar p, .section-header p, .topbar-dropdown-header p,
+    .topbar-list-meta, .topbar-empty-state p, .operation-business-date,
+    .assignment-summary-card p, .assignment-summary-card small,
+    .trip-summary-card p, .trip-summary-card small
+) {
+    color: var(--gct-theme-muted);
+}
+
+/* Tables: avoid changing status badges, links or semantic state colors */
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .table-card, .table-wrap, .assignment-card,
+    .service-controls-card
+) table {
+    background-color: var(--gct-theme-surface);
+    color: var(--gct-theme-fg);
+}
+
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .table-card, .table-wrap, .assignment-card, .service-controls-card
+) :is(th, thead td) {
+    background-color: var(--gct-theme-surface-raised);
+    border-color: var(--gct-theme-border);
+    color: var(--gct-theme-muted);
+}
+
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .table-card, .table-wrap, .assignment-card, .service-controls-card
+) tbody td {
+    background-color: var(--gct-theme-surface);
+    border-color: var(--gct-theme-border);
+    color: var(--gct-theme-fg);
+}
+
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .table-card, .table-wrap, .assignment-card, .service-controls-card
+) tbody tr:hover td {
+    background-color: var(--gct-theme-hover);
+}
+
+/* Fields remain legible with the browser's native dark input affordances */
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .main input:not([type="checkbox"]):not([type="radio"]):not([type="color"]),
+    .main select, .main textarea,
+    .modal-card input:not([type="checkbox"]):not([type="radio"]),
+    .modal-card select, .modal-card textarea
+) {
+    background-color: var(--gct-theme-input);
+    border-color: var(--gct-theme-border);
+    color: var(--gct-theme-fg);
+}
+
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    input, select, textarea
+)::placeholder {
+    color: var(--gct-theme-placeholder);
+    opacity: 1;
+}
+
+/* Shared modal surfaces: never alter positioning, visibility, or backdrop logic */
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .modal-card, .modal-box, .delete-modal-box, .feedback-modal,
+    .batch-feedback-modal, .ui-form-modal, .trip-modal,
+    .personnel-modal,
+    .schedule-modal, .records-modal
+) {
+    background-color: var(--gct-theme-surface);
+    border-color: var(--gct-theme-border);
+    color: var(--gct-theme-fg);
+}
+
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .modal-header, .modal-card h2, .modal-box h2, .form-group label
+) {
+    color: var(--gct-theme-fg);
+}
+
+/* High-traffic filters and dropdowns */
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .topbar-list-item:hover, .topbar-list-item.is-unread,
+    .topbar-dropdown-header, .topbar-empty-state,
+    .sidebar-profile-menu a:hover
+) {
+    background-color: var(--gct-theme-hover);
+}
+
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .secondary-btn, .icon-btn
+) {
+    background-color: var(--gct-theme-surface-raised);
+    border-color: var(--gct-theme-border);
+    color: var(--gct-theme-fg);
+}
+
+/* Accessible keyboard focus, without changing component dimensions */
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .main input, .main select, .main textarea, .main button, .main a
+):focus-visible {
+    outline: 2px solid var(--gct-theme-focus);
+    outline-offset: 2px;
+}
+
+/* Leave workflow badges, chart series, danger buttons, sidebar's
+ * branded gradient and disabled states to their existing components. */
+
+/*
+ * Migration bridge for legacy Operation page styles.
+ * High-specificity scoping is intentional: it defeats ordinary hardcoded
+ * light values without overriding state indicators, disabled actions or print.
+ */
+
+
+/* Trip Schedule: the service tables still contain legacy fixed light backgrounds.
+   Scope the repair to this page so other tables and status chips are unchanged. */
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .trip-schedule-page .service-table {
+    background: var(--gct-theme-surface);
+    color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .trip-schedule-page .service-table-scroll .service-table thead th {
+    background: var(--gct-theme-surface-raised);
+    color: #c6d6eb;
+    border-color: var(--gct-theme-border);
+    box-shadow: 0 1px 0 var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .trip-schedule-page .service-table tbody tr:not(.service-client-route-heading, .service-details-row) > td {
+    background: var(--gct-theme-surface);
+    color: var(--gct-theme-fg);
+    border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .trip-schedule-page .service-table tbody tr:not(.service-client-route-heading, .service-details-row):hover > td {
+    background: var(--gct-theme-hover);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .trip-schedule-page .service-table .service-client-route-heading th {
+    background: var(--gct-trip-group-heading-bg) !important;
+    color: var(--gct-trip-group-heading-fg) !important;
+    border-color: var(--gct-theme-border) !important;
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .trip-schedule-page .service-table .service-client-route-heading th :is(span, strong) {
+    color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .trip-schedule-page .service-table :is(
+    .trip-time-badge, .trip-time-badge i,
+    .service-route-title, .service-endpoint-name,
+    .service-assigned-value
+) {
+    color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .trip-schedule-page .service-table :is(
+    .service-endpoint-label, .service-pickup
+) {
+    color: var(--gct-theme-muted);
+}
+/* Match sticky Actions to the same backgrounds as its neighboring cells. */
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .trip-schedule-page .service-table-scroll.gct-sticky-actions > .service-table > thead > tr > th:last-child {
+    background: var(--gct-theme-surface-raised);
+    color: #c6d6eb;
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .trip-schedule-page .service-table-scroll.gct-sticky-actions > .service-table > tbody > tr > td:last-child:not([colspan]) {
+    background: var(--gct-theme-surface);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .trip-schedule-page .service-table-scroll.gct-sticky-actions > .service-table > tbody > tr:hover > td:last-child:not([colspan]) {
+    background: var(--gct-theme-hover);
+}
+
+/* Dashboard: chart shells and the analytics panels formerly used #fff. */
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .operation-analytics-card > .dashboard-card-header,
+    .operation-analytics-body,
+    .operation-chart-shell,
+    .operation-incident-chart-shell,
+    .operation-fleet-visual,
+    .operation-fleet-donut-center,
+    .operation-command-links a:not(.command-link-highlight),
+    .operation-reference-view
+) {
+    background: var(--gct-theme-surface);
+    border-color: var(--gct-theme-border);
+    color: var(--gct-theme-fg);
+}
+
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .operation-fleet-donut-center strong, .operation-fleet-legend strong,
+    .operation-fleet-details-title, .operation-fleet-chart__center strong
+) { color: var(--gct-theme-fg); }
+
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .operation-fleet-donut-center span, .operation-fleet-legend small,
+    .operation-fleet-chart__center span
+) { color: var(--gct-theme-muted); }
+
+/* Trip Schedule: record panels, date selectors and grouping headings. */
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .trip-schedule-page .service-schedule-records,
+    .trip-schedule-page .service-controls-card,
+    .trip-schedule-page .trip-date-selector,
+    .trip-schedule-page .trip-availability-calendar,
+    .trip-schedule-page .trip-calendar-day,
+    .trip-schedule-page .trip-calendar-status-legend,
+    .trip-schedule-page .trip-summary-grid .stat-card,
+    .trip-schedule-page .trip-service-planning-fields,
+    #tripModal .trip-service-mode-choice,
+    #tripModal .trip-editor-grid
+) {
+    background-color: var(--gct-theme-surface);
+    border-color: var(--gct-theme-border);
+    color: var(--gct-theme-fg);
+}
+
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .trip-schedule-page .trip-calendar-day:hover,
+    .trip-schedule-page .trip-calendar-day.has-trips,
+    #tripModal .trip-service-mode-choice:hover
+) {
+    background-color: var(--gct-theme-hover);
+}
+
+/* Trip Schedule dark-mode readability: calendar, details, form and cancellation.
+   Preserve semantic trip-state pills and date status dots. */
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .trip-schedule-page .trip-availability-calendar :is(
+    .trip-calendar-heading strong, .trip-calendar-month strong,
+    .trip-calendar-status-legend > strong
+) { color: var(--gct-theme-fg); }
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .trip-schedule-page .trip-availability-calendar :is(
+    .trip-calendar-hint, .trip-calendar-weekdays,
+    .trip-calendar-legend-grid > span, .trip-calendar-footer
+) { color: var(--gct-theme-muted); }
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .trip-schedule-page .trip-availability-calendar :is(
+    .trip-calendar-heading button, .trip-calendar-month button,
+    .trip-calendar-footer button
+) {
+    background: var(--gct-theme-surface-raised);
+    color: var(--gct-theme-fg);
+    border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .trip-schedule-page .trip-availability-calendar :is(
+    .trip-calendar-heading button, .trip-calendar-month button,
+    .trip-calendar-footer button
+):hover {
+    background: var(--gct-theme-hover);
+    color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .trip-schedule-page .trip-availability-calendar .trip-calendar-day {
+    color: var(--gct-theme-fg);
+    border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .trip-schedule-page .trip-availability-calendar .trip-calendar-day.is-selected {
+    background: #294a71;
+    color: #f6faff;
+    border-color: #77aaf2;
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .trip-schedule-page .trip-availability-calendar .trip-calendar-day.is-today:not(.is-selected) {
+    border-color: #7194bf;
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .trip-schedule-page .trip-availability-calendar :is(
+    .trip-calendar-status-legend, .trip-calendar-footer
+) { border-color: var(--gct-theme-border); }
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #viewTripModal :is(
+    .trip-details-hero, .trip-detail-card
+) {
+    background: var(--gct-theme-surface-raised);
+    border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #viewTripModal :is(
+    .trip-details-hero strong, .trip-detail-card .trip-detail-value
+) { color: var(--gct-theme-fg); }
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #viewTripModal :is(
+    .trip-details-hero span, .trip-detail-card label
+) { color: var(--gct-theme-muted); }
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #tripModal :is(
+    .trip-editor-intro, .trip-service-mode-choice
+) {
+    background: var(--gct-theme-surface-raised);
+    border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #tripModal :is(
+    .trip-service-mode-choice strong, .trip-editor-grid .ui-form-group label,
+    .trip-editor-intro strong
+) { color: var(--gct-theme-fg); }
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #tripModal :is(
+    .trip-service-mode-choice small, .trip-editor-intro span
+) { color: var(--gct-theme-muted); }
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #tripModal .trip-editor-grid .trip-service-planning-fields .ui-form-group :is(select, input) {
+    background: var(--gct-theme-input);
+    color: var(--gct-theme-fg);
+    border-color: var(--gct-theme-control-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #cancelServiceTripModal :is(
+    .trip-cancellation-context, .trip-cancellation-context strong,
+    .ui-form-modal-body .ui-form-group > label
+) { color: var(--gct-theme-fg); }
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #cancelServiceTripModal :is(
+    .ui-form-actions, .ui-form-modal-body, .ui-form-modal-header
+) {
+    background: var(--gct-theme-surface);
+    border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #cancelServiceTripModal #cancellationReason {
+    background: var(--gct-theme-input);
+    border-color: var(--gct-theme-control-border);
+    color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #cancelServiceTripModal #cancellationReason::placeholder {
+    color: var(--gct-theme-muted);
+}
+
+/* Driver & Bus Assignment: preserve green/red business indicators. */
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .assignment-page .assignment-date-picker,
+    .assignment-page .assignment-date-calendar,
+    .assignment-page .assignment-calendar-day,
+    .assignment-page .assignment-record-controls,
+    .assignment-page .assignment-direction-section,
+    .assignment-page .assignment-direction-count,
+    #assignmentModal .assignment-pair-card,
+    #assignmentModal .assignment-source-option,
+    #assignmentModal .assignment-driver-choice,
+    #assignmentModal .assignment-bus-choice
+) {
+    background-color: var(--gct-theme-surface);
+    border-color: var(--gct-theme-border);
+    color: var(--gct-theme-fg);
+}
+
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    #assignmentModal .assignment-pair-card:hover,
+    .assignment-page .assignment-calendar-day:hover
+) {
+    background-color: var(--gct-theme-hover);
+}
+
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #assignmentModal .assignment-pair-card.is-selected {
+    background-color: var(--gct-theme-surface-raised);
+    border-color: var(--gct-theme-accent);
+}
+
+/* Bus master: tabs and modal footer strips must not remain white. */
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .bus-fleet-tabs, .bus-fleet-tab.is-active,
+    #busModal .ui-form-actions, #editBusModal .modal-actions.full-width,
+    #busModal .bus-modal-panel, #editBusModal .bus-modal-panel
+) {
+    background-color: var(--gct-theme-surface);
+    border-color: var(--gct-theme-border);
+    color: var(--gct-theme-fg);
+}
+
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .bus-fleet-tab:not(.is-active), #assignmentModal .assignment-pair-header small
+) { color: var(--gct-theme-muted); }
+
+/* Shared search and filter surfaces. Not applied to colored status pills. */
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .table-toolbar, .table-toolbar-search, .table-toolbar-filters,
+    .table-toolbar-sort, .filter-dropdown, .sort-dropdown,
+    .searchable-select-dropdown,
+    .trip-schedule-page .trip-record-controls,
+    .assignment-page .assignment-record-controls
+) {
+    background-color: var(--gct-theme-surface);
+    border-color: var(--gct-theme-border);
+    color: var(--gct-theme-fg);
+}
+
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .table-toolbar, .table-card, .table-wrap
+) :is(input, select, textarea) {
+    background-color: var(--gct-theme-input);
+    color: var(--gct-theme-fg);
+    border-color: var(--gct-theme-control-border);
+}
+
+/* Explicitly keep printing white regardless of the user's theme choice. */
+@media print {
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] {
+        color-scheme: light;
+    }
+}
+
+
+/*
+ * Phase 1 contrast hardening — Driver / Bus / Personnel Master Lists.
+ * Do not flatten state badges or light-only print documents.
+ * All rules are limited to the currently rendered Operation page.
+ */
+
+/* Sticky Actions columns use a different selector than normal table cells.
+   Their own background must win even when the table utility is loaded later. */
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+  .gct-responsive-records.gct-sticky-actions > table > thead > tr > th:last-child {
+    background: var(--gct-theme-surface-raised);
+    color: var(--gct-theme-muted);
+    border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+  .gct-responsive-records.gct-sticky-actions > table > tbody > tr > td:last-child:not([colspan]) {
+    background: var(--gct-theme-surface);
+    color: var(--gct-theme-fg);
+    border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+  .gct-responsive-records.gct-sticky-actions > table > tbody > tr:hover > td:last-child:not([colspan]) {
+    background: var(--gct-theme-hover);
+}
+
+/* Schedule Preview: the generic sticky-cell surface was visually splitting
+   the Action cell from the rest of its trip row. Give every cell the same
+   dark surface; preserve state badges, grouped route headers and scrolling. */
+@media screen {
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table
+    > tbody > tr.auto-preview-trip-row > td {
+    background: var(--gct-theme-surface);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table
+    > tbody > tr.auto-preview-trip-row:hover > td {
+    background: var(--gct-theme-hover);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table
+    > tbody > tr.auto-preview-trip-row > td:last-child:not([colspan]) {
+    background: var(--gct-theme-surface);
+    box-shadow: none;
+    border: 0;
+    background-clip: padding-box;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table
+    > tbody > tr.auto-preview-trip-row:hover > td:last-child:not([colspan]) {
+    background: var(--gct-theme-hover);
+  }
+}
+
+/* Auto Scheduling preview group header: override the light-only grouped-row
+   declarations in auto-dispatch.css for Incoming and Outgoing schedules. */
+@media screen {
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .auto-scheduling-page .auto-schedule-table .auto-preview-group-row th {
+    background: var(--gct-theme-surface-raised) !important;
+    border-top: 1px solid var(--gct-theme-border) !important;
+    border-bottom: 1px solid var(--gct-theme-border) !important;
+    color: var(--gct-theme-fg) !important;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .auto-scheduling-page .auto-preview-group-client {
+    color: var(--gct-theme-muted);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .auto-scheduling-page .auto-preview-group-route {
+    color: var(--gct-theme-fg);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .auto-scheduling-page .auto-preview-trip-time .auto-trip-main-id {
+    color: var(--gct-theme-accent);
+  }
+}
+
+/* The Driver Master List uses personnel-specific wrappers, not the generic
+   .table-wrap used by the original theme implementation. */
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .personnel-master-page {
+    --personnel-panel-border: var(--gct-theme-border);
+    --personnel-soft-blue: var(--gct-theme-surface-raised);
+    --personnel-soft-yellow: var(--gct-theme-surface-raised);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .personnel-master-panel, .personnel-master-table-wrap, .personnel-master-table,
+    .personnel-master-page .attendance-toolbar.personnel-master-toolbar,
+    .personnel-master-page .driver-master-panel,
+    .personnel-master-page .personnel-record-tabs
+) {
+    background: var(--gct-theme-surface);
+    color: var(--gct-theme-fg);
+    border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .personnel-master-page .personnel-master-table thead,
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .personnel-master-page .personnel-master-table thead th {
+    background: var(--gct-theme-surface-raised);
+    color: var(--gct-theme-muted);
+    border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .personnel-master-page .personnel-master-table tbody td {
+    background: var(--gct-theme-surface);
+    color: var(--gct-theme-fg);
+    border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .personnel-master-page .personnel-master-table tbody tr:hover td {
+    background: var(--gct-theme-hover);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .personnel-master-page .personnel-master-table tbody tr > td:last-child:not([colspan]) {
+    background: var(--gct-theme-surface);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .personnel-master-page .personnel-master-table tbody tr:hover > td:last-child:not([colspan]) {
+    background: var(--gct-theme-hover);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .personnel-master-page :is(
+    .personnel-section-header h2, .personnel-page-hero h1,
+    .driver-master-records-table .driver-bus-details strong,
+    .driver-master-records-table .driver-bus-primary,
+    .driver-bus-more-row, .driver-bus-more-row b
+) {
+    color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .personnel-master-page :is(
+    .personnel-section-header p, .personnel-page-hero p,
+    .driver-master-records-table .driver-bus-details small,
+    .driver-bus-more-row small, .driver-bus-more-panel > strong,
+    .personnel-empty-value
+) {
+    color: var(--gct-theme-muted);
+}
+
+/* Active / inactive navigation is a neutral filter, not a workflow badge. */
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .personnel-master-page .personnel-record-tabs {
+    background: var(--gct-theme-surface-raised);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .personnel-master-page .personnel-record-tab {
+    color: var(--gct-theme-muted);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .personnel-master-page .personnel-record-tab.is-active {
+    background: var(--gct-theme-hover);
+    color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .personnel-master-page :is(
+    .driver-bus-more summary, .driver-bus-more-panel,
+    .driver-bus-picker-trigger, .driver-bus-picker-panel,
+    .driver-bus-picker-search, .driver-bus-picker-option:hover,
+    .driver-bus-more-row
+) {
+    background: var(--gct-theme-surface-raised);
+    border-color: var(--gct-theme-border);
+    color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .personnel-master-page .driver-bus-more-panel > strong {
+    color: var(--gct-theme-muted);
+}
+
+/* Correct the main Search, Filter and Sort button family; these use
+   .gct-table-tool-trigger rather than .table-toolbar-* selectors. */
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .gct-table-tool-trigger, .gct-table-toolbar .gct-table-tool-trigger.is-active,
+    .gct-table-tool-trigger:hover, .gct-table-tool-trigger[aria-expanded="true"],
+    .gct-table-filter-popover, .gct-table-sort-popover,
+    .gct-table-search-popover
+) {
+    background: var(--gct-theme-surface-raised);
+    color: var(--gct-theme-fg);
+    border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .personnel-master-page .personnel-master-toolbar .search-box input,
+    .personnel-master-page .personnel-master-toolbar .personnel-filter select,
+    .personnel-master-page .personnel-master-toolbar .filter-group select
+) {
+    background: var(--gct-theme-input);
+    color: var(--gct-theme-fg);
+    border-color: var(--gct-theme-border);
+}
+
+/* Add, edit and view modals were independently styled with white headers,
+   white form shells and sticky white footers. Preserve their modal geometry. */
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .personnel-modal, .personnel-modal-header,
+    .personnel-modal-header-mechanic, .personnel-modal-driver .driver-modal-header,
+    .personnel-driver-form, .personnel-driver-form .driver-modal-group-heading,
+    .personnel-driver-form .driver-input-shell,
+    .personnel-driver-form .driver-input-shell > i,
+    .personnel-driver-form .driver-modal-actions,
+    .personnel-mechanic-form .personnel-modal-actions,
+    .personnel-specialization-field,
+    .driver-bus-picker-panel, .driver-bus-picker-trigger
+) {
+    background: var(--gct-theme-surface);
+    color: var(--gct-theme-fg);
+    border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .personnel-modal .personnel-modal-title h2,
+    .personnel-modal-driver .personnel-modal-title h2,
+    .personnel-driver-form .driver-modal-group-heading strong
+) { color: var(--gct-theme-fg); }
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .personnel-modal .personnel-modal-title p,
+    .personnel-driver-form .driver-modal-helper,
+    .driver-bus-help
+) { color: var(--gct-theme-muted); }
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .personnel-driver-form .driver-input-shell > :is(input, select) {
+    background: var(--gct-theme-input);
+    color: var(--gct-theme-fg);
+    border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .personnel-modal-overlay[data-mode="view"] .personnel-driver-form .driver-input-shell > :is(input:disabled, select:disabled) {
+    background: var(--gct-theme-surface-raised);
+    color: var(--gct-theme-fg);
+    -webkit-text-fill-color: var(--gct-theme-fg);
+}
+
+/* Do not touch success/danger status chips or disabled button colors.
+   The colors communicate workflow state independently of the theme. */
+
+
+/* Semantic aliases for module stylesheets still using local --*-card,
+   --*-text, --*-border, and table-heading custom properties. */
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .routes-page, .bus-master-list-page, .ddr-page,
+    .trip-records-page, .auto-scheduling-page, .trip-schedule-page,
+    .assignment-page, .driver-attendance-page, .client-master-page
+) {
+    --route-text: var(--gct-theme-fg);
+    --route-muted: var(--gct-theme-muted);
+    --route-card: var(--gct-theme-surface);
+    --route-border: var(--gct-theme-border);
+    --route-soft-border: var(--gct-theme-border);
+    --route-table-head: var(--gct-theme-surface-raised);
+    --bus-card: var(--gct-theme-surface);
+    --bus-text: var(--gct-theme-fg);
+    --bus-muted: var(--gct-theme-muted);
+    --bus-border: var(--gct-theme-border);
+    --bus-table-head: var(--gct-theme-surface-raised);
+    --ddr-text: var(--gct-theme-fg);
+    --ddr-muted: var(--gct-theme-muted);
+    --ddr-border: var(--gct-theme-border);
+    --ddr-soft-border: var(--gct-theme-border);
+    --ddr-table-head: var(--gct-theme-surface-raised);
+    --trip-text: var(--gct-theme-fg);
+    --trip-muted: var(--gct-theme-muted);
+    --trip-border: var(--gct-theme-border);
+    --trip-soft-border: var(--gct-theme-border);
+    --trip-table-head: var(--gct-theme-surface-raised);
+    --gct-scrollbar-track: var(--gct-theme-surface);
+    --gct-scrollbar-thumb: #667d9c;
+    --gct-scrollbar-thumb-hover: #9bb6db;
+}
+
+/* Other Operation record lists with their own table classes rather than
+   generic .table-wrap/.table-card descendants. */
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .client-master-panel, .client-master-table-wrap,
+    .bus-master-list-page .bus-toolbar,
+    .bus-master-list-page .bus-tool-popover,
+    .bus-master-list-page .bus-tool-trigger,
+    .trip-records-page .trip-history-card,
+    .trip-records-page .trip-extra-filters,
+    .ddr-page .ddr-card,
+    .driver-attendance-page .attendance-card,
+    .routes-page .routes-card,
+    .auto-scheduling-page .service-direction-panel
+) {
+    background-color: var(--gct-theme-surface);
+    border-color: var(--gct-theme-border);
+    color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .client-master-page .client-master-table th,
+    .bus-master-list-page .bus-table th,
+    .trip-records-page .trip-table th,
+    .ddr-page .ddr-table th,
+    .driver-attendance-page .attendance-table th
+) {
+    background-color: var(--gct-theme-surface-raised);
+    color: var(--gct-theme-muted);
+    border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .client-master-page .client-master-table td,
+    .bus-master-list-page .bus-table td,
+    .trip-records-page .trip-table td,
+    .ddr-page .ddr-table td,
+    .driver-attendance-page .attendance-table td
+) {
+    background-color: var(--gct-theme-surface);
+    color: var(--gct-theme-fg);
+    border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .client-master-page .client-master-table tbody tr:hover td,
+    .bus-master-list-page .bus-table tbody tr:hover td,
+    .trip-records-page .trip-table tbody tr:hover td,
+    .ddr-page .ddr-table tbody tr:hover td,
+    .driver-attendance-page .attendance-table tbody tr:hover td
+) {
+    background-color: var(--gct-theme-hover);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .client-master-page .client-master-name-text strong,
+    .client-master-page .client-master-header h2,
+    .client-master-page .client-master-empty strong,
+    .driver-attendance-page .attendance-driver-details strong
+) { color: var(--gct-theme-fg); }
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .client-master-page .client-master-name-text small,
+    .client-master-page .client-master-header p,
+    .client-master-page .client-master-footer,
+    .driver-attendance-page .attendance-driver-details small
+) { color: var(--gct-theme-muted); }
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .client-master-page .client-master-record-tabs,
+    .client-master-page .client-master-record-tab.is-active,
+    .driver-attendance-page .attendance-record-tabs,
+    .driver-attendance-page .attendance-record-tab.is-active,
+    .trip-records-page .trip-more-filters > summary,
+    .trip-records-page .trip-export-btn:not(.trip-export-header)
+) {
+    background-color: var(--gct-theme-surface-raised);
+    border-color: var(--gct-theme-border);
+    color: var(--gct-theme-fg);
+}
+/* Driver Attendance: visible scheduled windows and read-only trip details.
+   The light-mode component CSS uses fixed blue-gray text that has insufficient
+   contrast on dark surfaces; keep these values tied to theme tokens. */
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .driver-attendance-page :is(
+    .attendance-trip-time, .attendance-trip-date,
+    .attendance-assignment-schedule
+) {
+    color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .driver-attendance-page .attendance-trip-time.is-empty {
+    color: var(--gct-theme-muted);
+}
+/* The summary values use a hard-coded navy color in driver-attendance.css.
+   Override both global and modal-specific styles without touching status badges. */
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #viewDriverAttendanceModal .attendance-detail-card {
+    background: var(--gct-theme-surface-raised);
+    border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #viewDriverAttendanceModal .attendance-detail-card label {
+    color: var(--gct-theme-muted);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #viewDriverAttendanceModal .attendance-detail-value:not(.attendance-detail-status) {
+    color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #viewDriverAttendanceModal :is(
+    .attendance-modal-trip-time, .attendance-modal-trips-table td,
+    .attendance-modal-trip-id
+) {
+    color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #viewDriverAttendanceModal .attendance-modal-trips-table tbody tr:nth-child(even) td {
+    background: var(--gct-theme-surface-raised);
+}
+/* Keep hover/focus contrast dark; shared record-table hover rules otherwise
+   paint a light row beneath the theme's light text. */
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #viewDriverAttendanceModal .attendance-modal-trips-table tbody tr:is(:hover, :focus-within) > td {
+    background: var(--gct-theme-hover) !important;
+    color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #viewDriverAttendanceModal .attendance-modal-trip-bus {
+    background: #203d61;
+    border-color: #36577e;
+    color: #d8e9ff;
+}
+
+/* Client Trip Times: readable dark client configuration cards and controls.
+   Only color/surface rules here; leave grids, modal placement and logic intact. */
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times-page {
+    --ctt-navy: var(--gct-theme-fg);
+    --ctt-text: var(--gct-theme-fg);
+    --ctt-muted: var(--gct-theme-muted);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times-page :is(
+    .ctt-panel-title, .ctt-client-buses-heading strong,
+    .ctt-client-config-count strong,
+    .ctt-inline-range-heading strong, .ctt-inline-time-field,
+    .ctt-inline-active, .ctt-client-buses-toggle,
+    .ctt-client-bus-chip
+) {
+    color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times-page :is(
+    .ctt-client-buses-heading > div > span, .ctt-client-no-buses,
+    .ctt-client-config-count > span,
+    .ctt-client-config-count strong small,
+    .ctt-client-bus-remaining, .ctt-inline-range-heading span,
+    .ctt-inline-active small, .ctt-inline-help
+) {
+    color: var(--gct-theme-muted);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times-page :is(
+    .ctt-client-buses, .ctt-inline-range-editor
+) {
+    background: var(--gct-theme-surface-raised);
+    border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times-page :is(
+    .ctt-client-buses-toggle, .ctt-client-bus-chip
+) {
+    background: var(--gct-theme-input);
+    color: var(--gct-theme-fg);
+    border-color: var(--gct-theme-border);
+}
+/* Client Trip Times uses the shared GCT time-picker enhancement. The
+   native input is visually hidden and the visible control is a button. */
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times-page .ctt-inline-range-editor .gct-picker-trigger {
+    background: #101e32;
+    color: #edf4ff;
+    border-color: #47617e;
+    color-scheme: dark;
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times-page .ctt-inline-range-editor .gct-picker-trigger:is(:hover, :focus-visible, [aria-expanded="true"]) {
+    background: #172b45;
+    color: #ffffff;
+    border-color: #76aaff;
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times-page .ctt-inline-range-editor :is(
+    .gct-picker-trigger-icon, .gct-picker-trigger-chevron
+) {
+    color: #acc9ed;
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times-page .ctt-inline-range-editor .gct-picker-trigger.is-empty .gct-picker-trigger-value {
+    color: #adc3e1;
+}
+/* The range editor is portaled to the Client Trip Times page, so target its
+   native time controls directly instead of relying on generic form styling. */
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times-page .ctt-inline-range-editor {
+    color-scheme: dark;
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times-page .ctt-inline-range-editor .ctt-inline-time-field input[type="time"] {
+    color-scheme: dark;
+    background-color: #101e32 !important;
+    color: #edf4ff !important;
+    border-color: #47617e !important;
+    box-shadow: none;
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times-page .ctt-inline-range-editor .ctt-inline-time-field input[type="time"]:is(:hover, :focus-visible) {
+    background-color: #172b45 !important;
+    border-color: #76aaff !important;
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times-page .ctt-inline-range-editor .ctt-inline-time-field input[type="time"]::-webkit-calendar-picker-indicator {
+    filter: brightness(0) invert(1);
+    opacity: .82;
+    cursor: pointer;
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times-page .ctt-inline-range-editor .ctt-inline-time-field input[type="time"]::-webkit-datetime-edit {
+    color: #edf4ff;
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times-page .ctt-client-buses-toggle:is(:hover, :focus-visible) {
+    background: var(--gct-theme-hover);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times-page :is(
+    .ctt-client-buses-link, .ctt-client-buses-toggle > i
+) {
+    color: #9dc5ff;
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times-page .ctt-progress-track {
+    background: #314661;
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times-page .ctt-category-indicator:not(.is-configured) {
+    background: var(--gct-theme-surface-raised);
+    color: var(--gct-theme-muted);
+    border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times-page .ctt-status-none {
+    background: #293b52;
+    color: #d4e2f5;
+    border-color: #455a75;
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times-page .ctt-section-header > .ctt-client-count {
+    background: var(--gct-theme-surface-raised);
+    color: var(--gct-theme-fg);
+    border-color: var(--gct-theme-border);
+}
+/* Client accordion action: the existing light-mode [open]/hover rules use a
+   white background and blue text. Keep both states readable in dark mode. */
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times-page .ctt-client-expand {
+    background: var(--gct-theme-surface-raised);
+    color: var(--gct-theme-fg);
+    border-color: var(--gct-theme-control-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times-page .ctt-client-card[open] .ctt-client-expand {
+    background: #294467;
+    color: #e5f0ff;
+    border-color: #6187b9;
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times-page .ctt-client-header:hover .ctt-client-expand,
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times-page .ctt-client-header:focus-visible .ctt-client-expand {
+    background: var(--gct-theme-hover);
+    color: var(--gct-theme-fg);
+    border-color: #7196c3;
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times-page .ctt-client-expand i {
+    color: inherit;
+}
+
+/* Keep the designated yellow Export action and colored statuses unchanged. */
+
+/* Browser-audited legacy surfaces. Screen-only: printable records retain their
+   existing palette. Use background (not just background-color) on these shells
+   because the light dashboard and service headers also have background images. */
+@media screen {
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] {
+        --gct-screen-table-head: var(--gct-theme-surface-raised);
+        --gct-screen-fg: var(--gct-theme-fg);
+        --gct-screen-accent: var(--gct-theme-accent);
+        --gct-screen-muted: var(--gct-theme-muted);
+        --table-head: var(--gct-theme-surface-raised);
+    }
+
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page {
+        --operation-card: var(--gct-theme-surface);
+        --operation-text: var(--gct-theme-fg);
+        --operation-muted: var(--gct-theme-muted);
+        --operation-border: var(--gct-theme-border);
+        --operation-table-head: var(--gct-theme-surface-raised);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page {
+        --auto-card: var(--gct-theme-surface);
+        --auto-text: var(--gct-theme-fg);
+        --auto-muted: var(--gct-theme-muted);
+        --auto-border: var(--gct-theme-border);
+        --auto-soft-border: var(--gct-theme-border);
+        --auto-table-head: var(--gct-theme-surface-raised);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .client-trip-times-page {
+        --ctt-text: var(--gct-theme-fg);
+        --ctt-muted: var(--gct-theme-muted);
+        --ctt-border: var(--gct-theme-border);
+        --ctt-soft-border: var(--gct-theme-border);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .inc-page {
+        --inc-text: var(--gct-theme-fg);
+        --inc-muted: var(--gct-theme-muted);
+        --inc-border: var(--gct-theme-border);
+        --inc-soft-border: var(--gct-theme-border);
+        --inc-table-head: var(--gct-theme-surface-raised);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .assignment-page {
+        --assign-text: var(--gct-theme-fg);
+        --assign-muted: var(--gct-theme-muted);
+        --assign-border: var(--gct-theme-border);
+        --assign-soft-border: var(--gct-theme-border);
+        --assign-table-head: var(--gct-theme-surface-raised);
+    }
+
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+        .dashboard-card, .operation-command-header, .operation-date-filter,
+        .operation-trip-chart-card, .operation-incident-trend, .operation-activity-row,
+        .ctt-overview-card, .ctt-configurations-card, .ctt-client-card, .ctt-category-panel,
+        .service-panels-surface, .service-direction-panel, .service-direction-header,
+        .service-direction-footer, .resource-card, .assignment-table-wrap,
+        .auto-summary-card, .auto-card, .auto-calendar-grid-panel, .auto-calendar-detail,
+        .ddr-summary-card, .inc-summary-card, .inc-card,
+        .bus-master-list-page .table-wrap, .availability-table-wrap,
+        .ui-form-modal, .ui-form-modal-header, .ui-form-section, .ui-form-actions,
+        .ddr-record-dialog, .ddr-record-header, .ddr-record-footer,
+        .ddr-record-info > div, .ddr-primary-trip,
+        .trip-modal-header, .trip-overview-section, .trip-assigned-section,
+        .unit-records-card, .unit-records-table-wrap, .trip-execution-section,
+        .trip-database-telemetry-drawer, .trip-detail-item, .trip-modal-actions,
+        .batch-attendance-modal, .batch-control-btn, .batch-loading,
+        .bus-multi-client-entry, .bus-client-picker-trigger
+    ) {
+        background: var(--gct-theme-surface);
+        color: var(--gct-theme-fg);
+        border-color: var(--gct-theme-border);
+    }
+
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+        .stat-card h2, .trip-summary-card h2, .assignment-summary-card h2,
+        .ddr-summary-card h2, .inc-summary-card h2, .auto-summary-card h2,
+        .ctt-overview-card h2, .ctt-overview-card strong,
+        .ctt-configurations-card h2, .ctt-client-card h3,
+        .operation-dashboard-page .dashboard-card h2,
+        .operation-dashboard-page .dashboard-card h3,
+        .operation-chart-empty strong,
+        .resource-card h2, .assignment-card h2,
+        .service-direction-header h2, .service-direction-header h3,
+        .ddr-card h2, .inc-card h2,
+        .ui-form-modal h2, .ui-form-modal h3,
+        .ui-form-section-title, .ui-form-label, .ui-form-section > strong,
+        .ddr-record-dialog h2, .ddr-record-dialog h3,
+        .ddr-record-info strong, .ddr-record-total strong,
+        .trip-modal h2, .trip-modal h3,
+        .trip-overview-section strong, .trip-assigned-section strong,
+        .trip-detail-item strong, .batch-attendance-modal h2
+    ) { color: var(--gct-theme-fg); }
+
+    /* Match the existing ID-scoped paper-DDR form rules without escalating to
+       important declarations. These are surfaces, never assignment/status tags. */
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #ddrEncodeModal :is(
+        .ui-form-modal, .ui-form-modal-header, .ui-form-actions,
+        .ddr-report-meta-grid, .ddr-primary-trip, .ddr-extra-trip,
+        .ddr-extra-trip-body, .ddr-sched-panel, .ddr-sched-panel-compact,
+        .ddr-add-trip, .ddr-number-preview > span,
+        .ddr-exception-choice, .ddr-form-note
+    ) {
+        background: var(--gct-theme-surface);
+        color: var(--gct-theme-fg);
+        border-color: var(--gct-theme-border);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #ddrEncodeModal :is(
+        .ddr-combo-input, .ddr-form-grid input, .ddr-modal-form-grid input,
+        .ddr-form-grid select, .ddr-extra-assignment, .ddr-combo-dropdown,
+        .ddr-route-note input
+    ) {
+        background: var(--gct-theme-input);
+        color: var(--gct-theme-fg);
+        border-color: var(--gct-theme-control-border);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #ddrEncodeModal :is(
+        .ddr-report-heading strong, .ddr-multi-header strong,
+        .ddr-trip-one-heading strong, .ddr-sched-title,
+        .ddr-number-preview > label, .ddr-form-label
+    ) { color: var(--gct-theme-fg); }
+
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #ddrEncodeModal .ddr-exception-choice:has(input:checked) {
+        background: var(--gct-theme-hover);
+        border-color: var(--gct-theme-accent);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #ddrEncodeModal .ddr-form-note strong {
+        color: var(--gct-theme-fg);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #ddrEncodeModal :is(.ddr-exception-choice-copy small, .ddr-form-note span) {
+        color: var(--gct-theme-muted);
+    }
+
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+        .current-assignment-trip, .attendance-trip-date,
+        .assignment-table .schedule-cell strong, .assignment-table .route-cell strong,
+        .assignment-table .driver-info strong, .assignment-bus-info strong,
+        .unified-trip-date strong, .unified-trip-resource strong,
+        .ddr-table td > strong, .ddr-driver-cell > span, .ddr-route-cell > span,
+        .client-master-page .client-master-bus-count,
+        .gct-table-popover-heading strong, .gct-table-filter-field > span:first-child
+    ) { color: var(--gct-theme-fg); }
+
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+        .operation-dashboard-page .section-eyebrow,
+        .operation-dashboard-page .fleet-legend-row > span,
+        .gct-table-popover-help, .gct-table-search-popover small,
+        .ui-form-modal-header p, .route-modal p, .ddr-record-header p,
+        .ddr-record-info span, .ctt-client-card p
+    ) { color: var(--gct-theme-muted); }
+
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+        .ddr-table thead, .ddr-table th, .trip-table thead, .trip-table th,
+        .inc-table thead, .inc-table th, .availability-table thead,
+        .availability-table th, .assignment-table th,
+        .ddr-record-table th, .unit-records-table th
+    ) {
+        background: var(--gct-theme-surface-raised);
+        color: var(--gct-theme-muted);
+        border-color: var(--gct-theme-border);
+    }
+
+    /* Form portals live outside main; give their controls their own scope. */
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+        .ui-form-modal, .ddr-record-dialog, .batch-attendance-modal
+    ) :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea,
+        .gct-picker-trigger, .ui-input-wrap, .ddr-combo-input,
+        .ddr-combo-dropdown, .driver-bus-picker-panel
+    ) {
+        background: var(--gct-theme-input);
+        color: var(--gct-theme-fg);
+        border-color: var(--gct-theme-control-border);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+        .ui-form-modal, .ddr-record-dialog, .batch-attendance-modal
+    ) :is(label, .ui-form-label, .gct-picker-trigger-label) {
+        color: var(--gct-theme-fg);
+    }
+}
+
+@media screen {
+    /* Existing modal ID rules outrank class-only theme selectors. Match their
+       roots explicitly; all changes here remain palette-only. */
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+        #busModal, #editBusModal, #viewBusModal,
+        #clientMasterCreateModal, #clientMasterDetailModal, #viewDriverAttendanceModal,
+        #viewAssignmentModal, #tripDetailModal, #availabilityBusModal, #incidentRecordModal
+    ) :is(
+        .ui-form-modal, .ui-form-modal-header, .ui-form-modal-body, .ui-form-actions,
+        .ui-form-section,
+        .bus-details-modal, .bus-details-header, .bus-details-footer,
+        .bus-details-grid > div, .bus-details-route,
+        .client-master-form-section, .client-master-readonly-panel,
+        .trip-modal-header, .trip-overview-section, .trip-assigned-section,
+        .trip-execution-section, .trip-detail-item, .trip-modal-actions,
+        .inc-record-modal, .inc-record-modal-header, .inc-modal-section,
+        .inc-modal-kpis > div, .inc-modal-timeline, .inc-record-full-details,
+        .inc-record-modal-cancel, .inc-record-modal-close
+    ) {
+        background: var(--gct-theme-surface);
+        color: var(--gct-theme-fg);
+        border-color: var(--gct-theme-border);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+        #busModal, #editBusModal, #viewBusModal,
+        #clientMasterCreateModal, #clientMasterDetailModal, #viewDriverAttendanceModal,
+        #viewAssignmentModal, #tripDetailModal, #availabilityBusModal, #incidentRecordModal
+    ) :is(h2, h3, label, dt, dd, .ui-form-section-title,
+        .bus-details-section strong, .ui-form-label,
+        .inc-modal-kpis strong, .inc-modal-timeline strong) { color: var(--gct-theme-fg); }
+
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #incidentRecordModal :is(
+        .inc-modal-kpis small, .inc-modal-timeline small, .inc-record-modal-header p
+    ) { color: var(--gct-theme-muted); }
+
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+        #busModal, #editBusModal,
+        #clientMasterCreateModal, #clientMasterDetailModal
+    ) :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea,
+        .ui-input-wrap, .gct-picker-trigger
+    ) {
+        background: var(--gct-theme-input);
+        color: var(--gct-theme-fg);
+        border-color: var(--gct-theme-control-border);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .assignment-table .trip-group-heading span {
+        color: var(--gct-theme-muted);
+    }
+}
+
+/* Client Master shared Add/Edit/View dark palette. Keep compact layouts in
+   client-master-list.css; theme every read-only profile surface here. */
+@media screen {
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+        #clientMasterCreateModal, #clientMasterDetailModal
+    ) {
+        --client-dialog-surface: var(--gct-theme-surface);
+        --client-dialog-raised: var(--gct-theme-surface-raised);
+        --client-dialog-fg: var(--gct-theme-fg);
+        --client-dialog-muted: var(--gct-theme-muted);
+        --client-dialog-border: var(--gct-theme-border);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+        #clientMasterCreateModal, #clientMasterDetailModal
+    ) :is(
+        .client-master-detail-summary > div,
+        .client-profile-identity, .client-profile-detail-grid > div,
+        .client-master-form-section
+    ) {
+        background: var(--client-dialog-raised);
+        border-color: var(--client-dialog-border);
+        color: var(--client-dialog-fg);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+        #clientMasterCreateModal, #clientMasterDetailModal
+    ) :is(
+        .client-master-detail-summary strong, .client-profile-identity-text strong,
+        .client-profile-section-header strong, .client-profile-detail-grid dd,
+        .client-master-form-section h3
+    ) {
+        color: var(--client-dialog-fg);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+        #clientMasterCreateModal, #clientMasterDetailModal
+    ) :is(
+        .client-master-detail-summary small, .client-profile-identity-text small,
+        .client-profile-section-header small, .client-profile-detail-grid dt,
+        .client-profile-view-footnote, .client-master-form-note
+    ) {
+        color: var(--client-dialog-muted);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+        #clientMasterCreateModal, #clientMasterDetailModal
+    ) :is(.client-profile-identity-icon, .client-profile-section-icon) {
+        background: #203d61;
+        color: #b5d4ff;
+        border-color: #36577e;
+    }
+}
+
+/* Shared Route palette for New/Edit (#routeModal) and read-only View
+   (#routeDetailsModal). Keep sizes, layouts, map tiles and semantic messages
+   in routes-stops.css; this is the one dark-only presentation layer. */
+@media screen {
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(#routeModal, #routeDetailsModal) {
+        --route-dialog-bg: var(--gct-theme-surface);
+        --route-dialog-raised: var(--gct-theme-surface-raised);
+        --route-dialog-input: var(--gct-theme-input);
+        --route-dialog-border: var(--gct-theme-border);
+        --route-dialog-fg: var(--gct-theme-fg);
+        --route-dialog-muted: var(--gct-theme-muted);
+    }
+
+    /* Modal chrome, section panels, and legacy white gradient headers. */
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(#routeModal, #routeDetailsModal) :is(
+        .ui-form-modal, .ui-form-modal-header, .ui-form-modal-body,
+        .ui-form-content, .ui-form-actions, .ui-form-section,
+        .route-editor-section, .route-view-modal, .route-view-header,
+        .route-view-body, .route-view-information, .route-view-map-card,
+        .route-view-path-card, .route-view-card, .route-view-card-header,
+        .route-editor-section > .ui-form-section-header,
+        .route-view-path-scroll, .horizontal-route-card, .route-editor-summary,
+        .route-editor-summary-item, .route-stop-item, .ui-form-repeater-row,
+        .route-form-map-active-field, .route-map-active-field,
+        .route-view-map-source, .route-detail-value, .gps-detail-card
+    ) {
+        background: var(--route-dialog-bg) !important;
+        color: var(--route-dialog-fg);
+        border-color: var(--route-dialog-border);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(#routeModal, #routeDetailsModal) :is(
+        .route-editor-section > .ui-form-section-header, .route-view-card-header,
+        .route-view-path-scroll, .horizontal-route-card, .route-editor-summary,
+        .route-editor-summary-item, .route-stop-item, .ui-form-repeater-row,
+        .route-view-map-source, .gps-detail-card
+    ) {
+        background: var(--route-dialog-raised) !important;
+    }
+
+    /* Titles and field labels formerly hardcoded navy in the view dialog. */
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(#routeModal, #routeDetailsModal) :is(
+        .ui-form-heading h2, .ui-form-section-header h3, .ui-form-section-title,
+        .ui-form-group > label, .ui-form-label,
+        .route-view-header h2, .route-view-card-header h3,
+        .route-view-field > span, .route-view-field > strong,
+        .route-view-field .route-detail-value, .route-view-path-scroll strong,
+        .horizontal-route-content strong, .route-editor-summary strong,
+        .route-editor-summary-item strong, .gps-detail-card strong
+    ) { color: var(--route-dialog-fg) !important; }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(#routeModal, #routeDetailsModal) :is(
+        .ui-form-heading p, .ui-form-section-header p,
+        .route-view-header p, .route-view-card-header p, .route-view-map-note,
+        .route-name-guidance, .route-form-map-note,
+        .route-editor-summary small, .route-editor-summary-item small,
+        .horizontal-route-content span, .gps-detail-card span
+    ) { color: var(--route-dialog-muted) !important; }
+
+    /* Inputs, read-only values and ordinary toolbars (not warning/success). */
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(#routeModal, #routeDetailsModal) :is(
+        input:not([type="checkbox"]):not([type="radio"]), select, textarea,
+        .ui-input-wrap, .route-stop-location-field,
+        .gct-picker-trigger, .route-view-field > strong,
+        .route-view-field .route-detail-value, #viewRouteStatus
+    ) {
+        background: var(--route-dialog-input) !important;
+        border-color: var(--route-dialog-border);
+        color: var(--route-dialog-fg) !important;
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(#routeModal, #routeDetailsModal) :is(
+        input[readonly], input:disabled, select:disabled
+    ) {
+        background: var(--route-dialog-raised) !important;
+        color: var(--route-dialog-fg) !important;
+        border-color: var(--route-dialog-border);
+        opacity: 1;
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(#routeModal, #routeDetailsModal) :is(input, textarea)::placeholder {
+        color: var(--gct-theme-placeholder);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(#routeModal, #routeDetailsModal) :is(
+        .route-view-map-source, .route-form-map-active-field, .route-map-active-field,
+        .route-form-map-tool-btn, .route-form-fit-map-btn,
+        .gps-fit-map-btn, .ui-form-close, .route-view-close,
+        .route-stops-section .ui-form-section-action .ui-btn-small
+    ) {
+        background: var(--route-dialog-raised) !important;
+        color: var(--route-dialog-fg) !important;
+        border-color: var(--route-dialog-border);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(#routeModal, #routeDetailsModal) :is(
+        .route-form-map-tool-btn, .route-form-fit-map-btn, .gps-fit-map-btn,
+        .ui-form-close, .route-view-close
+    ):disabled { color: var(--route-dialog-muted) !important; opacity: .6; }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(#routeModal, #routeDetailsModal) :is(
+        .route-editor-section > .ui-form-section-header .ui-form-section-icon,
+        .route-view-section-icon, .ui-form-repeater-number, .route-editor-summary-icon
+    ) {
+        background: #203d61 !important;
+        color: #b5d4ff !important;
+        border-color: #36577e;
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(#routeModal, #routeDetailsModal) :is(
+        .route-view-eyebrow, .route-view-map-source i
+    ) { color: #b5d4ff !important; }
+
+    /* OpenStreetMap autocomplete is a native Route popup. Match the modal's
+       palette and keep the result list inside a compact scrollable region. */
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #routeModal .location-suggestion-panel {
+        box-sizing: border-box;
+        max-height: min(228px, 30dvh);
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        background: var(--route-dialog-bg);
+        color: var(--route-dialog-fg);
+        border-color: var(--route-dialog-border);
+        box-shadow: 0 14px 32px rgba(0, 0, 0, .32);
+        scrollbar-color: #58708f var(--route-dialog-bg);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #routeModal .location-suggestion-heading {
+        background: var(--route-dialog-raised);
+        color: var(--route-dialog-muted);
+        border-bottom: 1px solid var(--route-dialog-border);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #routeModal .location-suggestion-item {
+        background: var(--route-dialog-bg);
+        color: var(--route-dialog-fg);
+        border-bottom-color: var(--route-dialog-border);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #routeModal .location-suggestion-item:is(:hover, :focus-visible, .active) {
+        background: var(--gct-theme-hover);
+        color: var(--route-dialog-fg);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #routeModal .location-suggestion-copy strong {
+        color: var(--route-dialog-fg);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #routeModal .location-suggestion-copy small,
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #routeModal :is(
+        .location-suggestion-loading, .location-suggestion-empty
+    ) {
+        color: var(--route-dialog-muted);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #routeModal .location-suggestion-copy mark {
+        color: #a8ccff;
+        background: transparent;
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #routeModal .location-suggestion-icon {
+        background: #213c60;
+        color: #b5d4ff;
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #routeModal .location-source-badge {
+        background: var(--route-dialog-raised);
+        color: var(--route-dialog-muted);
+        border: 1px solid var(--route-dialog-border);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #routeModal .location-suggestion-error {
+        background: #41252c;
+        color: #ffc2c9;
+    }
+
+    /* Read-only Route Details: restore contrast on semantic badges, count and
+       close control. These were overridden by generic dark foreground rules. */
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #routeDetailsModal #viewRouteStatus .route-status.active {
+        background: #173d2a !important;
+        border-color: #347b51 !important;
+        color: #c0f4d0 !important;
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #routeDetailsModal #viewRouteStatus .route-status.inactive {
+        background: #49242b !important;
+        border-color: #884657 !important;
+        color: #ffc1c9 !important;
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #routeDetailsModal .route-path-count {
+        background: #203d61 !important;
+        border-color: #456999 !important;
+        color: #d8e9ff !important;
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #routeDetailsModal .route-modal-close {
+        background: var(--route-dialog-raised) !important;
+        border-color: var(--route-dialog-border) !important;
+        color: var(--route-dialog-fg) !important;
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #routeDetailsModal .route-modal-close:hover {
+        background: #49242b !important;
+        border-color: #884657 !important;
+        color: #ffc1c9 !important;
+    }
+
+    /* Keep the light legend readable without recoloring geographic map tiles. */
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #routeModal .route-editor-map-legend {
+        background: var(--route-dialog-raised) !important;
+        color: var(--route-dialog-fg) !important;
+        border-color: var(--route-dialog-border);
+    }
+}
+
+@media screen {
+    /* Embedded incident pages already hydrate the account theme. Their legacy
+       workflow cards need the same semantic palette as the parent dialog. */
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+        .inc-workflow-dialog, .inc-workflow-header, .inc-workflow-frame,
+        .inc-wf-identity, .inc-wf-tabs, .inc-wf-panel, .inc-wf-side-card,
+        .inc-wf-step-card, .inc-wf-details-grid > div, .inc-wf-update-card,
+        .inc-wf-records-grid article, .inc-context-panel
+    ) {
+        background: var(--gct-theme-surface);
+        color: var(--gct-theme-fg);
+        border-color: var(--gct-theme-border);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+        .inc-wf-details-highlight, .inc-wf-details-description,
+        .inc-wf-records-footnote, .inc-wf-update-context, .inc-wf-records-overview,
+        .inc-wf-parallel-heading, .inc-workflow-parallel-heading,
+        .inc-bus-trip-context, .inc-context-panel-head, .inc-context-panel-foot
+    ) {
+        background: var(--gct-theme-surface-raised);
+        color: var(--gct-theme-fg);
+        border-color: var(--gct-theme-border);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+        .inc-workflow-header h2, .inc-wf-identity-copy h1,
+        .inc-wf-identity-copy strong, .inc-wf-panel h2, .inc-wf-panel h3,
+        .inc-wf-side-card h2, .inc-wf-side-card dd, .inc-wf-details-section-title,
+        .inc-wf-update-context strong, .inc-wf-records-overview strong,
+        .inc-wf-update-form-heading strong, .inc-wf-update-form label,
+        .inc-context-panel-head h3, .inc-bus-trip-context strong
+    ) { color: var(--gct-theme-fg); }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+        .inc-workflow-header p, .inc-wf-identity-copy p, .inc-wf-step-head p,
+        .inc-wf-side-card dt, .inc-wf-details-highlight p,
+        .inc-wf-details-eyebrow, .inc-wf-details-grid dt,
+        .inc-wf-details-grid dd small, .inc-wf-details-footnote,
+        .inc-wf-progress-caption, .inc-wf-parallel-heading small,
+        .inc-context-panel-head p, .inc-bus-trip-context small
+    ) { color: var(--gct-theme-muted); }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .inc-wf-tabs button {
+        color: var(--gct-theme-muted);
+        background: transparent;
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .inc-wf-tabs button:is(.is-active, :hover) {
+        color: var(--gct-theme-accent);
+        background: var(--gct-theme-surface-raised);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(.inc-wf-panel, .inc-context-panel) :is(input:not([type="checkbox"]), select, textarea) {
+        background: var(--gct-theme-input);
+        color: var(--gct-theme-fg);
+        border-color: var(--gct-theme-control-border);
+    }
+}
+
+@media screen {
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(.app.inc-embedded-workflow, .inc-workflow-board) {
+        background: var(--gct-theme-canvas);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .inc-wf-step-note:not(.is-success) {
+        background: var(--gct-theme-surface-raised);
+        color: var(--gct-theme-muted);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .inc-wf-inline-form > label {
+        color: var(--gct-theme-fg);
+    }
+}
+
+@media screen {
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page :is(h2, h3, .auto-calendar-month) {
+        color: var(--gct-theme-fg);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page .section-eyebrow:not(.warning) {
+        color: var(--gct-theme-accent);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page :is(.auto-calendar-day:not(.is-selected), .auto-calendar-empty) {
+        background: var(--gct-theme-surface);
+        color: var(--gct-theme-fg);
+        border-color: var(--gct-theme-border);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page .auto-calendar-day:not(.is-selected):hover {
+        background: var(--gct-theme-hover);
+    }
+}
+
+/* Auto Scheduling: dark panel/empty-state readability and controls.
+   Scoped to the interactive app so the paper print stylesheet stays light. */
+@media screen {
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page :is(
+    .auto-empty-state, .auto-calendar-detail, .auto-calendar-grid-panel,
+    .auto-calendar-progress-label, .auto-calendar-legend,
+    .auto-calendar-note, .resource-card
+  ) {
+    color: var(--gct-theme-fg);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page :is(
+    .auto-empty-state strong, .auto-empty-state > i,
+    .resource-count, .auto-calendar-progress-label strong,
+    .auto-calendar-progress-label span, .auto-calendar-month,
+    .resource-info strong, .auto-calendar-detail-heading h3
+  ) {
+    color: var(--gct-theme-fg);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page :is(
+    .auto-empty-state span, .resource-info span, .auto-calendar-note,
+    .auto-calendar-legend, .auto-calendar-detail-heading p
+  ) {
+    color: var(--gct-theme-muted);
+  }
+  /* Scheduling Rules cards use fixed light-mode ink in auto-dispatch.css.
+     Keep the existing cards and check indicators; only restore readable text
+     in the Operation dark theme without affecting Light Mode or print. */
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page .scheduling-rules-card .rule-item strong {
+    color: var(--gct-theme-fg);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page .scheduling-rules-card .rule-item span {
+    color: var(--gct-theme-muted);
+  }
+  /* The light metric tiles need dark semantic text in either theme. */
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page .auto-calendar-weekdays span {
+    color: #c5d3e6;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page .auto-calendar-weekdays span:first-child {
+    color: #ff7777;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page .auto-calendar-weekdays span:last-child {
+    color: #79aaff;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page .auto-calendar-metric.is-total :is(strong, span) {
+    color: #174ea7;
+    opacity: 1;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page .auto-calendar-metric.is-pending :is(strong, span) {
+    color: #8e5900;
+    opacity: 1;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page .auto-calendar-metric.is-assigned :is(strong, span) {
+    color: #10743a;
+    opacity: 1;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page .auto-schedule-table :is(th, td) {
+    color: var(--gct-theme-fg);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page .auto-schedule-table thead th {
+    background: var(--gct-theme-surface-raised);
+    color: var(--gct-theme-muted);
+    border-color: var(--gct-theme-border);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page .auto-table-wrap .auto-schedule-table tbody tr:has(.auto-empty-state) td {
+    background: var(--gct-theme-surface);
+    border-color: var(--gct-theme-border);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page .auto-sticky-actions {
+    background: var(--gct-theme-surface);
+    color: var(--gct-theme-muted);
+    border-color: var(--gct-theme-border);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page .auto-sticky-actions :is(p, span, small) {
+    color: var(--gct-theme-muted);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page :is(
+    .auto-calendar-metric, .auto-scheduling-assurance, .auto-scheduling-summary,
+    .auto-calendar-date-trigger
+  ) {
+    border-color: var(--gct-theme-border);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page :is(
+    .auto-scheduling-summary, .auto-calendar-date-trigger, .auto-scheduling-assurance
+  ) {
+    background: var(--gct-theme-surface-raised);
+    color: var(--gct-theme-fg);
+  }
+}
+
+/* Shared date/time pickers are body portals, outside the parent form modal.
+   Keep the bridge on Operation screens so other departments and print retain
+   their existing palette, positioning, selected days and yellow primary action. */
+@media screen {
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+        .gct-picker-popover, .gct-calendar-panel, .gct-time-panel,
+        .gct-picker-close, .gct-picker-secondary, .gct-period-toggle,
+        .gct-time-preview
+    ) {
+        background: var(--gct-theme-surface);
+        color: var(--gct-theme-fg);
+        border-color: var(--gct-theme-border);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+        .gct-picker-heading, .gct-picker-footer, .gct-datetime-layout > * + *
+    ) { border-color: var(--gct-theme-border); }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+        .gct-picker-heading span, .gct-time-column label,
+        .gct-calendar-weekdays span, .gct-period-toggle button:not(.is-active)
+    ) { color: var(--gct-theme-muted); }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+        .gct-calendar-nav-btn, .gct-time-preview i
+    ) { color: var(--gct-theme-accent); }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .gct-time-select {
+        background: var(--gct-theme-input);
+        color: var(--gct-theme-fg);
+        border-color: var(--gct-theme-control-border);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .gct-calendar-day:not(.is-selected) {
+        color: var(--gct-theme-fg);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .gct-calendar-day.is-outside:not(.is-selected) {
+        color: var(--gct-theme-muted);
+    }
+    html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+        .gct-calendar-day:not(.is-selected):hover:not(:disabled),
+        .gct-calendar-nav-btn:hover, .gct-picker-close:hover,
+        .gct-picker-secondary:hover
+    ) {
+        background: var(--gct-theme-hover);
+        color: var(--gct-theme-fg);
+    }
+}
+
+/*
+ * Command Center workforce and workspace palette. The page-specific CSS uses
+ * light background shorthands and gradients; override those surfaces here
+ * instead of adding !important rules to the light-mode stylesheet.
+ */
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page :is(
+    .attendance-capacity-summary,
+    .operation-attendance-card .attendance-stat-box,
+    .workspace-link-item
+) {
+    background: var(--gct-theme-surface-raised);
+    border-color: var(--gct-theme-border);
+    color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page :is(
+    .capacity-label, .capacity-val small, .attendance-capacity-legend,
+    .attendance-stat-box__top, .attendance-stat-box__top small,
+    .workspace-link-text small
+) {
+    color: var(--gct-theme-muted);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page :is(
+    .capacity-val, .attendance-stat-box > strong,
+    .workspace-link-title-row strong, .link-chevron
+) {
+    color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page .attendance-capacity-bar {
+    background: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page .workspace-featured-tile {
+    background: linear-gradient(120deg, var(--gct-theme-surface-raised), var(--gct-theme-surface));
+    border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page :is(
+    .workspace-featured-title strong, .workspace-featured-text p
+) {
+    color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page .workspace-featured-action {
+    background: var(--gct-theme-surface-raised);
+    color: var(--gct-theme-fg);
+    border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page .workspace-featured-tile:hover .workspace-featured-action {
+    background: var(--gct-theme-hover);
+    border-color: var(--gct-theme-focus);
+    color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page .workspace-ai-capabilities span {
+    background: var(--gct-theme-surface-raised);
+    color: #c7ddff;
+    border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page .workspace-ai-capabilities span:nth-child(2) {
+    background: #153c30;
+    color: #a6ebc9;
+    border-color: #326752;
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page .workspace-ai-capabilities span:nth-child(3) {
+    background: #44252e;
+    color: #ffc0cb;
+    border-color: #784351;
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page .workspace-ai-capabilities span:nth-child(4) {
+    background: #302547;
+    color: #dbc2ff;
+    border-color: #5d4a83;
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page .workspace-link-item:hover {
+    background: var(--gct-theme-hover);
+    border-color: var(--gct-theme-focus);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page .workspace-link-item :is(.workspace-status-chip, .workspace-link-icon) {
+    border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page .workspace-link-item .workspace-status-chip:not(.is-green):not(.is-blue):not(.is-purple):not(.is-red):not(.is-ai) {
+    background: var(--gct-theme-surface-raised);
+    color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page .attendance-capacity-summary .capacity-badge.is-full {
+    background: #153c30;
+    color: #a6ebc9;
+    border-color: #326752;
+}
+/* Attendance tags and semantic status chips keep their original meaning. */
+
+/*
+ * Dashboard contrast repair. The Command Center uses its own reference-table,
+ * fulfillment and fleet classes; generic .table-card rules cannot reach them.
+ * Match the exact dashboard descendants rather than overriding global tables.
+ */
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page :is(
+    .operation-fulfillment-banner, .operation-reference-table-wrap,
+    .operation-fleet-status-stack .fleet-status-item,
+    .operation-scheduling-alert, .operation-trip-item
+) {
+    background: var(--gct-theme-surface);
+    color: var(--gct-theme-fg);
+    border-color: var(--gct-theme-border);
+}
+
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page .operation-reference-table {
+    background: var(--gct-theme-surface);
+    color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page .operation-reference-table thead th {
+    background: var(--gct-theme-surface-raised);
+    color: var(--gct-theme-muted);
+    border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page .operation-reference-table tbody tr > td {
+    background: var(--gct-theme-surface);
+    color: var(--gct-theme-fg);
+    border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page .operation-reference-table tbody tr:hover > td {
+    background: var(--gct-theme-hover);
+}
+/* Keep action cells synchronized with the row's actual background. */
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page .operation-reference-table tbody tr > td:last-child {
+    background: var(--gct-theme-surface);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page .operation-reference-table tbody tr:hover > td:last-child {
+    background: var(--gct-theme-hover);
+}
+
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page :is(
+    .operation-client-name, .operation-driver-info strong,
+    .operation-time-chip, .fulfillment-metric__value strong,
+    .operation-trip-route strong, .operation-fleet-details-title,
+    .fleet-status-item__title-row strong
+) {
+    color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page :is(
+    .operation-route-subtitle, .operation-bus-plate,
+    .operation-reference-footer, .fulfillment-metric__label,
+    .fulfillment-metric__total, .fleet-status-item__body small,
+    .operation-trip-meta
+) {
+    color: var(--gct-theme-muted);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page :is(
+    .operation-trip-code-chip, .operation-reference-view:not(.is-cta)
+) {
+    background: var(--gct-theme-surface-raised);
+    border-color: var(--gct-theme-border);
+    color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page .operation-reference-view:not(.is-cta):hover {
+    background: var(--gct-theme-hover);
+    color: var(--gct-theme-fg);
+    border-color: var(--gct-theme-focus);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page .operation-fleet-status-stack .fleet-status-item:hover {
+    background: var(--gct-theme-hover);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page :is(
+    .operation-fleet-visual, .fleet-status-item__progress, .operation-slot-progress-bar
+) {
+    border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page .fleet-status-item__progress {
+    background: var(--gct-theme-surface-raised);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page :is(
+    .operation-incidents-card, .operation-reports-card
+) .meta-chip {
+    background: var(--gct-theme-surface-raised);
+    color: var(--gct-theme-fg);
+    border: 1px solid var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .operation-dashboard-page :is(
+    .operation-incidents-card, .operation-reports-card
+) .activity-status > a {
+    color: #90bdff;
+}
+
+/* Semantic incoming/outgoing and ready/maintenance badges retain their own
+ * meaning, while their surroundings use the dark palette. */
+
+/* Driver & Bus Assignment: readable content in calendar and assignment modals. */
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .assignment-page :is(
+    .assignment-date-trigger, .assignment-date-trigger:hover,
+    .assignment-date-trigger[aria-expanded="true"]
+) {
+    background: var(--gct-theme-surface-raised);
+    border-color: var(--gct-theme-control-border);
+    color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .assignment-page :is(
+    .assignment-date-copy small, .assignment-calendar-hint,
+    .assignment-calendar-weekdays, .assignment-calendar-legend-grid > span,
+    .assignment-calendar-footer
+) { color: var(--gct-theme-muted); }
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .assignment-page :is(
+    .assignment-date-copy strong, .assignment-calendar-heading strong,
+    .assignment-calendar-month strong, .assignment-calendar-legend > strong
+) { color: var(--gct-theme-fg); }
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .assignment-page :is(
+    .assignment-calendar-heading button, .assignment-calendar-month button,
+    .assignment-calendar-footer button
+) {
+    background: var(--gct-theme-surface-raised);
+    border-color: var(--gct-theme-border);
+    color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .assignment-page .assignment-calendar-day {
+    color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .assignment-page .assignment-calendar-day.is-selected {
+    background: #28466b;
+    border-color: #79aaff;
+    color: #fff;
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .assignment-page :is(
+    .assignment-calendar-legend, .assignment-calendar-footer
+) { border-color: var(--gct-theme-border); }
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .assignment-page .assignment-table .assignment-client-route-group th {
+    background: var(--gct-theme-surface-raised);
+    color: var(--gct-theme-fg);
+    border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .assignment-page .assignment-table .assignment-client-route-group :is(span, strong) {
+    color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .assignment-page .assignment-table .assignment-resource-empty strong {
+    color: #d6e4f7;
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .assignment-page .assignment-date-trigger .assignment-date-copy :is(small, strong) {
+    color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #viewAssignmentModal .assignment-detail-card {
+    background: var(--gct-theme-surface-raised);
+    border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #viewAssignmentModal .assignment-detail-card label {
+    color: var(--gct-theme-muted);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #viewAssignmentModal .assignment-detail-value {
+    color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #assignmentModal :is(
+    .assignment-pair-trip, .assignment-fleet-tab,
+    .assignment-driver-choice, .assignment-bus-choice
+) {
+    background: var(--gct-theme-surface-raised);
+    border-color: var(--gct-theme-border);
+    color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #assignmentModal :is(
+    .assignment-fleet-tab.is-active,
+    .assignment-driver-choice.is-selected, .assignment-bus-choice.is-selected
+) {
+    background: #28466b;
+    border-color: #77aaff;
+    color: #fff;
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #assignmentModal :is(
+    .assignment-pair-trip-main strong, .assignment-pair-header strong,
+    .assignment-step-heading strong, .assignment-driver-choice strong,
+    .assignment-bus-choice strong, .assignment-fleet-tab,
+    .assignment-driver-first-step .assignment-step-heading strong
+) { color: var(--gct-theme-fg); }
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #assignmentModal :is(
+    .assignment-pair-trip-main span, .assignment-pair-header small,
+    .assignment-step-heading span, .assignment-driver-choice small,
+    .assignment-bus-choice small, .assignment-fleet-note
+) { color: var(--gct-theme-muted); }
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #assignmentModal :is(
+    .ui-form-actions, .ui-form-modal-body
+) {
+    background: var(--gct-theme-surface);
+    border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-operation-page="1"] #assignmentModal :is(
+    .assignment-driver-choice:hover, .assignment-bus-choice:hover
+) { background: var(--gct-theme-hover); }
+
+
+/* Operation dropdown surface audit: standalone legacy searchable menus.
+   Unlike the shared Search/Filter/Sort toolbar, these lists were hardcoded
+   white. Scope to Operation Dark Mode; preserve hidden/display and workflow
+   state classes, reserve semantics, and native Light Mode styling. */
+@media screen {
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .attendance-combobox-menu,
+    .assignment-combobox-menu,
+    .inc-bus-lookup-results,
+    .location-suggestion-panel
+  ) {
+    background: var(--gct-theme-surface-raised, #203047);
+    color: var(--gct-theme-fg, #edf3fc);
+    border-color: var(--gct-theme-control-border, #465a76);
+    scrollbar-color: #536a88 transparent;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .attendance-combobox-option,
+    .assignment-combobox-option,
+    .inc-bus-lookup-option,
+    .location-suggestion-item
+  ) {
+    background: transparent;
+    color: var(--gct-theme-fg, #edf3fc);
+    border-color: var(--gct-theme-border, #35465e);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .attendance-combobox-option,
+    .assignment-combobox-option,
+    .inc-bus-lookup-option,
+    .location-suggestion-item
+  ):is(:hover, :focus-visible, .active) {
+    background: var(--gct-theme-hover, #293a52);
+    color: var(--gct-theme-fg, #edf3fc);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .attendance-combobox-option,
+    .assignment-combobox-option
+  ).selected {
+    background: #28466b;
+    color: #f2f7ff;
+    box-shadow: inset 0 0 0 1px #8bbaff;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .attendance-combobox-option,
+    .assignment-combobox-option,
+    .inc-bus-lookup-option,
+    .location-suggestion-item
+  ) strong {
+    color: var(--gct-theme-fg, #edf3fc);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .attendance-combobox-option,
+    .assignment-combobox-option,
+    .inc-bus-lookup-results,
+    .location-suggestion-item
+  ) :is(small, p) {
+    color: var(--gct-theme-muted, #b1bfd2);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .attendance-combobox-empty,
+    .assignment-combobox-empty,
+    .inc-bus-lookup-results > p
+  ) {
+    color: var(--gct-theme-muted, #b1bfd2);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .attendance-combobox-search input,
+    .assignment-combobox-search input
+  ) {
+    background: var(--gct-theme-input, #101b2b);
+    color: var(--gct-theme-fg, #edf3fc);
+    border-color: var(--gct-theme-control-border, #465a76);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] :is(
+    .attendance-combobox-search input,
+    .assignment-combobox-search input
+  )::placeholder {
+    color: var(--gct-theme-placeholder, #879ab3);
+    opacity: 1;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .inc-bus-trip-context {
+    background: var(--gct-theme-surface-raised, #203047);
+    border-color: var(--gct-theme-border, #35465e);
+    color: var(--gct-theme-fg, #edf3fc);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"]
+    .inc-bus-trip-context small {
+    color: var(--gct-theme-muted, #b1bfd2);
+  }
+}

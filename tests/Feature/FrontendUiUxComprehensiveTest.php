@@ -380,16 +380,16 @@ class FrontendUiUxComprehensiveTest extends TestCase
 
     public function test_topbar_has_no_horizontal_divider_across_modules(): void
     {
-        // 1. Verify CSS files enforce no topbar bottom border or pseudo divider
+        // One shared theme contract prevents dividers; page styles must not duplicate it.
         $mainCss = file_get_contents(resource_path('css/Main-styles/main.css'));
         $designCss = file_get_contents(resource_path('css/Admin/Analytics/design-system.css'));
         $themeCss = file_get_contents(resource_path('css/Main-styles/theme.css'));
         $enhancementsCss = file_get_contents(resource_path('css/Main-styles/shared-ui-enhancements.css'));
 
-        $this->assertStringContainsString('border-bottom: none !important', $mainCss);
-        $this->assertStringContainsString('border-bottom: none !important', $designCss);
+        $this->assertStringNotContainsString('.topbar::after', $mainCss);
+        $this->assertStringNotContainsString('.topbar::after', $designCss);
         $this->assertStringContainsString('border-bottom: none !important', $themeCss);
-        $this->assertStringContainsString('border-bottom: none !important', $enhancementsCss);
+        $this->assertStringNotContainsString('.topbar::after', $enhancementsCss);
 
         // 2. Verify all five departments render topbar without <hr> or hardcoded divider markup
         $modulePages = [
@@ -885,7 +885,7 @@ class FrontendUiUxComprehensiveTest extends TestCase
         $this->assertStringContainsString("profileMenu.setAttribute('aria-hidden', 'false')", $sidebarScript);
         $this->assertStringContainsString('Compact account menu: GCT', $sidebarStyles);
 
-        $this->assertStringContainsString('<details class="account-card account-summary-card account-details-disclosure" open>', $profile);
+        $this->assertStringContainsString('class="account-card account-activity-card"', $profile);
         $this->assertStringContainsString('account-profile-grid', $profile);
         $this->assertStringContainsString("route('account.profile.update', [], false)", $profile);
         $this->assertStringContainsString("route('account.profile.photo.update', [], false)", $profile);
@@ -895,10 +895,14 @@ class FrontendUiUxComprehensiveTest extends TestCase
         $this->assertStringContainsString('account-nav-tabs', $profile);
         $this->assertStringContainsString('account-profile-metrics', $profile);
         $this->assertStringContainsString('account-profile-photo-fields', $profile);
-        $this->assertStringContainsString('Critical profile-header geometry', $profile);
-        $this->assertStringContainsString('width="80" height="80"', $profile);
-        $this->assertStringContainsString('object-fit:cover;border-radius:50%', $profile);
-        $this->assertStringContainsString('grid-template-columns: repeat(3, minmax(0, 1fr))', $profile);
+        $this->assertStringContainsString('account-quick-actions', $profile);
+        $this->assertStringContainsString('account-activity-timeline', $profile);
+        $this->assertStringContainsString("route('account.settings')", $profile);
+        $this->assertStringNotContainsString('Changed password</strong>', $profile);
+        $this->assertStringContainsString('aria-label="Profile summary"', $profile);
+        $this->assertStringContainsString('width="96" height="96"', $profile);
+        $this->assertStringNotContainsString('style="display:grid;place-items:center;', $profile);
+        $this->assertStringContainsString('account-profile-primary', $profile);
         $this->assertStringContainsString('data-avatar-change-button', $profile);
         $this->assertSame(1, substr_count($profile, 'data-avatar-upload-form'));
         $this->assertSame(1, substr_count($profile, 'action="{{ route(\'account.profile.update\', [], false) }}"'));
@@ -907,7 +911,7 @@ class FrontendUiUxComprehensiveTest extends TestCase
         $this->assertStringContainsString('System Access', $profile);
         $this->assertStringContainsString('Account History', $profile);
         $this->assertStringContainsString('Member Since', $profile);
-        $this->assertStringContainsString('Last Login Recorded', $profile);
+        $this->assertStringContainsString('Last recorded sign-in', $profile);
         $this->assertStringContainsString("route('account.personalization')", $profile);
         $this->assertStringContainsString("route('account.preferences')", $profile);
         $this->assertStringNotContainsString('<input type="text" value="{{ $department }}" readonly>', $profile);
@@ -935,9 +939,9 @@ class FrontendUiUxComprehensiveTest extends TestCase
         // The sticky-actions utility uses a light default background unless
         // its semantic dark-mode properties are explicitly provided.
         $this->assertStringContainsString('Routes dark-mode contrast contract', $styles);
-        $this->assertStringContainsString('--gct-sticky-actions-background: #1d2b40', $styles);
-        $this->assertStringContainsString('--gct-sticky-actions-heading: #243750', $styles);
-        $this->assertStringContainsString('--gct-sticky-actions-hover: #293c56', $styles);
+        $this->assertStringContainsString('--gct-sticky-actions-background: var(--gct-theme-surface, #1d2b40)', $styles);
+        $this->assertStringContainsString('--gct-sticky-actions-heading: var(--gct-theme-surface-raised, #243750)', $styles);
+        $this->assertStringContainsString('--gct-sticky-actions-hover: var(--gct-theme-hover, #293c56)', $styles);
         // Auto-ID badges use a global black-text !important rule. Their
         // narrow Routes dark-mode override must restore readable ID text.
         $this->assertStringContainsString('.routes-table tbody td:first-child .system-id-badge', $styles);
@@ -1080,4 +1084,116 @@ class FrontendUiUxComprehensiveTest extends TestCase
         $this->assertStringContainsString('data-personnel-modal', $html);
         $this->assertStringContainsString('data-personnel-view-notice', $html);
     }
+    public function test_incident_management_dark_mode_covers_form_and_workflow_cards(): void
+    {
+        $css = file_get_contents(resource_path('css/Operation/Incidents/incidents.css'));
+
+        foreach ([
+            '.inc-page .inc-table thead :is(th, td)',
+            '#incidentReportModal .inc-bus-trip-summary',
+            '#incidentReportModal .inc-summary-detail strong',
+            '#incidentReportModal .inc-form-note',
+            '.inc-wf-details-grid dd',
+            '.inc-wf-records-grid article > strong',
+            '.inc-wf-details-description',
+        ] as $selector) {
+            $this->assertStringContainsString($selector, $css);
+        }
+
+        $this->assertStringContainsString(
+            'html[data-gct-theme="dark"] body[data-gct-operation-page="1"]',
+            $css
+        );
+    }
+
+    public function test_incident_records_dark_mode_overrides_legacy_light_table_and_badges(): void
+    {
+        $css = file_get_contents(resource_path('css/Operation/Incidents/incidents.css'));
+
+        $this->assertStringContainsString('Incident Records Active/History — verified dark table selectors', $css);
+        $this->assertStringContainsString('background-color: #22324a !important;', $css);
+        foreach ([
+            '.inc-page .inc-table td .inc-type-pill.breakdown',
+            '.inc-page .inc-table td .inc-type-pill.accident',
+            '.inc-page .inc-table td .inc-status-dot-pill[data-ui-component="status-badge"]',
+            '[data-status-key="resolved"]',
+            '.inc-page .inc-table .inc-record-actions .inc-action:not(:disabled):not(.inc-action-disabled)',
+            '.inc-page .inc-table .inc-history-actions button.inc-history-view-action',
+            '.inc-page .inc-table .inc-incident-id-cell .system-id-badge',
+        ] as $selector) {
+            $this->assertStringContainsString($selector, $css);
+        }
+        $this->assertStringContainsString('html[data-gct-theme="dark"] body[data-gct-operation-page="1"]', $css);
+    }
+
+    public function test_incident_records_compact_table_and_shared_action_cells_have_no_divider(): void
+    {
+        $incident = file_get_contents(resource_path('css/Operation/Incidents/incidents.css'));
+        $shared = file_get_contents(resource_path('css/Main-styles/gct-scrollbar.css'));
+
+        $this->assertStringContainsString('Compact Incident Records in both Active / History', $incident);
+        $this->assertStringContainsString('.inc-page .inc-table :is(th, td):nth-child(6) { width: 13%; }', $incident);
+        $this->assertStringContainsString('.inc-page .inc-table td .inc-status-dot-pill[data-ui-component="status-badge"]', $incident);
+        $this->assertStringContainsString('background: #1b2a40;', $incident);
+        $this->assertStringContainsString('One shared seamless Action rule for all table widths.', $shared);
+        $this->assertStringContainsString('box-shadow: none !important;', $shared);
+        $this->assertStringContainsString('border-left: 0 !important;', $shared);
+        $this->assertStringNotContainsString('box-shadow: -1px 0 0 #dce5ef', $shared);
+    }
+    public function test_read_only_incident_details_modal_uses_compact_responsive_cards(): void
+    {
+        $view = file_get_contents(resource_path('views/Operation/Incidents/index.blade.php'));
+        $styles = file_get_contents(resource_path('css/Operation/Incidents/incidents.css'));
+
+        $this->assertStringContainsString('data-incident-view-panel', $view);
+        $this->assertStringContainsString('data-incident-edit-panel', $view);
+        $this->assertStringContainsString('Compact read-only Incident Details: balanced desktop cards', $styles);
+        $this->assertStringContainsString('grid-template-columns: repeat(2, minmax(0, 1fr));', $styles);
+        $this->assertStringContainsString('@media screen and (max-width: 760px)', $styles);
+        $this->assertStringContainsString(
+            '#incidentRecordModal [data-incident-view-panel]:not([hidden])',
+            $styles
+        );
+    }
+
+
+    public function test_security_settings_dashboard_preserves_password_form_and_theme_navigation(): void
+    {
+        $blade = file_get_contents(resource_path('views/Account/settings.blade.php'));
+        $css = file_get_contents(resource_path('css/Account/account.css'));
+
+        $this->assertStringContainsString('account-security-hero', $blade);
+        $this->assertStringContainsString('account-security-grid', $blade);
+        $this->assertStringContainsString('account-security-tabs', $blade);
+        $this->assertStringContainsString("route('account.personalization', [], false)", $blade);
+        $this->assertStringNotContainsString('Coming soon', $blade);
+        $this->assertStringContainsString("route('account.password.update', [], false)", $blade);
+        foreach (['currentPassword', 'newPassword', 'confirmPassword', 'pwStrengthBar', 'pwMatchFeedback'] as $id) {
+            $this->assertStringContainsString('id="' . $id . '"', $blade);
+        }
+        $this->assertStringContainsString('data-target="currentPassword"', $blade);
+        $this->assertStringContainsString('data-target="newPassword"', $blade);
+        $this->assertStringContainsString('data-target="confirmPassword"', $blade);
+        $this->assertStringContainsString('data-rbac-preview', $blade);
+        $this->assertStringContainsString('Account Security Center: compact, distinct from My Profile', $css);
+        $this->assertStringContainsString('html[data-gct-theme="dark"] .account-page:has(.account-security-hero)', $css);
+        $this->assertStringContainsString('@media (max-width: 730px)', $css);
+    }
+
+    public function test_dark_topbar_controls_and_account_sidebar_expansion(): void
+    {
+        $topbarCss = file_get_contents(resource_path('css/Main-styles/topbar.css'));
+        $sidebar = file_get_contents(resource_path('views/components/layout/sidebar.blade.php'));
+        $sidebarJs = file_get_contents(resource_path('js/Main-js/sidebar.js'));
+
+        $this->assertStringContainsString(
+            'html[data-gct-theme="dark"] body .topbar .top-actions > .topbar-action-item > .icon-btn > i',
+            $topbarCss
+        );
+        $this->assertStringContainsString('color: #e7f1ff;', $topbarCss);
+        $this->assertStringContainsString("request()->is('account/*')", $sidebar);
+        $this->assertStringContainsString('data-account-page=', $sidebar);
+        $this->assertStringContainsString("profileMenu.dataset.accountPage === '1'", $sidebarJs);
+    }
+
 }

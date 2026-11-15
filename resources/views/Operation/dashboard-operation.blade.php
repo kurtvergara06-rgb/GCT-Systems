@@ -754,7 +754,6 @@
                                     <div class="activity-top-line">
                                         <x-ui.id-badge :value="$incident->incident_no" />
                                         <strong class="activity-title">{{ $incident->incident_type }}</strong>
-                                        <span class="activity-time">{{ $incident->incident_reported_at ? $incident->incident_reported_at->diffForHumans() : 'Recently' }}</span>
                                     </div>
                                     <p class="activity-description">
                                         {{ $incident->description ?: 'No additional details logged.' }}
@@ -762,16 +761,15 @@
                                     <div class="activity-meta">
                                         @if($incident->bus)
                                             <span class="meta-chip meta-chip-bus"><i class="fa-solid fa-bus"></i> {{ $incident->bus->bus_no }}</span>
-                                            <span class="meta-sep">&middot;</span>
                                         @endif
                                         @if($incident->tripSchedule)
                                             <span class="meta-chip meta-chip-trip"><i class="fa-solid fa-route"></i> {{ $incident->tripSchedule->trip_code }}</span>
-                                            <span class="meta-sep">&middot;</span>
                                         @endif
                                         <span class="meta-chip meta-chip-loc"><i class="fa-solid fa-location-dot"></i> {{ $incident->location ?: 'Location unrecorded' }}</span>
                                     </div>
                                 </div>
                                 <div class="activity-status">
+                                    <span class="activity-time">{{ $incident->incident_reported_at ? $incident->incident_reported_at->diffForHumans() : 'Recently' }}</span>
                                     <x-ui.status-badge :status="$incident->status" type="default" />
                                     <a href="{{ route('incidents.show', $incident, false) }}" aria-label="View incident {{ $incident->incident_no }}">
                                         <span>View</span>
@@ -864,7 +862,6 @@
                                     <div class="activity-top-line">
                                         <x-ui.id-badge :value="$report->ddr_no" />
                                         <strong class="activity-title">{{ $report->driver_name ?: 'Driver report' }}</strong>
-                                        <span class="activity-time">{{ $report->report_date?->format('M j, Y') ?? 'Date unavailable' }}</span>
                                     </div>
                                     <p class="activity-description">
                                         <span class="route-from">{{ $report->from_location }}</span>
@@ -874,18 +871,16 @@
                                     <div class="activity-meta">
                                         @if($report->bus)
                                             <span class="meta-chip meta-chip-bus"><i class="fa-solid fa-bus"></i> {{ $report->bus->bus_no }}</span>
-                                            <span class="meta-sep">&middot;</span>
                                         @endif
                                         @if($reportTrip)
                                             <span class="meta-chip meta-chip-trip"><i class="fa-solid fa-route"></i> {{ $reportTrip->trip_code }}</span>
-                                            <span class="meta-sep">&middot;</span>
                                         @endif
                                         <span class="meta-chip meta-chip-passengers"><i class="fa-solid fa-users"></i> {{ $reportPassengers }} pax</span>
-                                        <span class="meta-sep">&middot;</span>
                                         <span class="meta-chip meta-chip-km"><i class="fa-solid fa-road"></i> {{ number_format($reportDistance, 1) }} km</span>
                                     </div>
                                 </div>
                                 <div class="activity-status">
+                                    <span class="activity-time">{{ $report->report_date?->format('M j, Y') ?? 'Date unavailable' }}</span>
                                     <span class="ddr-status-chip is-confirmed"><i class="fa-solid fa-check"></i> Logged</span>
                                     <a href="{{ route('daily-driver-reports', [], false) }}" aria-label="View DDR {{ $report->ddr_no }}">
                                         <span>View</span>

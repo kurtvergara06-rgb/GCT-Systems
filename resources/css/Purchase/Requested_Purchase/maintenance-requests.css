@@ -1421,9 +1421,6 @@ main.purchase-maintenance-requests-page .requested-purchase-table td.requested-p
 }
 
 /* Parts Requests typography: match the Maintenance requisition reference. */
-main.purchase-maintenance-requests-page .requested-purchase-table {
-  font-family:inherit !important;
-}
 main.purchase-maintenance-requests-page .requested-purchase-table td.requested-pr-quantity {
   font-family:inherit !important;
   font-size:11px !important;

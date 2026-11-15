@@ -18,6 +18,7 @@
     id="topbarActions"
     data-summary-url="{{ route('topbar.summary', [], false) }}"
     data-read-all-url="{{ route('topbar.notifications.read-all', [], false) }}"
+    data-history-url="{{ route('topbar.notifications.history', [], false) }}"
   >
     <div class="topbar-action-item">
       <button
@@ -58,6 +59,7 @@
             <p>Important updates from your department will appear here.</p>
           </div>
         </div>
+        <div class="topbar-dropdown-footer"><button type="button" class="topbar-view-all" data-topbar-history="notifications">View all notifications</button></div>
       </div>
     </div>
 
@@ -90,6 +92,7 @@
             <p>Tasks that require action will appear here.</p>
           </div>
         </div>
+        <div class="topbar-dropdown-footer"><button type="button" class="topbar-view-all" id="showAllPendingActions" hidden>View all pending actions</button></div>
       </div>
     </div>
 
@@ -122,7 +125,31 @@
             <p>Recent changes made in the system will appear here.</p>
           </div>
         </div>
+        <div class="topbar-dropdown-footer"><button type="button" class="topbar-view-all" data-topbar-history="activity">View all activity</button></div>
       </div>
     </div>
+  </div>
+  <div class="topbar-history-backdrop" id="topbarHistoryDialog" role="dialog" aria-modal="true" aria-labelledby="topbarHistoryTitle" hidden>
+    <section class="topbar-history-panel" tabindex="-1">
+      <div class="topbar-history-header">
+        <div>
+          <h2 id="topbarHistoryTitle">Notification History</h2>
+          <p>Browse your department's recorded updates.</p>
+        </div>
+        <button type="button" class="topbar-history-close" id="topbarHistoryClose" aria-label="Close notification history"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="topbar-history-controls" role="group" aria-label="Notification history filters">
+        <button type="button" class="is-active" data-history-state="all" aria-pressed="true">All</button>
+        <button type="button" data-history-state="unread" aria-pressed="false">Unread</button>
+      </div>
+      <div class="topbar-history-list" id="topbarHistoryList" aria-live="polite"></div>
+      <div class="topbar-history-footer">
+        <span id="topbarHistoryCount">Showing notifications</span>
+        <div>
+          <button type="button" class="topbar-history-nav" id="topbarHistoryPrevious">Previous</button>
+          <button type="button" class="topbar-history-nav" id="topbarHistoryNext">Next</button>
+        </div>
+      </div>
+    </section>
   </div>
 </header>

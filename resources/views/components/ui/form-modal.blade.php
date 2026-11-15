@@ -13,6 +13,7 @@
     'formId' => null,
     'action' => '#',
     'method' => 'POST',
+    'enctype' => null,
 
     'submitText' => 'Save',
     'submitTextId' => null,
@@ -127,6 +128,7 @@
 
             action="{{ $action }}"
             method="POST"
+            @if($enctype) enctype="{{ $enctype }}" @endif
 
             class="ui-form-content"
 

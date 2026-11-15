@@ -215,16 +215,24 @@ html:has(body.modal-open) {
     background: #7188a4;
   }
 
-  /* Never draw the sticky-column divider on a table that fits. The stronger
-     no-overflow rule also clears old page-local shadows (e.g. Auto Scheduling). */
-  main .gct-responsive-records.gct-sticky-actions:not(.has-horizontal-overflow) > table > thead > tr > th:last-child,
-  main .gct-responsive-records.gct-sticky-actions:not(.has-horizontal-overflow) > table > tbody > tr > td:last-child:not([colspan]) {
+  /* One shared seamless Action rule for all table widths.
+     Sticky positioning remains conditional on horizontal overflow below. */
+  main .gct-responsive-records.gct-sticky-actions > table > thead > tr > th:last-child,
+  main .gct-responsive-records.gct-sticky-actions > table > tbody > tr > td:last-child:not([colspan]) {
     box-shadow: none !important;
+    border-left: 0 !important;
   }
-  main .gct-responsive-records.gct-sticky-actions.has-horizontal-overflow > table > thead > tr > th:last-child,
-  main .gct-responsive-records.gct-sticky-actions.has-horizontal-overflow > table > tbody > tr > td:last-child:not([colspan]) {
-    box-shadow: -1px 0 0 #dce5ef, -8px 0 12px -12px rgba(15, 23, 42, .30);
+  main .gct-responsive-records.gct-sticky-actions:not(.has-horizontal-overflow) > table > thead > tr > th:last-child {
+    right: auto;
+    /* Match the other header cells while preserving vertical stickiness. */
+    background: var(--gct-sticky-actions-heading, #f3f7fc);
   }
+  main .gct-responsive-records.gct-sticky-actions:not(.has-horizontal-overflow) > table > tbody > tr > td:last-child:not([colspan]) {
+    position: static;
+    right: auto;
+    background: inherit;
+  }
+
 
   main .gct-drag-scroll-ready { cursor: grab; }
   main .gct-drag-scroll-ready.is-drag-scrolling { cursor: grabbing; user-select: none; }

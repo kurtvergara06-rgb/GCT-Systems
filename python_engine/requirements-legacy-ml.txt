@@ -1,0 +1,4 @@
+# Optional development-only dependency for the legacy synthetic PyTorch scheduling scorer.
+# Not needed for production GCT predictions on constrained Render instances.
+-r requirements.txt
+torch>=2.6,<3

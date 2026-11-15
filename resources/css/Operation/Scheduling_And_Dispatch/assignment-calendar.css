@@ -5,7 +5,7 @@
 @media(max-width:760px){.assignment-page .assignment-calendar-toolbar{align-items:stretch}.assignment-page .assignment-calendar-toolbar .assignment-record-controls{justify-content:flex-start}}
 /* Scoped assignment status date picker, visually aligned with Trip Schedule. */
 .assignment-page .assignment-date-picker{position:relative;z-index:40;margin:0 0 8px;display:inline-block;max-width:100%}
-.assignment-page .assignment-date-trigger{display:flex;gap:9px;align-items:center;padding:6px 9px;background:#f8fbff;border:1px solid #dbe6f5;border-radius:10px;color:#173456;cursor:pointer;text-align:left;min-height:42px}
+.assignment-page .assignment-date-trigger{display:flex;gap:9px;align-items:center;padding:6px 9px;background:var(--gct-ui-surface-hover, #f8fbff);border:1px solid #dbe6f5;border-radius:10px;color:#173456;cursor:pointer;text-align:left;min-height:42px}
 .assignment-page .assignment-date-trigger:hover,.assignment-page .assignment-date-trigger[aria-expanded=true]{background:#eaf3ff;border-color:#b8d2fa}
 .assignment-page .assignment-date-trigger:focus-visible{outline:2px solid #2563eb;outline-offset:2px}
 .assignment-page .assignment-date-icon{display:grid;place-items:center;background:#e8f1ff;color:#155bb8;width:29px;height:29px;border-radius:8px}
@@ -13,7 +13,7 @@
 .assignment-page .assignment-date-copy small{color:#637893;font-size:10px}
 .assignment-page .assignment-date-copy strong{color:#153457;font-size:12px}
 .assignment-page .assignment-date-trigger>.fa-chevron-down{font-size:10px;color:#54739c}
-.assignment-page .assignment-date-calendar{position:absolute;left:0;top:calc(100% + 8px);z-index:120;width:325px;max-width:calc(100vw - 28px);box-sizing:border-box;background:#fff;border:1px solid #dce6f3;border-radius:13px;box-shadow:0 18px 46px rgba(15,35,68,.19);padding:15px}
+.assignment-page .assignment-date-calendar{position:absolute;left:0;top:calc(100% + 8px);z-index:120;width:325px;max-width:calc(100vw - 28px);box-sizing:border-box;background:var(--gct-ui-surface, #fff);border:1px solid #dce6f3;border-radius:13px;box-shadow:0 18px 46px rgba(15,35,68,.19);padding:15px}
 .assignment-page .assignment-date-calendar[hidden]{display:none!important}
 .assignment-page .assignment-calendar-heading,.assignment-page .assignment-calendar-month,.assignment-page .assignment-calendar-footer{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .assignment-page .assignment-calendar-heading strong,.assignment-page .assignment-calendar-month strong{font-size:13px;font-weight:800;color:#173456}

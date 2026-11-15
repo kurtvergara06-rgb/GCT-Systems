@@ -16,6 +16,14 @@ const palette = {
     grid: 'rgba(148, 163, 184, 0.16)',
 };
 
+const chartAppearance = (root) => {
+    const styles = getComputedStyle(root);
+    return {
+        text: styles.getPropertyValue('--gct-ui-text').trim() || palette.navy,
+        muted: styles.getPropertyValue('--gct-ui-muted').trim() || '#64748b',
+    };
+};
+
 const destroyChart = (canvas) => {
     if (canvas) Chart.getChart(canvas)?.destroy();
 };
@@ -85,7 +93,7 @@ const operationBarValueLabels = {
                 const value = Number(dataset.data[pointIndex] ?? 0);
                 if (!Number.isFinite(value)) return;
                 const y = Math.max(chartArea.top + 12, bar.y - 7);
-                ctx.fillStyle = value === 0 ? '#94a3b8' : (options.colors?.[index] ?? '#102846');
+                ctx.fillStyle = value === 0 ? options.zeroColor : (options.colors?.[index] ?? options.textColor);
                 ctx.fillText(String(value), bar.x, y);
             });
         });
@@ -99,6 +107,7 @@ const renderTripPerformance = (root, dataElement) => {
     destroyChart(canvas);
 
     const points = parseData(dataElement, 'tripPerformance', []);
+    const appearance = chartAppearance(root);
     new Chart(canvas, {
         type: 'bar',
         data: {
@@ -130,9 +139,6 @@ const renderTripPerformance = (root, dataElement) => {
         },
         plugins: [operationBarValueLabels],
         options: {
-            plugins: {
-                operationBarValueLabels: { colors: ['#1d4ed8', '#059669'] },
-            },
             responsive: true,
             maintainAspectRatio: false,
             animation: { duration: 400, easing: 'easeOutQuart' },
@@ -141,7 +147,7 @@ const renderTripPerformance = (root, dataElement) => {
                 x: {
                     grid: { display: false },
                     ticks: {
-                        color: '#64748b',
+                        color: appearance.muted,
                         font: { family: 'Poppins', size: 11, weight: 600 },
                     },
                 },
@@ -150,7 +156,7 @@ const renderTripPerformance = (root, dataElement) => {
                     grace: '18%',
                     ticks: {
                         precision: 0,
-                        color: '#64748b',
+                        color: appearance.muted,
                         font: { family: 'Poppins', size: 10 },
                     },
                     grid: {
@@ -161,7 +167,7 @@ const renderTripPerformance = (root, dataElement) => {
                 },
             },
             plugins: {
-                operationBarValueLabels: { colors: ['#1d4ed8', '#059669'] },
+                operationBarValueLabels: { colors: [appearance.text, appearance.text], textColor: appearance.text, zeroColor: appearance.muted },
                 legend: {
                     display: false,
                     labels: {
@@ -169,7 +175,7 @@ const renderTripPerformance = (root, dataElement) => {
                         pointStyle: 'circle',
                         boxWidth: 8,
                         boxHeight: 8,
-                        color: palette.navy,
+                        color: appearance.text,
                         font: { family: 'Poppins', size: 11, weight: 600 },
                         padding: 14,
                     },
@@ -205,6 +211,7 @@ const renderIncidentTrend = (root, dataElement) => {
     destroyChart(canvas);
 
     const points = parseData(dataElement, 'incidentPerformance', []);
+    const appearance = chartAppearance(root);
     new Chart(canvas, {
         type: 'bar',
         data: {
@@ -227,18 +234,18 @@ const renderIncidentTrend = (root, dataElement) => {
             scales: {
                 x: {
                     grid: { display: false },
-                    ticks: { color: '#64748b', font: { family: 'Poppins', size: 10, weight: 600 } },
+                    ticks: { color: appearance.muted, font: { family: 'Poppins', size: 10, weight: 600 } },
                 },
                 y: {
                     beginAtZero: true,
                     grace: '20%',
-                    ticks: { precision: 0, color: '#64748b', font: { family: 'Poppins', size: 9 } },
+                    ticks: { precision: 0, color: appearance.muted, font: { family: 'Poppins', size: 9 } },
                     grid: { color: palette.grid, borderDash: [2, 2] },
                     border: { display: false },
                 },
             },
             plugins: {
-                operationBarValueLabels: { colors: ['#dc2626'] },
+                operationBarValueLabels: { colors: [appearance.text], textColor: appearance.text, zeroColor: appearance.muted },
                 legend: { display: false },
                 tooltip: {
                     backgroundColor: palette.navy,
@@ -265,7 +272,28 @@ const initializeDashboard = (root) => {
     renderIncidentTrend(root, dataElement);
 
 
+    // Canvas text does not inherit CSS when the account theme changes.
+    const themeObserver = new MutationObserver(() => {
+        const appearance = chartAppearance(root);
+        for (const selector of ['#operationTripPerformanceChart', '#operationIncidentTrendChart']) {
+            const canvas = root.querySelector(selector);
+            const chart = canvas && Chart.getChart(canvas);
+            if (!chart) continue;
+            for (const scale of Object.values(chart.options.scales)) {
+                if (scale.ticks) scale.ticks.color = appearance.muted;
+            }
+            const labels = chart.options.plugins.operationBarValueLabels;
+            labels.colors = chart.data.datasets.map(() => appearance.text);
+            labels.textColor = appearance.text;
+            labels.zeroColor = appearance.muted;
+            if (chart.options.plugins.legend.labels) chart.options.plugins.legend.labels.color = appearance.text;
+            chart.update('none');
+        }
+    });
+    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-gct-theme'] });
+
     return () => {
+        themeObserver.disconnect();
         destroyChart(root.querySelector('#operationFleetChart'));
         destroyChart(root.querySelector('#operationTripPerformanceChart'));
         destroyChart(root.querySelector('#operationIncidentTrendChart'));

@@ -535,13 +535,11 @@
   min-width: 0; display: flex; flex-direction: column; gap: 7px;
   padding: 5px 13px; border-right: 1px solid #e1e8f2;
 }
-#viewItemRequestModal .ir-view-document-summary > div:last-child { border-right: 0; }
 #viewItemRequestModal .ir-view-document-summary span { font-size: 10px; letter-spacing: .04em; font-weight: 750; color: #637795; }
 #viewItemRequestModal .ir-view-document-summary strong { font-size: 12px; font-weight: 800; color: #17365d; overflow-wrap: anywhere; }
 #viewItemRequestModal .ir-view-document-summary .ir-view-document-number strong { font-size: 19px; color: #103465; }
 #viewItemRequestModal .ir-view-document-summary small { font-size: 10px; color: #73839b; }
 #viewItemRequestModal .ir-view-document-summary .ir-view-status { width: max-content; max-width: 100%; white-space: normal; font-size: 11px; }
-#viewItemRequestModal .ir-view-document-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; align-items: stretch; }
 #viewItemRequestModal .ir-view-document-columns > .ir-view-panel { min-width: 0; margin: 0; }
 #viewItemRequestModal .ir-view-panel { border: 1px solid #d9e5f4; border-radius: 11px; background: #fff; overflow: hidden; }
 #viewItemRequestModal .ir-view-panel-header { padding: 13px 15px; background: #f1f6fd; }
@@ -561,7 +559,6 @@
   grid-template-columns: 35px minmax(0,2fr) minmax(110px,.65fr) minmax(140px,.8fr);
   background: #eef4fc; color: #415a78; font-size: 10px; font-weight: 800;
 }
-#viewItemRequestModal .ir-view-document-table .ir-view-parts-list { display: block; padding: 0; margin: 0; }
 #viewItemRequestModal .ir-view-document-table .ir-view-part-row {
   grid-template-columns: minmax(0,2fr) minmax(110px,.65fr) minmax(140px,.8fr);
   border: 0; border-top: 1px solid #e2eaf4; border-radius: 0; background: #fff;

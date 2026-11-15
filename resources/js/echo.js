@@ -20,15 +20,30 @@ window.GCTRealtimeConfig = Object.freeze({
     event: 'SystemDataUpdated',
 });
 
-window.Echo = window.Echo || new Echo({
-    broadcaster: 'reverb',
-    key: import.meta.env.VITE_REVERB_APP_KEY,
-    wsHost: reverbHost,
-    wsPort: reverbPort,
-    wssPort: reverbPort,
-    forceTLS: reverbUsesTls,
-    enabledTransports: ['ws', 'wss'],
-});
+// A missing public app key is a configuration problem, not a socket outage.
+// Avoid initializing Pusher with an empty key (which otherwise produces
+// repeated connection errors and may interrupt unrelated page JavaScript).
+const reverbAppKey = String(import.meta.env.VITE_REVERB_APP_KEY || '').trim();
+window.GCTRealtimeConfigurationReady = reverbAppKey.length > 0;
+// Always expose diagnostic status, even when configuration is incomplete and
+// no Echo connection can be constructed.
+window.GCTRealtimeHealth = {
+    state: window.GCTRealtimeConfigurationReady ? 'initializing' : 'disabled',
+    changedAt: new Date().toISOString(),
+};
+if (!window.GCTRealtimeConfigurationReady) {
+    console.warn('Realtime is disabled: VITE_REVERB_APP_KEY is not configured in the built assets.');
+} else {
+    window.Echo = window.Echo || new Echo({
+        broadcaster: 'reverb',
+        key: reverbAppKey,
+        wsHost: reverbHost,
+        wsPort: reverbPort,
+        wssPort: reverbPort,
+        forceTLS: reverbUsesTls,
+        enabledTransports: ['ws', 'wss'],
+    });
+}
 
 window.realtimePageRouteMap = {
     'Warehouse:PurchaseRequest': ['/warehouse/dashboard','/inventory','/part-requests','/warehouse/stock-movements','/purchase-requests','/job-orders','/maintenance-requests','/maintenance-dashboard','/purchase-orders','/admin/dashboard'],
@@ -300,10 +315,31 @@ window.listenForSystemUpdates = function () {
 
     if (!window.systemUpdatesConnectionBindingsStarted) {
         window.systemUpdatesConnectionBindingsStarted = true;
-        window.Echo.connector.pusher.connection.bind('connected', () => {
-            console.log('Realtime connected to Reverb.', window.GCTRealtimeConfig);
+        const connection = window.Echo.connector?.pusher?.connection;
+        // Public diagnostics only: never include the app secret, auth headers,
+        // private channels, event payloads, or signed connection parameters.
+        window.GCTRealtimeHealth = {
+            state: connection?.state || 'unavailable',
+            changedAt: new Date().toISOString(),
+        };
+        connection?.bind('state_change', ({ current }) => {
+            window.GCTRealtimeHealth = {
+                state: current,
+                changedAt: new Date().toISOString(),
+            };
         });
-        window.Echo.connector.pusher.connection.bind('error', (error) => console.error('Realtime Reverb connection error:', error));
+        connection?.bind('connected', () => {
+            console.info('Realtime connected to Reverb.', window.GCTRealtimeConfig);
+        });
+        connection?.bind('error', (error) => {
+            // The original error remains visible for troubleshooting, while
+            // GCTRealtimeHealth provides a safe, persistent state indicator.
+            console.error('Realtime Reverb connection error:', error);
+            window.GCTRealtimeHealth = {
+                state: connection?.state || 'error',
+                changedAt: new Date().toISOString(),
+            };
+        });
     }
 
     window.Echo.channel('system-updates').listen('.SystemDataUpdated', (payload) => {

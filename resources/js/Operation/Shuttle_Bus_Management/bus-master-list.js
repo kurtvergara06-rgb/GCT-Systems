@@ -475,7 +475,7 @@ window.GCTPartialNavigation.registerInitializer('operation-bus-master-list', '.b
             routeGrouping: button.dataset.displayRoute || button.dataset.routeGrouping,
             clientAllocation: button.dataset.clientAllocationType
                 ? button.dataset.clientAllocationType + ' — ' + (button.dataset.clientNames || '')
-                : 'Not allocated',
+                : (button.dataset.clientNames || 'Not allocated'),
             authorizedDrivers: button.dataset.authorizedDrivers || 'No authorized driver',
         };
         for (const [key, value] of Object.entries(fields)) {

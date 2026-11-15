@@ -207,9 +207,9 @@ class OperationAutoSchedulingTest extends TestCase
             ->get(route('auto-scheduling'))
             ->assertOk()
             ->assertSee('data-status-url="'.route('auto-scheduling.ai.training-status').'"', false)
-            ->assertSee('Bus: Checking...')
-            ->assertSee('Driver: Checking...')
-            ->assertSee('Alternative Score Sources')
+            ->assertSee('Bus Model: Checking...')
+            ->assertSee('Driver Model: Checking...')
+            ->assertSee('AI / ML Engine')
             ->assertSee('Generate rule-eligible driver and bus recommendations for Operations review');
     }
 

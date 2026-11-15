@@ -1,11 +1,22 @@
+import os
 import re
 
-try:
-    import spacy
+# Keep the old NLP enrichment available by explicit opt-in only.
+# Importing spaCy during module import unnecessarily consumes free-tier RAM.
+nlp = None
 
-    nlp = spacy.load("en_core_web_sm")
-except Exception:
-    nlp = None
+
+def _optional_spacy():
+    global nlp
+    if os.getenv("GCT_ENABLE_SPACY_NLP", "false").strip().lower() not in {"1", "true", "yes", "on"}:
+        return None
+    if nlp is None:
+        try:
+            import spacy
+            nlp = spacy.load("en_core_web_sm")
+        except (ImportError, OSError):
+            return None
+    return nlp
 
 
 HEADER_ALIASES = {
@@ -460,8 +471,9 @@ def extract_label_value(text, labels):
 def extract_entities(text: str) -> dict:
     detected_locations = []
 
-    if nlp is not None:
-        doc = nlp(text)
+    model = _optional_spacy()
+    if model is not None:
+        doc = model(text)
 
         detected_locations = [
             entity.text

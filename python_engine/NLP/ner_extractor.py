@@ -7,6 +7,7 @@ are added only when ``en_core_web_sm`` is actually installed.
 
 from __future__ import annotations
 
+import os
 import re
 from typing import Iterable
 
@@ -22,6 +23,10 @@ _SPACY_LOCK = Lock()
 
 def _get_spacy_model():
     global _NLP, _SPACY_READY, _SPACY_ATTEMPTED
+    # Rule-based extraction is the low-memory default; spaCy enrichment is
+    # explicitly opt-in because its language model can exceed free-tier RAM.
+    if os.getenv("GCT_ENABLE_SPACY_NLP", "false").strip().lower() not in {"1", "true", "yes", "on"}:
+        return None
     if _SPACY_ATTEMPTED:
         return _NLP
     with _SPACY_LOCK:

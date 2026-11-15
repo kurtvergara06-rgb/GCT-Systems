@@ -295,7 +295,7 @@
 
 
 .schedule-field label {
-    color: #334155;
+    color: var(--gct-ui-text, #334155);
 
     font-size: 12px;
     font-weight: 700;
@@ -330,12 +330,12 @@
 
     padding: 0 12px 0 36px;
 
-    background: #ffffff;
+    background: var(--gct-ui-input, #ffffff);
 
-    border: 1px solid var(--auto-border);
+    border: 1px solid var(--gct-ui-border, var(--auto-border));
     border-radius: 9px;
 
-    color: var(--auto-text);
+    color: var(--gct-ui-text, var(--auto-text));
 
     font-size: 13px;
 
@@ -703,7 +703,7 @@
     border: 1px solid #e2e8f0;
     border-radius: 14px;
     overflow: hidden;
-    background: #ffffff;
+    background: var(--gct-ui-surface, #ffffff);
     box-shadow: 0 2px 10px rgba(15, 23, 42, 0.035);
     transition: border-color 0.18s ease;
 }
@@ -756,7 +756,7 @@
 
 .auto-scheduling-page .service-direction-heading h3 {
     margin: 0;
-    color: #0f172a;
+    color: var(--gct-ui-text, #0f172a);
     font-size: 17px;
     font-weight: 700;
     line-height: 1.25;
@@ -765,14 +765,13 @@
 .auto-scheduling-page .service-direction-heading p {
     margin: 3px 0 0;
     font-size: 12px;
-    color: #64748b;
+    color: var(--gct-ui-muted, #64748b);
 }
 
 .auto-scheduling-page .service-direction-metrics {
     display: flex;
     align-items: center;
     gap: 10px;
-    flex-wrap: wrap;
     justify-content: flex-end;
 }
 
@@ -781,7 +780,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background: #ffffff;
+    background: var(--gct-ui-surface, #ffffff);
     border: 1px solid #e2e8f0;
     border-radius: 9px;
     padding: 6px 14px;
@@ -792,7 +791,7 @@
 .auto-scheduling-page .service-metric-stat span {
     font-size: 10px;
     font-weight: 600;
-    color: #64748b;
+    color: var(--gct-ui-muted, #64748b);
     text-transform: uppercase;
     letter-spacing: 0.04em;
     line-height: 1;
@@ -801,7 +800,7 @@
 .auto-scheduling-page .service-metric-stat strong {
     font-size: 16px;
     font-weight: 800;
-    color: #0f172a;
+    color: var(--gct-ui-text, #0f172a);
     margin-top: 3px;
     line-height: 1;
 }
@@ -2256,9 +2255,6 @@ body.ai-modal-open {
 }
 
 .auto-scheduling-page .conflict-header .conflict-icon {
-    width: 42px;
-    height: 42px;
-    border-radius: 12px;
     background: #fff7e6;
     color: #d97706;
 }
@@ -2789,23 +2785,10 @@ body.ai-modal-open {
         grid-template-columns: 1fr;
     }
 
-    .gct-conflict-summary-item + .gct-conflict-summary-item {
-        border-top: 1px solid var(--border-color, #e4e9f0);
-        border-left: 0;
-    }
-
     .gct-ai-panel {
         padding: 15px;
     }
 
-    .gct-conflict-actions {
-        flex-direction: column-reverse;
-    }
-
-    .gct-conflict-actions .ai-resolution-btn {
-        justify-content: center;
-        width: 100%;
-    }
 }
 
 
@@ -3249,7 +3232,7 @@ body.ai-modal-open {
 .auto-scheduling-page .rules-enforced-label{display:inline-flex;align-items:center;gap:7px;flex:none;background:#edf4ff;border:1px solid #dce8ff;border-radius:9px;padding:8px 10px;color:#1557c8;font-size:10px;font-weight:750}
 .auto-scheduling-page .rules-enforced-label i{font-size:12px}
 .auto-scheduling-page .scheduling-rules-card .rules-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
-.auto-scheduling-page .scheduling-rules-card .rule-item{min-width:0;min-height:62px;display:flex;align-items:center;gap:10px;padding:11px 12px;background:#f8fafc;border:1px solid #e1eaf5;border-radius:9px}
+.auto-scheduling-page .scheduling-rules-card .rule-item{min-width:0;min-height:62px;display:flex;align-items:center;gap:10px;padding:11px 12px;background:var(--gct-ui-surface-hover, #f8fafc);border:1px solid #e1eaf5;border-radius:9px}
 .auto-scheduling-page .scheduling-rules-card .rule-check{display:grid;place-items:center;width:32px;height:32px;flex:0 0 32px;background:#dcfce7;border-radius:9px;color:#16a34a}
 .auto-scheduling-page .scheduling-rules-card .rule-item>div:last-child{min-width:0}
 .auto-scheduling-page .scheduling-rules-card .rule-item strong{display:block;color:#142745;font-size:11px;font-weight:800;line-height:1.35}
@@ -3273,8 +3256,8 @@ body.ai-modal-open {
     padding: 8px 10px;
     border: 1px solid #dce5f2;
     border-radius: 9px;
-    background: #fff;
-    color: #102a4c;
+    background: var(--gct-ui-surface, #fff);
+    color: var(--gct-ui-text, #102a4c);
     font-size: 11px;
     font-weight: 700;
     cursor: pointer;
@@ -3286,7 +3269,29 @@ body.ai-modal-open {
 .auto-scheduling-page .scheduling-rules-card .rules-grid[hidden] { display: none !important; }
 .auto-scheduling-page .generated-schedule-card { min-height: 390px; }
 .auto-scheduling-page .auto-table-wrap { min-height: 0; }
-.auto-scheduling-page .auto-table-wrap:has(.auto-empty-state) { min-height: 0; }
+/* Empty preview tables use the panel width; no phantom horizontal scrollbar. */
+.auto-scheduling-page .auto-table-wrap:has(.auto-empty-state) {
+    min-height: 0;
+    overflow-x: hidden;
+}
+@media screen {
+    .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions:has(.auto-empty-state) > .auto-schedule-table {
+        width: 100%;
+        min-width: 0;
+        table-layout: auto;
+    }
+    .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions:has(.auto-empty-state) > .auto-schedule-table thead {
+        display: none;
+    }
+    .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions:has(.auto-empty-state) > .auto-schedule-table tbody > tr > td[colspan] {
+        display: table-cell;
+        width: 100%;
+        padding: 0;
+    }
+    .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions:has(.auto-empty-state) > .auto-schedule-table tbody > tr > td[colspan] .auto-empty-state {
+        min-height: 130px;
+    }
+}
 .auto-scheduling-page .auto-table-wrap:has(.auto-empty-state) .auto-empty-state {
     min-height: 114px;
     padding: 14px 12px;
@@ -3364,18 +3369,18 @@ body.ai-modal-open {
     padding: 22px;
     border: 1px solid #dce5f1;
     border-radius: 14px;
-    background: #fff;
-    color: #102a4c;
+    background: var(--gct-ui-surface, #fff);
+    color: var(--gct-ui-text, #102a4c);
     box-shadow: 0 20px 60px #0f172a40;
 }
 .auto-scheduling-page .auto-preview-edit-dialog::backdrop { background: #0f172a80; backdrop-filter: blur(3px); }
 .auto-scheduling-page .auto-preview-edit-form { display: grid; gap: 13px; }
 .auto-scheduling-page .auto-preview-edit-form h3 { margin: 0; font-size: 17px; font-weight: 800; }
-.auto-scheduling-page .auto-preview-edit-context { margin: 0; font-size: 12px; color: #64748b; }
+.auto-scheduling-page .auto-preview-edit-context { margin: 0; font-size: 12px; color: var(--gct-ui-muted, #64748b); }
 .auto-scheduling-page .auto-preview-edit-form label { display: grid; gap: 6px; font-size: 12px; font-weight: 700; }
 .auto-scheduling-page .auto-preview-edit-form select {
     width: 100%; min-height: 39px; padding: 8px 10px;
-    border: 1px solid #d8e2ef; border-radius: 8px; background: #fff; color: #102a4c;
+    border: 1px solid #d8e2ef; border-radius: 8px; background: var(--gct-ui-surface, #fff); color: var(--gct-ui-text, #102a4c);
 }
 .auto-scheduling-page .auto-preview-edit-error { margin: 0; color: #b91c1c; font-size: 12px; }
 .auto-scheduling-page .auto-preview-edit-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 6px; }
@@ -3388,7 +3393,7 @@ body.ai-modal-open {
 
 /* Compact scheduling conflicts workspace with the existing detailed AI report. */
 .auto-scheduling-page .gct-conflict-workspace {display:grid;grid-template-columns:minmax(0,1.6fr) minmax(330px,1fr);gap:14px;align-items:start}
-.auto-scheduling-page .gct-conflict-list,.auto-scheduling-page .gct-conflict-report-panel {min-width:0;background:#fff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden}
+.auto-scheduling-page .gct-conflict-list,.auto-scheduling-page .gct-conflict-report-panel {min-width:0;background:var(--gct-ui-surface, #fff);border:1px solid #e2e8f0;border-radius:12px;overflow:hidden}
 .auto-scheduling-page .gct-conflict-toolbar {padding:12px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
 .auto-scheduling-page .gct-conflict-tabs {display:flex;gap:6px;flex-wrap:wrap}
 .auto-scheduling-page .gct-conflict-tabs button {background:transparent;border:0;border-bottom:2px solid transparent;color:#64748b;padding:8px 10px;font-size:12px;font-weight:700;cursor:pointer}
@@ -3396,17 +3401,17 @@ body.ai-modal-open {
 .auto-scheduling-page [data-gct-conflict-search] {min-width:175px;max-width:255px;width:100%;border:1px solid #e2e8f0;border-radius:9px;padding:9px 11px;font-size:12px}
 .auto-scheduling-page .gct-conflict-table-scroll {max-height:410px;overflow:auto}
 .auto-scheduling-page .gct-conflict-table {width:100%;border-collapse:collapse;font-size:12px}
-.auto-scheduling-page .gct-conflict-table th {position:sticky;top:0;background:#f1f5f9;color:#475569;font-size:10px;text-transform:uppercase;letter-spacing:.04em;text-align:left;padding:12px 9px;z-index:1}
+.auto-scheduling-page .gct-conflict-table th {position:sticky;top:0;background:#f1f5f9;color: var(--gct-ui-muted, #475569);font-size:10px;text-transform:uppercase;letter-spacing:.04em;text-align:left;padding:12px 9px;z-index:1}
 .auto-scheduling-page .gct-conflict-table td {padding:12px 9px;border-top:1px solid #e2e8f0;vertical-align:middle}
 .auto-scheduling-page .gct-conflict-table td strong {display:block;font-size:12px}
-.auto-scheduling-page .gct-conflict-table td small {display:block;font-size:10px;color:#64748b;margin-top:2px}
+.auto-scheduling-page .gct-conflict-table td small {display:block;font-size:10px;color: var(--gct-ui-muted, #64748b);margin-top:2px}
 .auto-scheduling-page .gct-conflict-table tr.is-selected td {background:#eff6ff}
 .auto-scheduling-page .gct-conflict-dir {display:inline-block;font-weight:800;font-size:10px;padding:4px 6px;border-radius:6px;margin-bottom:5px}
 .auto-scheduling-page .gct-conflict-dir.in {color:#1d4ed8;background:#dbeafe}
 .auto-scheduling-page .gct-conflict-dir.out {color:#b45309;background:#fef3c7}
 .auto-scheduling-page .gct-conflict-issue {max-width:200px;color:#334155}
 .auto-scheduling-page .gct-conflict-state {display:inline-block;white-space:nowrap;border-radius:16px;background:#fff7ed;color:#b45309;padding:5px 7px;font-size:10px;font-weight:700}
-.auto-scheduling-page .gct-conflict-view {border:1px solid #93c5fd;background:#fff;color:#1d4ed8;border-radius:7px;font-weight:700;padding:6px 11px;cursor:pointer}
+.auto-scheduling-page .gct-conflict-view {border:1px solid #93c5fd;background:var(--gct-ui-surface, #fff);color:#1d4ed8;border-radius:7px;font-weight:700;padding:6px 11px;cursor:pointer}
 .auto-scheduling-page .gct-conflict-count {padding:10px 12px;margin:0;font-size:11px;color:#64748b}
 .auto-scheduling-page .gct-conflict-report-header {display:flex;justify-content:space-between;gap:8px;padding:15px;border-bottom:1px solid #e2e8f0;font-size:13px}
 .auto-scheduling-page .gct-conflict-report-header i {color:#2563eb}
@@ -3421,14 +3426,9 @@ body.ai-modal-open {
     grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
     align-items: stretch;
 }
-.auto-scheduling-page .gct-conflict-table {
-    table-layout: fixed;
-    min-width: 0;
-}
 .auto-scheduling-page .gct-conflict-table th,
 .auto-scheduling-page .gct-conflict-table td {
     min-width: 0;
-    overflow-wrap: anywhere;
     word-break: normal;
 }
 .auto-scheduling-page .gct-conflict-table th:nth-child(1) { width: 17%; }
@@ -3490,7 +3490,6 @@ body.ai-modal-open {
     text-align: center;
 }
 @media (max-width: 1250px) {
-    .auto-scheduling-page .gct-conflict-workspace { grid-template-columns: minmax(0, 1fr); }
     .auto-scheduling-page .gct-conflict-report-body { max-height: 600px; }
 }
 @media (max-width: 720px) {
@@ -3501,7 +3500,7 @@ body.ai-modal-open {
 }
 
 /* Explicit disclosure of recommendation scoring origin. */
-.auto-scheduling-page .gct-scoring-source {display:block;margin-top:6px;color:#64748b;font-size:10px;line-height:1.4}
+.auto-scheduling-page .gct-scoring-source {display:block;margin-top:6px;color: var(--gct-ui-muted, #64748b);font-size:10px;line-height:1.4}
 .auto-scheduling-page .gct-ai-score {max-width:100%;white-space:normal;text-align:center}
 
 /* Conflict review workspace: compact queue at left, actionable report at right. */
@@ -3522,15 +3521,11 @@ body.ai-modal-open {
 .auto-scheduling-page .gct-conflict-table-scroll { max-height: 570px; }
 .auto-scheduling-page .gct-conflict-table { table-layout: fixed; }
 .auto-scheduling-page .gct-conflict-table th:nth-child(1) { width: 18%; }
-.auto-scheduling-page .gct-conflict-table th:nth-child(2) { width: 16%; }
-.auto-scheduling-page .gct-conflict-table th:nth-child(3) { width: 10%; }
-.auto-scheduling-page .gct-conflict-table th:nth-child(4) { width: 25%; }
 .auto-scheduling-page .gct-conflict-table th:nth-child(5) { width: 11%; }
-.auto-scheduling-page .gct-conflict-table th:nth-child(6) { width: 12%; }
 .auto-scheduling-page .gct-conflict-table th:nth-child(7) { width: 8%; }
 .auto-scheduling-page .gct-conflict-table td { padding: 13px 9px; }
 .auto-scheduling-page .gct-conflict-table tbody tr { cursor: pointer; }
-.auto-scheduling-page .gct-conflict-table tbody tr:hover td { background: #f8fbff; }
+.auto-scheduling-page .gct-conflict-table tbody tr:hover td { background: var(--gct-ui-surface-hover, #f8fbff); }
 .auto-scheduling-page .gct-conflict-table tr.is-selected td {
     background: #eff6ff;
     border-top-color: #bfdbfe;
@@ -3564,14 +3559,14 @@ body.ai-modal-open {
     min-height: 54px;
     align-items: center;
     padding: 14px 16px;
-    color: #102a4c;
+    color: var(--gct-ui-text, #102a4c);
     font-size: 14px;
 }
 .auto-scheduling-page .gct-conflict-report-body {
     max-height: 690px;
     padding: 0;
 }
-.auto-scheduling-page .gct-report { color: #102a4c; }
+.auto-scheduling-page .gct-report { color: var(--gct-ui-text, #102a4c); }
 .auto-scheduling-page .gct-report-trip {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto;
@@ -3586,7 +3581,7 @@ body.ai-modal-open {
 .auto-scheduling-page .gct-report-trip strong { font-size: 13px; }
 .auto-scheduling-page .gct-report-trip > div > span {
     margin-top: 2px;
-    color: #64748b;
+    color: var(--gct-ui-muted, #64748b);
     font-size: 10px;
     overflow-wrap: anywhere;
 }
@@ -3614,13 +3609,13 @@ body.ai-modal-open {
     padding: 10px;
     border: 1px solid #e2e8f0;
     border-radius: 9px;
-    background: #f8fafc;
+    background: var(--gct-ui-surface-hover, #f8fafc);
 }
 .auto-scheduling-page .gct-report-meta i,
 .auto-scheduling-page .gct-report-time-option i { color: #2563eb; }
 .auto-scheduling-page .gct-report-meta span,
 .auto-scheduling-page .gct-report-time-option span {
-    color: #64748b;
+    color: var(--gct-ui-muted, #64748b);
     font-size: 9px;
     min-width: 0;
 }
@@ -3628,7 +3623,7 @@ body.ai-modal-open {
 .auto-scheduling-page .gct-report-time-option strong {
     display: block;
     margin-top: 2px;
-    color: #102a4c;
+    color: var(--gct-ui-text, #102a4c);
     font-size: 11px;
 }
 .auto-scheduling-page .gct-report-alert,
@@ -3661,7 +3656,7 @@ body.ai-modal-open {
 }
 .auto-scheduling-page .gct-report-tabs {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     border-top: 1px solid #e2e8f0;
     border-bottom: 1px solid #e2e8f0;
 }
@@ -3689,13 +3684,12 @@ body.ai-modal-open {
 }
 .auto-scheduling-page .gct-report-recommendations {
     display: grid;
-    gap: 9px;
     padding: 12px 14px;
 }
 .auto-scheduling-page .gct-report-option-group h4 {
     margin: 0 0 6px;
     font-size: 10px;
-    color: #475569;
+    color: var(--gct-ui-muted, #475569);
 }
 .auto-scheduling-page .gct-report-option-group h4 i { color: #2563eb; margin-right: 4px; }
 .auto-scheduling-page .gct-report-options { display: grid; gap: 7px; }
@@ -3715,14 +3709,14 @@ body.ai-modal-open {
     padding: 10px;
     border: 1px dashed #cbd5e1;
     border-radius: 9px;
-    color: #64748b;
+    color: var(--gct-ui-muted, #64748b);
     font-size: 10px;
 }
 .auto-scheduling-page .gct-report-safety {
     display: flex;
     gap: 7px;
     margin: 0 14px 12px;
-    color: #64748b;
+    color: var(--gct-ui-muted, #64748b);
     font-size: 9px;
     line-height: 1.4;
 }
@@ -3756,7 +3750,7 @@ body.ai-modal-open {
 /* Final conflict-panel polish: neutral shell, natural panel heights, clearer rows. */
 .auto-scheduling-page .conflict-card:not([hidden]) {
     border: 1px solid #d9e4f2;
-    background: #ffffff;
+    background: var(--gct-ui-surface, #ffffff);
 }
 .auto-scheduling-page .conflict-card {
     padding: 18px 20px 20px;
@@ -3807,7 +3801,7 @@ body.ai-modal-open {
     justify-self: end;
 }
 .auto-scheduling-page .gct-report-options .gct-option-card p {
-    color: #64748b;
+    color: var(--gct-ui-muted, #64748b);
     line-height: 1.45;
 }
 .auto-scheduling-page .gct-report-actions {
@@ -3843,7 +3837,7 @@ body.ai-modal-open {
 .auto-scheduling-page .gct-report-meta > div {
     min-height: 54px;
     padding: 9px;
-    background: #ffffff;
+    background: var(--gct-ui-surface, #ffffff);
     box-shadow: 0 2px 8px rgba(15, 42, 76, .035);
 }
 .auto-scheduling-page .gct-report-alert,
@@ -3912,7 +3906,7 @@ body.ai-modal-open {
     display: block;
     margin-top: 3px;
     overflow: hidden;
-    color: #64748b;
+    color: var(--gct-ui-muted, #64748b);
     font-size: 9px;
     line-height: 1.35;
     text-overflow: ellipsis;
@@ -3958,7 +3952,7 @@ body.ai-modal-open {
     cursor: pointer;
 }
 .auto-scheduling-page .gct-conflict-sort i {
-    color: #94a3b8;
+    color: var(--gct-ui-muted, #94a3b8);
     font-size: 9px;
 }
 .auto-scheduling-page .gct-conflict-sort:hover,
@@ -4013,10 +4007,7 @@ body.ai-modal-open {
 .auto-scheduling-page .gct-conflict-table tbody tr[data-gct-report-index] { transition: background-color .15s ease; }
 
 .auto-scheduling-page .gct-conflict-table th:nth-child(1) { width: 21%; }
-.auto-scheduling-page .gct-conflict-table th:nth-child(2) { width: 17%; }
-.auto-scheduling-page .gct-conflict-table th:nth-child(3) { width: 11%; }
 .auto-scheduling-page .gct-conflict-table th:nth-child(4) { width: 29%; }
-.auto-scheduling-page .gct-conflict-table th:nth-child(5) { width: 10%; }
 .auto-scheduling-page .gct-conflict-table th:nth-child(6) { width: 12%; }
 .auto-scheduling-page .gct-conflict-table tbody tr[data-gct-report-index] {
     cursor: pointer;
@@ -4057,12 +4048,54 @@ body.ai-modal-open {
     border: 0;
     border-radius: 7px;
     background: transparent;
-    color: #64748b;
+    color: var(--gct-ui-muted, #64748b);
     cursor: pointer;
 }
 .auto-scheduling-page .gct-conflict-report-header [data-gct-close-report]:hover { background: #eff6ff; color: #1d4ed8; }
 .auto-scheduling-page .gct-conflict-report-header [data-gct-close-report]:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
 .auto-scheduling-page .gct-conflict-report-header [data-gct-close-report] i { color: inherit; font-size: 13px; }
+
+/* The scheduling form uses theme surfaces rather than a white input
+   with inherited white Dark Mode text. Keep the date picker legible. */
+html[data-gct-theme="dark"] .auto-scheduling-page #autoScheduleDate {
+    color: #edf3fc;
+    background: #101b2b;
+    border-color: #465a76;
+    color-scheme: dark;
+}
+html[data-gct-theme="dark"] .auto-scheduling-page #autoScheduleDate::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    opacity: .85;
+}
+/* The shared date picker hides the source and renders a separate trigger. */
+html[data-gct-theme="dark"] .auto-scheduling-page .schedule-field .gct-picker-trigger {
+    background: #101b2b;
+    color: #edf3fc;
+    border-color: #465a76;
+}
+html[data-gct-theme="dark"] .auto-scheduling-page .schedule-field .gct-picker-trigger :is(.gct-picker-trigger-value, .gct-picker-trigger-icon, .gct-picker-trigger-chevron) {
+    color: #edf3fc;
+    opacity: 1;
+}
+html[data-gct-theme="dark"] .auto-scheduling-page .schedule-field .gct-picker-trigger.is-empty .gct-picker-trigger-value {
+    color: #b1bfd2;
+}
+html[data-gct-theme="dark"] .auto-scheduling-page .generation-summary {
+    background: #203047;
+    border-color: #35465e;
+}
+html[data-gct-theme="dark"] .auto-scheduling-page .generation-summary-item span {
+    color: #c1d0e5;
+}
+html[data-gct-theme="dark"] .auto-scheduling-page .generation-summary-item strong {
+    color: #f4f7ff;
+}
+html[data-gct-theme="dark"] .auto-scheduling-page .generation-arrow {
+    color: #a9c2ea;
+}
+html[data-gct-theme="dark"] .auto-scheduling-page .ai-ml-status .ai-status-label {
+    color: #d3e5ff;
+}
 
 /* Persistent, readable ranking-source status in Scheduling Setup. */
 .auto-scheduling-page .ai-ml-status {
@@ -4074,14 +4107,14 @@ body.ai-modal-open {
     padding: 12px 15px;
     border: 1px solid #dbeafe;
     border-radius: 10px;
-    background: #f8fbff;
+    background: var(--gct-ui-surface-hover, #f8fbff);
 }
 .auto-scheduling-page .ai-ml-status .ai-status-label {
     display: inline-flex;
     align-items: center;
     gap: 8px;
     margin-right: 4px;
-    color: #1e40af;
+    color: var(--gct-ui-text, #1e40af);
     font-size: 12px;
     font-weight: 800;
     letter-spacing: .015em;
@@ -4101,12 +4134,31 @@ body.ai-modal-open {
     border: 1px solid #cbd5e1;
     background: #f1f5f9;
 }
+.auto-scheduling-page .ai-ml-status .ai-status-badge.is-offline {
+    color: #991b1b;
+    border: 1px solid #fecaca;
+    background: #fff1f2;
+}
+html[data-gct-theme="dark"] .auto-scheduling-page .ai-ml-status {
+    background: #203047;
+    border-color: #465a76;
+}
+html[data-gct-theme="dark"] .auto-scheduling-page .ai-ml-status .ai-status-badge.is-pending {
+    color: #dce4f0;
+    border-color: #54657c;
+    background: #293a50;
+}
+html[data-gct-theme="dark"] .auto-scheduling-page .ai-ml-status .ai-status-badge.is-offline {
+    color: #fecaca;
+    border-color: #8c454f;
+    background: #572d38;
+}
 
 /* Keep bus slot position and ready/required counts visually distinct. */
 .auto-scheduling-page .gct-conflict-trip-meta { display:flex;flex-direction:column;align-items:flex-start;gap:4px; }
 .auto-scheduling-page .gct-conflict-slot-tag { display:inline-flex;align-items:center;gap:5px;padding:4px 7px;border-radius:7px;background:#eff6ff;color:#1e40af;font-size:10px;font-weight:700;white-space:nowrap; }
 .auto-scheduling-page .gct-conflict-slot-tag i { font-size:10px; }
-.auto-scheduling-page .gct-conflict-trip-meta small { color:#64748b;font-size:10px;white-space:nowrap; }
+.auto-scheduling-page .gct-conflict-trip-meta small { color: var(--gct-ui-muted, #64748b);font-size:10px;white-space:nowrap; }
 
 /* Conflict review status: compact pill matching the Ready badge silhouette,
    while retaining an amber warning state for unresolved conflicts. */
@@ -4197,7 +4249,7 @@ body.ai-modal-open {
 .auto-scheduling-page .gct-report-findings ul {
     margin: 6px 0 0;
     padding-left: 17px;
-    color: #475569;
+    color: var(--gct-ui-muted, #475569);
     line-height: 1.5;
     font-size: 11px;
 }
@@ -4237,7 +4289,7 @@ body.ai-modal-open {
     display: block;
     font-size: 10px;
     line-height: 1.5;
-    color: #64748b;
+    color: var(--gct-ui-muted, #64748b);
     margin-top: 5px;
     overflow-wrap: anywhere;
 }
@@ -4535,17 +4587,11 @@ body.ai-modal-open {
     overflow: visible !important;
   }
   body:has(.auto-scheduling-page) .auto-schedule-table {
-    table-layout: fixed !important;
-    border-collapse: collapse !important;
     font-size: 9px !important;
   }
   body:has(.auto-scheduling-page) .auto-schedule-table th,
   body:has(.auto-scheduling-page) .auto-schedule-table td {
-    width: auto !important;
-    min-width: 0 !important;
-    padding: 5px 4px !important;
     font-size: 9px !important;
-    white-space: normal !important;
     overflow-wrap: anywhere;
     vertical-align: top;
   }
@@ -4553,7 +4599,6 @@ body.ai-modal-open {
     break-inside: avoid !important;
     page-break-inside: avoid !important;
   }
-  body:has(.auto-scheduling-page) .auto-schedule-table thead { display: table-header-group !important; }
   body:has(.auto-scheduling-page) .auto-draft-navigation,
   body:has(.auto-scheduling-page) .auto-schedule-table [data-remove-index],
   body:has(.auto-scheduling-page) .auto-schedule-table [data-defer-decision],
@@ -4567,7 +4612,7 @@ body.ai-modal-open {
 @media print {
   @page { size: A4 portrait; margin: 10mm; }
   body:has(.auto-scheduling-page) {
-    background: #fff !important;
+    background: var(--gct-ui-surface, #fff) !important;
     color: #172033 !important;
     -webkit-print-color-adjust: economy;
     print-color-adjust: economy;
@@ -4580,7 +4625,7 @@ body.ai-modal-open {
     border: 0;
     border-bottom: 1px solid #475569;
     border-radius: 0;
-    background: #fff;
+    background: var(--gct-ui-surface, #fff);
     color: #172033;
     font: bold 12px/1.35 Arial, sans-serif;
     text-align: left;
@@ -4601,7 +4646,7 @@ body.ai-modal-open {
     overflow: visible !important;
     border: 0 !important;
     box-shadow: none !important;
-    background: #fff !important;
+    background: var(--gct-ui-surface, #fff) !important;
     break-inside: auto !important;
   }
   body:has(.auto-scheduling-page) .schedule-result-header,
@@ -4609,7 +4654,7 @@ body.ai-modal-open {
     padding: 7px 0 !important;
     margin: 0 0 5px !important;
     display: block !important;
-    background: #fff !important;
+    background: var(--gct-ui-surface, #fff) !important;
     border: 0 !important;
     box-shadow: none !important;
   }
@@ -4627,10 +4672,8 @@ body.ai-modal-open {
     margin-top: 13px !important;
   }
   body:has(.auto-scheduling-page) .auto-schedule-table {
-    width: 100% !important;
     min-width: 0 !important;
     max-width: none !important;
-    table-layout: fixed !important;
     border-collapse: collapse !important;
   }
   body:has(.auto-scheduling-page) .auto-schedule-table th,
@@ -4639,12 +4682,9 @@ body.ai-modal-open {
     min-width: 0 !important;
     max-width: none !important;
     padding: 5px 4px !important;
-    border: 1px solid #cbd5e1 !important;
-    background: #fff !important;
+    background: var(--gct-ui-surface, #fff) !important;
     color: #172033 !important;
     font: 9px/1.3 Arial, sans-serif !important;
-    text-align: left !important;
-    vertical-align: top !important;
     white-space: normal !important;
     overflow-wrap: anywhere !important;
   }
@@ -4673,7 +4713,7 @@ body.ai-modal-open {
 .auto-scheduling-page .gct-report-reserve-alternatives .gct-report-option {
   display: flex; flex-direction: column; align-items: flex-start; gap: 7px;
   min-height: 100px; padding: 14px 16px !important; margin: 0 !important;
-  background: #fff; border: 1px solid #d9e4f4; border-radius: 12px;
+  background: var(--gct-ui-surface, #fff); border: 1px solid #d9e4f4; border-radius: 12px;
   font-size: 12px; line-height: 1.5; white-space: normal;
   user-select: none;
 }
@@ -4773,7 +4813,7 @@ body.ai-modal-open {
   font-size: 12px;
 }
 .auto-scheduling-page .gct-alternative-section > header span {
-  color: #64748b;
+  color: var(--gct-ui-muted, #64748b);
   font-size: 10px;
   font-weight: 700;
 }
@@ -4912,19 +4952,6 @@ body.ai-modal-open {
   }
 }
 
-/* With one conflict, let the detailed report use the available width. */
-@media screen and (min-width: 1101px) {
-  .auto-scheduling-page .gct-conflict-workspace.is-single-conflict:not(.is-report-closed) {
-    grid-template-columns: minmax(0, 0.95fr) minmax(430px, 1.25fr);
-  }
-  .auto-scheduling-page .gct-conflict-workspace.is-single-conflict .gct-conflict-report-panel {
-    width: 100%;
-  }
-  .auto-scheduling-page .gct-conflict-workspace.is-single-conflict .gct-conflict-list {
-    align-self: stretch;
-  }
-}
-
 
 /* Formal Auto Scheduling draft sheet: paper-only styling. */
 .gct-auto-print-header,
@@ -4977,7 +5004,7 @@ body.ai-modal-open {
   body:has(.auto-scheduling-page) .auto-schedule-table td {
     padding: 2.4mm 2mm !important;
     border: 1px solid #cbd5e1 !important;
-    background: white !important;
+    background: var(--gct-ui-surface, white) !important;
     color: #243247 !important;
     font: 9px/1.45 Arial, sans-serif !important;
     vertical-align: top !important;
@@ -5118,7 +5145,7 @@ body.ai-modal-open {
 
 /* Group Auto Scheduling slots by their saved client and shuttle route. */
 .auto-scheduling-page .auto-schedule-table .auto-preview-group-row th {
-  padding: 11px 14px !important;
+  padding: 8px 12px !important;
   background: #eaf1fb !important;
   border-top: 2px solid #cad9ed !important;
   color: #173557 !important;
@@ -5147,18 +5174,18 @@ body.ai-modal-open {
 /* Compact conflict resolution: review a complete validated pair first. */
 .auto-scheduling-page .gct-compact-pair-selector { padding: 12px; border-bottom: 1px solid #e2e8f0; }
 .auto-scheduling-page .gct-compact-pair-selector > header { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:9px; font-size:12px; }
-.auto-scheduling-page .gct-compact-pair-selector > header span { color:#64748b; font-size:11px; }
+.auto-scheduling-page .gct-compact-pair-selector > header span { color: var(--gct-ui-muted, #64748b); font-size:11px; }
 .auto-scheduling-page .gct-compact-pair-list { display:grid; gap:7px; max-height:215px; overflow-y:auto; overscroll-behavior:contain; }
-.auto-scheduling-page .gct-compact-pair { width:100%; padding:10px 12px; text-align:left; border:1px solid #d9e4f2; border-radius:9px; background:#f8fafc; cursor:pointer; }
+.auto-scheduling-page .gct-compact-pair { width:100%; padding:10px 12px; text-align:left; border:1px solid #d9e4f2; border-radius:9px; background:var(--gct-ui-surface-hover, #f8fafc); cursor:pointer; }
 .auto-scheduling-page .gct-compact-pair strong { display:block; color:#1e3a5f; font-size:12px; }
 .auto-scheduling-page .gct-compact-pair small { display:block; margin-top:4px; color:#52677f; font-size:10px; }
 .auto-scheduling-page .gct-compact-pair.is-selected { border-color:#2563eb; background:#eaf2ff; box-shadow:inset 0 0 0 1px #2563eb; }
 .auto-scheduling-page .gct-compact-pair:disabled { opacity:.5; cursor:not-allowed; }
-.auto-scheduling-page .gct-compact-details { margin:9px 12px; padding:9px 11px; border:1px solid #dce6f2; border-radius:9px; background:#f8fafc; }
+.auto-scheduling-page .gct-compact-details { margin:9px 12px; padding:9px 11px; border:1px solid #dce6f2; border-radius:9px; background:var(--gct-ui-surface-hover, #f8fafc); }
 .auto-scheduling-page .gct-compact-details summary { cursor:pointer; font-weight:700; font-size:11px; color:#334155; }
-.auto-scheduling-page .gct-compact-details-content { margin-top:9px; color:#475569; font-size:11px; line-height:1.6; }
+.auto-scheduling-page .gct-compact-details-content { margin-top:9px; color: var(--gct-ui-muted, #475569); font-size:11px; line-height:1.6; }
 .auto-scheduling-page .gct-conflict-report-body { display:flex; flex-direction:column; }
-.auto-scheduling-page .gct-report-actions { position:sticky; bottom:0; z-index:3; background:#fff; border-top:1px solid #e2e8f0; }
+.auto-scheduling-page .gct-report-actions { position:sticky; bottom:0; z-index:3; background:var(--gct-ui-surface, #fff); border-top:1px solid #e2e8f0; }
 
 /* Single-path AI conflict selector: top ranked pairs with optional overflow. */
 .auto-scheduling-page .gct-more-pairs { margin-top:10px; border-top:1px solid #e2e8f0; padding-top:10px; }
@@ -5183,15 +5210,16 @@ body.ai-modal-open {
 }
 .auto-scheduling-page .auto-table-wrap.gct-sticky-actions > .auto-schedule-table > thead > tr > th:last-child,
 .auto-scheduling-page .auto-table-wrap.gct-sticky-actions > .auto-schedule-table > tbody > tr > td:last-child:not([colspan]) {
-    min-width: 190px;
-    width: 190px;
+    min-width: 124px;
+    width: 124px;
     text-align: center;
 }
 .auto-scheduling-page .auto-table-wrap.gct-sticky-actions > .auto-schedule-table > tbody > tr > td:last-child:not([colspan]) {
-    background: #fff;
+    background: var(--gct-ui-surface, #fff);
+    border-left: 0;
 }
 .auto-scheduling-page .auto-table-wrap.gct-sticky-actions > .auto-schedule-table > tbody > tr:hover > td:last-child:not([colspan]) {
-    background: #f8fbff;
+    background: var(--gct-ui-surface-hover, #f8fbff);
 }
 
 
@@ -5202,17 +5230,10 @@ body.ai-modal-open {
   .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions {
     width: 100%;
     max-width: 100%;
-    overflow-x: auto;
-    overflow-y: auto;
     scrollbar-gutter: auto;
     scrollbar-width: thin;
     scrollbar-color: #a8b7c9 transparent;
     -webkit-overflow-scrolling: touch;
-  }
-  .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table {
-    width: 100%;
-    min-width: 1120px;
-    table-layout: fixed;
   }
   .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions::-webkit-scrollbar {
     width: 4px;
@@ -5232,21 +5253,20 @@ body.ai-modal-open {
   }
   .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table > thead > tr > th:last-child,
   .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table > tbody > tr > td:last-child:not([colspan]) {
-    position: sticky;
-    right: 0;
-    min-width: 190px;
-    width: 190px;
+    position: static;
+    right: auto;
+    min-width: 124px;
+    width: 124px;
     box-sizing: border-box;
-    background: #fff;
-    box-shadow: -1px 0 0 #d6e1ef, -8px 0 13px -12px rgba(15, 23, 42, .3);
-    z-index: 6;
+    background: var(--gct-ui-surface, #fff);
+    border-left: 0;
+    z-index: auto;
   }
   .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table > thead > tr > th:last-child {
-    z-index: 12;
-    background: var(--auto-table-head, #f3f7fc);
+    z-index: 5;
   }
   .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table > tbody > tr:nth-child(even) > td:last-child:not([colspan]) {
-    background: #f8fafc;
+    background: var(--gct-ui-surface-hover, #f8fafc);
   }
 }
 
@@ -5265,11 +5285,11 @@ body.ai-modal-open {
   }
 }
 
-/* Keep the preview scroll canvas compact; semantic .auto-col-* classes
-   below own column widths for both Incoming and Outgoing tables. */
+/* Keep all eight preview columns visible on regular desktop widths.
+   Narrower viewports retain native horizontal scrolling and pinned Actions. */
 @media screen {
   .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table {
-    min-width: 1250px;
+    min-width: 1100px;
   }
 }
 @media screen and (pointer: fine) {
@@ -5366,11 +5386,11 @@ body.ai-modal-open {
 }
 
 
-/* AI Conflict Review: keep the queue readable and the side report compact.
-   Presentation-only; conflict sorting, calculations and actions are unchanged. */
+/* AI Conflict Review: one consistent queue/report layout regardless of
+   conflict count. Keep the report prominent and list independently scrollable. */
 @media screen and (min-width: 1251px) {
-  .auto-scheduling-page .gct-conflict-workspace:not(.is-single-conflict):not(.is-report-closed) {
-    grid-template-columns: minmax(0, 1.75fr) minmax(380px, .95fr);
+  .auto-scheduling-page .gct-conflict-workspace:not(.is-report-closed) {
+    grid-template-columns: minmax(0, .95fr) minmax(0, 1.25fr);
     gap: 14px;
   }
 }
@@ -5480,9 +5500,6 @@ body.ai-modal-open {
   }
 }
 @media screen and (max-width: 1250px) {
-  .auto-scheduling-page .gct-conflict-workspace:not(.is-report-closed) {
-    grid-template-columns: minmax(0, 1fr);
-  }
   .auto-scheduling-page .gct-conflict-workspace .gct-conflict-report-panel {
     position: static;
   }
@@ -5515,13 +5532,13 @@ body.ai-modal-open {
     min-width: 980px;
     table-layout: fixed;
 }
-.auto-scheduling-page .auto-schedule-table .auto-col-trip { width: 10%; }
-.auto-scheduling-page .auto-schedule-table .auto-col-time { width: 11%; }
-.auto-scheduling-page .auto-schedule-table .auto-col-route { width: 18%; }
-.auto-scheduling-page .auto-schedule-table .auto-col-required { width: 13%; }
-.auto-scheduling-page .auto-schedule-table .auto-col-driver { width: 14%; }
-.auto-scheduling-page .auto-schedule-table .auto-col-bus { width: 14%; }
-.auto-scheduling-page .auto-schedule-table .auto-col-result { width: 10%; }
+.auto-scheduling-page .auto-schedule-table .auto-col-trip { width: 9%; }
+.auto-scheduling-page .auto-schedule-table .auto-col-time { width: 10%; }
+.auto-scheduling-page .auto-schedule-table .auto-col-route { width: 19%; }
+.auto-scheduling-page .auto-schedule-table .auto-col-required { width: 12%; }
+.auto-scheduling-page .auto-schedule-table .auto-col-driver { width: 17%; }
+.auto-scheduling-page .auto-schedule-table .auto-col-bus { width: 12%; }
+.auto-scheduling-page .auto-schedule-table .auto-col-result { width: 11%; }
 .auto-scheduling-page .auto-schedule-table .auto-col-action { width: 10%; }
 .auto-scheduling-page .auto-schedule-table th,
 .auto-scheduling-page .auto-schedule-table td {
@@ -5575,4 +5592,427 @@ body.ai-modal-open {
     .auto-scheduling-page .gct-conflict-workspace .gct-report-actions .ai-resolution-btn {
         flex: 1 1 145px;
     }
+}
+
+
+/* Compact six-column SCREEN preview; retain all eight source cells for the
+   existing eight-column Print Draft layout and its independent print rules.
+   Route remains visible in the client/route group header; time is repeated
+   beneath each Trip ID so each bus assignment stays one readable table row. */
+@media screen {
+    .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions {
+        max-height: 440px;
+        overflow-x: auto;
+        overflow-y: auto;
+    }
+    .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table {
+        min-width: 980px;
+        width: 100%;
+        table-layout: fixed;
+    }
+    .auto-scheduling-page .auto-schedule-table .auto-col-time,
+    .auto-scheduling-page .auto-schedule-table .auto-col-route,
+    .auto-scheduling-page .auto-schedule-table thead th:nth-child(2),
+    .auto-scheduling-page .auto-schedule-table thead th:nth-child(3),
+    .auto-scheduling-page .auto-schedule-table tbody tr.auto-preview-trip-row > td:nth-child(2),
+    .auto-scheduling-page .auto-schedule-table tbody tr.auto-preview-trip-row > td:nth-child(3) {
+        display: none;
+    }
+    .auto-scheduling-page .auto-schedule-table .auto-col-trip { width: 15%; }
+    .auto-scheduling-page .auto-schedule-table .auto-col-required { width: 14%; }
+    .auto-scheduling-page .auto-schedule-table .auto-col-driver { width: 22%; }
+    .auto-scheduling-page .auto-schedule-table .auto-col-bus { width: 13%; }
+    .auto-scheduling-page .auto-schedule-table .auto-col-result { width: 23%; }
+    .auto-scheduling-page .auto-schedule-table .auto-col-action { width: 13%; }
+    .auto-scheduling-page .auto-schedule-table thead th:first-child::after {
+        content: " / TIME";
+    }
+    .auto-scheduling-page .auto-schedule-table thead th {
+        padding: 10px 12px;
+    }
+    .auto-scheduling-page .auto-schedule-table tbody tr.auto-preview-trip-row > td {
+        padding: 8px 12px;
+        background: var(--gct-ui-surface, #fff);
+        border-top: 0;
+        border-bottom: 0;
+    }
+    .auto-scheduling-page .auto-schedule-table tbody tr.auto-preview-trip-row:hover > td {
+        background: var(--gct-ui-surface-hover, #f8fbff);
+    }
+    .auto-scheduling-page .auto-preview-trip-time {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        min-width: 0;
+        gap: 2px;
+        line-height: 1.3;
+    }
+    .auto-scheduling-page .auto-preview-trip-time .auto-trip-main-id {
+        overflow-wrap: anywhere;
+        white-space: normal;
+    }
+    .auto-scheduling-page .auto-preview-departure {
+        color: var(--gct-ui-text, #1e293b);
+        font-size: 12px;
+        font-weight: 700;
+    }
+    .auto-scheduling-page .auto-preview-arrival {
+        color: var(--gct-ui-muted, #64748b);
+        font-size: 10px;
+    }
+    .auto-scheduling-page .auto-schedule-table .schedule-status {
+        white-space: normal;
+        max-width: 100%;
+        overflow-wrap: break-word;
+        border-radius: 8px;
+        min-height: 30px;
+        padding: 5px 10px;
+        line-height: 1.3;
+    }
+    .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table > thead > tr > th:last-child,
+    .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table > tbody > tr > td:last-child:not([colspan]) {
+        min-width: 112px;
+        width: 112px;
+        padding-left: 8px;
+        padding-right: 8px;
+        box-shadow: none;
+        border: 0;
+    }
+    .auto-scheduling-page .auto-table-wrap.gct-responsive-records.gct-sticky-actions > .auto-schedule-table > thead > tr > th:last-child {
+        background: var(--auto-table-head, #f3f7fc);
+    }
+    .auto-scheduling-page .auto-schedule-table .schedule-action-btn.remove:has(.schedule-remove-label) {
+        min-width: 0;
+        min-height: 34px;
+        padding: 0 9px;
+        gap: 5px;
+        font-size: 11px;
+    }
+}
+
+/* The print version already includes dedicated Time and Route cells. Avoid
+   repeating the compact on-screen time there. */
+@media print {
+    body:has(.auto-scheduling-page) .auto-schedule-table .auto-preview-departure,
+    body:has(.auto-scheduling-page) .auto-schedule-table .auto-preview-arrival {
+        display: none !important;
+    }
+}
+
+
+/* AI Conflict Review: compact, selectable queue beside the detailed report.
+   Shared by one or many conflicts; preserves existing filters/sorting/actions. */
+@media screen {
+  .auto-scheduling-page .gct-conflict-workspace:not(.is-report-closed) {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+    align-items: start;
+    gap: 14px;
+  }
+  .auto-scheduling-page .gct-conflict-queue {
+    max-height: 470px;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overscroll-behavior: contain;
+  }
+  .auto-scheduling-page .gct-conflict-queue-item {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+    min-width: 0;
+    padding: 12px;
+    text-align: left;
+    font: inherit;
+    color: #172e4c;
+    background: #fff;
+    border: 1px solid #d8e3f0;
+    border-radius: 10px;
+    box-shadow: none;
+    cursor: pointer;
+    transition: background-color .15s ease, border-color .15s ease;
+  }
+  .auto-scheduling-page .gct-conflict-queue-item:is(:hover, .is-selected) {
+    background: #eef5ff;
+    border-color: #83b4f7;
+  }
+  .auto-scheduling-page .gct-conflict-queue-item.is-selected {
+    box-shadow: inset 3px 0 #2563eb;
+  }
+  .auto-scheduling-page .gct-conflict-queue-item:focus-visible,
+  .auto-scheduling-page .gct-conflict-sort-menu summary:focus-visible {
+    outline: 2px solid #60a5fa;
+    outline-offset: 2px;
+  }
+  .auto-scheduling-page .gct-conflict-queue-item :is(.gct-queue-head, .gct-queue-meta, .gct-queue-foot) {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+  }
+  .auto-scheduling-page .gct-queue-head > strong {
+    font-size: 13px;
+    color: inherit;
+  }
+  .auto-scheduling-page .gct-queue-head > strong small {
+    display: inline;
+    font-size: 11px;
+    font-weight: 600;
+    color: #64748b;
+  }
+  .auto-scheduling-page .gct-queue-meta {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    color: #475569;
+    font-size: 11px;
+  }
+  .auto-scheduling-page .gct-queue-route,
+  .auto-scheduling-page .gct-queue-issue {
+    display: block;
+    min-width: 0;
+    font-size: 11px;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+  }
+  .auto-scheduling-page .gct-queue-route { font-weight: 650; }
+  .auto-scheduling-page .gct-queue-issue { color: #52657d; }
+  .auto-scheduling-page .gct-queue-foot { margin-top: 2px; }
+  .auto-scheduling-page .gct-conflict-queue-empty {
+    margin: 0;
+    padding: 18px 12px;
+    color: #64748b;
+    font-size: 12px;
+    text-align: center;
+  }
+  .auto-scheduling-page .gct-conflict-sort-menu {
+    position: relative;
+    padding: 7px 12px;
+    border-bottom: 1px solid #dce5f2;
+  }
+  .auto-scheduling-page .gct-conflict-sort-menu summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    list-style: none;
+    color: #315987;
+  }
+  .auto-scheduling-page .gct-conflict-sort-menu summary::-webkit-details-marker { display: none; }
+  .auto-scheduling-page .gct-conflict-sort-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    padding-top: 9px;
+  }
+  .auto-scheduling-page .gct-conflict-sort-options .gct-conflict-sort {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    border: 1px solid #d6e3f2;
+    border-radius: 7px;
+    background: #f6f9fd;
+    color: #315987;
+    padding: 6px 8px;
+    font-size: 10px;
+  }
+  .auto-scheduling-page .gct-conflict-report-panel { width: 100%; }
+}
+@media screen and (max-width: 1250px) {
+  .auto-scheduling-page .gct-conflict-workspace:not(.is-report-closed) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .auto-scheduling-page .gct-conflict-queue { max-height: 320px; }
+}
+@media screen and (max-width: 520px) {
+  .auto-scheduling-page .gct-conflict-toolbar { flex-direction: column; align-items: stretch; }
+  .auto-scheduling-page .gct-conflict-tabs { flex-wrap: wrap; }
+  .auto-scheduling-page .gct-conflict-toolbar [data-gct-conflict-search] { width: 100%; max-width: none; min-width: 0; }
+}
+
+/* Readable dark surfaces, including the selected AI report and empty states. */
+@media screen {
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    :is(.gct-conflict-list, .gct-conflict-report-panel, .gct-conflict-report-body, .gct-report, .gct-report-trip, .gct-report-recommendations, .gct-report-tabs, .gct-report-explanation, .gct-report-findings) {
+    background: var(--gct-theme-surface);
+    color: var(--gct-theme-fg);
+    border-color: var(--gct-theme-border);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    :is(.gct-conflict-toolbar, .gct-conflict-sort-menu, .gct-conflict-count, .gct-report-actions) {
+    background: var(--gct-theme-surface);
+    color: var(--gct-theme-muted);
+    border-color: var(--gct-theme-border);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    .gct-conflict-queue-item {
+    background: var(--gct-theme-surface-raised);
+    color: var(--gct-theme-fg);
+    border-color: var(--gct-theme-border);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    .gct-conflict-queue-item:is(:hover, .is-selected) {
+    background: #28466b;
+    border-color: #83b4f7;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    :is(.gct-queue-head > strong small, .gct-queue-meta, .gct-queue-issue, .gct-conflict-queue-empty,
+    .gct-report-trip > div > span, .gct-report-empty, .gct-report-findings li, .gct-report-safety) {
+    color: var(--gct-theme-muted);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    :is(.gct-queue-route, .gct-report-trip strong, .gct-report-meta strong, .gct-report-option-copy strong,
+    .gct-report-explanation strong, .gct-report-findings > strong) {
+    color: var(--gct-theme-fg);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    :is(.gct-conflict-sort-menu summary, .gct-conflict-sort-options .gct-conflict-sort) {
+    color: var(--gct-theme-accent);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    .gct-conflict-sort-options .gct-conflict-sort {
+    background: var(--gct-theme-surface-raised);
+    border-color: var(--gct-theme-border);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    :is(.gct-report-meta > div, .gct-report-empty, .gct-report-time-option, .gct-report-options .gct-report-option) {
+    background: var(--gct-theme-surface-raised);
+    border-color: var(--gct-theme-border);
+    color: var(--gct-theme-fg);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    .gct-report-tabs button {
+    background: var(--gct-theme-surface);
+    color: var(--gct-theme-muted);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    .gct-report-tabs button.active {
+    color: var(--gct-theme-accent);
+    border-bottom-color: var(--gct-theme-accent);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    .gct-report-alert {
+    background: #3b2d17;
+    border-color: #bb832a;
+    color: #ffcf89;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    .gct-report-alert :is(strong, span, p) { color: #ffcf89; }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    :is(.gct-report-explanation, .gct-report-findings) {
+    background: var(--gct-theme-surface-raised);
+    color: var(--gct-theme-fg);
+    border-color: var(--gct-theme-border);
+  }
+}
+
+
+/* AI Conflict Report dark-mode legibility.
+   The original pair cards and disclosure retain light-mode ink (#1e3a5f,
+   #52677f, #334155), which becomes unreadable on dark surfaces. */
+@media screen {
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    .gct-conflict-report-panel .gct-compact-pair-selector {
+    background: var(--gct-theme-surface);
+    border-color: var(--gct-theme-border);
+    color: var(--gct-theme-fg);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    .gct-conflict-report-panel .gct-compact-pair-selector > header :is(strong, span) {
+    color: var(--gct-theme-fg);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    .gct-conflict-report-panel .gct-compact-pair {
+    background: var(--gct-theme-surface-raised);
+    border-color: var(--gct-theme-control-border);
+    color: var(--gct-theme-fg);
+    opacity: 1;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    .gct-conflict-report-panel .gct-compact-pair strong {
+    color: var(--gct-theme-fg);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    .gct-conflict-report-panel .gct-compact-pair small {
+    color: var(--gct-theme-muted);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    .gct-conflict-report-panel .gct-compact-pair:not(:disabled):hover {
+    background: var(--gct-theme-hover);
+    border-color: #83b4f7;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    .gct-conflict-report-panel .gct-compact-pair.is-selected,
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    .gct-conflict-report-panel .gct-compact-pair[aria-pressed="true"] {
+    background: #28466b;
+    border-color: #8bbaff;
+    box-shadow: inset 0 0 0 1px #8bbaff;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    .gct-conflict-report-panel .gct-compact-pair:focus-visible {
+    outline: 2px solid #8bbaff;
+    outline-offset: 2px;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    .gct-conflict-report-panel .gct-compact-pair:disabled {
+    opacity: .75;
+    cursor: not-allowed;
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    .gct-conflict-report-panel .gct-compact-details {
+    background: var(--gct-theme-surface-raised);
+    border-color: var(--gct-theme-control-border);
+    color: var(--gct-theme-fg);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    .gct-conflict-report-panel .gct-compact-details summary {
+    color: var(--gct-theme-fg);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    .gct-conflict-report-panel .gct-compact-details-content,
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    .gct-conflict-report-panel .gct-compact-details-content :is(p, li, span) {
+    color: var(--gct-theme-muted);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    .gct-conflict-report-panel .gct-compact-details-content strong {
+    color: var(--gct-theme-fg);
+  }
+  html[data-gct-theme="dark"] body[data-gct-operation-page="1"] .auto-scheduling-page
+    .gct-conflict-report-panel .gct-report-actions .ai-resolution-btn[disabled] {
+    color: #c2d3e8;
+    background: #29415f;
+    border-color: #415d7c;
+    opacity: .78;
+    cursor: not-allowed;
+  }
+}
+
+/* The report now separates recommended Regular, Reserve, and other Regular
+   choices. Keep all three tabs readable across desktop and mobile widths. */
+@media screen {
+  .auto-scheduling-page .gct-conflict-workspace .gct-report-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .auto-scheduling-page .gct-conflict-workspace .gct-report-tabs button {
+    min-width: 0;
+    padding: 10px 6px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    line-height: 1.35;
+  }
+}
+@media screen and (max-width: 560px) {
+  .auto-scheduling-page .gct-conflict-workspace .gct-report-tabs {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }

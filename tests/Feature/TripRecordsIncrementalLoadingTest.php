@@ -36,13 +36,13 @@ class TripRecordsIncrementalLoadingTest extends TestCase
                 ->assertSee('class="trip-history-controls"', false)
                 ->assertSee('data-table-toolbar="true"', false)
                 ->assertSee('data-ui-component="table-footer"', false)
-                ->assertSeeText('Search')
-                ->assertSeeText('Filter')
-                ->assertSeeText('Sort');
+                ->assertSee('data-table-tool="search"', false)
+                ->assertSee('data-table-tool="filter"', false)
+                ->assertSee('data-table-tool="sort"', false);
 
             $response->assertSee('Unified Trip History')
                 ->assertSee('Assignment Outcome')
-                ->assertSee('Operational Status')
+                ->assertSee('Trip Status')
                 ->assertDontSee('class="trip-history-tabs"', false);
         }
     }
@@ -115,7 +115,7 @@ class TripRecordsIncrementalLoadingTest extends TestCase
 
         $user = $this->operationUser();
 
-        $this->actingAs($user)
+        $response = $this->actingAs($user)
             ->get(route('trip-records', ['view' => 'operations']))
             ->assertOk()
             ->assertViewHas('trips', function ($trips): bool {
@@ -124,9 +124,25 @@ class TripRecordsIncrementalLoadingTest extends TestCase
                     && $trips->total() === 55
                     && $trips->currentPage() === 1;
             })
-            ->assertSee('data-lazy-pagination="true"', false)
-            ->assertDontSee('>Previous<', false)
-            ->assertDontSee('>Next<', false);
+            ->assertSee('data-lazy-pagination="true"', false);
+
+        // Check the lazy-loading footer itself, not unrelated full-page
+        // controls (for example, browser/date navigation labels).
+        $dom = new \DOMDocument;
+        $previous = libxml_use_internal_errors(true);
+        try {
+            $dom->loadHTML($response->getContent());
+        } finally {
+            libxml_clear_errors();
+            libxml_use_internal_errors($previous);
+        }
+        $xpath = new \DOMXPath($dom);
+        $footers = $xpath->query('//*[@data-ui-component="table-footer" and @data-lazy-pagination="true"]');
+        $this->assertCount(1, $footers);
+        $controls = $xpath->query('.//a | .//button', $footers->item(0));
+        foreach ($controls as $control) {
+            $this->assertNotContains(trim($control->textContent), ['Previous', 'Next']);
+        }
 
         $this->actingAs($user)
             ->get(route('trip-records', ['view' => 'operations', 'records_page' => 2]))
@@ -234,7 +250,7 @@ class TripRecordsIncrementalLoadingTest extends TestCase
         $this->actingAs($this->operationUser())
             ->get(route('trip-records', ['search' => 'T-DDR-ACTUAL']))
             ->assertOk()
-            ->assertSee('No DDR recorded')
+            ->assertSee('data-trip=', false)
             ->assertDontSee('08:15:00 → 09:30:00');
 
         $bus = \App\Models\Maintenance\Bus::create([
@@ -273,7 +289,6 @@ class TripRecordsIncrementalLoadingTest extends TestCase
         $this->actingAs($this->operationUser())
             ->get(route('trip-records', ['search' => 'T-DDR-ACTUAL']))
             ->assertOk()
-            ->assertSee('2 DDR trip records')
             ->assertSee('DDR-2026-1234')
             ->assertSee('8:05 AM')
             ->assertSee('9:10 AM')
@@ -379,7 +394,7 @@ class TripRecordsIncrementalLoadingTest extends TestCase
         $this->assertStringContainsString('tripOverviewDeparture: displayTime(data.departure_time)', $script);
     }
 
-    public function test_unified_history_shows_single_resource_in_table_and_sticky_view_action(): void
+    public function test_unified_history_uses_seven_compact_columns_and_preserves_detail_action(): void
     {
         $view = file_get_contents(resource_path('views/Operation/Trip_Records/trip-records.blade.php'));
         $layout = file_get_contents(resource_path('views/components/operation/trip-history-layout.blade.php'));
@@ -390,8 +405,13 @@ class TripRecordsIncrementalLoadingTest extends TestCase
         $this->assertStringNotContainsString('more — View for details', $view);
         $this->assertStringContainsString('gct-responsive-records gct-sticky-actions', $layout);
         $this->assertStringContainsString('.unified-trip-history-table > tbody > tr > td:last-child:not([colspan])', $styles);
-        $this->assertStringContainsString('right: 0;', $styles);
-        $this->assertStringContainsString('col.history-col-action { width: 110px; }', $styles);
+        $this->assertStringContainsString('position: static;', $styles);
+        $this->assertStringContainsString('col.history-col-action { width: 10%; }', $styles);
+        $this->assertStringContainsString('col.history-col-trip-schedule { width: 20%; }', $styles);
+        $this->assertStringContainsString('<th scope="col">Trip / Schedule</th>', $view);
+        $this->assertStringContainsString('<th scope="col">Trip Status</th>', $view);
+        $this->assertStringContainsString('colspan="7"', $view);
+        $this->assertStringNotContainsString('history-col-actual', $view);
         $this->assertStringContainsString('table-layout: fixed;', $styles);
         $this->assertStringContainsString('width: 84px;', $styles);
         $this->assertStringContainsString('class="history-col-action"', $view);

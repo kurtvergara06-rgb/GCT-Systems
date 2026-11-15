@@ -126,18 +126,16 @@ class ProfilePhotoTest extends TestCase
         Storage::disk('public')->assertMissing($path);
     }
 
-    public function test_account_settings_shows_disabled_dark_mode_placeholder(): void
+    public function test_account_settings_links_to_active_appearance_preferences(): void
     {
         $user = User::factory()->create();
 
         $this->actingAs($user)
             ->get(route('account.settings'))
             ->assertOk()
-            ->assertSee('Dark Mode')
-            ->assertSee('Coming soon')
-            ->assertSee('role="switch"', false)
-            ->assertSee('aria-checked="false"', false)
-            ->assertSee('disabled', false);
+            ->assertSee('Appearance Preferences')
+            ->assertSee('Choose Light, Dark, or System theme in Personalization.')
+            ->assertDontSee('Coming soon');
     }
 
     public function test_admin_account_management_displays_saved_profile_photos(): void

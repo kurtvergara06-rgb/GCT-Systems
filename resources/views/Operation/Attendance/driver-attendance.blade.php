@@ -191,7 +191,7 @@
           </table>
         </div>
 
-        <x-ui.table-footer :items="$driverAttendances" />
+        <x-ui.table-footer :items="$driverAttendances" data-lazy-pagination="true" />
       </section>
 
         {{-- Modals are part of the navigable page so their handlers reinitialize on return. --}}

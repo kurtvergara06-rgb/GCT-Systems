@@ -16,11 +16,12 @@ it('renders conflicts as a severity queue with an actionable report panel', func
         ->toContain('data-gct-conflict-sort')
         ->toContain('conflictSortDirection')
         ->toContain('data-gct-report-index')
-        ->toContain('tabindex="0"')
+        ->toContain('role="tab"')
         ->toContain("event.key !== 'Enter' && event.key !== ' '")
         ->not->toContain('class="gct-conflict-arrow')
         ->toContain('Recommended Assignments (')
-        ->toContain('Alternative Options (')
+        ->toContain('Reserve Options (')
+        ->toContain('Other Alternatives (')
         ->toContain('data-gct-option-tab="recommended"')
         ->toContain('Trained ML model')
         ->toContain('Data-derived fallback')
@@ -153,11 +154,14 @@ it('separates regular recommendations from Head-reviewed Reserve alternatives', 
     expect($script)
         ->toContain("const regularPairs = validPairs.filter(pair => !String(pair.bus_label || '').includes('(Reserve)'))")
         ->toContain('const recommendedPair = regularPairs[0] || null')
-        ->toContain('const alternativePairs = validPairs.filter(pair => pair !== recommendedPair)')
-        ->toContain("recommendationTabs.get(index) || (recommendedPair ? 'recommended' : 'alternative')")
+        ->toContain('const reservePairs = validPairs.filter(pair => String(pair.bus_label || \'\').includes(\'(Reserve)\'))')
+        ->toContain('const alternativePairs = regularPairs.slice(1)')
+        ->toContain("recommendationTabs.get(index)")
+        ->toContain("recommendedPair ? 'recommended' : reservePairs.length ? 'reserve' : 'alternative'")
         ->toContain('Recommended Assignments (${recommendedPair ? 1 : 0})')
-        ->toContain('Alternative Options (${alternativePairs.length})')
-        ->toContain('Reserve requires Head review')
+        ->toContain('Reserve Options (${reservePairs.length})')
+        ->toContain('Other Alternatives (${alternativePairs.length})')
+        ->toContain('Reserve · Operations Head review required')
         ->toContain('data-gct-inline-pair')
         ->toContain('canAssignReserve()');
 });
@@ -197,12 +201,12 @@ it('uses only semantic Auto Scheduling column widths in screen styles', function
     $view = file_get_contents(resource_path('views/Operation/Scheduling_And_Dispatch/auto-dispatch.blade.php'));
 
     foreach (['trip', 'time', 'route', 'required', 'driver', 'bus', 'result', 'action'] as $column) {
-        expect($styles)->toContain('.auto-schedule-table .auto-col-'.$column.' { width:');
+        expect($styles)->toContain('.auto-scheduling-page .auto-schedule-table .auto-col-'.$column.' { width:');
         expect(substr_count($view, 'class="auto-col-'.$column.'"'))->toBe(2);
     }
 
     expect($styles)->not->toContain('.gct-sticky-actions > .auto-schedule-table colgroup col:nth-child(')
-        ->and($styles)->toContain('min-width: 1250px;')
+        ->and($styles)->toContain('min-width: 980px;')
         ->and($styles)->toContain('overscroll-behavior: contain;');
 });
 

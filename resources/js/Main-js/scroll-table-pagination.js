@@ -1,5 +1,6 @@
 (() => {
     const footers = () => document.querySelectorAll('[data-scroll-pagination]');
+    const footerControllers = new Map();
 
     const findTableContext = (footer, root = document) => {
         let node = footer.parentElement;
@@ -57,7 +58,7 @@
     };
 
     const appendModals = (parsed) => {
-        parsed.querySelectorAll('.modal-overlay[id], .pms-modal-overlay[id], .ui-modal-overlay[id], .popup-overlay[id]').forEach((modal) => {
+        parsed.querySelectorAll('.modal-overlay[id], .pms-modal-overlay[id], .ui-modal-overlay[id], .popup-overlay[id], .ddr-record-overlay[id]').forEach((modal) => {
             if (!document.getElementById(modal.id)) {
                 const pageModal = document.importNode(modal, true);
                 pageModal.dataset.pageOwned = 'true';
@@ -100,6 +101,10 @@
         const context = findContext(footer);
         if (!context) return;
 
+        const controller = new AbortController();
+        footerControllers.set(footer, controller);
+        const isCurrent = () => footer.isConnected
+            && (context.table || context.list).isConnected && !controller.signal.aborted;
         const lazy = footer.dataset.lazyPagination === 'true' && context.type === 'table';
         let nextUrl = footer.dataset.nextUrl || '';
         let isLoading = false;
@@ -130,8 +135,9 @@
             loadingTarget?.classList.toggle('is-loading-more-rows', state && lazy);
         };
 
-        const loadNextPage = async () => {
-            if (!nextUrl || isLoading || visited.has(nextUrl)) {
+        let pendingRequest = null;
+        const requestNextPage = async () => {
+            if (!isCurrent() || !nextUrl || isLoading || visited.has(nextUrl)) {
                 return false;
             }
 
@@ -143,13 +149,17 @@
                 const response = await fetch(requestUrl, {
                     headers: { 'X-Requested-With': 'XMLHttpRequest', Accept: 'text/html' },
                     credentials: 'same-origin',
+                    signal: controller.signal,
                 });
 
+                if (!isCurrent()) return false;
                 if (!response.ok) {
                     throw new Error(`Record page request failed: ${response.status}`);
                 }
 
-                const parsed = new DOMParser().parseFromString(await response.text(), 'text/html');
+                const html = await response.text();
+                if (!isCurrent()) return false;
+                const parsed = new DOMParser().parseFromString(html, 'text/html');
                 const parsedFooters = parsed.querySelectorAll('[data-scroll-pagination]');
                 const parsedFooter = parsedFooters[footerIndex] || parsedFooters[0];
                 const parsedContext = parsedFooter ? findContext(parsedFooter, parsed) : null;
@@ -172,6 +182,7 @@
 
                 return Boolean(nextUrl);
             } catch (error) {
+                if (error.name === 'AbortError' || !isCurrent()) return false;
                 console.error('Unable to load more records.', error);
                 footer.dataset.loadError = 'true';
                 return false;
@@ -181,13 +192,20 @@
             }
         };
 
+        const loadNextPage = () => {
+            if (pendingRequest) return pendingRequest;
+            pendingRequest = requestNextPage().finally(() => { pendingRequest = null; });
+            return pendingRequest;
+        };
+
         setNextUrl(nextUrl);
         setLoading(false);
         updateCount(footer, context);
 
         if (lazy) {
             footer.addEventListener('gct:load-all-records', async () => {
-                while (nextUrl && !visited.has(nextUrl)) {
+                if (pendingRequest) await pendingRequest;
+                while (isCurrent() && nextUrl && !visited.has(nextUrl)) {
                     await loadNextPage();
 
                     if (footer.dataset.loadError === 'true') {
@@ -217,7 +235,7 @@
         }
 
         try {
-            while (nextUrl && !visited.has(nextUrl)) {
+            while (isCurrent() && nextUrl && !visited.has(nextUrl)) {
                 await loadNextPage();
 
                 if (footer.dataset.loadError === 'true') {
@@ -230,7 +248,18 @@
         }
     };
 
-    const initialize = () => footers().forEach((footer, index) => initializeFooter(footer, index));
+    const initialize = () => {
+        for (const [footer, controller] of footerControllers) {
+            if (footer.isConnected) continue;
+            controller.abort();
+            footerControllers.delete(footer);
+        }
+        footers().forEach((footer, index) => initializeFooter(footer, index));
+    };
+    window.addEventListener('gct:navigation-before', () => {
+        footerControllers.forEach(controller => controller.abort());
+        footerControllers.clear();
+    });
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initialize, { once: true });

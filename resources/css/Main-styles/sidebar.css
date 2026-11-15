@@ -51,6 +51,22 @@
     0 10px 24px rgba(255, 193, 7, 0.25);
 }
 
+.brand-icon .brand-logo {
+  display: block;
+  width: 46px;
+  height: 46px;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  object-position: center;
+}
+
+/* The same logo is used when department navigation is collapsed. */
+.sidebar.collapsed .brand-icon .brand-logo {
+  width: 44px;
+  height: 44px;
+}
+
 .brand h2 {
   font-size: 19px;
   line-height: 1.1;
@@ -1430,4 +1446,59 @@ body.sidebar-collapsed .main {
 }
 @media (prefers-reduced-motion: reduce) {
   #appSidebar .sidebar-profile-menu.show { animation: none; }
+}
+
+/* The global sidebar keeps its familiar navy background in Light Mode.
+   Dark Mode uses a deeper navy, rather than changing to pale blue.
+   This also avoids unreadable inherited white-on-light menu labels. */
+html:not([data-gct-theme="dark"]) #appSidebar {
+  background: linear-gradient(180deg, #0b3a68, #062441);
+  color: #f8fbff;
+  border-right: 1px solid #254c71;
+}
+html:not([data-gct-theme="dark"]) #appSidebar :is(.brand h2, .brand p, .menu-item, .submenu-item, .user-box, .user-box-text p) {
+  color: #e9f2fc;
+}
+html:not([data-gct-theme="dark"]) #appSidebar :is(.menu-item, .submenu-item):hover,
+html:not([data-gct-theme="dark"]) #appSidebar .menu-dropdown.open > .menu-item:not(.active) {
+  background: #204d79;
+  color: #ffffff;
+}
+html:not([data-gct-theme="dark"]) #appSidebar :is(.menu-item.active, .submenu-item.active) {
+  background: #ffc400;
+  color: #061f3d;
+}
+html:not([data-gct-theme="dark"]) #appSidebar :is(.menu-item.active, .submenu-item.active) :is(i, span) { color: inherit; }
+html:not([data-gct-theme="dark"]) #appSidebar .sidebar-collapse-btn {
+  background: #ffffff;
+  color: #153f67;
+  border-color: #d6e3f2;
+}
+
+html[data-gct-theme="dark"] #appSidebar {
+  background: linear-gradient(180deg, #0c2038, #081526);
+  color: #f1f5fc;
+  border-right: 1px solid #304762;
+}
+html[data-gct-theme="dark"] #appSidebar :is(.menu-item, .submenu-item) { color: #c5d4e7; }
+html[data-gct-theme="dark"] #appSidebar :is(.menu-item, .submenu-item):hover,
+html[data-gct-theme="dark"] #appSidebar .menu-dropdown.open > .menu-item:not(.active) {
+  background: #203853;
+  color: #f5f8ff;
+}
+html[data-gct-theme="dark"] #appSidebar :is(.menu-item.active, .menu-dropdown > .menu-item.active, .menu-dropdown.open > .menu-item.active, .submenu-item.active) {
+  /* The current sidebar destination uses GCT yellow in both themes. */
+  background: #ffc400;
+  color: #061f3d;
+  box-shadow: 0 8px 20px rgba(255, 196, 0, 0.16);
+}
+html[data-gct-theme="dark"] #appSidebar :is(.menu-item.active, .submenu-item.active) :is(i, span) { color: inherit; }
+html[data-gct-theme="dark"] #appSidebar .sidebar-collapse-btn {
+  background: #203853;
+  color: #f0f6ff;
+  border-color: #456180;
+}
+html[data-gct-theme="dark"] #appSidebar .brand-icon {
+  background: #a97918;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, .25);
 }

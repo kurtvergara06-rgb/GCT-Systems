@@ -82,83 +82,40 @@
                     </div>
                 @endif
 
-                {{-- Hero Identity Card --}}
-                <div class="account-hero-card">
-                    <div class="account-hero-identity">
-                        <a
-                            href="{{ route('account.profile', [], false) }}"
-                            class="account-avatar-wrapper account-avatar-trigger"
-                            aria-label="Open profile photo settings"
-                        >
-                            <span class="account-avatar-large">
-                                @if ($profilePhotoUrl)
-                                    <img src="{{ $profilePhotoUrl }}" alt="{{ $user->name }} profile photo">
-                                @else
-                                    <span>{{ $initials }}</span>
-                                @endif
-                            </span>
-                            <span class="account-avatar-edit" aria-hidden="true">
-                                <i class="fa-solid fa-camera"></i>
-                            </span>
-                            <span class="account-avatar-status-dot" title="Active Account"></span>
-                        </a>
-                        <div class="account-hero-copy">
-                            <h2>{{ $user->name }}</h2>
-                            <div class="account-hero-badges">
-                                <span class="account-badge account-badge-dept">
-                                    <i class="fa-solid {{ $icon }}"></i>
-                                    {{ $department }}
-                                </span>
-                                <span class="account-badge account-badge-role">
-                                    <i class="fa-solid fa-user-shield"></i>
-                                    {{ $displayRole }}
-                                </span>
-                                <x-ui.status-badge
-                                    :status="$user->status ?: 'Active'"
-                                    class="account-badge account-badge-status"
-                                />
+                {{-- Security Center: distinguish account safety from the My Profile identity page. --}}
+                <header class="account-security-hero" aria-labelledby="accountSecurityHeading">
+                    <div class="account-security-intro">
+                        <span class="account-security-emblem" aria-hidden="true"><i class="fa-solid fa-shield-halved"></i></span>
+                        <div class="account-security-heading">
+                            <span class="account-security-eyebrow">ACCOUNT PROTECTION</span>
+                            <h2 id="accountSecurityHeading">Account Security</h2>
+                            <p>Manage your password and protect your GCT account.</p>
+                            <div class="account-security-identity">
+                                <span>{{ $user->name }}</span>
+                                <span aria-hidden="true">·</span>
+                                <span>{{ $displayRole }}</span>
                             </div>
                         </div>
                     </div>
-
-                    <div class="account-hero-meta">
-                        <div class="account-hero-meta-item">
-                            <div class="account-hero-meta-icon">
-                                <i class="fa-solid fa-id-badge"></i>
-                            </div>
-                            <div class="account-hero-meta-text">
-                                <span>System ID</span>
-                                <strong>{{ $displayUserId }}</strong>
-                            </div>
+                    <div class="account-security-highlights">
+                        <div class="account-security-highlight">
+                            <i class="fa-solid fa-key" aria-hidden="true"></i>
+                            <span><small>Authentication</small><strong>Password</strong></span>
                         </div>
-                        <div class="account-hero-meta-item">
-                            <div class="account-hero-meta-icon">
-                                <i class="fa-solid fa-shield-halved"></i>
-                            </div>
-                            <div class="account-hero-meta-text">
-                                <span>Security Level</span>
-                                <strong>Standard Credential</strong>
-                            </div>
-                        </div>
-                        <div class="account-hero-meta-item">
-                            <div class="account-hero-meta-icon">
-                                <i class="fa-solid fa-clock-rotate-left"></i>
-                            </div>
-                            <div class="account-hero-meta-text">
-                                <span>Last Activity</span>
-                                <strong>{{ $user->last_login_at?->format('M d, Y h:i A') ?? 'Current Session' }}</strong>
-                            </div>
+                        <div class="account-security-highlight">
+                            <i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i>
+                            <span><small>Last Recorded Login</small><strong>{{ $user->last_login_at?->format('M d, Y h:i A') ?? 'Not recorded' }}</strong></span>
                         </div>
                     </div>
-                </div>
+                </header>
 
                 {{-- Unified Module Tabs --}}
-                <nav class="account-nav-tabs">
+                <nav class="account-nav-tabs account-security-tabs" aria-label="Account navigation">
                     <a href="{{ route('account.profile') }}" class="account-nav-tab">
                         <i class="fa-solid fa-user-gear"></i>
                         <span>My Profile</span>
                     </a>
-                    <a href="{{ route('account.settings') }}" class="account-nav-tab active">
+                    <a href="{{ route('account.settings') }}" class="account-nav-tab active" aria-current="page">
                         <i class="fa-solid fa-shield-halved"></i>
                         <span>Security & Password</span>
                     </a>
@@ -170,7 +127,7 @@
                     @endif
                 </nav>
 
-                <div class="account-settings-grid">
+                <div class="account-settings-grid account-security-grid">
                     {{-- Change Password Form --}}
                     <section class="account-card">
                         <div class="account-card-header">
@@ -315,7 +272,7 @@
                     </section>
 
                     {{-- Security Recommendations & Access Sidebar --}}
-                    <aside class="account-card account-summary-card">
+                    <aside class="account-card account-summary-card account-security-recommendations">
                         <div class="account-card-header">
                             <div class="account-card-header-copy">
                                 <h3>Security Best Practices</h3>
@@ -326,32 +283,11 @@
                             </div>
                         </div>
 
-                        <section class="account-appearance-setting" aria-labelledby="appearanceSettingTitle">
-                            <div class="account-appearance-icon" aria-hidden="true">
-                                <i class="fa-solid fa-moon"></i>
-                            </div>
-                            <div class="account-appearance-copy">
-                                <div class="account-appearance-heading">
-                                    <strong id="appearanceSettingTitle">Dark Mode</strong>
-                                    <span>Coming soon</span>
-                                </div>
-                                <p>Switch between light and dark appearance when theme support becomes available.</p>
-                            </div>
-                            <div class="account-theme-control">
-                                <span>Off</span>
-                                <button
-                                    type="button"
-                                    class="account-theme-switch"
-                                    role="switch"
-                                    aria-checked="false"
-                                    aria-label="Dark mode is not available yet"
-                                    disabled
-                                >
-                                    <span></span>
-                                </button>
-                            </div>
-                        </section>
-
+                        <a href="{{ route('account.personalization', [], false) }}" class="account-security-appearance">
+                            <span class="account-security-appearance-icon" aria-hidden="true"><i class="fa-solid fa-circle-half-stroke"></i></span>
+                            <span><strong>Appearance Preferences</strong><small>Choose Light, Dark, or System theme in Personalization.</small></span>
+                            <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+                        </a>
 
                         {{-- Development-only, visual role preview: never alters authentication or permissions. --}}
                         @if (app()->environment('local')
@@ -428,13 +364,14 @@
                                     <i class="fa-solid fa-shield-halved"></i>
                                 </div>
                                 <div class="account-tip-text">
-                                    <strong>Activity Logging Active</strong>
-                                    <span>All sign-ins and password updates are automatically recorded in system audit logs.</span>
+                                    <strong>Protect Verification Codes</strong>
+                                    <span>Never share account verification codes or password-reset links.</span>
                                 </div>
                             </li>
                         </ul>
 
-                        <div class="account-tile-list" style="margin-top: 14px;">
+                        <h4 class="account-security-access-title">Account Information</h4>
+                        <div class="account-tile-list account-security-access" >
                             <div class="account-meta-tile">
                                 <div class="account-meta-tile-icon">
                                     <i class="fa-solid fa-user-check"></i>
@@ -442,6 +379,20 @@
                                 <div class="account-meta-tile-copy">
                                     <span>Signed In As</span>
                                     <strong>{{ $user->email }}</strong>
+                                </div>
+                            </div>
+                            <div class="account-meta-tile">
+                                <div class="account-meta-tile-icon"><i class="fa-solid fa-id-badge" aria-hidden="true"></i></div>
+                                <div class="account-meta-tile-copy">
+                                    <span>System ID</span>
+                                    <strong>{{ $displayUserId }}</strong>
+                                </div>
+                            </div>
+                            <div class="account-meta-tile">
+                                <div class="account-meta-tile-icon"><i class="fa-solid {{ $icon }}" aria-hidden="true"></i></div>
+                                <div class="account-meta-tile-copy">
+                                    <span>Department</span>
+                                    <strong>{{ $department }}</strong>
                                 </div>
                             </div>
                         </div>

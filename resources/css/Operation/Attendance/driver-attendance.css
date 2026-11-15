@@ -5,7 +5,7 @@
 
 .table-card,
 .attendance-card {
-  background: #ffffff;
+  background: var(--gct-ui-surface, #ffffff);
 
   border: 1px solid var(--border);
   border-radius: 16px;
@@ -62,7 +62,7 @@
 
   gap: 10px;
 
-  background: #ffffff;
+  background: var(--gct-ui-surface, #ffffff);
 
   border: 1px solid var(--border);
   border-radius: 12px;
@@ -100,7 +100,7 @@
 
   padding: 0 14px 0 40px;
 
-  background: #ffffff;
+  background: var(--gct-ui-surface, #ffffff);
 
   border: 1px solid var(--border);
   border-radius: 9px;
@@ -148,7 +148,7 @@
 
   padding: 0 11px;
 
-  background: #ffffff;
+  background: var(--gct-ui-surface, #ffffff);
 
   border: 1px solid var(--border);
   border-radius: 9px;
@@ -246,7 +246,7 @@
 }
 
 .attendance-table thead {
-  background: #f3f7fc;
+  background: var(--gct-ui-surface-raised, #f3f7fc);
 }
 
 .attendance-table th {
@@ -255,7 +255,7 @@
   border-bottom:
     1px solid var(--border);
 
-  color: #475569;
+  color: var(--gct-ui-muted, #475569);
 
   font-size: 11px;
   font-weight: 700;
@@ -290,7 +290,7 @@
 }
 
 .attendance-table tbody tr:hover {
-  background: #f8fbff;
+  background: var(--gct-ui-surface-hover, #f8fbff);
 }
 
 .attendance-table tbody tr:last-child td {
@@ -963,7 +963,7 @@
 
   padding: 14px;
 
-  background: #f8fafc;
+  background: var(--gct-ui-surface-hover, #f8fafc);
 
   border: 1px solid var(--border);
   border-radius: 10px;
@@ -975,7 +975,7 @@
 
   margin-bottom: 5px;
 
-  color: #64748b;
+  color: var(--gct-ui-muted, #64748b);
 
   font-size: 11px;
   font-weight: 700;
@@ -1157,7 +1157,7 @@
   padding: 0 9px;
   border: 1px solid #d6e1ef;
   border-radius: 9px;
-  background: #fff;
+  background: var(--gct-ui-surface, #fff);
   color: #183253;
   font: inherit;
   font-size: 12px;
@@ -1188,14 +1188,8 @@
 .driver-attendance-page .attendance-table td:nth-child(n+3) {
   text-align: center;
 }
-.driver-attendance-page .attendance-table td:nth-child(4),
-.driver-attendance-page .attendance-table td:nth-child(5),
-.driver-attendance-page .attendance-table td:nth-child(6) {
-  white-space: nowrap;
-}
 .driver-attendance-page .attendance-table td:last-child .actions {
   display: flex;
-  justify-content: center;
   flex-wrap: nowrap;
   gap: 4px;
 }
@@ -1208,9 +1202,6 @@
 @media (max-width: 900px) {
   .driver-attendance-page .table-wrap {
     overflow-x: auto;
-  }
-  .driver-attendance-page .attendance-table {
-    min-width: 900px;
   }
 }
 
@@ -1225,7 +1216,7 @@
 /* Keep Driver Attendance details aligned with Operation's refreshed modal layout. */
 #viewDriverAttendanceModal .ui-form-modal { width: min(660px, calc(100vw - 32px)); }
 #viewDriverAttendanceModal .attendance-details-grid { gap: 12px; }
-#viewDriverAttendanceModal .attendance-detail-card { border-color: #dbe5f1; background: #f8fafc; transition: border-color .15s ease; }
+#viewDriverAttendanceModal .attendance-detail-card { border-color: #dbe5f1; background: var(--gct-ui-surface-hover, #f8fafc); transition: border-color .15s ease; }
 #viewDriverAttendanceModal .attendance-detail-card label { font-size: 10px; letter-spacing: .06em; }
 #viewDriverAttendanceModal .attendance-detail-value { color: #10213e; }
 #viewDriverAttendanceModal .ui-form-actions { border-top: 1px solid #e8eef5; padding-top: 17px; }
@@ -1257,7 +1248,6 @@
   flex-direction: column;
   align-items: flex-start;
   width: fit-content;
-  max-width: 100%;
   margin: 0;
   text-align: left;
 }
@@ -1320,16 +1310,6 @@
 }
 
 /* Compact six-column rhythm: keep time-in close to the assignment details. */
-.driver-attendance-page .attendance-table th:nth-child(4),
-.driver-attendance-page .attendance-table td:nth-child(4) {
-  text-align: left;
-}
-.driver-attendance-page .attendance-table th:nth-child(5),
-.driver-attendance-page .attendance-table td:nth-child(5),
-.driver-attendance-page .attendance-table th:nth-child(6),
-.driver-attendance-page .attendance-table td:nth-child(6) {
-  text-align: center;
-}
 
 
 /* Match Operations Master List tabs, with toolbar actions aligned on the same row. */
@@ -1491,11 +1471,6 @@
     outline: 2px solid #2563eb;
     outline-offset: 2px;
 }
-@media (max-width: 900px) {
-    .driver-attendance-page .attendance-table {
-        min-width: 960px;
-    }
-}
 
 /* Five-column DDR-verified attendance history.
    The former Time-In column is now only shown in the View modal. */
@@ -1515,9 +1490,7 @@
 }
 .driver-attendance-page .attendance-table th:last-child,
 .driver-attendance-page .attendance-table td:last-child:not([colspan]) {
-    box-sizing: border-box;
     width: 14%;
-    min-width: 110px;
 }
 .driver-attendance-page .attendance-table td:last-child:not([colspan]) .actions {
     display: flex;
@@ -1531,11 +1504,6 @@
     min-width: 88px;
     max-width: 88px;
     overflow: visible;
-}
-@media (max-width: 900px) {
-    .driver-attendance-page .attendance-table {
-        min-width: 880px;
-    }
 }
 
 /* Six columns: separate scheduled service date/time from bus and trip IDs.
@@ -1585,7 +1553,7 @@
 .driver-attendance-page .attendance-trip-time.is-empty {
     font-weight: 500;
     font-style: italic;
-    color: #94a3b8;
+    color: var(--gct-ui-muted, #94a3b8);
 }
 .driver-attendance-page .attendance-table th:last-child,
 .driver-attendance-page .attendance-table td:last-child:not([colspan]) {
@@ -1598,7 +1566,7 @@
         overflow-x: auto;
     }
     .driver-attendance-page .attendance-table {
-        min-width: 1020px;
+        min-width: 880px;
     }
 }
 

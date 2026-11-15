@@ -674,7 +674,9 @@ document.addEventListener('DOMContentLoaded', function () {
         document.addEventListener(
             'click',
             function () {
-
+                // Keep account navigation visible on account pages. The user
+                // can still close it explicitly using its toggle or Escape.
+                if (profileMenu.dataset.accountPage === '1') return;
                 closeProfileMenu();
             }
         );

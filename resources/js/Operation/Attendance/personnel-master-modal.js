@@ -260,6 +260,36 @@ window.GCTPartialNavigation.registerInitializer('operation-personnel-master', '.
     const subtitle = modal.querySelector('[data-modal-subtitle]');
     const headerIcon = modal.querySelector('[data-personnel-modal-icon]');
     const viewNotice = modal.querySelector('[data-personnel-view-notice]');
+    const driverProfile = modal.querySelector('[data-driver-profile-view]');
+    const setDriverProfile = (record) => {
+        if (!driverProfile) return;
+        for (const key of ['driver_id', 'driver_name', 'contact_number', 'employment_status']) {
+            const output = driverProfile.querySelector('[data-driver-profile="' + key + '"]');
+            if (output) output.textContent = String(record[key] || '—');
+        }
+        const statusNode = driverProfile.querySelector('[data-driver-profile="employment_status"]');
+        if (statusNode) statusNode.dataset.status = String(record.employment_status || '');
+        const busesNode = driverProfile.querySelector('[data-driver-profile-buses]');
+        if (!busesNode) return;
+        busesNode.replaceChildren();
+        const selected = new Set((record.bus_ids || []).map(String));
+        const checks = [...form.querySelectorAll('[data-driver-bus-checkbox]')];
+        const matched = checks.filter((check) => selected.has(check.value));
+        if (!matched.length) {
+            busesNode.textContent = 'No assigned buses';
+            return;
+        }
+        matched.forEach((check) => {
+            const chip = document.createElement('span');
+            chip.className = 'driver-profile-bus-chip';
+            const icon = document.createElement('i');
+            icon.className = 'fa-solid fa-bus-simple';
+            icon.setAttribute('aria-hidden', 'true');
+            chip.append(icon, document.createTextNode(check.dataset.busNumber || check.value));
+            busesNode.append(chip);
+        });
+    };
+
     const methodField = form.querySelector('[data-method-field]');
     const editingPersonnelId = form.querySelector('[data-editing-personnel-id]');
     const submitButton = form.querySelector('[data-submit-button]');
@@ -774,6 +804,7 @@ window.GCTPartialNavigation.registerInitializer('operation-personnel-master', '.
         }
 
         modal.dataset.mode = 'edit';
+        if (driverProfile) driverProfile.hidden = true;
         updateBusPicker();
         if (viewNotice) viewNotice.hidden = true;
         setSpecializationReadOnly(false);
@@ -859,6 +890,10 @@ window.GCTPartialNavigation.registerInitializer('operation-personnel-master', '.
             submitButton.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Update ${entity}`;
         } else {
             modal.dataset.mode = 'view';
+            if (driverProfile) {
+                setDriverProfile(record);
+                driverProfile.hidden = false;
+            }
             if (headerIcon) headerIcon.className = 'fa-solid fa-eye';
             if (viewNotice) viewNotice.hidden = false;
             title.textContent = `${entity} Details`;

@@ -175,8 +175,8 @@ def bus_readiness() -> ComponentReadiness:
 
 
 def driver_readiness() -> ComponentReadiness:
-    model = _load_driver_model()
-    features_ok = _load_feature_layout(_paths["driver_features"], DRIVER_FEATURE_NAMES) is not None
+    # Check cheap metadata before deserializing a model that cannot be used.
+    # On 512 MB instances even an unused model consumes avoidable RAM.
     state = _component_state("driver")
 
     if not state["ready"]:
@@ -188,14 +188,6 @@ def driver_readiness() -> ComponentReadiness:
             model_path=_paths["driver_model"],
         )
 
-    if model is None or not features_ok:
-        return ComponentReadiness(
-            ml_ready=False,
-            source="data_fallback",
-            reason=_driver_load_error or "Driver ML model is not trained; using data-derived driver reliability.",
-            sample_count=state["sample_count"],
-            model_path=_paths["driver_model"],
-        )
     if state["sample_count"] < _thresholds["min_driver_count"]:
         return ComponentReadiness(
             ml_ready=False,
@@ -205,6 +197,16 @@ def driver_readiness() -> ComponentReadiness:
                 f"need at least {_thresholds['min_driver_count']} for a reliable "
                 "driver model. Using data-derived reliability."
             ),
+            sample_count=state["sample_count"],
+            model_path=_paths["driver_model"],
+        )
+    model = _load_driver_model()
+    features_ok = _load_feature_layout(_paths["driver_features"], DRIVER_FEATURE_NAMES) is not None
+    if model is None or not features_ok:
+        return ComponentReadiness(
+            ml_ready=False,
+            source="data_fallback",
+            reason=_driver_load_error or "Driver ML model is not trained; using data-derived driver reliability.",
             sample_count=state["sample_count"],
             model_path=_paths["driver_model"],
         )
@@ -297,11 +299,25 @@ def evaluate_candidates(
     bus_histories = bus_histories or {}
 
     # --- Buses ---
-    if bus_ready.ml_ready:
-        for bus in eligible_buses:
-            score = predict_bus_suitability(bus, trip, bus_histories.get(bus.id))
-            if score is not None:
-                outcome.bus_scores[bus.id] = score
+    if bus_ready.ml_ready and eligible_buses:
+        try:
+            model = _load_bus_model()
+            features = np.stack([
+                encode_bus_features(bus, trip, bus_histories.get(bus.id))
+                for bus in eligible_buses
+            ])
+            frame = pd.DataFrame(features, columns=BUS_FEATURE_NAMES)
+            predictions = model.predict(frame)
+            if len(predictions) != len(eligible_buses):
+                raise ValueError("Bus model returned an unexpected prediction count")
+            for bus, prediction in zip(eligible_buses, predictions):
+                value = float(prediction)
+                if not np.isfinite(value):
+                    raise ValueError("Bus model returned a non-finite prediction")
+                outcome.bus_scores[bus.id] = max(0.0, min(1.0, value))
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("Batch bus ML prediction failed: %s", exc)
+            outcome.bus_scores.clear()
         if len(outcome.bus_scores) != len(eligible_buses):
             # Do not label a mixed ML/rule ranking as entirely ML-derived.
             outcome.bus_scores.clear()
@@ -317,11 +333,25 @@ def evaluate_candidates(
     }
 
     # --- Drivers ---
-    if driver_ready.ml_ready:
-        for driver in eligible_drivers:
-            score = predict_driver_suitability(driver, trip, driver_histories.get(driver.id))
-            if score is not None:
-                outcome.driver_scores[driver.id] = score
+    if driver_ready.ml_ready and eligible_drivers:
+        try:
+            model = _load_driver_model()
+            features = np.stack([
+                encode_driver_features(driver, trip, driver_histories.get(driver.id))
+                for driver in eligible_drivers
+            ])
+            frame = pd.DataFrame(features, columns=DRIVER_FEATURE_NAMES)
+            predictions = model.predict(frame)
+            if len(predictions) != len(eligible_drivers):
+                raise ValueError("Driver model returned an unexpected prediction count")
+            for driver, prediction in zip(eligible_drivers, predictions):
+                value = float(prediction)
+                if not np.isfinite(value):
+                    raise ValueError("Driver model returned a non-finite prediction")
+                outcome.driver_scores[driver.id] = max(0.0, min(1.0, value))
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("Batch driver ML prediction failed: %s", exc)
+            outcome.driver_scores.clear()
         if len(outcome.driver_scores) != len(eligible_drivers):
             # All candidates must share the reported prediction source.
             outcome.driver_scores.clear()

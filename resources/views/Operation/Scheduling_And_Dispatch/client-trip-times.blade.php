@@ -131,9 +131,16 @@
                         data-client-name="{{ mb_strtolower($client->name) }}"
                         data-configured-count="{{ $configuredCategoryCount }}"
                         data-total-categories="{{ $totalCategoryCount }}"
+                        @if(request()->integer('focus_client') === $client->id) open @endif
                     >
                         <summary class="ctt-client-header">
-                            <span class="ctt-client-icon"><i class="fa-solid fa-building" aria-hidden="true"></i></span>
+                            <span class="ctt-client-icon">
+                                @if($client->logo_path)
+                                    <img src="{{ $client->logoUrl() }}" alt="{{ $client->name }} logo" loading="lazy">
+                                @else
+                                    <i class="fa-solid fa-building" aria-hidden="true"></i>
+                                @endif
+                            </span>
                             <div class="ctt-client-heading">
                                 <h3>{{ $client->name }}
                                     <span class="ctt-client-status {{ $client->isActive() ? 'is-active' : 'is-inactive' }}">
@@ -183,23 +190,86 @@
                             </span>
                         </summary>
 
+                        @if($canEditOperation)
+                            <section class="ctt-client-logo-settings" aria-label="Client logo settings for {{ $client->name }}">
+                                <span class="ctt-client-logo-preview" aria-hidden="true">
+                                    @if($client->logo_path)
+                                        <img src="{{ $client->logoUrl() }}" alt="" loading="lazy">
+                                    @else
+                                        <i class="fa-solid fa-building"></i>
+                                    @endif
+                                </span>
+                                <div class="ctt-client-logo-copy">
+                                    <strong>Client Logo</strong>
+                                    <small>PNG, JPG or WebP · Max 2 MB</small>
+                                </div>
+                                <form class="ctt-client-logo-form" method="POST"
+                                    action="{{ route('operation.clients.logo', $client) }}"
+                                    enctype="multipart/form-data">
+                                    @csrf
+                                    <div class="ctt-logo-upload-control">
+                                        <input id="ctt-logo-file-{{ $client->id }}" type="file" name="logo"
+                                            accept="image/png,image/jpeg,image/webp" class="ctt-logo-file-input"
+                                            aria-label="Choose logo for {{ $client->name }}">
+                                        <label for="ctt-logo-file-{{ $client->id }}" class="ctt-logo-pick">
+                                            <i class="fa-solid fa-arrow-up-from-bracket" aria-hidden="true"></i>
+                                            <span>{{ $client->logo_path ? 'Change' : 'Upload' }}</span>
+                                        </label>
+                                        <span class="ctt-logo-file-name" role="status" aria-live="polite" hidden></span>
+                                    </div>
+                                    @if($client->logo_path)
+                                        <label class="ctt-logo-remove">
+                                            <input type="checkbox" name="remove_logo" value="1">
+                                            Remove
+                                        </label>
+                                    @endif
+                                    <button type="submit" class="ctt-logo-save" hidden>
+                                        <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Save
+                                    </button>
+                                </form>
+                            </section>
+                        @endif
+                        @if(request()->integer('focus_client') === $client->id && session('success'))
+                            <p class="ctt-logo-success" role="status">{{ session('success') }}</p>
+                        @endif
+
                         <section class="ctt-client-buses" aria-label="Allocated buses for {{ $client->name }}">
+                            @php
+                                $allocatedBuses = $client->buses->sortBy('bus_no')->values();
+                                $remainingBusCount = max(0, $allocatedBuses->count() - 4);
+                            @endphp
                             <div class="ctt-client-buses-heading">
                                 <div>
                                     <strong><i class="fa-solid fa-bus-simple" aria-hidden="true"></i> Allocated Buses</strong>
-                                    <span>{{ $client->buses->count() }} {{ \Illuminate\Support\Str::plural('bus', $client->buses->count()) }}</span>
+                                    <span>{{ $allocatedBuses->count() }} {{ \Illuminate\Support\Str::plural('bus', $allocatedBuses->count()) }}</span>
                                 </div>
                                 <a href="{{ route('bus-master-list') }}" class="ctt-client-buses-link">
                                     Manage in Bus Master List <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
                                 </a>
                             </div>
                             <div class="ctt-client-bus-chips">
-                                @forelse($client->buses as $bus)
+                                @forelse($allocatedBuses->take(4) as $bus)
                                     <span class="ctt-client-bus-chip"><i class="fa-solid fa-bus" aria-hidden="true"></i> Bus {{ $bus->bus_no }}</span>
                                 @empty
                                     <span class="ctt-client-no-buses">No buses allocated to this client.</span>
                                 @endforelse
+                                @if($remainingBusCount > 0)
+                                    <span class="ctt-client-bus-remaining">+{{ $remainingBusCount }} more</span>
+                                @endif
                             </div>
+                            @if($remainingBusCount > 0)
+                                <div class="ctt-client-bus-chips ctt-client-bus-extra" id="cttClientBuses-{{ $client->id }}" hidden>
+                                    @foreach($allocatedBuses->skip(4) as $bus)
+                                        <span class="ctt-client-bus-chip"><i class="fa-solid fa-bus" aria-hidden="true"></i> Bus {{ $bus->bus_no }}</span>
+                                    @endforeach
+                                </div>
+                                <button type="button" class="ctt-client-buses-toggle" data-ctt-buses-toggle
+                                    aria-controls="cttClientBuses-{{ $client->id }}" aria-expanded="false"
+                                    data-collapsed-label="View all {{ $allocatedBuses->count() }} buses">
+                                    <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+                                    <span>View all {{ $allocatedBuses->count() }} buses</span>
+                                </button>
+                            @endif
                         </section>
 
                         <div class="ctt-category-grid" role="group" aria-label="Trip time categories for {{ $client->name }}">
@@ -259,74 +329,43 @@
             </section>
             </section>
 
-            <x-ui.form-modal
-                id="cttConfigModal"
-                title="Client Trip Time Range"
-                title-id="cttConfigTitle"
-                description="Set the time window for this client category."
-                icon="fa-clock"
-                size="medium"
-                form-id="cttConfigForm"
-                action="#"
-                method="POST"
-                submit-text="Save Configuration"
-                submit-text-id="cttConfigSubmitText"
-                cancel-text="Cancel"
-                cancel-id="cttConfigCancel"
-                close-id="cttConfigClose"
-            >
-                <div class="ctt-modal-context">
-                    <span class="ctt-modal-context-item">
-                        <i class="fa-solid fa-building" aria-hidden="true"></i>
-                        <strong id="cttConfigClientName">â€”</strong>
-                    </span>
-                    <span class="ctt-modal-context-item">
-                        <i class="fa-solid fa-arrow-right-arrow-left" aria-hidden="true"></i>
-                        <strong id="cttConfigCategoryLabel">â€”</strong>
-                    </span>
-                </div>
-
-                <input type="hidden" name="operation_client_id" id="cttConfigClientId">
-                <input type="hidden" name="category" id="cttConfigCategory">
-
-                <div class="ui-form-grid ctt-modal-grid">
-                    <div class="ui-form-group">
-                        <label for="cttConfigStart">Start Time <span class="ui-required">*</span></label>
-                        <div class="ui-input-wrap has-icon">
-                            <span class="ui-input-icon"><i class="fa-solid fa-sun" aria-hidden="true"></i></span>
-                            <input type="time" name="start_time" id="cttConfigStart" required>
-                        </div>
-                        <span class="ctt-field-error" data-error-for="start_time"></span>
-                    </div>
-
-                    <div class="ui-form-group">
-                        <label for="cttConfigEnd">End Time <span class="ui-required">*</span></label>
-                        <div class="ui-input-wrap has-icon">
-                            <span class="ui-input-icon"><i class="fa-solid fa-moon" aria-hidden="true"></i></span>
-                            <input type="time" name="end_time" id="cttConfigEnd" required>
-                        </div>
-                        <span class="ctt-field-error" data-error-for="end_time"></span>
-                    </div>
-
-                    <div class="ui-form-group ui-form-full">
-                        <label class="ctt-checkbox-row" for="cttConfigActive">
-                            <input type="hidden" name="is_active" value="0">
-                            <input type="checkbox" name="is_active" id="cttConfigActive" value="1" checked>
+            {{-- One shared crop dialog for all Client Logo forms. The upload is
+                 submitted only after the user confirms the cropped image. --}}
+            <div class="ctt-logo-crop-overlay" id="cttLogoCropModal" role="presentation" hidden>
+                <section class="ctt-logo-crop-dialog" role="dialog" aria-modal="true"
+                    aria-labelledby="cttLogoCropTitle" aria-describedby="cttLogoCropDescription">
+                    <header class="ctt-logo-crop-header">
+                        <span class="ctt-logo-crop-heading">
+                            <i class="fa-solid fa-crop-simple" aria-hidden="true"></i>
                             <span>
-                                <strong>Active configuration</strong>
-                                <small>When disabled, new trips for this category are blocked until it is enabled again.</small>
+                                <strong id="cttLogoCropTitle">Edit Client Logo</strong>
+                                <small id="cttLogoCropDescription">Drag the image to reposition and zoom to fit.</small>
                             </span>
+                        </span>
+                        <button type="button" class="ctt-logo-crop-close" aria-label="Cancel image editing">
+                            <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                        </button>
+                    </header>
+                    <div class="ctt-logo-crop-body">
+                        <div class="ctt-logo-crop-stage">
+                            <canvas id="cttLogoCropCanvas" width="360" height="360"
+                                role="img" aria-label="Square logo crop preview"></canvas>
+                        </div>
+                        <label class="ctt-logo-crop-zoom" for="cttLogoCropZoom">
+                            <span><i class="fa-solid fa-magnifying-glass-plus" aria-hidden="true"></i> Zoom</span>
+                            <input id="cttLogoCropZoom" type="range" min="100" max="300" value="100" step="1">
                         </label>
-                        <span class="ctt-field-error" data-error-for="is_active"></span>
+                        <p class="ctt-logo-crop-hint">The saved logo will be cropped to a square. Maximum upload: 2 MB.</p>
+                        <span class="ctt-logo-crop-error" role="alert" hidden></span>
                     </div>
-                </div>
-
-                <p class="ctt-modal-help">
-                    <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
-                    AM categories run from 12:00 AM up to 12:00 NN. PM categories run from 12:00 NN onward.
-                    Ranges cannot cross midnight. Time slots are added per category after the range is saved.
-                </p>
-            </x-ui.form-modal>
+                    <footer class="ctt-logo-crop-actions">
+                        <button type="button" class="ctt-logo-crop-cancel">Cancel</button>
+                        <button type="button" class="ctt-logo-crop-save">
+                            <i class="fa-solid fa-check" aria-hidden="true"></i> Save Logo
+                        </button>
+                    </footer>
+                </section>
+            </div>
 
             <x-ui.form-modal
                 id="cttSlotModal"

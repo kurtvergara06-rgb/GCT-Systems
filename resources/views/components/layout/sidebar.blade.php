@@ -387,7 +387,7 @@
 
     <div class="brand">
         <div class="brand-icon">
-            <i class="fa-solid {{ $icon }}"></i>
+            <img src="{{ asset('img/gct_logo.png') }}" alt="GCT logo" class="brand-logo" width="46" height="46">
         </div>
         <div class="brand-text">
             <h2>{{ $department }}</h2>
@@ -485,12 +485,17 @@
         @endforeach
     </nav>
 
+    @php
+        // On Account pages the user is working inside the account section,
+        // so preserve its navigation menu as expanded after each page load.
+        $accountMenuExpanded = request()->is('account/*');
+    @endphp
     <div class="sidebar-profile-wrap">
         <button
             type="button"
-            class="user-box sidebar-profile-toggle"
+            class="user-box sidebar-profile-toggle{{ $accountMenuExpanded ? ' active' : '' }}"
             id="sidebarProfileToggle"
-            aria-expanded="false"
+            aria-expanded="{{ $accountMenuExpanded ? 'true' : 'false' }}"
             aria-controls="sidebarProfileMenu"
             aria-haspopup="menu"
             title="{{ $displayName }}"
@@ -509,7 +514,7 @@
             <i class="fa-solid fa-chevron-down profile-chevron"></i>
         </button>
 
-        <div class="sidebar-profile-menu" id="sidebarProfileMenu" role="menu" aria-label="Account menu" aria-hidden="true">
+        <div class="sidebar-profile-menu{{ $accountMenuExpanded ? ' show' : '' }}" id="sidebarProfileMenu" role="menu" aria-label="Account menu" aria-hidden="{{ $accountMenuExpanded ? 'false' : 'true' }}" data-account-page="{{ $accountMenuExpanded ? '1' : '0' }}">
             <div class="profile-menu-header">
                 <div class="profile-menu-avatar">
                     @if ($sidebarProfilePhotoUrl)
