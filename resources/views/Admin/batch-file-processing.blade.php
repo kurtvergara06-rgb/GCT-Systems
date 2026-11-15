@@ -135,43 +135,6 @@
                 notification-count="6"
             />
 
-            @if(session('success') || session('error') || $errors->any())
-                @php
-                    $feedbackMessage = session('success')
-                        ?? session('error')
-                        ?? $errors->first();
-
-                    $isSuccess = session('success') !== null;
-                @endphp
-
-                <div class="batch-feedback-overlay show" id="batchFeedbackModal">
-                    <div class="batch-feedback-modal">
-                        <div class="batch-feedback-icon {{ $isSuccess ? 'success' : 'error' }}">
-                            <i class="fa-solid {{ $isSuccess ? 'fa-circle-check' : 'fa-circle-exclamation' }}"></i>
-                        </div>
-
-                        <h2>{{ $isSuccess ? 'Success' : 'Error' }}</h2>
-
-                        <p>{{ $feedbackMessage }}</p>
-
-                        @if(! $isSuccess)
-                            <div class="batch-error-tip">
-                                <i class="fa-solid fa-circle-info"></i>
-                                Make sure the uploaded file contains valid GPS report data.
-                            </div>
-                        @endif
-
-                        <button
-                            type="button"
-                            class="batch-feedback-close-btn"
-                            id="closeBatchFeedbackModal"
-                        >
-                            Okay
-                        </button>
-                    </div>
-                </div>
-            @endif
-
             <section class="batch-top-grid">
                 <form
                     action="{{ route('batch-file-processing.upload') }}"

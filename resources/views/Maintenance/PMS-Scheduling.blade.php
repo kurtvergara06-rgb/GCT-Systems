@@ -8,26 +8,6 @@
         'resources/js/Maintenance/pms-scheduling.js'
     ]"
 >
-    <x-ui.action-buttom-modal
-        mode="feedback"
-        feedback-type="success"
-        :message="session('success')"
-    />
-
-    <x-ui.action-buttom-modal
-        mode="feedback"
-        feedback-type="error"
-        :message="session('error')"
-    />
-
-    @if($errors->any())
-        <x-ui.action-buttom-modal
-            mode="feedback"
-            feedback-type="error"
-            :message="$errors->first()"
-        />
-    @endif
-
     <div class="app">
         <x-layout.sidebar
             department="Maintenance"
@@ -527,16 +507,16 @@
                             </div>
                         </div>
 
-                        <div class="pms-modal-actions">
+                        <div class="pms-modal-actions modal-actions">
                             <button
                                 type="button"
-                                class="pms-cancel-btn"
+                                class="secondary-btn pms-cancel-btn"
                                 data-close-add-pms
                             >
                                 Cancel
                             </button>
 
-                            <button type="submit" class="pms-save-btn">
+                            <button type="submit" class="primary-btn pms-save-btn">
                                 <i class="fa-solid fa-floppy-disk"></i>
                                 Save PMS Task
                             </button>

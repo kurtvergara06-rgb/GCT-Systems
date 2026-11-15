@@ -218,7 +218,7 @@
                         <p>Sample admin table for system users and department access.</p>
                     </div>
 
-                    <button type="button" class="admin-add-btn">
+                    <button type="button" class="create-btn admin-add-btn">
                         <i class="fa-solid fa-plus"></i>
                         New User
                     </button>
