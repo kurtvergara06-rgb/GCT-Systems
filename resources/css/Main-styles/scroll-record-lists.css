@@ -1,0 +1,43 @@
+/* Shared scroll behavior for card-based record lists. */
+[data-scroll-record-list] {
+    min-width: 0;
+    scrollbar-gutter: stable;
+}
+
+[data-scroll-record-list]:has(> [data-scroll-record]:nth-child(6)) {
+    max-height: 520px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-right: 6px;
+}
+
+[data-scroll-record-list]::-webkit-scrollbar {
+    width: 9px;
+}
+
+[data-scroll-record-list]::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 999px;
+}
+
+[data-scroll-record-list]::-webkit-scrollbar-thumb {
+    background: #c5d1df;
+    border: 2px solid #f1f5f9;
+    border-radius: 999px;
+}
+
+[data-scroll-record-list]::-webkit-scrollbar-thumb:hover {
+    background: #9fb0c4;
+}
+
+@media (max-width: 1200px) {
+    [data-scroll-record-list]:has(> [data-scroll-record]:nth-child(6)) {
+        max-height: 470px;
+    }
+}
+
+@media (max-width: 768px) {
+    [data-scroll-record-list]:has(> [data-scroll-record]:nth-child(5)) {
+        max-height: 420px;
+    }
+}

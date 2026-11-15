@@ -3,79 +3,124 @@
 namespace App\Http\Controllers\Maintenance;
 
 use App\Http\Controllers\Controller;
+use App\Models\Maintenance\JobOrder;
+use App\Models\Operation\Mechanic;
 use App\Models\Operation\MechanicAttendance;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class MechanicListController extends Controller
 {
     public function index(Request $request)
     {
-        $query = MechanicAttendance::query();
+        $selectedDate = $request->filled('attendance_date')
+            ? Carbon::parse($request->attendance_date)->toDateString()
+            : today()->toDateString();
+
+        $activeJobs = JobOrder::query()
+            ->whereNotNull('assigned_mechanic')
+            ->where('assigned_mechanic', '!=', '')
+            ->whereNotIn('status', ['Completed', 'Cancelled'])
+            ->latest('start_date')
+            ->latest('id')
+            ->get()
+            ->groupBy(fn (JobOrder $jobOrder) => Str::lower(trim($jobOrder->assigned_mechanic)))
+            ->map(fn ($jobs) => $jobs->first());
+
+        $attendanceByMechanic = MechanicAttendance::query()
+            ->whereDate('attendance_date', $selectedDate)
+            ->latest('id')
+            ->get()
+            ->unique('mechanic_id')
+            ->keyBy('mechanic_id');
+
+        $query = Mechanic::query();
 
         if ($request->filled('search')) {
             $search = trim($request->search);
 
-            $query->where(function ($q) use ($search) {
+            $matchingMechanics = $activeJobs
+                ->filter(function (JobOrder $jobOrder) use ($search) {
+                    return Str::contains(Str::lower($jobOrder->assigned_mechanic), Str::lower($search))
+                        || Str::contains(Str::lower($jobOrder->job_order_no), Str::lower($search))
+                        || Str::contains(Str::lower($jobOrder->bus_no), Str::lower($search))
+                        || Str::contains(Str::lower($jobOrder->maintenance_type), Str::lower($search))
+                        || Str::contains(Str::lower($jobOrder->problem_issue), Str::lower($search));
+                })
+                ->keys();
+
+            $query->where(function ($q) use ($search, $matchingMechanics) {
                 $q->where('mechanic_name', 'like', "%{$search}%")
                     ->orWhere('mechanic_id', 'like', "%{$search}%")
-                    ->orWhere('assigned_job', 'like', "%{$search}%")
-                    ->orWhere('status', 'like', "%{$search}%");
+                    ->orWhere('shift', 'like', "%{$search}%")
+                    ->orWhere('specialization', 'like', "%{$search}%");
+
+                if ($matchingMechanics->isNotEmpty()) {
+                    $q->orWhereIn(
+                        'mechanic_name',
+                        $matchingMechanics->map(fn ($name) => trim($name))->all()
+                    );
+                }
             });
         }
 
-        if ($request->filled('date_filter')) {
-            if ($request->date_filter === 'Today') {
-                $query->whereDate('attendance_date', today());
-            }
-
-            if ($request->date_filter === 'This Week') {
-                $query->whereBetween('attendance_date', [
-                    now()->startOfWeek(),
-                    now()->endOfWeek(),
-                ]);
-            }
-        }
-
-        if (
-            $request->filled('availability') &&
-            $request->availability !== 'All Types'
-        ) {
-            if ($request->availability === 'Available') {
-                $query->whereIn('status', ['Present', 'Late']);
-            }
-
-            if ($request->availability === 'Not Available') {
-                $query->whereIn('status', [
-                    'On Duty',
-                    'Absent',
-                    'On Leave',
-                ]);
-            }
-        }
-
         $mechanics = $query
-            ->latest('attendance_date')
-            ->latest('id')
+            ->orderBy('mechanic_name')
             ->paginate(10)
             ->withQueryString();
 
-        $totalMechanics = MechanicAttendance::count();
+        $mechanics->getCollection()->transform(function (Mechanic $mechanic) use ($attendanceByMechanic, $activeJobs, $selectedDate) {
+            $attendance = $attendanceByMechanic->get($mechanic->mechanic_id);
+            $activeJob = $activeJobs->get(Str::lower(trim($mechanic->mechanic_name)));
+            $baseStatus = $attendance?->status ?? 'No Attendance';
 
-        $availableMechanics = MechanicAttendance::query()
-            ->whereIn('status', ['Present', 'Late'])
-            ->count();
+            $mechanic->setAttribute('attendance_date', $attendance?->attendance_date ?? Carbon::parse($selectedDate));
+            $mechanic->setAttribute('time_in', $attendance?->time_in);
+            $mechanic->setAttribute('time_out', $attendance?->time_out);
+            $mechanic->setAttribute('assigned_job', $attendance?->assigned_job);
+            $mechanic->setAttribute('status', $baseStatus);
+            $mechanic->setAttribute('active_job', $activeJob);
+            $mechanic->setAttribute(
+                'effective_status',
+                $activeJob && in_array($baseStatus, ['Present', 'Late', 'On Duty'], true)
+                    ? 'On Duty'
+                    : $baseStatus
+            );
 
-        $notAvailableMechanics = MechanicAttendance::query()
-            ->whereIn('status', [
-                'On Duty',
-                'Absent',
-                'On Leave',
-            ])
-            ->count();
+            return $mechanic;
+        });
 
-        $onDutyMechanics = MechanicAttendance::query()
-            ->where('status', 'On Duty')
-            ->count();
+        if ($request->filled('availability') && $request->availability !== 'All Types') {
+            $filtered = $mechanics->getCollection()->filter(function (Mechanic $mechanic) use ($request) {
+                return $request->availability === 'Available'
+                    ? in_array($mechanic->effective_status, ['Present', 'Late'], true)
+                    : in_array($mechanic->effective_status, ['On Duty', 'Absent', 'On Leave', 'No Attendance'], true);
+            })->values();
+
+            $mechanics->setCollection($filtered);
+        }
+
+        $allMechanics = Mechanic::query()
+            ->where('employment_status', '!=', 'Inactive')
+            ->get();
+        $activeAssignedNames = $activeJobs->keys();
+
+        $totalMechanics = $allMechanics->count();
+        $availableMechanics = $allMechanics->filter(function (Mechanic $mechanic) use ($attendanceByMechanic, $activeAssignedNames) {
+            $attendance = $attendanceByMechanic->get($mechanic->mechanic_id);
+            $isAssigned = $activeAssignedNames->contains(Str::lower(trim($mechanic->mechanic_name)));
+
+            return $attendance
+                && in_array($attendance->status, ['Present', 'Late'], true)
+                && ! $isAssigned;
+        })->count();
+
+        $onDutyMechanics = $allMechanics->filter(
+            fn (Mechanic $mechanic) => $activeAssignedNames->contains(Str::lower(trim($mechanic->mechanic_name)))
+        )->count();
+
+        $notAvailableMechanics = max(0, $totalMechanics - $availableMechanics - $onDutyMechanics);
 
         return view('Maintenance.mechanic-list', compact(
             'mechanics',

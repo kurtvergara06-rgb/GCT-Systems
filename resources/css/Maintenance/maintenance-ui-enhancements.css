@@ -1,0 +1,198 @@
+/* Shared visual refinements for Maintenance pages. */
+
+.jo-page .table-card,
+.fuel-page .table-card,
+.purchase-request-page .table-card,
+.maintenance-dashboard-page .dashboard-card {
+  margin-top: 20px;
+}
+
+.jo-page .table-wrap,
+.fuel-page .table-wrap,
+.purchase-request-page .table-wrap {
+  position: relative;
+}
+
+.jo-page table thead,
+.fuel-page table thead,
+.purchase-request-page table thead {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+}
+
+.jo-page tbody tr,
+.fuel-page tbody tr,
+.purchase-request-page tbody tr {
+  min-height: 64px;
+}
+
+.jo-page tbody td,
+.fuel-page tbody td,
+.purchase-request-page tbody td {
+  padding-top: 16px;
+  padding-bottom: 16px;
+}
+
+.maintenance-secondary-text {
+  display: block;
+  max-width: 240px;
+  margin-top: 4px;
+  overflow: hidden;
+  color: var(--muted, #64748b);
+  font-size: 11px;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* =========================================================
+   JOB ORDER ESTIMATED WORK DURATION
+========================================================= */
+
+.jo-estimated-duration-field {
+  min-width: 0;
+}
+
+.jo-duration-control {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 112px;
+  gap: 8px;
+  align-items: center;
+}
+
+.jo-duration-control .ui-input-wrap {
+  min-width: 0;
+}
+
+.jo-duration-control input,
+.jo-duration-control select {
+  width: 100%;
+  height: 46px;
+  border: 1px solid var(--border, #dce5f2);
+  border-radius: 10px;
+  background: #ffffff;
+  color: var(--text, #0b2344);
+  outline: none;
+  font-size: 13px;
+}
+
+.jo-duration-control input {
+  padding: 0 12px 0 42px;
+}
+
+.jo-duration-control select {
+  padding: 0 10px;
+}
+
+.jo-duration-control input:focus,
+.jo-duration-control select:focus {
+  border-color: var(--yellow, #ffc400);
+  box-shadow: 0 0 0 3px rgba(255, 196, 0, 0.16);
+}
+
+/* =========================================================
+   OVERDUE JOB ORDERS
+========================================================= */
+
+.jo-page .job-orders-table tbody tr.jo-overdue-row > td {
+  background: #fff1f2;
+  border-top-color: #fecdd3;
+  border-bottom-color: #fecdd3;
+}
+
+.jo-page .job-orders-table tbody tr.jo-overdue-row:hover > td {
+  background: #ffe4e6;
+}
+
+.jo-overdue-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 5px;
+  padding: 3px 7px;
+  border: 1px solid #fecaca;
+  border-radius: 999px;
+  background: #fff;
+  color: #b91c1c;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.jo-overdue-indicator i {
+  font-size: 9px;
+}
+
+.jo-estimate-inline {
+  display: block;
+  margin-top: 4px;
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.jo-overdue-row .jo-estimate-inline {
+  color: #991b1b;
+}
+
+.fuel-chart-card.has-empty-chart .fuel-chart-container {
+  min-height: 240px !important;
+  height: 240px !important;
+}
+
+.fuel-chart-empty-state {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  padding: 28px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.fuel-chart-empty-state i {
+  display: grid;
+  width: 52px;
+  height: 52px;
+  margin-bottom: 14px;
+  place-items: center;
+  border-radius: 14px;
+  background: #edf4ff;
+  color: #0b40b5;
+  font-size: 20px;
+}
+
+.fuel-chart-empty-state strong {
+  color: var(--text, #0b2344);
+  font-size: 15px;
+}
+
+.fuel-chart-empty-state p {
+  max-width: 320px;
+  margin: 7px 0 0;
+  color: var(--muted, #64748b);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.fuel-chart-card.has-empty-chart canvas {
+  visibility: hidden;
+}
+
+@media (max-width: 1200px) {
+  .jo-page .toolbar,
+  .fuel-page .toolbar,
+  .purchase-request-page .toolbar {
+    align-items: stretch;
+  }
+}
+
+@media (max-width: 768px) {
+  .jo-duration-control {
+    grid-template-columns: minmax(0, 1fr) 104px;
+  }
+}

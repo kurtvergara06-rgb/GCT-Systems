@@ -25,10 +25,31 @@ return new class extends Migration
                 );
             });
         }
+
+        if (
+            Schema::hasTable('job_orders')
+            && Schema::hasColumn('job_orders', 'pms_schedule_id')
+        ) {
+            Schema::table('job_orders', function (Blueprint $table) {
+                $table->foreign('pms_schedule_id')
+                    ->references('id')
+                    ->on('pms_schedules')
+                    ->nullOnDelete();
+            });
+        }
     }
 
     public function down(): void
     {
+        if (
+            Schema::hasTable('job_orders')
+            && Schema::hasColumn('job_orders', 'pms_schedule_id')
+        ) {
+            Schema::table('job_orders', function (Blueprint $table) {
+                $table->dropForeign(['pms_schedule_id']);
+            });
+        }
+
         Schema::dropIfExists('pms_schedules');
     }
 };

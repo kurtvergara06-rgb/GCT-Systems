@@ -15,43 +15,7 @@
         {{-- =====================================================
             SIDEBAR
         ====================================================== --}}
-        <x-layout.sidebar
-            department="Maintenance"
-            subtitle="Department Module"
-            icon="fa-truck"
-            :items="[
-                [
-                    'label' => 'Dashboard',
-                    'route' => 'maintenance-dashboard',
-                    'icon' => 'fa-table-cells-large'
-                ],
-                [
-                    'label' => 'Job Orders',
-                    'route' => 'job-orders',
-                    'icon' => 'fa-clipboard-list'
-                ],
-                [
-                    'label' => 'Mechanic List',
-                    'route' => 'mechanic-list',
-                    'icon' => 'fa-bus'
-                ],
-                [
-                    'label' => 'PMS Scheduling',
-                    'route' => 'PMS-Scheduling',
-                    'icon' => 'fa-calendar-check'
-                ],
-                [
-                    'label' => 'Purchase Requests',
-                    'route' => 'purchase-requests',
-                    'icon' => 'fa-file-invoice'
-                ],
-                [
-                    'label' => 'Fuel Reports',
-                    'route' => 'fuel-reports',
-                    'icon' => 'fa-gas-pump'
-                ],
-            ]"
-        />
+        <x-layout.sidebar department="Maintenance" />
 
 
         <main class="main pms-page">
@@ -69,7 +33,7 @@
             {{-- =====================================================
                 SUMMARY
             ====================================================== --}}
-            <section class="stats-grid pms-stats-grid">
+            <section data-ajax-region="summary" class="stats-grid pms-stats-grid">
 
                 <x-ui.summary-card
                     label="GPS Records Today"
@@ -109,7 +73,7 @@
             {{-- =====================================================
                 PMS TABLE CARD
             ====================================================== --}}
-            <section class="table-card pms-card pms-table-card">
+            <section data-ajax-region="records" class="table-card pms-card pms-table-card">
 
                 <div class="section-header pms-header">
 

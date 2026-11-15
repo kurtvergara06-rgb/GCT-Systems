@@ -102,13 +102,134 @@ class FuelReportController extends Controller
             ->sortBy('km_per_liter')
             ->first();
 
-        $recentFuelRecords = $fuelReports
-            ->take(10)
-            ->values();
+        $recentFuelRecords = $fuelReports->values();
 
         $buses = Bus::query()
             ->orderBy('bus_no')
             ->get();
+
+        /*
+         * Daily Fuel Monitoring is derived from existing Bus Master List,
+         * processed GPS data, and existing fuel records. No separate daily
+         * monitoring table is required.
+         */
+        $monitorDate = $request->input(
+            'monitor_date',
+            today()->toDateString()
+        );
+
+        $monitorFilter = $request->input(
+            'monitor_filter',
+            'all'
+        );
+
+        $dailyGpsGroups = GpsTripRecord::query()
+            ->whereDate('beginning_at', $monitorDate)
+            ->whereNotNull('mileage_km')
+            ->where('mileage_km', '>', 0)
+            ->whereHas('batchUpload', function ($gpsQuery) {
+                $gpsQuery->where('status', 'Processed');
+            })
+            ->orderBy('beginning_at')
+            ->get()
+            ->groupBy(fn ($record) => strtoupper(trim($record->bus_no)));
+
+        $dailyFuelGroups = FuelReport::query()
+            ->whereDate('report_date', $monitorDate)
+            ->orderByDesc('id')
+            ->get()
+            ->groupBy(fn ($record) => strtoupper(trim($record->bus_no)));
+
+        $busLookup = $buses->keyBy(
+            fn ($bus) => strtoupper(trim($bus->bus_no))
+        );
+
+        $monitorBusKeys = $busLookup->keys()
+            ->merge($dailyGpsGroups->keys())
+            ->merge($dailyFuelGroups->keys())
+            ->unique()
+            ->sort()
+            ->values();
+
+        $allDailyMonitoring = $monitorBusKeys
+            ->map(function ($busKey) use (
+                $dailyGpsGroups,
+                $dailyFuelGroups,
+                $busLookup
+            ) {
+                $gpsRecords = $dailyGpsGroups->get(
+                    $busKey,
+                    collect()
+                );
+
+                $fuelRecord = $dailyFuelGroups
+                    ->get($busKey, collect())
+                    ->first();
+
+                $distanceKm = (float) $gpsRecords
+                    ->sum('mileage_km');
+
+                $idlingMinutes = (int) $gpsRecords
+                    ->sum('idling_minutes');
+
+                $bus = $busLookup->get($busKey);
+
+                $workflowStatus = match (true) {
+                    $fuelRecord && $distanceKm > 0 => 'Completed',
+                    $fuelRecord && $distanceKm <= 0 => 'Missing GPS',
+                    $distanceKm > 0 => 'For Fuel Entry',
+                    default => 'Monitoring',
+                };
+
+                return (object) [
+                    'bus_no' => $bus?->bus_no
+                        ?? $fuelRecord?->bus_no
+                        ?? $gpsRecords->first()?->bus_no
+                        ?? $busKey,
+                    'bus_model' => $bus?->bus_model,
+                    'gps_distance_km' => $distanceKm,
+                    'idling_minutes' => $idlingMinutes,
+                    'fuel_liters' => (float) ($fuelRecord?->fuel_liters ?? 0),
+                    'driver_name' => $fuelRecord?->driver_name,
+                    'workflow_status' => $workflowStatus,
+                    'efficiency_status' => $fuelRecord?->status ?? 'No Data',
+                    'km_per_liter' => (float) ($fuelRecord?->km_per_liter ?? 0),
+                ];
+            });
+
+        $dailyMonitoringCounts = [
+            'total' => $allDailyMonitoring->count(),
+            'for_entry' => $allDailyMonitoring
+                ->where('workflow_status', 'For Fuel Entry')
+                ->count(),
+            'completed' => $allDailyMonitoring
+                ->where('workflow_status', 'Completed')
+                ->count(),
+            'needs_review' => $allDailyMonitoring
+                ->filter(fn ($row) => in_array(
+                    $row->workflow_status,
+                    ['Missing GPS', 'Monitoring'],
+                    true
+                ))
+                ->count(),
+        ];
+
+        $dailyMonitoring = match ($monitorFilter) {
+            'needs-entry' => $allDailyMonitoring
+                ->where('workflow_status', 'For Fuel Entry')
+                ->values(),
+            'needs-review' => $allDailyMonitoring
+                ->filter(fn ($row) => in_array(
+                    $row->workflow_status,
+                    ['Missing GPS', 'Monitoring'],
+                    true
+                ))
+                ->values(),
+            'completed' => $allDailyMonitoring
+                ->where('workflow_status', 'Completed')
+                ->values(),
+            default => $allDailyMonitoring->values(),
+        };
 
         return view('Maintenance.fuel-reports', compact(
             'fuelReports',
@@ -120,7 +241,11 @@ class FuelReportController extends Controller
             'fleetAverage',
             'inefficientVehicles',
             'mostEfficientVehicle',
-            'leastEfficientVehicle'
+            'leastEfficientVehicle',
+            'dailyMonitoring',
+            'dailyMonitoringCounts',
+            'monitorDate',
+            'monitorFilter'
         ));
     }
 
@@ -157,6 +282,10 @@ class FuelReportController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        if ($request->boolean('daily_monitoring')) {
+            return $this->storeDailyMonitoring($request);
+        }
+
         $validated = $this->validateFuelReport($request);
 
         $resolved = $this->resolveDistance($validated);
@@ -240,6 +369,116 @@ class FuelReportController extends Controller
         return redirect()
             ->to(route('fuel-reports', [], false))
             ->with('success', 'Fuel record deleted successfully.');
+    }
+
+    private function storeDailyMonitoring(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'monitor_date' => ['required', 'date'],
+            'entries' => ['nullable', 'array'],
+            'entries.*.bus_no' => [
+                'required',
+                'string',
+                'exists:buses,bus_no',
+            ],
+            'entries.*.fuel_liters' => [
+                'nullable',
+                'numeric',
+                'min:0.01',
+            ],
+            'entries.*.driver_name' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
+        ]);
+
+        $saved = 0;
+        $skipped = 0;
+
+        foreach ($validated['entries'] ?? [] as $entry) {
+            if (
+                !isset($entry['fuel_liters']) ||
+                $entry['fuel_liters'] === '' ||
+                (float) $entry['fuel_liters'] <= 0
+            ) {
+                continue;
+            }
+
+            $gpsRecords = GpsTripRecord::query()
+                ->whereRaw(
+                    'UPPER(TRIM(bus_no)) = ?',
+                    [strtoupper(trim($entry['bus_no']))]
+                )
+                ->whereDate(
+                    'beginning_at',
+                    $validated['monitor_date']
+                )
+                ->whereNotNull('mileage_km')
+                ->where('mileage_km', '>', 0)
+                ->whereHas('batchUpload', function ($gpsQuery) {
+                    $gpsQuery->where('status', 'Processed');
+                })
+                ->orderBy('beginning_at')
+                ->get();
+
+            if ($gpsRecords->isEmpty()) {
+                $skipped++;
+                continue;
+            }
+
+            $distanceKm = (float) $gpsRecords->sum('mileage_km');
+            $fuelLiters = (float) $entry['fuel_liters'];
+            $kmPerLiter = $distanceKm / $fuelLiters;
+
+            $fuelReport = FuelReport::query()
+                ->whereDate(
+                    'report_date',
+                    $validated['monitor_date']
+                )
+                ->whereRaw(
+                    'UPPER(TRIM(bus_no)) = ?',
+                    [strtoupper(trim($entry['bus_no']))]
+                )
+                ->orderByDesc('id')
+                ->first();
+
+            $payload = [
+                'report_date' => $validated['monitor_date'],
+                'bus_no' => $entry['bus_no'],
+                'driver_name' => $entry['driver_name'] ?? null,
+                'gps_trip_record_id' => $gpsRecords->last()?->id,
+                'distance_km' => round($distanceKm, 2),
+                'distance_source' => 'GPS',
+                'fuel_liters' => round($fuelLiters, 2),
+                'km_per_liter' => round($kmPerLiter, 2),
+                'status' => $this->getFuelStatus($kmPerLiter),
+                'remarks' => 'Saved from Daily Fuel Monitoring.',
+                'manual_distance_reason' => null,
+            ];
+
+            if ($fuelReport) {
+                $fuelReport->update($payload);
+            } else {
+                FuelReport::create($payload);
+            }
+
+            $saved++;
+        }
+
+        $message = $saved > 0
+            ? "{$saved} daily fuel record(s) saved successfully."
+            : 'No fuel entries were changed.';
+
+        if ($skipped > 0) {
+            $message .= " {$skipped} row(s) were skipped because GPS data was missing.";
+        }
+
+        return redirect()
+            ->to(route('fuel-reports', [
+                'monitor_date' => $validated['monitor_date'],
+            ], false))
+            ->with('success', $message);
     }
 
     private function validateFuelReport(Request $request): array

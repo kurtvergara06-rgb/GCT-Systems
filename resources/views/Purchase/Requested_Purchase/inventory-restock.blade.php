@@ -7,60 +7,17 @@
     'resources/js/Purchase/Requested_Purchase/inventory-restock.js'
   ]"
 >
-
   <div class="app">
-
-    <x-layout.sidebar
-    department="Purchase"
-    subtitle="Department Module"
-    icon="fa-cart-shopping"
-    user-name="P. Admin"
-    user-role="Purchase Admin"
-    :items="[
-        [
-            'label' => 'Dashboard',
-            'route' => 'dashboard-purchase',
-            'icon' => 'fa-table-cells-large'
-        ],
-        [
-            'label' => 'Purchase Orders',
-            'route' => 'purchase-orders',
-            'icon' => 'fa-file-invoice'
-        ],
-        [
-            'label' => 'Requested Purchase',
-            'icon' => 'fa-clipboard-list',
-            'children' => [
-                [
-                    'label' => 'Maintenance Requests',
-                    'route' => 'maintenance-requests',
-                    'icon' => 'fa-screwdriver-wrench'
-                ],
-                [
-                    'label' => 'Inventory Restock',
-                    'route' => 'inventory-restock',
-                    'icon' => 'fa-boxes-stacked'
-                ],
-            ],
-        ],
-        [
-            'label' => 'Scheduled Purchase',
-            'route' => 'scheduled-purchase',
-            'icon' => 'fa-calendar-check'
-        ],
-    ]"
-/>
+    <x-layout.sidebar department="Purchase" />
 
     <main class="main">
-
       <x-layout.topbar
         title="Inventory Restock"
         subtitle="Automatic restock requests from warehouse inventory"
         notification-count="6"
       />
 
-      <section class="stats-grid">
-
+      <section data-ajax-region="summary" class="stats-grid">
         <x-ui.summary-card
           label="Total Requests"
           value="{{ $totalRequests ?? 0 }}"
@@ -68,7 +25,6 @@
           icon="fa-file"
           color="gray"
         />
-
         <x-ui.summary-card
           label="For Purchase"
           value="{{ $forPurchase ?? 0 }}"
@@ -76,7 +32,6 @@
           icon="fa-cart-shopping"
           color="blue"
         />
-
         <x-ui.summary-card
           label="Ordered"
           value="{{ $ordered ?? 0 }}"
@@ -84,32 +39,30 @@
           icon="fa-file-invoice"
           color="yellow"
         />
-
         <x-ui.summary-card
-          label="Delivered / Picked Up"
+          label="Completed"
           value="{{ $delivered ?? 0 }}"
-          small="Moved to history"
-          icon="fa-box"
+          small="Available in Purchase History"
+          icon="fa-clock-rotate-left"
           color="green"
         />
-
       </section>
 
-      {{-- ACTIVE RESTOCK TABLE --}}
-      <section class="table-card restock-card">
-
+      <section data-ajax-region="records" class="table-card restock-card">
         <div class="section-header">
           <div>
             <h2>Inventory Restock Records</h2>
-            <p>Only active automatic warehouse restock requests are shown here.</p>
+            <p>Only active automatic warehouse restock requests are shown here. Completed records are available in Purchase History.</p>
           </div>
         </div>
 
-        <form action="{{ route('inventory-restock') }}" method="GET" class="restock-toolbar">
-
+        <form
+          action="{{ route('inventory-restock', [], false) }}"
+          method="GET"
+          class="toolbar restock-toolbar"
+        >
           <div class="search-box">
             <i class="fa-solid fa-magnifying-glass"></i>
-
             <input
               type="text"
               name="search"
@@ -119,17 +72,14 @@
           </div>
 
           <div class="filter-group">
-            <label for="restockStatusFilter">Status</label>
-
             <select
               name="status"
               id="restockStatusFilter"
-              onchange="this.form.submit()"
+              aria-label="Status"
             >
               <option value="All States" {{ request('status', 'All States') === 'All States' ? 'selected' : '' }}>
                 All States
               </option>
-
               @foreach(($statuses ?? []) as $status)
                 <option value="{{ $status }}" {{ request('status') === $status ? 'selected' : '' }}>
                   {{ $status }}
@@ -137,7 +87,6 @@
               @endforeach
             </select>
           </div>
-
         </form>
 
         <div class="table-wrap">
@@ -157,15 +106,12 @@
             <tbody>
               @forelse(($restockRequests ?? []) as $restockRequest)
                 @php
-                  $statusClass = strtolower(str_replace([' ', '/'], ['-', '-'], $restockRequest->status ?? ''));
-
                   $itemName = trim($restockRequest->item ?? '—');
                   $quantity = $restockRequest->quantity ?? '1';
                   $unit = '—';
 
                   if (str_contains(strtolower($itemName), ' - qty:')) {
                     $parts = preg_split('/ - qty:/i', $itemName, 2);
-
                     $itemName = trim($parts[0] ?? $itemName);
                     $quantityUnitText = trim($parts[1] ?? '');
 
@@ -186,42 +132,27 @@
 
                 <tr>
                   <td>
-                    <strong class="restock-no">
-                      {{ $restockRequest->pr_no ?? '—' }}
-                    </strong>
+                    <strong class="restock-no">{{ $restockRequest->display_pr_no }}</strong>
                   </td>
-
-                  <td>
-                    <span class="source-badge">
-                      Auto Restock
-                    </span>
-                  </td>
-
+                  <td><span class="source-badge">Auto Restock</span></td>
                   <td>{{ $itemName }}</td>
-
+                  <td class="center-text">{{ $quantityDisplay }}</td>
                   <td class="center-text">
-                    {{ $quantityDisplay }}
-                  </td>
-
-                  <td class="center-text">
-                    <x-ui.status-badge 
-                      :status="$restockRequest->status ?? '—'" 
+                    <x-ui.status-badge
+                      :status="$restockRequest->status ?? '—'"
                       type="purchase"
                     />
                   </td>
-
                   <td>
                     {{ $restockRequest->created_at ? $restockRequest->created_at->format('m/d/y | h:i A') : '—' }}
                   </td>
-
                   <td class="center-text">
                     <div class="actions">
-
                       <button
                         type="button"
                         class="action-btn view open-restock-view-modal"
                         title="View Details"
-                        data-restock-no="{{ $restockRequest->pr_no ?? '—' }}"
+                        data-restock-no="{{ $restockRequest->display_pr_no }}"
                         data-source-type="{{ $restockRequest->source_type ?? 'Auto Restock' }}"
                         data-item="{{ $itemName }}"
                         data-quantity="{{ $quantity }}"
@@ -242,7 +173,6 @@
                           <i class="fa-solid fa-cart-plus"></i>
                         </a>
                       @endif
-
                     </div>
                   </td>
                 </tr>
@@ -256,185 +186,50 @@
           </table>
         </div>
 
-        @if(isset($restockRequests))
-          <x-ui.table-footer :items="$restockRequests" />
-        @endif
-
+        <x-ui.table-footer :items="$restockRequests" />
       </section>
-
-      {{-- RESTOCK HISTORY TABLE --}}
-      <section class="table-card restock-card restock-history-card">
-
-        <div class="section-header">
-          <div>
-            <h2>Inventory Restock History</h2>
-            <p>Delivered, picked up, and issued automatic restock requests are shown here.</p>
-          </div>
-        </div>
-
-        <div class="table-wrap">
-          <table class="restock-table">
-            <thead>
-              <tr>
-                <th>Restock #</th>
-                <th>Source</th>
-                <th>Item</th>
-                <th>Quantity</th>
-                <th>Status</th>
-                <th>Date Updated</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              @forelse(($historyRequests ?? []) as $history)
-                @php
-                  $historyStatusClass = strtolower(str_replace([' ', '/'], ['-', '-'], $history->status ?? ''));
-
-                  $itemName = trim($history->item ?? '—');
-                  $quantity = $history->quantity ?? '1';
-                  $unit = '—';
-
-                  if (str_contains(strtolower($itemName), ' - qty:')) {
-                    $parts = preg_split('/ - qty:/i', $itemName, 2);
-
-                    $itemName = trim($parts[0] ?? $itemName);
-                    $quantityUnitText = trim($parts[1] ?? '');
-
-                    if (preg_match('/^(\d+)\s*(.*)$/', $quantityUnitText, $matches)) {
-                      $quantity = trim($matches[1] ?? $quantity);
-                      $unit = trim($matches[2] ?? '—') ?: '—';
-                    }
-                  }
-
-                  if (preg_match('/^(.*?)\s*\((\d+)\s*([^)]*)\)$/', $itemName, $matches)) {
-                    $itemName = trim($matches[1] ?? $itemName);
-                    $quantity = trim($matches[2] ?? $quantity);
-                    $unit = trim($matches[3] ?? '—') ?: '—';
-                  }
-
-                  $quantityDisplay = trim($quantity . ' ' . ($unit !== '—' ? $unit : ''));
-                @endphp
-
-                <tr>
-                  <td>
-                    <strong class="restock-no">
-                      {{ $history->pr_no ?? '—' }}
-                    </strong>
-                  </td>
-
-                  <td>
-                    <span class="source-badge">
-                      Auto Restock
-                    </span>
-                  </td>
-
-                  <td>{{ $itemName }}</td>
-
-                  <td class="center-text">
-                    {{ $quantityDisplay }}
-                  </td>
-
-                  <td class="center-text">
-                    <x-ui.status-badge 
-                      :status="$history->status ?? '—'" 
-                      type="purchase"
-                    />
-                  </td>
-
-                  <td>
-                    {{ $history->updated_at ? $history->updated_at->format('m/d/y | h:i A') : '—' }}
-                  </td>
-
-                  <td class="center-text">
-                    <div class="actions">
-
-                      <button
-                        type="button"
-                        class="action-btn view open-restock-view-modal"
-                        title="View Details"
-                        data-restock-no="{{ $history->pr_no ?? '—' }}"
-                        data-source-type="{{ $history->source_type ?? 'Auto Restock' }}"
-                        data-item="{{ $itemName }}"
-                        data-quantity="{{ $quantity }}"
-                        data-unit="{{ $unit }}"
-                        data-status="{{ $history->status ?? '—' }}"
-                        data-created="{{ $history->updated_at ? $history->updated_at->format('m/d/y | h:i A') : '—' }}"
-                        data-remarks="{{ $history->remarks ?? 'No remarks' }}"
-                      >
-                        <i class="fa-solid fa-eye"></i>
-                      </button>
-
-                    </div>
-                  </td>
-                </tr>
-              @empty
-                <x-ui.empty-row
-                  colspan="7"
-                  message="No inventory restock history yet."
-                />
-              @endforelse
-            </tbody>
-          </table>
-        </div>
-
-        @if(isset($historyRequests))
-          <x-ui.table-footer :items="$historyRequests" />
-        @endif
-
-      </section>
-
     </main>
   </div>
 
-  {{-- VIEW MODAL --}}
   <div id="restockViewModal" class="modal-overlay restock-view-overlay">
     <div class="restock-view-modal">
-
       <div class="restock-modal-header">
         <div>
           <h2>Inventory Restock Details</h2>
           <h3>Restock Information</h3>
           <p>This is a read-only view of the selected automatic restock request.</p>
         </div>
-
         <button type="button" id="closeRestockViewModal" class="restock-close-btn">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
 
       <div class="restock-form-grid">
-
         <div class="restock-field">
           <label>Restock No.</label>
           <input id="viewRestockNo" type="text" value="—" readonly>
         </div>
-
         <div class="restock-field">
           <label>Source</label>
           <input id="viewRestockSource" type="text" value="Auto Restock" readonly>
         </div>
-
         <div class="restock-field">
           <label>Status</label>
           <input id="viewRestockStatus" type="text" value="—" readonly>
         </div>
-
         <div class="restock-field">
-          <label>Date Created / Updated</label>
+          <label>Date Created</label>
           <input id="viewRestockCreated" type="text" value="—" readonly>
         </div>
 
         <div class="restock-field restock-full">
           <label>Requested Item / Part</label>
-
           <div class="restock-breakdown-box">
             <div class="restock-breakdown-head">
               <span>Part Name</span>
               <span>Quantity</span>
               <span>Unit</span>
             </div>
-
             <div class="restock-breakdown-row">
               <span id="viewRestockItem">—</span>
               <span id="viewRestockQuantity">—</span>
@@ -447,16 +242,11 @@
           <label>Remarks</label>
           <textarea id="viewRestockRemarks" rows="3" readonly>No remarks</textarea>
         </div>
-
       </div>
 
       <div class="restock-modal-footer">
-        <button type="button" id="closeRestockViewModalBottom" class="restock-close-bottom">
-          Close
-        </button>
+        <button type="button" id="closeRestockViewModalBottom" class="restock-close-bottom">Close</button>
       </div>
-
     </div>
   </div>
-
 </x-layout.app>

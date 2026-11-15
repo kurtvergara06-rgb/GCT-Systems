@@ -8,32 +8,44 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('job_orders', function (Blueprint $table) {
+        Schema::create('jobs', function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->string('queue')->index();
+            $table->longText('payload');
+            $table->unsignedTinyInteger('attempts');
+            $table->unsignedInteger('reserved_at')->nullable();
+            $table->unsignedInteger('available_at');
+            $table->unsignedInteger('created_at');
+        });
+
+        Schema::create('job_batches', function (Blueprint $table) {
+            $table->string('id')->primary();
+            $table->string('name');
+            $table->integer('total_jobs');
+            $table->integer('pending_jobs');
+            $table->integer('failed_jobs');
+            $table->longText('failed_job_ids');
+            $table->mediumText('options')->nullable();
+            $table->integer('cancelled_at')->nullable();
+            $table->integer('created_at');
+            $table->integer('finished_at')->nullable();
+        });
+
+        Schema::create('failed_jobs', function (Blueprint $table) {
             $table->id();
-
-            $table->string('job_order_no')->unique();
-            $table->string('bus_no');
-            $table->text('problem_issue');
-            $table->string('maintenance_type');
-            $table->string('assigned_mechanic');
-            $table->string('part_needed')->nullable();
-
-            $table->dateTime('start_date')->nullable();
-            $table->dateTime('completion_date')->nullable();
-
-            $table->enum('status', [
-                'On Hold',
-                'On Going',
-                'Completed',
-                'Urgent Repair'
-            ])->default('On Going');
-
-            $table->timestamps();
+            $table->string('uuid')->unique();
+            $table->text('connection');
+            $table->text('queue');
+            $table->longText('payload');
+            $table->longText('exception');
+            $table->timestamp('failed_at')->useCurrent();
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('job_orders');
+        Schema::dropIfExists('failed_jobs');
+        Schema::dropIfExists('job_batches');
+        Schema::dropIfExists('jobs');
     }
 };

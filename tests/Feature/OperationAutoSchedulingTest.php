@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Admin\User;
 use App\Models\Maintenance\Bus;
+use App\Models\Operation\Driver;
 use App\Models\Operation\DriverAttendance;
 use App\Models\Operation\ShuttleRoute;
 use App\Models\Operation\TripAssignment;
@@ -107,8 +108,9 @@ class OperationAutoSchedulingTest extends TestCase
 
     public function test_the_same_driver_id_can_have_attendance_on_different_dates(): void
     {
+        $this->createDriverMaster();
+
         DriverAttendance::create([
-            'driver_id' => 'D-2026-0001',
             'driver_name' => 'Test Driver',
             'shift' => 'Morning',
             'attendance_date' => '2026-08-03',
@@ -116,7 +118,6 @@ class OperationAutoSchedulingTest extends TestCase
         ]);
 
         DriverAttendance::create([
-            'driver_id' => 'D-2026-0001',
             'driver_name' => 'Test Driver',
             'shift' => 'Morning',
             'attendance_date' => '2026-08-04',
@@ -146,8 +147,9 @@ class OperationAutoSchedulingTest extends TestCase
             'status' => 'Active',
         ]);
 
+        $this->createDriverMaster();
+
         $driver = DriverAttendance::create([
-            'driver_id' => 'D-2026-0001',
             'driver_name' => 'Test Driver',
             'shift' => 'Morning',
             'attendance_date' => '2026-08-03',
@@ -166,5 +168,17 @@ class OperationAutoSchedulingTest extends TestCase
         ]);
 
         return [$trip, $driver, $bus, $route];
+    }
+
+    private function createDriverMaster(): Driver
+    {
+        return Driver::firstOrCreate(
+            ['driver_id' => 'D-2026-0001'],
+            [
+                'driver_name' => 'Test Driver',
+                'shift' => 'Morning',
+                'employment_status' => 'Active',
+            ]
+        );
     }
 }

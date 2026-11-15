@@ -39,6 +39,44 @@ document.addEventListener('DOMContentLoaded', function () {
 
     let hasUnsavedBatchChanges = false;
 
+    function setLoading(button, text) {
+        if (!(button instanceof HTMLButtonElement)) {
+            return;
+        }
+
+        if (window.GCTLoading?.set) {
+            window.GCTLoading.set(button, text);
+            return;
+        }
+
+        button.disabled = true;
+        button.setAttribute('aria-busy', 'true');
+        button.innerHTML = `
+            <span class="gct-spinner gct-spinner-sm" aria-hidden="true">
+                <span class="gct-spinner-ring"></span>
+            </span>
+            <span>${text}</span>
+        `;
+    }
+
+    function resetLoading(button, fallbackHtml = '') {
+        if (!(button instanceof HTMLButtonElement)) {
+            return;
+        }
+
+        if (window.GCTLoading?.reset) {
+            window.GCTLoading.reset(button);
+            return;
+        }
+
+        button.disabled = false;
+        button.removeAttribute('aria-busy');
+
+        if (fallbackHtml) {
+            button.innerHTML = fallbackHtml;
+        }
+    }
+
     function openModal(modal) {
         if (!modal) {
             return;
@@ -224,6 +262,8 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     if (uploadForm && uploadButton && fileInput) {
+        uploadButton.dataset.loadingText = 'Uploading...';
+
         uploadForm.addEventListener('submit', function (event) {
             if (!fileInput.files.length) {
                 event.preventDefault();
@@ -232,13 +272,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     'Please select a GPS report first.',
                     'warning'
                 );
-
-                return;
             }
-
-            uploadButton.disabled = true;
-            uploadButton.innerHTML =
-                '<i class="fa-solid fa-spinner fa-spin"></i> Uploading...';
         });
     }
 
@@ -371,133 +405,124 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     /* =========================================================
-   DELETE BATCH FILE
-========================================================= */
+       DELETE BATCH FILE
+    ========================================================= */
 
-document
-    .querySelectorAll('[data-delete-batch]')
-    .forEach(function (button) {
-        button.addEventListener('click', function (event) {
+    document
+        .querySelectorAll('[data-delete-batch]')
+        .forEach(function (button) {
+            button.addEventListener('click', function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                const deleteUrl = button.dataset.deleteUrl;
+                const batchName = button.dataset.deleteName;
+
+                if (!deleteForm || !deleteUrl) {
+                    showNotification(
+                        'The delete request could not be prepared.',
+                        'error'
+                    );
+
+                    return;
+                }
+
+                deleteForm.setAttribute('action', deleteUrl);
+
+                if (deleteFileName) {
+                    deleteFileName.textContent =
+                        batchName || 'this uploaded file';
+                }
+
+                openModal(deleteModal);
+            });
+        });
+
+    if (cancelDeleteButton) {
+        cancelDeleteButton.addEventListener('click', function () {
+            closeModal(deleteModal);
+
+            if (deleteForm) {
+                deleteForm.setAttribute('action', '');
+            }
+        });
+    }
+
+    if (deleteModal) {
+        deleteModal.addEventListener('click', function (event) {
+            if (event.target !== deleteModal) {
+                return;
+            }
+
+            closeModal(deleteModal);
+
+            if (deleteForm) {
+                deleteForm.setAttribute('action', '');
+            }
+        });
+    }
+
+    if (deleteForm) {
+        deleteForm.addEventListener('submit', async function (event) {
             event.preventDefault();
             event.stopPropagation();
 
-            const deleteUrl = button.dataset.deleteUrl;
-            const batchName = button.dataset.deleteName;
+            const deleteUrl = deleteForm.getAttribute('action');
+            const indexUrl =
+                deleteForm.dataset.indexUrl ||
+                '/batch-file-processing';
 
-            if (!deleteForm || !deleteUrl) {
+            const submitButton = deleteForm.querySelector(
+                '.batch-delete-confirm-btn'
+            );
+
+            if (!deleteUrl) {
                 showNotification(
-                    'The delete request could not be prepared.',
+                    'No uploaded file was selected for deletion.',
                     'error'
                 );
 
                 return;
             }
 
-            deleteForm.setAttribute('action', deleteUrl);
+            setLoading(submitButton, 'Deleting...');
 
-            if (deleteFileName) {
-                deleteFileName.textContent =
-                    batchName || 'this uploaded file';
-            }
+            try {
+                const formData = new FormData(deleteForm);
 
-            openModal(deleteModal);
-        });
-    });
+                const response = await fetch(deleteUrl, {
+                    method: 'POST',
+                    body: formData,
+                    credentials: 'same-origin',
+                    redirect: 'follow',
+                    headers: {
+                        Accept: 'text/html',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                });
 
-if (cancelDeleteButton) {
-    cancelDeleteButton.addEventListener('click', function () {
-        closeModal(deleteModal);
+                if (!response.ok) {
+                    throw new Error(
+                        `Delete request failed with status ${response.status}.`
+                    );
+                }
 
-        if (deleteForm) {
-            deleteForm.setAttribute('action', '');
-        }
-    });
-}
+                window.location.assign(indexUrl);
+            } catch (error) {
+                console.error('Batch delete failed:', error);
 
-if (deleteModal) {
-    deleteModal.addEventListener('click', function (event) {
-        if (event.target !== deleteModal) {
-            return;
-        }
+                showNotification(
+                    'Unable to delete the uploaded file. Please try again.',
+                    'error'
+                );
 
-        closeModal(deleteModal);
-
-        if (deleteForm) {
-            deleteForm.setAttribute('action', '');
-        }
-    });
-}
-
-if (deleteForm) {
-    deleteForm.addEventListener('submit', async function (event) {
-        event.preventDefault();
-        event.stopPropagation();
-
-        const deleteUrl = deleteForm.getAttribute('action');
-        const indexUrl =
-            deleteForm.dataset.indexUrl ||
-            '/batch-file-processing';
-
-        const submitButton = deleteForm.querySelector(
-            '.batch-delete-confirm-btn'
-        );
-
-        if (!deleteUrl) {
-            showNotification(
-                'No uploaded file was selected for deletion.',
-                'error'
-            );
-
-            return;
-        }
-
-        if (submitButton instanceof HTMLButtonElement) {
-            submitButton.disabled = true;
-            submitButton.innerHTML = `
-                <i class="fa-solid fa-spinner fa-spin"></i>
-                Deleting...
-            `;
-        }
-
-        try {
-            const formData = new FormData(deleteForm);
-
-            const response = await fetch(deleteUrl, {
-                method: 'POST',
-                body: formData,
-                credentials: 'same-origin',
-                redirect: 'follow',
-                headers: {
-                    Accept: 'text/html',
-                    'X-Requested-With': 'XMLHttpRequest',
-                },
-            });
-
-            if (!response.ok) {
-                throw new Error(
-                    `Delete request failed with status ${response.status}.`
+                resetLoading(
+                    submitButton,
+                    '<i class="fa-solid fa-trash"></i> Yes, Delete'
                 );
             }
-
-            window.location.assign(indexUrl);
-        } catch (error) {
-            console.error('Batch delete failed:', error);
-
-            showNotification(
-                'Unable to delete the uploaded file. Please try again.',
-                'error'
-            );
-
-            if (submitButton instanceof HTMLButtonElement) {
-                submitButton.disabled = false;
-                submitButton.innerHTML = `
-                    <i class="fa-solid fa-trash"></i>
-                    Yes, Delete
-                `;
-            }
-        }
-    });
-}
+        });
+    }
 
     document
         .querySelectorAll('.batch-edit-input')
@@ -514,20 +539,23 @@ if (deleteForm) {
         });
 
     if (saveAllBatchRecordsBtn && bulkUpdateRecordsForm) {
+        saveAllBatchRecordsBtn.dataset.loadingText = 'Saving...';
+
         saveAllBatchRecordsBtn.addEventListener('click', function () {
             if (!hasUnsavedBatchChanges) {
                 return;
             }
 
-            saveAllBatchRecordsBtn.disabled = true;
-            saveAllBatchRecordsBtn.innerHTML =
-                '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
-
+            setLoading(saveAllBatchRecordsBtn, 'Saving...');
             bulkUpdateRecordsForm.requestSubmit();
         });
     }
 
     if (confirmBatchForm) {
+        if (markBatchProcessedBtn) {
+            markBatchProcessedBtn.dataset.loadingText = 'Processing...';
+        }
+
         confirmBatchForm.addEventListener('submit', function (event) {
             if (hasUnsavedBatchChanges) {
                 event.preventDefault();
@@ -540,11 +568,7 @@ if (deleteForm) {
                 return;
             }
 
-            if (markBatchProcessedBtn) {
-                markBatchProcessedBtn.disabled = true;
-                markBatchProcessedBtn.innerHTML =
-                    '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
-            }
+            setLoading(markBatchProcessedBtn, 'Processing...');
         });
     }
 

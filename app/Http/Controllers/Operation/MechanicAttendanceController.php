@@ -3,11 +3,12 @@
 namespace App\Http\Controllers\Operation;
 
 use App\Http\Controllers\Controller;
+use App\Models\Operation\Mechanic;
 use App\Models\Operation\MechanicAttendance;
 use App\Traits\SystemDataUpdateBroadcaster;
 use Carbon\Carbon;
-use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Throwable;
 
 class MechanicAttendanceController extends Controller
@@ -35,16 +36,24 @@ class MechanicAttendanceController extends Controller
         }
 
         $mechanicAttendances = $query
-            ->latest()
+            ->latest('attendance_date')
+            ->latest('id')
             ->paginate(8)
             ->withQueryString();
 
-        $present = MechanicAttendance::where('status', 'Present')->count();
-        $absent = MechanicAttendance::where('status', 'Absent')->count();
-        $late = MechanicAttendance::where('status', 'Late')->count();
-        $onDuty = MechanicAttendance::where('status', 'On Duty')->count();
+        $summaryDate = $request->filled('attendance_date')
+            ? Carbon::parse($request->attendance_date)->toDateString()
+            : today()->toDateString();
 
-        $nextMechanicId = $this->generateMechanicId();
+        $summaryQuery = MechanicAttendance::query()
+            ->whereDate('attendance_date', $summaryDate);
+
+        $present = (clone $summaryQuery)->where('status', 'Present')->count();
+        $absent = (clone $summaryQuery)->where('status', 'Absent')->count();
+        $late = (clone $summaryQuery)->where('status', 'Late')->count();
+        $onDuty = (clone $summaryQuery)->where('status', 'On Duty')->count();
+
+        $nextMechanicId = 'From Mechanic Master List';
 
         return view('Operation.Attendance.mechanic-attendance', compact(
             'mechanicAttendances',
@@ -68,7 +77,17 @@ class MechanicAttendanceController extends Controller
             'status' => 'required|string|in:Present,Late,Absent,On Leave,On Duty',
         ]);
 
-        $validated['mechanic_id'] = $this->generateMechanicId();
+        $mechanic = Mechanic::query()
+            ->where('mechanic_name', $validated['mechanic_name'])
+            ->first();
+
+        if (! $mechanic) {
+            return back()->withInput()->with('error', 'Select an existing mechanic from the Mechanic Master List.');
+        }
+
+        $validated['mechanic_id'] = $mechanic->mechanic_id;
+        $validated['mechanic_name'] = $mechanic->mechanic_name;
+        $validated['shift'] = $mechanic->shift ?: $validated['shift'];
 
         $attendance = MechanicAttendance::create($validated);
 
@@ -80,12 +99,8 @@ class MechanicAttendanceController extends Controller
             'A mechanic attendance record was created.'
         );
 
-        session()->flash(
-            'success',
-            'Mechanic attendance record created successfully.'
-        );
-
-        return new RedirectResponse('/mechanic-attendance');
+        return redirect()->route('mechanic-attendance')
+            ->with('success', 'Mechanic attendance record created successfully.');
     }
 
     public function update(Request $request, MechanicAttendance $mechanicAttendance): RedirectResponse
@@ -100,6 +115,18 @@ class MechanicAttendanceController extends Controller
             'status' => 'required|string|in:Present,Late,Absent,On Leave,On Duty',
         ]);
 
+        $mechanic = Mechanic::query()
+            ->where('mechanic_name', $validated['mechanic_name'])
+            ->first();
+
+        if (! $mechanic) {
+            return back()->withInput()->with('error', 'Select an existing mechanic from the Mechanic Master List.');
+        }
+
+        $validated['mechanic_id'] = $mechanic->mechanic_id;
+        $validated['mechanic_name'] = $mechanic->mechanic_name;
+        $validated['shift'] = $mechanic->shift ?: $validated['shift'];
+
         $mechanicAttendance->update($validated);
 
         $this->broadcastSystemDataUpdated(
@@ -110,18 +137,13 @@ class MechanicAttendanceController extends Controller
             'A mechanic attendance record was updated.'
         );
 
-        session()->flash(
-            'success',
-            'Mechanic attendance record updated successfully.'
-        );
-
-        return new RedirectResponse('/mechanic-attendance');
+        return redirect()->route('mechanic-attendance')
+            ->with('success', 'Mechanic attendance record updated successfully.');
     }
 
     public function destroy(MechanicAttendance $mechanicAttendance): RedirectResponse
     {
         $attendanceId = $mechanicAttendance->id;
-
         $mechanicAttendance->delete();
 
         $this->broadcastSystemDataUpdated(
@@ -132,12 +154,8 @@ class MechanicAttendanceController extends Controller
             'A mechanic attendance record was deleted.'
         );
 
-        session()->flash(
-            'success',
-            'Mechanic attendance record deleted successfully.'
-        );
-
-        return new RedirectResponse('/mechanic-attendance');
+        return redirect()->route('mechanic-attendance')
+            ->with('success', 'Mechanic attendance record deleted successfully.');
     }
 
     public function import(Request $request): RedirectResponse
@@ -146,124 +164,89 @@ class MechanicAttendanceController extends Controller
             'import_file' => 'required|file|mimes:csv,txt',
         ]);
 
-        $file = $request->file('import_file');
-        $handle = fopen($file->getRealPath(), 'r');
+        $handle = fopen($request->file('import_file')->getRealPath(), 'r');
 
         if (! $handle) {
-            session()->flash(
-                'error',
-                'Unable to read the uploaded CSV file.'
-            );
-
-            return new RedirectResponse('/mechanic-attendance');
+            return redirect()->route('mechanic-attendance')
+                ->with('error', 'Unable to read the uploaded CSV file.');
         }
 
         try {
             $header = fgetcsv($handle);
 
             if (! $header) {
-                session()->flash(
-                    'error',
-                    'CSV file is empty.'
-                );
-
-                return new RedirectResponse('/mechanic-attendance');
+                return redirect()->route('mechanic-attendance')->with('error', 'CSV file is empty.');
             }
 
             $header = array_map(function ($value) {
-                return strtolower(trim($value));
+                $value = preg_replace('/^\xEF\xBB\xBF/', '', trim((string) $value));
+                return strtolower($value);
             }, $header);
 
             $requiredColumns = [
-                'mechanic_name',
-                'shift',
-                'assigned_job',
-                'attendance_date',
-                'time_in',
-                'time_out',
-                'status',
+                'mechanic_name', 'shift', 'assigned_job', 'attendance_date', 'time_in', 'time_out', 'status',
             ];
 
             foreach ($requiredColumns as $column) {
                 if (! in_array($column, $header, true)) {
-                    session()->flash(
-                        'error',
-                        "Invalid CSV format. Missing required column: {$column}"
-                    );
-
-                    return new RedirectResponse('/mechanic-attendance');
+                    return redirect()->route('mechanic-attendance')
+                        ->with('error', "Invalid CSV format. Missing required column: {$column}");
                 }
             }
 
             $imported = 0;
             $skipped = 0;
-            $rowNumber = 1;
 
             while (($row = fgetcsv($handle)) !== false) {
-                $rowNumber++;
-
-                if (count(array_filter($row, fn ($value) => trim((string) $value) !== '')) === 0) {
-                    continue;
-                }
-
                 if (count($row) !== count($header)) {
                     $skipped++;
                     continue;
                 }
 
                 $data = array_combine($header, $row);
+                $name = trim($data['mechanic_name'] ?? '');
 
-                if (! $data || empty(trim($data['mechanic_name'] ?? ''))) {
+                if ($name === '') {
+                    $skipped++;
+                    continue;
+                }
+
+                $mechanic = Mechanic::query()->where('mechanic_name', $name)->first();
+
+                if (! $mechanic) {
                     $skipped++;
                     continue;
                 }
 
                 try {
                     $status = trim($data['status'] ?? 'Present');
-
                     if (! in_array($status, ['Present', 'Late', 'Absent', 'On Leave', 'On Duty'], true)) {
                         $status = 'Present';
                     }
 
-                    $attendanceDate = $this->parseCsvDate(
-                        $data['attendance_date'] ?? null
+                    MechanicAttendance::updateOrCreate(
+                        [
+                            'mechanic_id' => $mechanic->mechanic_id,
+                            'attendance_date' => $this->parseCsvDate($data['attendance_date'] ?? null),
+                        ],
+                        [
+                            'mechanic_name' => $mechanic->mechanic_name,
+                            'shift' => $mechanic->shift ?: trim($data['shift'] ?? 'Morning'),
+                            'assigned_job' => trim($data['assigned_job'] ?? ''),
+                            'time_in' => $this->parseCsvTime($data['time_in'] ?? null),
+                            'time_out' => $this->parseCsvTime($data['time_out'] ?? null),
+                            'status' => $status,
+                        ]
                     );
-
-                    $timeIn = $this->parseCsvTime($data['time_in'] ?? null);
-                    $timeOut = $this->parseCsvTime($data['time_out'] ?? null);
-
-                    MechanicAttendance::create([
-                        'mechanic_id' => $this->generateMechanicId(),
-                        'mechanic_name' => trim($data['mechanic_name']),
-                        'shift' => trim($data['shift'] ?? 'Morning'),
-                        'assigned_job' => trim($data['assigned_job'] ?? ''),
-                        'attendance_date' => $attendanceDate,
-                        'time_in' => $timeIn,
-                        'time_out' => $timeOut,
-                        'status' => $status,
-                    ]);
-
                     $imported++;
-                } catch (Throwable $error) {
+                } catch (Throwable) {
                     $skipped++;
-
-                    session()->flash(
-                        'error',
-                        "Invalid CSV format on row {$rowNumber}. "
-                        . "Use date YYYY-MM-DD and time HH:MM:SS or 08:00 AM."
-                    );
-
-                    return new RedirectResponse('/mechanic-attendance');
                 }
             }
 
             if ($imported === 0) {
-                session()->flash(
-                    'error',
-                    'No attendance records were imported. Please check your CSV format.'
-                );
-
-                return new RedirectResponse('/mechanic-attendance');
+                return redirect()->route('mechanic-attendance')
+                    ->with('error', 'No mechanic attendance records were imported. Check that mechanic names exist in the Mechanic Master List.');
             }
 
             $this->broadcastSystemDataUpdated(
@@ -275,24 +258,11 @@ class MechanicAttendanceController extends Controller
             );
 
             $message = "{$imported} mechanic attendance record(s) imported successfully.";
-
             if ($skipped > 0) {
                 $message .= " {$skipped} row(s) were skipped.";
             }
 
-            session()->flash(
-                'success',
-                $message
-            );
-
-            return new RedirectResponse('/mechanic-attendance');
-        } catch (Throwable $error) {
-            session()->flash(
-                'error',
-                'Unable to import the CSV file. Please check the file format and try again.'
-            );
-
-            return new RedirectResponse('/mechanic-attendance');
+            return redirect()->route('mechanic-attendance')->with('success', $message);
         } finally {
             if (is_resource($handle)) {
                 fclose($handle);
@@ -303,98 +273,34 @@ class MechanicAttendanceController extends Controller
     private function parseCsvDate(?string $date): string
     {
         $date = trim($date ?? '');
-
         if ($date === '') {
-            return now()->format('Y-m-d');
+            return today()->toDateString();
         }
 
-        $formats = [
-            'Y-m-d',
-            'm/d/Y',
-            'm/d/y',
-            'd/m/Y',
-        ];
-
-        foreach ($formats as $format) {
+        foreach (['Y-m-d', 'm/d/Y', 'm/d/y', 'd/m/Y'] as $format) {
             try {
-                return Carbon::createFromFormat($format, $date)->format('Y-m-d');
-            } catch (Throwable $error) {
-                continue;
+                return Carbon::createFromFormat($format, $date)->toDateString();
+            } catch (Throwable) {
             }
         }
 
-        throw new \Exception('Invalid attendance date.');
+        throw new \InvalidArgumentException('Invalid attendance date.');
     }
 
     private function parseCsvTime(?string $time): ?string
     {
         $time = trim($time ?? '');
-
         if ($time === '') {
             return null;
         }
 
-        $formats = [
-            'H:i:s',
-            'H:i',
-            'h:i A',
-            'h:i:s A',
-        ];
-
-        foreach ($formats as $format) {
+        foreach (['H:i:s', 'H:i', 'h:i A', 'h:i:s A'] as $format) {
             try {
                 return Carbon::createFromFormat($format, $time)->format('H:i:s');
-            } catch (Throwable $error) {
-                continue;
+            } catch (Throwable) {
             }
         }
 
-        throw new \Exception('Invalid time format.');
-    }
-
-    private function generateMechanicId(): string
-    {
-        $year = now()->format('Y');
-
-        $lastMechanicAttendance = MechanicAttendance::where(
-            'mechanic_id',
-            'like',
-            "M-{$year}-%"
-        )
-            ->orderByDesc('id')
-            ->first();
-
-        if (! $lastMechanicAttendance) {
-            return "M-{$year}-0001";
-        }
-
-        preg_match(
-            '/M-' . $year . '-(\d+)/',
-            $lastMechanicAttendance->mechanic_id,
-            $matches
-        );
-
-        $lastNumber = isset($matches[1]) ? (int) $matches[1] : 0;
-        $nextNumber = $lastNumber + 1;
-
-        $newMechanicId = 'M-' . $year . '-' . str_pad(
-            $nextNumber,
-            4,
-            '0',
-            STR_PAD_LEFT
-        );
-
-        while (MechanicAttendance::where('mechanic_id', $newMechanicId)->exists()) {
-            $nextNumber++;
-
-            $newMechanicId = 'M-' . $year . '-' . str_pad(
-                $nextNumber,
-                4,
-                '0',
-                STR_PAD_LEFT
-            );
-        }
-
-        return $newMechanicId;
+        throw new \InvalidArgumentException('Invalid time format.');
     }
 }

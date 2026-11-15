@@ -3,7 +3,7 @@
   'message' => 'No records found.',
 ])
 
-<tr>
+<tr {{ $attributes }}>
   <td colspan="{{ $colspan }}" class="empty-row">
     {{ $message }}
   </td>

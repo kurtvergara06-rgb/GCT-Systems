@@ -1,0 +1,30 @@
+name: Production Deployment
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  production:
+    name: Production
+    runs-on: ubuntu-latest
+
+    environment:
+      name: production
+      url: https://gct-systems.onrender.com/
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Wait for Render deployment
+        run: sleep 120
+
+      - name: Verify production site
+        run: |
+          curl --fail --retry 5 --retry-delay 15 \
+          https://gct-systems.onrender.com/

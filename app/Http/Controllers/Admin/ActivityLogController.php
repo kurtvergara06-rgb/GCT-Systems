@@ -1,0 +1,107 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\Admin\ActivityLog;
+use Illuminate\Http\Request;
+
+class ActivityLogController extends Controller
+{
+    public function index(Request $request)
+    {
+        return view(
+            'Admin.System_Monitoring.activity-logs',
+            $this->data($request)
+        );
+    }
+
+    public function data(Request $request): array
+    {
+        $query = ActivityLog::query();
+
+        if ($request->filled('search')) {
+            $search = trim((string) $request->input('search'));
+
+            $query->where(function ($builder) use ($search): void {
+                $builder
+                    ->where('user_name', 'like', "%{$search}%")
+                    ->orWhere('user_role', 'like', "%{$search}%")
+                    ->orWhere('activity', 'like', "%{$search}%")
+                    ->orWhere('module', 'like', "%{$search}%")
+                    ->orWhere('reference', 'like', "%{$search}%")
+                    ->orWhere('event_type', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('module') && $request->input('module') !== 'all') {
+            $query->where('module', $request->input('module'));
+        }
+
+        if ($request->filled('event') && $request->input('event') !== 'all') {
+            $query->where('event_type', $request->input('event'));
+        }
+
+        $dateRange = (string) $request->input('date', 'all');
+
+        if ($dateRange === 'today') {
+            $query->whereDate('created_at', today());
+        } elseif ($dateRange === 'week') {
+            $query->where('created_at', '>=', now()->subDays(7)->startOfDay());
+        } elseif ($dateRange === 'month') {
+            $query->whereYear('created_at', now()->year)
+                ->whereMonth('created_at', now()->month);
+        }
+
+        $logs = $query
+            ->latest('created_at')
+            ->paginate(20)
+            ->withQueryString();
+
+        $today = ActivityLog::query()->whereDate('created_at', today());
+
+        $securityEventTypes = [
+            'Login',
+            'Logout',
+            'Security',
+            'Deleted',
+        ];
+
+        $businessEventTypes = [
+            'Created',
+            'Updated',
+            'Approval',
+            'Rejected',
+            'Assigned',
+            'Confirmed',
+            'Completed',
+            'Received',
+            'Issued',
+            'Imported',
+        ];
+
+        return [
+            'logs' => $logs,
+            'activitiesToday' => (clone $today)->count(),
+            'userActions' => (clone $today)
+                ->whereNotIn('event_type', ['Login', 'Logout'])
+                ->count(),
+            'systemEvents' => (clone $today)
+                ->whereIn('event_type', $businessEventTypes)
+                ->count(),
+            'securityEvents' => (clone $today)
+                ->whereIn('event_type', $securityEventTypes)
+                ->count(),
+            'modules' => ActivityLog::query()
+                ->select('module')
+                ->distinct()
+                ->orderBy('module')
+                ->pluck('module'),
+            'events' => ActivityLog::query()
+                ->select('event_type')
+                ->distinct()
+                ->orderBy('event_type')
+                ->pluck('event_type'),
+        ];
+    }
+}

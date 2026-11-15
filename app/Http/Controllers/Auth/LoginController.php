@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\Admin\User;
+use App\Services\ActivityLogService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class LoginController extends Controller
 {
@@ -28,11 +30,28 @@ class LoginController extends Controller
 
         $remember = $request->boolean('remember');
 
-        if (! Auth::attempt($credentials, $remember)) {
+        /** @var User|null $user */
+        $user = User::query()
+            ->where('email', $credentials['email'])
+            ->first();
+
+        if ($user === null) {
             return back()
-                ->withInput($request->only('email'))
-                ->with('error', 'Invalid email or password.');
+                ->withInput($request->only('email', 'remember'))
+                ->withErrors([
+                    'email' => 'Incorrect email address or password.',
+                ]);
         }
+
+        if (! Hash::check($credentials['password'], $user->password)) {
+            return back()
+                ->withInput($request->only('email', 'remember'))
+                ->withErrors([
+                    'password' => 'Wrong password.',
+                ]);
+        }
+
+        Auth::login($user, $remember);
 
         $request->session()->regenerate();
 
@@ -84,6 +103,20 @@ class LoginController extends Controller
             'last_login_at' => now(),
         ])->save();
 
+        try {
+            app(ActivityLogService::class)->record(
+                $authenticatedUser,
+                $request,
+                'Logged in to FROMS',
+                'Login',
+                $this->activityModuleForDepartment($authenticatedUser->department),
+                null,
+                'Successful account login.'
+            );
+        } catch (\Throwable $exception) {
+            report($exception);
+        }
+
         /*
         |--------------------------------------------------------------------------
         | Determine Redirect Path
@@ -115,6 +148,25 @@ class LoginController extends Controller
      */
     public function logout(Request $request): RedirectResponse
     {
+        /** @var User|null $authenticatedUser */
+        $authenticatedUser = $request->user();
+
+        if ($authenticatedUser !== null) {
+            try {
+                app(ActivityLogService::class)->record(
+                    $authenticatedUser,
+                    $request,
+                    'Logged out of FROMS',
+                    'Logout',
+                    $this->activityModuleForDepartment($authenticatedUser->department),
+                    null,
+                    'Successful account logout.'
+                );
+            } catch (\Throwable $exception) {
+                report($exception);
+            }
+        }
+
         Auth::logout();
 
         $request->session()->invalidate();
@@ -215,6 +267,21 @@ class LoginController extends Controller
         Auth::logout();
 
         return route('login', [], false);
+    }
+
+    /**
+     * Return the normalized module label used by Activity Logs.
+     */
+    private function activityModuleForDepartment(?string $department): string
+    {
+        return match ($this->normalizeValue($department)) {
+            'admin', 'administration' => 'Admin',
+            'maintenance' => 'Maintenance',
+            'purchase', 'purchasing' => 'Purchase',
+            'warehouse' => 'Warehouse',
+            'operation', 'operations' => 'Operation',
+            default => 'System',
+        };
     }
 
     /**
