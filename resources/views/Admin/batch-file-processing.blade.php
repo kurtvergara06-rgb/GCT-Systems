@@ -128,7 +128,7 @@
             ]"
         />
 
-        <main class="main batch-main">
+        <main class="main batch-main batch-processing-page">
             <x-layout.topbar
                 title="Batch File Processing"
                 subtitle="Upload GPS files and convert them into structured trip records using NLP."
@@ -484,7 +484,7 @@
                     </div>
                 </div>
 
-                <div class="table-wrap">
+                <div class="table-wrap structured-table-wrap">
                     <table class="batch-records-table">
                         <thead>
                             <tr>
@@ -502,7 +502,6 @@
                                 <th>Idling</th>
                                 <th>Mileage</th>
                                 <th>Engine Hours</th>
-                                <th>Actions</th>
                             </tr>
                         </thead>
 
@@ -524,23 +523,10 @@
                                     <td>{{ $record->mileage_km !== null ? $record->mileage_km . ' km' : '—' }}</td>
                                     <td>{{ $record->engine_hours ?? '—' }}</td>
 
-                                    <td>
-                                        <a
-                                            href="{{ route('batch-file-processing', [
-                                                'batch_id' => $selectedBatch?->id,
-                                                'selected_record' => $record->id,
-                                                'search' => request('search'),
-                                            ]) }}"
-                                            class="table-action"
-                                            title="View record"
-                                        >
-                                            <i class="fa-solid fa-eye"></i>
-                                        </a>
-                                    </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="15" class="empty-users">
+                                    <td colspan="14" class="empty-users">
                                         @if($selectedBatch && $selectedBatch->status !== 'Processed')
                                             This selected file is still {{ $selectedBatch->status }}. Mark it as Processed first.
                                         @else

@@ -206,7 +206,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const viewOnlyActions = document.getElementById('viewOnlyActions');
     const addEditPrPartBtn = document.getElementById('addEditPrPartBtn');
     const prApprovalActions = document.getElementById('prApprovalActions');
-    const editPrPartsContainer = document.getElementById('editPrPartsContainer');
+    const editPrPartsContainer = document.getElementById(
+      'editPrPartsContainer'
+    );
     const editRemarks = document.getElementById('edit_remarks');
 
     if (editRemarks) {
@@ -216,15 +218,21 @@ document.addEventListener('DOMContentLoaded', () => {
     setPartsReadonly(editPrPartsContainer, isReadonly);
 
     if (addEditPrPartBtn) {
-      addEditPrPartBtn.style.display = isReadonly ? 'none' : 'inline-flex';
+      addEditPrPartBtn.style.display = isReadonly
+        ? 'none'
+        : 'inline-flex';
     }
 
     if (editPrMainActions) {
-      editPrMainActions.style.display = isReadonly ? 'none' : 'flex';
+      editPrMainActions.style.display = isReadonly
+        ? 'none'
+        : 'flex';
     }
 
     if (viewOnlyActions) {
-      viewOnlyActions.style.display = isReadonly ? 'flex' : 'none';
+      viewOnlyActions.style.display = isReadonly
+        ? 'flex'
+        : 'none';
     }
 
     if (prApprovalActions) {
@@ -233,7 +241,11 @@ document.addEventListener('DOMContentLoaded', () => {
         status === 'Submitted' &&
         canApprove;
 
-      prApprovalActions.style.display = showApprovalButtons ? 'flex' : 'none';
+      prApprovalActions.classList.remove('hidden');
+
+      prApprovalActions.style.display = showApprovalButtons
+        ? 'flex'
+        : 'none';
     }
 
     if (editPrDescription) {
@@ -257,7 +269,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const jobOrderSelect = document.getElementById('jobOrderSelect');
   const busNoInput = document.getElementById('busNoInput');
-  const newPrPartsContainer = document.getElementById('newPrPartsContainer');
+  const newPrPartsContainer = document.getElementById(
+    'newPrPartsContainer'
+  );
   const addNewPrPartBtn = document.getElementById('addNewPrPartBtn');
 
   if (openPrModal) {
@@ -279,7 +293,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if (newPrPartsContainer) {
-    const initialParts = newPrPartsContainer.dataset.initialParts || '';
+    const initialParts =
+      newPrPartsContainer.dataset.initialParts || '';
 
     renderParts(newPrPartsContainer, initialParts, false);
 
@@ -334,16 +349,30 @@ document.addEventListener('DOMContentLoaded', () => {
   const editPrForm = document.getElementById('editPrForm');
 
   const editPrNo = document.getElementById('edit_pr_no');
-  const editJobOrderNo = document.getElementById('edit_job_order_no');
+  const editJobOrderNo = document.getElementById(
+    'edit_job_order_no'
+  );
   const editBusNo = document.getElementById('edit_bus_no');
-  const editStatusDisplay = document.getElementById('edit_status_display');
+  const editStatusDisplay = document.getElementById(
+    'edit_status_display'
+  );
   const editRemarks = document.getElementById('edit_remarks');
-  const editPrPartsContainer = document.getElementById('editPrPartsContainer');
+  const editPrPartsContainer = document.getElementById(
+    'editPrPartsContainer'
+  );
 
-  const closeEditPrModal = document.getElementById('closeEditPrModal');
-  const cancelEditPrModal = document.getElementById('cancelEditPrModal');
-  const closeViewOnlyPr = document.getElementById('closeViewOnlyPr');
-  const addEditPrPartBtn = document.getElementById('addEditPrPartBtn');
+  const closeEditPrModal = document.getElementById(
+    'closeEditPrModal'
+  );
+  const cancelEditPrModal = document.getElementById(
+    'cancelEditPrModal'
+  );
+  const closeViewOnlyPr = document.getElementById(
+    'closeViewOnlyPr'
+  );
+  const addEditPrPartBtn = document.getElementById(
+    'addEditPrPartBtn'
+  );
 
   let selectedApproveUrl = '';
   let selectedRejectUrl = '';
@@ -413,7 +442,8 @@ document.addEventListener('DOMContentLoaded', () => {
   if (addEditPrPartBtn && editPrPartsContainer) {
     addEditPrPartBtn.addEventListener('click', () => {
       const index =
-        editPrPartsContainer.querySelectorAll('.part-needed-row').length;
+        editPrPartsContainer.querySelectorAll('.part-needed-row')
+          .length;
 
       editPrPartsContainer.appendChild(
         createPartRow(index, {}, false)
@@ -462,24 +492,38 @@ document.addEventListener('DOMContentLoaded', () => {
   const rejectPrForm = document.getElementById('rejectPrForm');
 
   if (approvePrBtn && approvePrForm) {
-    approvePrBtn.addEventListener('click', () => {
+    approvePrBtn.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+
       if (!selectedApproveUrl) {
         return;
       }
 
+      approvePrBtn.disabled = true;
+      approvePrBtn.innerHTML =
+        '<i class="fa-solid fa-spinner fa-spin"></i> Approving...';
+
       approvePrForm.action = selectedApproveUrl;
-      approvePrForm.submit();
+      approvePrForm.requestSubmit();
     });
   }
 
   if (rejectPrBtn && rejectPrForm) {
-    rejectPrBtn.addEventListener('click', () => {
+    rejectPrBtn.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+
       if (!selectedRejectUrl) {
         return;
       }
 
+      rejectPrBtn.disabled = true;
+      rejectPrBtn.innerHTML =
+        '<i class="fa-solid fa-spinner fa-spin"></i> Rejecting...';
+
       rejectPrForm.action = selectedRejectUrl;
-      rejectPrForm.submit();
+      rejectPrForm.requestSubmit();
     });
   }
 
@@ -495,10 +539,13 @@ document.addEventListener('DOMContentLoaded', () => {
       const id = button.dataset.id;
       const prNo = button.dataset.prNo;
 
-      selectedDeleteForm = document.getElementById(`deletePrForm-${id}`);
+      selectedDeleteForm = document.getElementById(
+        `deletePrForm-${id}`
+      );
 
       if (deletePrNo) {
-        deletePrNo.textContent = prNo || 'this purchase request';
+        deletePrNo.textContent =
+          prNo || 'this purchase request';
       }
 
       openModal(deletePrModal);
@@ -570,21 +617,27 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  document.querySelectorAll(
-    '.success-modal-overlay button, .success-modal-overlay .feedback-ok-btn, .success-modal-overlay .close-feedback-modal'
-  ).forEach((button) => {
-    button.addEventListener('click', () => {
-      const modal = button.closest('.success-modal-overlay');
+  document
+    .querySelectorAll(
+      '.success-modal-overlay button, ' +
+      '.success-modal-overlay .feedback-ok-btn, ' +
+      '.success-modal-overlay .close-feedback-modal'
+    )
+    .forEach((button) => {
+      button.addEventListener('click', () => {
+        const modal = button.closest('.success-modal-overlay');
 
-      if (modal) {
-        closeModal(modal);
-      }
+        if (modal) {
+          closeModal(modal);
+        }
+      });
     });
-  });
 
   document
     .querySelectorAll(
-      '.modal-overlay, .delete-modal-overlay, .success-modal-overlay'
+      '.modal-overlay, ' +
+      '.delete-modal-overlay, ' +
+      '.success-modal-overlay'
     )
     .forEach((modal) => {
       modal.addEventListener('click', (event) => {

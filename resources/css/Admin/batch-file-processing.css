@@ -1628,3 +1628,391 @@
         justify-content: flex-end;
     }
 }
+
+/* =========================================================
+   BATCH FILE PROCESSING UI REFINEMENT
+   Cleaner panels, readable text, and action-free records table
+========================================================= */
+
+.batch-processing-page {
+    --batch-primary: #0b40b5;
+    --batch-primary-dark: #082f83;
+    --batch-navy: #061f3d;
+    --batch-yellow: #ffc400;
+    --batch-text: #0f172a;
+    --batch-muted: #64748b;
+    --batch-border: #dbe4f0;
+    --batch-soft: #f8fafc;
+    --batch-white: #ffffff;
+    --batch-shadow: 0 10px 28px rgba(6, 31, 61, 0.07);
+}
+
+/* Top upload and summary area */
+.batch-processing-page .batch-top-grid {
+    grid-template-columns: minmax(360px, 0.95fr) minmax(520px, 1.35fr);
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.batch-processing-page .upload-card,
+.batch-processing-page .batch-summary-card,
+.batch-processing-page .panel-card,
+.batch-processing-page .structured-records-card {
+    border: 1px solid var(--batch-border);
+    border-radius: 16px;
+    box-shadow: var(--batch-shadow);
+}
+
+.batch-processing-page .upload-card,
+.batch-processing-page .batch-summary-card,
+.batch-processing-page .panel-card,
+.batch-processing-page .structured-records-card {
+    padding: 18px;
+}
+
+.batch-processing-page .upload-card-header h2,
+.batch-processing-page .batch-summary-header h2,
+.batch-processing-page .panel-card-header h3,
+.batch-processing-page .section-header h2 {
+    color: var(--batch-navy);
+    font-size: 17px;
+    font-weight: 900;
+}
+
+.batch-processing-page .upload-card-header p,
+.batch-processing-page .batch-summary-header p,
+.batch-processing-page .panel-card-header p,
+.batch-processing-page .section-header p {
+    color: var(--batch-muted);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+/* Upload box */
+.batch-processing-page .compact-dropzone {
+    min-height: 112px;
+    margin-top: 14px;
+    padding: 16px;
+    border: 1.5px dashed #b8cae0;
+    border-radius: 13px;
+    background: #f8fbff;
+}
+
+.batch-processing-page .compact-dropzone:hover,
+.batch-processing-page .compact-dropzone.drag-active {
+    border-color: var(--batch-primary);
+    background: #eef5ff;
+}
+
+.batch-processing-page .dropzone-icon {
+    width: 46px;
+    height: 46px;
+    flex: 0 0 46px;
+    border-radius: 12px;
+    font-size: 18px;
+}
+
+.batch-processing-page .dropzone-content strong {
+    color: var(--batch-navy);
+    font-size: 13px;
+}
+
+.batch-processing-page .dropzone-content span,
+.batch-processing-page .upload-details {
+    font-size: 11px;
+}
+
+.batch-processing-page .browse-btn {
+    background: var(--batch-primary);
+    font-weight: 800;
+}
+
+.batch-processing-page .upload-data-btn {
+    background: var(--batch-yellow);
+    color: var(--batch-navy);
+    font-weight: 900;
+}
+
+/* Batch summary */
+.batch-processing-page .batch-summary-stats {
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.batch-processing-page .batch-stat {
+    padding: 12px;
+    border: 1px solid #e4ebf4;
+    border-radius: 12px;
+    background: #fbfdff;
+}
+
+.batch-processing-page .batch-stat:last-child {
+    border-right: 1px solid #e4ebf4;
+}
+
+.batch-processing-page .batch-stat-icon {
+    width: 40px;
+    height: 40px;
+    flex: 0 0 40px;
+    border-radius: 11px;
+}
+
+.batch-processing-page .batch-stat span {
+    font-size: 10px;
+}
+
+.batch-processing-page .batch-stat strong {
+    font-size: 20px;
+}
+
+/* Three review panels */
+.batch-processing-page .processing-grid {
+    grid-template-columns: minmax(300px, 1.05fr) minmax(360px, 1fr) minmax(300px, 0.9fr);
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.batch-processing-page .panel-card {
+    min-height: 330px;
+    max-height: 430px;
+    overflow: hidden;
+}
+
+.batch-processing-page .uploaded-files-card,
+.batch-processing-page .extracted-preview-card,
+.batch-processing-page .parsed-fields-card {
+    display: flex;
+    flex-direction: column;
+}
+
+.batch-processing-page .panel-card-header {
+    flex: 0 0 auto;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e7edf5;
+}
+
+.batch-processing-page .uploaded-file-list,
+.batch-processing-page .parsed-fields-list {
+    flex: 1;
+    max-height: none;
+    overflow-y: auto;
+}
+
+.batch-processing-page .uploaded-file {
+    min-height: 58px;
+    padding: 10px;
+    border: 1px solid #e1e9f3;
+}
+
+.batch-processing-page .uploaded-file.active-file {
+    border-color: #9fc0f4;
+    background: #eef5ff;
+    box-shadow: inset 3px 0 0 var(--batch-primary);
+}
+
+.batch-processing-page .file-info strong {
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.batch-processing-page .file-info span {
+    font-size: 10px;
+}
+
+/* Raw extracted preview */
+.batch-processing-page .text-preview {
+    flex: 1;
+    height: auto;
+    min-height: 205px;
+    padding: 14px;
+    border: 1px solid #dbe4f0;
+    border-radius: 11px;
+    background: #f8fafc;
+}
+
+.batch-processing-page .text-preview pre {
+    color: #17324f;
+    font-size: 11px;
+    line-height: 1.65;
+}
+
+.batch-processing-page .confidence-row {
+    flex: 0 0 auto;
+    font-size: 10px;
+}
+
+/* Parsed values */
+.batch-processing-page .parsed-field {
+    min-height: 34px;
+    padding: 6px 0;
+}
+
+.batch-processing-page .parsed-field span {
+    color: #52657d;
+    font-size: 11px;
+}
+
+.batch-processing-page .parsed-field strong {
+    max-width: 58%;
+    padding: 4px 8px;
+    background: #edf4ff;
+    color: var(--batch-primary-dark);
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.batch-processing-page .edit-record-btn {
+    min-height: 36px;
+    padding: 0 12px;
+    border-radius: 9px;
+    background: var(--batch-primary);
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+/* Structured records section */
+.batch-processing-page .structured-records-card {
+    padding: 18px;
+}
+
+.batch-processing-page .structured-records-card .section-header {
+    align-items: center;
+    margin-bottom: 14px;
+}
+
+.batch-processing-page .selected-batch-label {
+    color: var(--batch-primary);
+    font-weight: 800;
+}
+
+.batch-processing-page .table-header-actions {
+    flex-shrink: 0;
+}
+
+.batch-processing-page .mini-search input {
+    width: 260px;
+    height: 40px;
+    border: 1px solid #cbd7e6;
+    font-size: 12px;
+}
+
+.batch-processing-page .export-btn {
+    background: var(--batch-primary);
+    font-weight: 800;
+}
+
+/* Table without Actions column */
+.batch-processing-page .structured-table-wrap {
+    margin-top: 0;
+    border: 1px solid var(--batch-border);
+    border-radius: 12px;
+    background: var(--batch-white);
+    overflow-x: auto;
+}
+
+.batch-processing-page .batch-records-table {
+    min-width: 1260px;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.batch-processing-page .batch-records-table th {
+    height: 42px;
+    padding: 0 11px;
+    border-bottom: 1px solid var(--batch-border);
+    background: #edf3fb;
+    color: #3e5169;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 0.03em;
+    vertical-align: middle;
+}
+
+.batch-processing-page .batch-records-table td {
+    height: 50px;
+    padding: 0 11px;
+    border-bottom: 1px solid #e7edf5;
+    color: #334155;
+    font-size: 11px;
+    vertical-align: middle;
+}
+
+.batch-processing-page .batch-records-table td:first-child,
+.batch-processing-page .batch-records-table td:nth-child(2) {
+    color: var(--batch-navy);
+    font-weight: 800;
+}
+
+.batch-processing-page .batch-records-table tbody tr:hover {
+    background: #f7faff;
+}
+
+.batch-processing-page .batch-records-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.batch-processing-page .batch-table-footer {
+    margin-top: 14px;
+    font-size: 11px;
+}
+
+/* Remove any leftover action styling from this table */
+.batch-processing-page .batch-records-table .table-action {
+    display: none !important;
+}
+
+/* Responsive */
+@media (max-width: 1350px) {
+    .batch-processing-page .batch-top-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .batch-processing-page .processing-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .batch-processing-page .parsed-fields-card {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 900px) {
+    .batch-processing-page .processing-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .batch-processing-page .parsed-fields-card {
+        grid-column: auto;
+    }
+
+    .batch-processing-page .structured-records-card .section-header,
+    .batch-processing-page .table-header-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .batch-processing-page .mini-search input,
+    .batch-processing-page .export-btn {
+        width: 100%;
+    }
+}
+
+@media (max-width: 640px) {
+    .batch-processing-page .upload-card,
+    .batch-processing-page .batch-summary-card,
+    .batch-processing-page .panel-card,
+    .batch-processing-page .structured-records-card {
+        padding: 14px;
+    }
+
+    .batch-processing-page .compact-dropzone {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .batch-processing-page .batch-summary-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
