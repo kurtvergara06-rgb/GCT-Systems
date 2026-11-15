@@ -10,6 +10,7 @@ import '../css/Maintenance/job-order.css';
 import './Maintenance/job-order.js';
 
 import '../css/Operation/Scheduling_And_Dispatch/auto-conflict-redesign.css';
+import '../css/Operation/Scheduling_And_Dispatch/auto-conflict-readable.css';
 import './Operation/Scheduling_And_Dispatch/auto-conflict-redesign.js';
 
 import './Admin/Data_Management/batch-file-processing.js';
