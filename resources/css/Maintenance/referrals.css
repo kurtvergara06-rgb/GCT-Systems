@@ -326,8 +326,8 @@
 .referrals-page .btn-ref-review { background:#dbeafe; border:1px solid #93c5fd; color:#1d4ed8; font-size:12px; font-weight:700; min-width:88px; justify-content:center; transition:background-color .18s ease,color .18s ease,border-color .18s ease; }
 .referrals-page .btn-ref-review:hover, .referrals-page .btn-ref-review:focus-visible { background:#1d4ed8; border-color:#1d4ed8; color:#fff; }
 
-.referral-review-dialog .btn-ref-create-jo { background:#fbbf24; border:1px solid #d97706; color:#78350f; font-size:12px; font-weight:700; min-height:38px; padding:0 17px; }
-.referral-review-dialog .btn-ref-create-jo:hover,.referral-review-dialog .btn-ref-create-jo:focus-visible { background:#f59e0b; border-color:#b45309; color:#451a03; }
+.referral-review-dialog .btn-ref-create-jo { background:#fbbf24; border:1px solid #d97706; color:#000; font-size:12px; font-weight:700; min-height:38px; padding:0 17px; }
+.referral-review-dialog .btn-ref-create-jo:hover,.referral-review-dialog .btn-ref-create-jo:focus-visible { background:#f59e0b; border-color:#b45309; color:#000; }
 
 .referral-review-dialog .referral-review-footer .btn-ref-action { min-height:38px; padding:0 15px; font-size:12px; }
 
