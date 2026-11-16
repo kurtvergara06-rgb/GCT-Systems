@@ -9,7 +9,7 @@ Fleet and operations management system for GCT Transport Services covering Maint
 GCT Systems uses a dual-engine architecture:
 
 - **Laravel backend** — authentication, business workflows, database access, validation, audit activity, and realtime events.
-- **Python FastAPI engine** — PDF/NLP extraction, analytics, delay/ETA/fuel/inventory models, and operation auto-scheduling.
+- **Python FastAPI engine** — lightweight, rule-based NLP, analytics, operation auto-scheduling assistance, and ETA/fuel/delay/inventory prediction APIs. Legacy Python PDF processing is opt-in.
 - **Laravel Reverb + Echo** — realtime UI updates.
 - **MySQL 8.4** — primary production database.
 
@@ -24,7 +24,7 @@ Laravel communicates with the Python engine through `NLP_API_URL` and `OPERATION
 | Frontend | Blade, Vanilla JavaScript, Tailwind CSS 4 |
 | Build | Vite 8 |
 | Realtime | Laravel Reverb + Echo |
-| Python Engine | FastAPI, PyMuPDF, spaCy, pandas, NumPy, scikit-learn, PyTorch |
+| Python Engine | FastAPI, pandas, NumPy, scikit-learn, joblib; optional spaCy / PyMuPDF and development-only PyTorch |
 | Deployment | Docker + Render |
 | CI | GitHub Actions |
 
@@ -77,7 +77,7 @@ This lets analytics distinguish the originally assigned bus from the bus that ac
 - PHP 8.3+
 - Composer
 - Node.js 22+
-- Python 3.10+
+- Python 3.12 recommended for parity with CI
 - MySQL 8.4 for normal local/production use
 
 ## Local Setup
@@ -116,9 +116,23 @@ pip install -r requirements.txt
 uvicorn main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-The committed Python checkout includes the core PDF extraction plus the analytics, operation AI, ETA, fuel, inventory, and delay routers mounted by `main.py`.
+The FastAPI service mounts analytics, Operation AI assistance, ETA, fuel, inventory, delay and NLP routes. It includes rule-based NER, severity classification, anomaly analysis, and reviewable ingestion modules; these NLP helpers are **present and required for startup readiness**. Their rules must not be presented as trained machine-learning models.
 
-Some severity/NER/anomaly/ingestion helpers are intentionally loaded as **optional modules** by `main.py`. They are not present in the current repository checkout, so the engine degrades gracefully instead of failing startup. Do not advertise or depend on an optional endpoint until its implementation exists in the repository.
+The normal, low-memory Python installation intentionally excludes PyTorch, spaCy, and PyMuPDF. ML models are loaded on demand rather than preloaded at startup; native numerical thread pools default to one thread to reduce memory/CPU pressure on constrained hosting.
+
+For optional legacy Python PDF extraction and spaCy enrichment:
+
+```bash
+pip install -r requirements-nlp-extra.txt
+```
+
+Use `GCT_ENABLE_PYTHON_PDF=true` to enable `POST /nlp/extract-pdf` (disabled by default). For spaCy enrichment, install the `en_core_web_sm` model separately and set `GCT_ENABLE_SPACY_NLP=true`. Without these flags, rule-based NLP remains available. Legacy synthetic PyTorch scoring is development-only and can be installed through `requirements-legacy-ml.txt` when explicitly required.
+
+**PDF ownership:** The Laravel GPS document-import workflow parses PDF text locally using `pdftotext` and its PHP rules parser. It does not depend on the optional Python PDF endpoint.
+
+The lightweight text endpoint is `POST /nlp/analyze-text`; it accepts JSON with a nonempty `text` field (maximum 20,000 characters) and returns rule-based entity and severity results. It is available in FastAPI, but a Laravel integration for this endpoint should not be assumed.
+
+For a quick status check, visit `GET /health` or `GET /nlp/status`. The separate Python process may use a different port on Render; use the URL configured in Laravel.
 
 ### Docker Compose
 
@@ -215,7 +229,7 @@ or:
 composer run test
 ```
 
-The repository's test count changes as features are added, so this README intentionally does not hard-code a stale number.
+The most recently reported local full-suite run (November 2026) passed **989 tests / 8,049 assertions**. This is a recorded result, not a guarantee that future commits or deployments will pass; rerun the suite after changes.
 
 ### Frontend
 
@@ -226,15 +240,15 @@ npm run build
 
 ### Python
 
-Python model folders contain script-style validation tests where applicable. CI always compiles the Python tree to catch syntax/import-source errors without pretending that unavailable optional ML modules are present.
+Python model folders contain script-style validation tests where applicable. CI compiles the Python source tree and runs selected readiness, model-policy, training-pipeline and API checks. The lightweight NLP modules are part of the repository; optional spaCy/PyMuPDF dependencies are not required for the default runtime.
 
 ## Continuous Integration
 
-`.github/workflows/ci.yml` runs on pull requests, `main`, and `fix/**` branches and checks:
+`.github/workflows/ci.yml` runs on pull requests and pushes to `main`, `fix/**`, `improve/**`, and `feat/**` branches. It checks:
 
-- Laravel test suite on PHP 8.4 + SQLite
+- Laravel test suite on PHP 8.4 with MySQL 8.4
 - Vite production build on Node 22
-- Python source compilation on Python 3.12
+- Python 3.12 source compilation and selected ML/NLP validation scripts
 
 The production verification workflow also runs a quality gate before its Render availability check.
 
@@ -284,9 +298,16 @@ Build-time Vite/Reverb variables include:
 
 The FastAPI engine is a separate service and should not be assumed to be private merely because Laravel is the normal caller. Restrict the service at the deployment/network layer before exposing production-only endpoints publicly.
 
+## Repository Branches and History
+
+- `main` is the integration branch for the current GCT application. Avoid rewriting `main` history or pushing unfinished features directly.
+- The former `feature/global-dark-mode` branch was squashed to one verified commit, fast-forwarded into `main`, and deleted after integration.
+- `backup/gct-history` is a **historical archive**, not the current production code source. It was reconstructed to be 187 commits ahead of the then-current `main` without changing its final file tree.
+- The original backup history is retained by the Git tag `backup-gct-history-before-187-20261115`. Do not delete this recovery tag without reviewing its purpose.
+
 ## Known Development Decisions
 
 - Department/role restrictive route middleware is intentionally deferred **during current testing** so one test account can move across Maintenance, Warehouse, Purchase, Operation, and Admin without multiple browser sessions.
 - This testing convenience must be reviewed before production access is opened to real users.
 - Genuine ML readiness is data-dependent and is not simulated with generated data.
-- Optional NLP severity/NER/anomaly/ingestion modules are absent from the current checkout and therefore remain optional/degraded rather than being replaced with fake implementations.
+- Rule-based severity, NER, anomaly and ingestion modules exist and are checked at FastAPI startup. spaCy and Python PDF extraction are optional enhancements, not default requirements.
