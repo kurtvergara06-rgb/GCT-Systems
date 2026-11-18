@@ -31,6 +31,71 @@
 }
 
 
+/* PR-only legacy field/section spacing, consolidated from the globally
+   imported purchase-request-modal-cleanup.css. Modal dimensions are owned by
+   request-modal-shared.css; these rules retain form-specific spacing. */
+#prModal .ui-form-content,
+#prModal .ui-form-body {
+    padding-top: 12px;
+    padding-bottom: 12px;
+}
+
+/* The generic form-section component adds horizontal separators. The New PR
+ * form is short enough that spacing is clearer than repeated divider lines. */
+#prModal .ui-form-section {
+    margin: 0 0 14px !important;
+    padding-top: 0 !important;
+    border-top: 0 !important;
+}
+
+#prModal .ui-form-section + .ui-form-section {
+    margin-top: 4px !important;
+}
+
+#prModal .ui-form-section-header {
+    margin-bottom: 10px !important;
+    padding-bottom: 0 !important;
+    border-bottom: 0 !important;
+}
+
+#prModal .ui-form-section-title p {
+    margin-top: 2px;
+    line-height: 1.35;
+}
+
+#prModal .ui-form-grid {
+    gap: 12px 14px;
+}
+
+#prModal .pr-parts-container {
+    gap: 8px;
+}
+
+#prModal .pr-part-row {
+    gap: 8px;
+}
+
+#prModal #newPrRemarks {
+    min-height: 72px;
+}
+
+/* Keep the footer visually connected to the form instead of adding another
+ * full-width separator line. */
+#prModal .ui-form-actions {
+    margin-top: 10px !important;
+    padding-top: 8px !important;
+    border-top: 0 !important;
+}
+
+/* Make the eligibility rule visible where the user chooses a JO. */
+#prModal #jobOrderSelect + .pr-eligibility-note,
+#prModal .pr-eligibility-note {
+    margin: 6px 0 0;
+    color: #64748b;
+    font-size: 11px;
+    line-height: 1.35;
+}
+
 /* =========================================================
    TOPBAR
 ========================================================= */
@@ -180,12 +245,12 @@
 .purchase-page .maintenance-record-tabs {
     display: inline-flex;
     flex: 0 0 auto;
-    gap: 6px;
-    padding: 5px;
+    gap: 4px;
+    padding: 4px;
     margin: 0 0 0 auto;
-    border: 1px solid #dbe4f0;
+    border: 1px solid var(--pr-tabs-border,#dbe4f0);
     border-radius: 12px;
-    background: #f6f8fb;
+    background: var(--pr-tabs-background,#f6f8fb);
 }
 
 .purchase-page .maintenance-record-tab {
@@ -195,7 +260,7 @@
     min-height: 36px;
     padding: 8px 14px;
     border-radius: 9px;
-    color: #5a6678;
+    color: var(--pr-tab-text,#5a6678);
     font-size: 12px;
     font-weight: 700;
     text-decoration: none;
@@ -204,14 +269,14 @@
 }
 
 .purchase-page .maintenance-record-tab:hover {
-    background: #ffffff;
-    color: #102a56;
+    background: var(--pr-tab-active-bg,#fff);
+    color: var(--pr-tab-active-text,#102a56);
 }
 
 .purchase-page .maintenance-record-tab.is-active {
-    background: #ffffff;
-    color: #102a56;
-    box-shadow: 0 2px 8px rgba(16, 42, 86, .09);
+    background: var(--pr-tab-active-bg,#fff);
+    color: var(--pr-tab-active-text,#102a56);
+    box-shadow: none;
 }
 
 .purchase-page .maintenance-history-note {
@@ -254,13 +319,10 @@
 }
 
 #prModal .ui-form-modal {
-      width: min(920px, calc(100vw - 36px));
-      max-width: 920px;
       max-height: min(900px, calc(100vh - 32px));
       overflow-y: auto;
       border: 1px solid #d9e1ec;
       border-radius: 18px;
-      background: #fff;
 }
 
 #prModal .ui-form-modal-header {
@@ -345,10 +407,8 @@
       padding: 8px 12px;
       border: 1px solid #d7e0eb;
       border-radius: 10px;
-      background: #fff;
       color: #172033;
       font: inherit;
-      font-size: 12px;
       font-weight: 500;
 }
 
@@ -412,12 +472,9 @@
 
 #prModal .pr-shortage-table-wrap {
       width: 100%;
-      overflow: hidden;
 }
 
 #prModal .pr-shortage-table {
-      width: 100%;
-      table-layout: fixed;
       border-collapse: collapse;
 }
 
@@ -426,7 +483,6 @@
       padding: 9px 8px;
       border-bottom: 1px solid #edf0f4;
       text-align: left;
-      overflow-wrap: anywhere;
 }
 
 #prModal .pr-shortage-table th {
@@ -510,8 +566,6 @@
 }
 
 #prModal .pr-authorization-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 10px;
       margin-top: 10px;
 }
@@ -538,7 +592,6 @@
       color: #243146;
       font-size: 11px;
       font-weight: 650;
-      overflow-wrap: anywhere;
 }
 
 #prModal .pr-authorization-card small {
@@ -567,7 +620,6 @@
 }
 
 #prModal .pr-warehouse-acknowledgment {
-      margin-top: 10px;
       padding: 10px 12px;
       border-radius: 10px;
       background: #f7f8fa;
@@ -579,9 +631,6 @@
 }
 
 #prModal .pr-document-footer {
-      position: sticky;
-      bottom: 0;
-      z-index: 2;
       display: flex;
       align-items: center;
       justify-content: flex-end;
@@ -978,8 +1027,6 @@
 
     min-width: 980px;
 
-    table-layout: fixed;
-
     border-collapse: separate;
     border-spacing: 0;
 }
@@ -1041,7 +1088,6 @@
 .purchase-page .purchase-request-table th:nth-child(1),
 .purchase-page .purchase-request-table td:nth-child(1) {
     width: 14%;
-    text-align: left;
 }
 
 .purchase-page .pr-no-pill {
@@ -1061,7 +1107,6 @@
 .purchase-page .purchase-request-table th:nth-child(2),
 .purchase-page .purchase-request-table td:nth-child(2) {
     width: 11%;
-    text-align: left;
 }
 
 
@@ -1069,7 +1114,6 @@
 .purchase-page .purchase-request-table th:nth-child(3),
 .purchase-page .purchase-request-table td:nth-child(3) {
     width: 25%;
-    text-align: left;
 }
 
 
@@ -1085,7 +1129,6 @@
 .purchase-page .purchase-request-table th:nth-child(5),
 .purchase-page .purchase-request-table td:nth-child(5) {
     width: 13%;
-    text-align: center;
 }
 
 
@@ -1093,7 +1136,6 @@
 .purchase-page .purchase-request-table th:nth-child(6),
 .purchase-page .purchase-request-table td:nth-child(6) {
     width: 15%;
-    text-align: center;
 }
 
 
@@ -1101,7 +1143,6 @@
 .purchase-page .purchase-request-table th:nth-child(7),
 .purchase-page .purchase-request-table td:nth-child(7) {
     width: 15%;
-    text-align: center;
 }
 
 
@@ -1842,11 +1883,6 @@
    MODAL SIZE
 ========================================================= */
 
-#prModal .ui-form-modal {
-    width: min(680px, calc(100vw - 32px));
-    max-width: 680px;
-}
-
 
 /* =========================================================
    CONTENT SPACING
@@ -2178,12 +2214,12 @@
 
     padding: 12px 13px;
 
-    background: #ffffff;
+    background: var(--pr-remarks-background, #ffffff);
 
-    border: 1px solid #d3dfed;
+    border: 1px solid var(--pr-remarks-border, #d3dfed);
     border-radius: 9px;
 
-    color: #0f172a;
+    color: var(--pr-remarks-foreground, #0f172a);
 
     resize: vertical;
 
@@ -2811,8 +2847,6 @@
 #editPrModal .ui-form-modal-scrollable {
     max-height: calc(100vh - 154px);
     padding-right: 2px;
-    overflow-y: auto;
-    overscroll-behavior: contain;
     scrollbar-width: thin;
 }
 
@@ -2855,7 +2889,6 @@
 #editPrModal #reviewPrNo {
     color: #061f3d;
     font-size: 15px;
-    font-weight: 800;
     white-space: nowrap;
 }
 
@@ -2865,9 +2898,6 @@
     font-size: 9.5px;
 }
 
-#editPrModal .pr-review-created {
-    text-align: left;
-}
 
 #editPrModal .pr-review-created span {
     margin-bottom: 2px;
@@ -2882,8 +2912,6 @@
 
 #editPrModal .pr-review-information {
     margin-top: 8px;
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
     border: 1px solid #dce5f2;
     border-radius: 10px;
     background: #fbfdff;
@@ -2919,20 +2947,16 @@
 #editPrModal .pr-review-detail-row > span {
     color: #64748b;
     font-size: 9.5px;
-    font-weight: 600;
 }
 
 #editPrModal .pr-review-detail-row > strong {
     min-width: 0;
     color: #0f172a;
     font-size: 10.5px;
-    font-weight: 750;
     line-height: 1.4;
-    overflow-wrap: anywhere;
 }
 
 #editPrModal .pr-review-detail-full {
-    grid-column: 1 / -1;
     grid-template-columns: 112px minmax(0, 1fr);
     min-height: 44px;
     border-top: 1px solid #e7edf5;
@@ -2973,7 +2997,6 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: #eaf2ff;
     color: #0b40b5;
     font-size: 11px;
 }
@@ -2981,8 +3004,6 @@
 #editPrModal .pr-review-section-title h3 {
     margin: 0;
     color: #061f3d;
-    font-size: 12px;
-    font-weight: 800;
 }
 
 #editPrModal .pr-review-section-title p {
@@ -3048,7 +3069,6 @@
     margin-bottom: 6px;
     color: #334155;
     font-size: 9.5px;
-    font-weight: 700;
 }
 
 #editPrModal .pr-review-decision textarea {
@@ -3066,7 +3086,6 @@
     align-items: center;
     justify-content: space-between;
     gap: 10px;
-    background: #ffffff;
     border-top: 1px solid #e7edf5;
 }
 
@@ -3100,7 +3119,6 @@
 #editPrModal .pr-review-btn-reject {
     background: #ef2b2d;
     border-color: #ef2b2d;
-    color: #ffffff;
 }
 
 #editPrModal .pr-review-btn-reject:hover {
@@ -3111,7 +3129,6 @@
 #editPrModal .pr-review-btn-approve {
     background: #13a94f;
     border-color: #13a94f;
-    color: #ffffff;
 }
 
 #editPrModal .pr-review-btn-approve:hover {
@@ -3219,7 +3236,6 @@
 
 #editPrModal .pr-review-decision {
     border-color: #dbe7f6;
-    background: #f8fbff;
 }
 
 #editPrModal .pr-review-detail-row > strong#reviewPrStatusText {
@@ -3299,14 +3315,12 @@
 
 #editPrModal #reviewPrNo {
     color: var(--brand-navy, #061f3d);
-    font-size: 17px;
     font-weight: 800;
 }
 
 #editPrModal .pr-review-status-pill {
     min-height: 28px;
     padding: 0 11px;
-    font-size: 11px;
     font-weight: 800;
 }
 
@@ -3351,11 +3365,9 @@
 #editPrModal .pr-review-section-title h3 {
     color: var(--brand-navy, #061f3d);
     font-size: 14px;
-    font-weight: 800;
 }
 
 #editPrModal .pr-review-section-title p {
-    margin-top: 3px;
     color: var(--text-muted, #64748b);
     font-size: 11.5px;
     line-height: 1.45;
@@ -3384,14 +3396,11 @@
 #editPrModal .pr-review-detail-row > span {
     color: var(--text-muted, #64748b);
     font-size: 11.5px;
-    font-weight: 600;
 }
 
 #editPrModal .pr-review-detail-row > strong {
     color: var(--text-main, #1e293b);
     font-size: 13px;
-    font-weight: 700;
-    line-height: 1.45;
 }
 
 #editPrModal .pr-review-detail-row > strong#reviewPrStatusText {
@@ -3487,13 +3496,11 @@
 
 #editPrModal .pr-review-footer .ui-form-btn:hover,
 #editPrModal #editPrMainActions .ui-form-btn:hover {
-    transform: translateY(-1px);
     box-shadow: 0 8px 18px rgba(6, 31, 61, .16);
 }
 
 #editPrModal #closeViewOnlyPr,
 #editPrModal #cancelEditPrModal {
-    background: #ffffff;
     border: 1px solid var(--border-soft, #dce5f2);
     color: var(--brand-navy, #061f3d);
     box-shadow: none;
@@ -3553,7 +3560,6 @@
         var(--brand-yellow-dark, #f5a800)
     );
     border-color: var(--brand-yellow-dark, #f5a800);
-    color: var(--brand-navy, #061f3d);
 }
 
 @media (max-width: 760px) {
@@ -3748,11 +3754,6 @@
 }
 
 /* Keep the requisition-specific modal layout last so legacy PR rules cannot narrow it. */
-#prModal .ui-form-modal {
-    width: min(920px, calc(100vw - 36px));
-    max-width: 920px;
-}
-
 @media (max-width: 600px) {
     #prModal .ui-form-modal {
         width: 100%;
@@ -3806,7 +3807,6 @@
 #prModal .pr-document-parts .pr-inline-error { margin-left: 13px; margin-right: 13px; }
 #prModal .pr-document-parts .pr-shortage-table-wrap { margin: 0 13px; }
 #prModal .pr-document-footer {
-  background: #fff;
   border-top: 1px solid #e4eaf2;
 }
 #prModal .pr-document-footer #createPrBtn {
@@ -3916,13 +3916,11 @@
 
 
 /* Four-step Purchase Requisition — coordinated with New Job Order accordion cards. */
-#prModal .pr-document { display: flex; flex-direction: column; gap: 12px; }
+#prModal .pr-document { gap: 12px; }
 #prModal .pr-step-card {
-  margin: 0;
   padding: 15px 16px 16px;
   border: 1px solid #d8e5f5;
   border-radius: 12px;
-  background: #fff;
   box-shadow: 0 3px 12px rgba(18, 55, 101, .045);
   min-width: 0;
 }
@@ -3980,11 +3978,11 @@
 #prModal .pr-document-parts .pr-document-section-heading,
 #prModal .pr-document-parts .pr-stock-note,
 #prModal .pr-document-parts .pr-inline-error { margin-left: 0; margin-right: 0; }
-#prModal .pr-document-parts .pr-shortage-table-wrap { margin: 0; max-width: 100%; }
+#prModal .pr-document-parts .pr-shortage-table-wrap { margin: 0; }
 #prModal .pr-document-additional { margin: 0; padding: 0; border: 0; }
 #prModal .pr-authorization-grid { margin-top: 0; }
 #prModal .pr-warehouse-acknowledgment { margin-top: 10px; }
-#prModal .pr-document-footer { position: sticky; bottom: 0; z-index: 3; }
+#prModal .pr-document-footer { z-index: 3; }
 @media (max-width: 760px) {
   #prModal .pr-step-card { padding: 12px; }
   #prModal .pr-step-heading { gap: 8px; }
@@ -4202,7 +4200,6 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   align-items: stretch;
-  gap: 12px;
   margin: 0;
 }
 #prModal .pr-authorization-card,
@@ -4285,9 +4282,6 @@
 
 
 /* Maintenance PR authorization only: requester and linked Head approval. */
-#prModal .pr-authorization-grid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
 @media (max-width: 760px) {
   #prModal .pr-authorization-grid {
     grid-template-columns: minmax(0, 1fr);
@@ -4337,7 +4331,6 @@
 /* Maintenance PR records: eight aligned columns including the linked JO. */
 .purchase-page .purchase-request-table {
   min-width: 1050px;
-  table-layout: fixed;
 }
 .purchase-page .purchase-request-table th:nth-child(1),
 .purchase-page .purchase-request-table td:nth-child(1) { width: 12%; text-align: left; }
@@ -4414,7 +4407,6 @@
   padding: 0 3px 2px;
 }
 #editPrModal .pr-review-information {
-  background: #fff;
   border: 1px solid #d8e4f4;
   border-radius: 13px;
   box-shadow: 0 3px 12px rgba(18, 48, 95, .04);
@@ -4443,16 +4435,12 @@
   line-height: 1.35;
 }
 #editPrModal .pr-review-detail-row > strong {
-  font-size: 12px;
   font-weight: 750;
   color: #142d50;
   line-height: 1.45;
 }
 #editPrModal .pr-review-detail-row > strong#reviewPrStatusText {
   color: #1758bd;
-}
-#editPrModal #prAuthorizationSection .pr-review-information {
-  background: #f8fbff;
 }
 #editPrModal #prAuthorizationSection .pr-review-detail-row {
   background: transparent;
@@ -4486,13 +4474,11 @@
 
 /* PR record presentation: quiet cards, no decorative accent lines. */
 #editPrModal #viewOnlyActions.pr-review-footer {
-  display: flex;
-  justify-content: flex-end;
   align-items: center;
   gap: 10px;
   padding: 13px 18px;
   border-top: 0;
-  background: #fff;
+  background: var(--pr-view-raised, #fff);
 }
 #editPrModal #viewOnlyActions #closeViewOnlyPr {
   margin-left: auto;
@@ -4502,7 +4488,6 @@
   border: 1px solid #d0dff2;
   color: #174783;
   background: #ecf3ff;
-  font-size: 12px;
   font-weight: 750;
   cursor: pointer;
 }
@@ -4511,16 +4496,12 @@
   border-color: #b5cef4;
 }
 #editPrModal #prReviewItemsSection .pr-review-items-table-wrap {
-  border: 1px solid #dbe6f5;
   border-radius: 13px;
   overflow: hidden;
   background: #fff;
   box-shadow: 0 4px 14px rgba(24, 55, 100, .045);
 }
 #editPrModal #prReviewItemsSection .pr-review-items-table thead th {
-  background: #edf4fd;
-  color: #3c5576;
-  font-size: 10px;
   font-weight: 800;
   letter-spacing: .035em;
 }
@@ -4530,7 +4511,6 @@
 #editPrModal #prReviewItemsSection .pr-review-items-table tbody td {
   padding-top: 13px;
   padding-bottom: 13px;
-  color: #173250;
 }
 #editPrModal #prAuthorizationSection .pr-review-information {
   border: 1px solid #dce7f5;
@@ -4803,8 +4783,8 @@
   justify-content: flex-end;
   margin: 0 -22px;
   padding: 12px 20px;
-  border-top: 1px solid #e1e8f2;
-  background: #f9fbff;
+  border-top: 1px solid var(--pr-view-border, #e1e8f2);
+  background: var(--pr-view-raised, #f9fbff);
 }
 #editPrModal #viewOnlyActions #closeViewOnlyPr {
   width: auto;
@@ -5098,12 +5078,12 @@ body > .pr-parts-floating-menu .pr-parts-dropdown-item > b {
 .purchase-page .purchase-request-card.is-history .maintenance-record-tabs {
   display: inline-flex;
   flex: 0 0 auto;
-  gap: 6px;
-  padding: 5px;
+  gap: 4px;
+  padding: 4px;
   margin: 0;
-  border: 1px solid #dbe4f0;
+  border: 1px solid var(--pr-tabs-border,#dbe4f0);
   border-radius: 12px;
-  background: #f6f8fb;
+  background: var(--pr-tabs-background,#f6f8fb);
 }
 .purchase-page .purchase-request-card.is-history .maintenance-record-tab {
   display: inline-flex;
@@ -5139,12 +5119,10 @@ body > .pr-parts-floating-menu .pr-parts-dropdown-item > b {
   gap: 2px;
 }
 
-/* Purchase Requisition create dialog: use the desktop workspace without affecting other modals. */
+/* Desktop PR form fields. Modal geometry belongs to request-modal-shared.css. */
 @media screen and (min-width: 900px) {
   #prModal .ui-form-modal {
     box-sizing: border-box;
-    width: min(960px, calc(100vw - 72px)) !important;
-    max-width: 960px !important;
   }
   #prModal .ui-form-modal-body {
     padding-right: 28px;
@@ -5153,12 +5131,6 @@ body > .pr-parts-floating-menu .pr-parts-dropdown-item > b {
   #prModal .pr-document-fields {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     column-gap: 20px;
-  }
-}
-@media screen and (min-width: 600px) and (max-width: 899px) {
-  #prModal .ui-form-modal {
-    width: calc(100vw - 40px) !important;
-    max-width: 780px !important;
   }
 }
 
@@ -5272,7 +5244,7 @@ body > .pr-parts-floating-menu .pr-parts-dropdown-item > b {
 .purchase-page .pr-pending-table td:nth-child(5) { width: 16%; }
 .purchase-page .pr-pending-table th:nth-child(6),
 .purchase-page .pr-pending-table td:nth-child(6) { width: 13%; text-align: center; }
-.purchase-page .pr-pending-table tbody tr:nth-child(even) { background: #f9fbfd; }
+.purchase-page .pr-pending-table tbody tr:nth-child(even) { background: var(--pr-even-row,#f9fbfd); }
 .purchase-page .pr-pending-part-name { font-weight: 750; }
 .purchase-page .pr-pending-shortage { font-weight: 600; white-space: nowrap; }
 .purchase-page .pr-pending-parts-details { display: inline-block; margin-left: 7px; position: relative; }
@@ -5356,12 +5328,10 @@ body > .pr-parts-floating-menu .pr-parts-dropdown-item > b {
 }
 #prModal .pr-simple-source-card span { color: #64748b; font-size: 11px; }
 #prModal .pr-simple-source-card strong { color: #16345b; font-size: 12px; overflow-wrap: anywhere; }
-#prModal .pr-jo-signature-reference {
-  display: flex; align-items: center; flex-wrap: wrap; gap: 9px;
+#prModal .pr-jo-signature-reference { flex-wrap: wrap; gap: 9px;
   color: #65748b; font-size: 11px;
 }
-#prModal .pr-jo-signature-reference img { max-width: 100px; max-height: 40px; object-fit: contain; }
-#prModal .pr-review-parts-table { width: 100%; table-layout: fixed; min-width: 0; }
+#prModal .pr-jo-signature-reference img { max-width: 100px; max-height: 40px; }
 #prModal .pr-review-parts-table th:nth-child(1) { width: 47%; }
 #prModal .pr-review-parts-table th:nth-child(3) { width: 27%; }
 #prModal .pr-review-parts-table th,
@@ -5376,7 +5346,7 @@ body > .pr-parts-floating-menu .pr-parts-dropdown-item > b {
 /* Same JO authorization layout as Item Request; PR retains its optional target date. */
 #prModal .pr-jo-authorization-heading { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; border-top:1px solid #e2eaf5; padding-top:12px; }
 #prModal .pr-jo-authorization-heading strong { font-size:12px; color:#17375f; }
-#prModal .pr-jo-authorization-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+#prModal .pr-jo-authorization-grid { gap:10px; }
 #prModal .pr-jo-signature-reference { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px; text-align:center; height:150px; min-height:150px; padding:8px; border:1px solid #dfe8f5; border-radius:9px; background:#fff; box-sizing:border-box; overflow:hidden; }
 #prModal .pr-jo-signature-reference img { display:block; width:100%; height:100%; max-width:100%; max-height:100%; object-fit:contain; }
 #prModal .pr-jo-signature-reference span { font-size:11px; color:#64748b; }
@@ -5401,11 +5371,39 @@ body > .pr-parts-floating-menu .pr-parts-dropdown-item > b {
 }
 
 /* Item Request visual parity — Purchase Requests remain shortage-only. */
-.purchase-page .purchase-request-card .maintenance-record-tabs { margin:0; }
+/* Use the same segmented control as Item Requests on all PR record views. */
+.purchase-page .purchase-request-card .maintenance-record-tabs {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 4px;
+  width: max-content;
+  max-width: 100%;
+  min-height: 44px;
+  padding: 4px;
+  margin: 0;
+  border: 1px solid var(--pr-tabs-border,#dbe4f0);
+  border-radius: 12px;
+  background: var(--pr-tabs-background,#f6f8fb);
+}
+.purchase-page .purchase-request-card .maintenance-record-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 8px 14px;
+  border-radius: 9px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.purchase-page .purchase-request-card .maintenance-record-tab.is-active {
+  background: var(--pr-tab-active-bg,#fff);
+  color: var(--pr-tab-active-text,#102a56);
+}
 .purchase-page .purchase-request-card .section-header h2 {font-size:16px;}
-.purchase-page .pr-ir-style-table {width:100%;table-layout:fixed;border-collapse:collapse;}
-.purchase-page .pr-ir-style-table thead th {background:#f0f5fc;color:#506884;font-size:10px;font-weight:800;letter-spacing:.025em;text-align:left;padding:13px 11px;}
-.purchase-page .pr-ir-style-table tbody td {padding:14px 11px;color:#223b5e;font-size:12px;vertical-align:middle;overflow-wrap:anywhere;border-bottom:1px solid #eaf0f7;}
+.purchase-page .pr-ir-style-table {border-collapse:collapse;}
+.purchase-page .pr-ir-style-table thead th {background:#f0f5fc;color:#506884;font-size:10px;font-weight:800;letter-spacing:.025em;padding:13px 11px;}
+.purchase-page .pr-ir-style-table tbody td {padding:14px 11px;color:#223b5e;overflow-wrap:anywhere;border-bottom:1px solid #eaf0f7;}
 .purchase-page .pr-ir-style-table th:nth-child(1) {width:16%;}
 .purchase-page .pr-ir-style-table th:nth-child(2) {width:18%;}
 .purchase-page .pr-ir-style-table th:nth-child(3) {width:23%;}
@@ -5413,8 +5411,8 @@ body > .pr-parts-floating-menu .pr-parts-dropdown-item > b {
 .purchase-page .pr-ir-style-table th:nth-child(6) {width:14%;}
 .purchase-page .pr-ir-jo-badge {display:inline-flex;color:#193755;background:#f3f7fd;border:1px solid #d7e2f2;border-radius:6px;padding:4px 7px;font-size:11px;font-weight:800;}
 .purchase-page .pr-ir-date {display:flex;flex-direction:column;gap:3px;}
-.purchase-page .pr-ir-date strong {color:#183961;font-size:11px;}
-.purchase-page .pr-ir-date small {font-size:10px;color:#7487a1;}
+.purchase-page .pr-ir-date strong {color:var(--pr-submitted-text,#183961);font-size:11px;}
+.purchase-page .pr-ir-date small {font-size:10px;color:var(--pr-submitted-muted,#7487a1);}
 .purchase-page .pr-ir-count {display:inline-flex;align-items:center;gap:5px;padding:5px 8px;color:#b43240;background:#fff0f1;border:1px solid #f3c3c9;border-radius:6px;font-size:11px;font-weight:800;}
 .purchase-page .pr-ir-shortage-status {display:inline-flex;padding:6px 9px;border:1px solid #f3c3c9;border-radius:7px;background:#fff0f2;color:#a83a46;font-size:10px;font-weight:800;}
 .purchase-page .pr-ir-breakdown {position:relative;display:block;margin-top:5px;}
@@ -5423,7 +5421,7 @@ body > .pr-parts-floating-menu .pr-parts-dropdown-item > b {
 .purchase-page .pr-ir-breakdown .pr-ir-popover-title {display:block;padding:9px 11px;border-bottom:1px solid #e2eaf4;color:#a83a46;font-size:11px;}
 .purchase-page .pr-ir-style-table .pr-pending-review-btn {white-space:nowrap;background:#eaf3ff;color:#144995;border:1px solid #c9dffe;border-radius:7px;padding:8px 11px;font-size:11px;font-weight:800;}
 /* JO-style review modal: summary/source and authorization above a full-width shortage table. */
-#prModal .ui-form-modal {width:min(1060px,calc(100vw - 36px));max-width:1060px;max-height:calc(100dvh - 36px);display:flex;flex-direction:column;}
+#prModal .ui-form-modal {display:flex;flex-direction:column;}
 #prModal .pr-document {display:flex;flex-direction:column;gap:13px;}
 #prModal .pr-step-card {border:1px solid #dbe6f4;border-radius:11px;background:#fff;overflow:hidden;margin:0;}
 #prModal .pr-step-heading {background:#f0f5fc;border-bottom:1px solid #dce6f4;padding:12px 15px;}
@@ -5473,7 +5471,6 @@ body > .pr-parts-floating-menu .pr-parts-dropdown-item > b {
 
 /* Pending PR status uses the same compact rectangular treatment as Stock Status. */
 .purchase-page .pr-ir-style-table .pr-pending-badge.pr-ir-status-box {
-  display:inline-flex;align-items:center;justify-content:center;
   width:max-content;max-width:100%;box-sizing:border-box;
   padding:6px 9px;border-radius:7px;
   border:1px solid #c9dffe;background:#eaf3ff;color:#174e9e;
@@ -5499,7 +5496,6 @@ body > .pr-parts-floating-menu .pr-parts-dropdown-item > b {
 .purchase-page .pr-ir-style-table .pr-ir-release-policy,
 .purchase-page .pr-ir-style-table .pr-pending-review-btn {
   box-sizing:border-box;
-  min-height:34px;
   display:inline-flex;
   align-items:center;
   justify-content:center;
@@ -5512,16 +5508,14 @@ body > .pr-parts-floating-menu .pr-parts-dropdown-item > b {
 
 /* Match Pending IR table's readable visual scale in Pending PR. */
 .purchase-page .pr-pending-table-wrap {overflow-x:auto;}
-.purchase-page .pr-ir-style-table {table-layout:auto;width:100%;min-width:0;}
+.purchase-page .pr-ir-style-table {table-layout:auto;min-width:0;}
 .purchase-page .pr-ir-style-table thead th {
-  padding:11px 13px!important;font-size:10px!important;line-height:1.4;
-  vertical-align:middle;white-space:nowrap;
+  padding:11px 13px!important;font-size:10px!important;line-height:1.4;white-space:nowrap;
 }
 .purchase-page .pr-ir-style-table tbody td {
-  padding:12px 13px!important;font-size:12px;line-height:1.4;
-  vertical-align:middle;white-space:normal;
+  padding:12px 13px!important;font-size:12px;line-height:1.4;white-space:normal;
 }
-.purchase-page .pr-ir-style-table .pr-ir-counts {gap:5px;}
+
 .purchase-page .pr-ir-style-table .pr-ir-count,
 .purchase-page .pr-ir-style-table .pr-ir-jo-badge {font-size:11px;padding:5px 8px;}
 .purchase-page .pr-ir-style-table .pr-ir-breakdown {margin-top:6px;}
@@ -5552,9 +5546,7 @@ body > .pr-parts-floating-menu .pr-parts-dropdown-item > b {
 
 /* Parts for Purchase: copy Item Requests' compact inline split/breakdown presentation. */
 .purchase-page .pr-ir-style-table td:nth-child(3) {min-width:210px;}
-.purchase-page .pr-ir-style-table .pr-ir-counts {
- display:flex;flex-direction:row;align-items:center;justify-content:flex-start;
- flex-wrap:wrap;gap:5px;margin:0;
+.purchase-page .pr-ir-style-table .pr-ir-counts {flex-direction:row;justify-content:flex-start;gap:5px;margin:0;
 }
 .purchase-page .pr-ir-style-table .pr-ir-counts .pr-ir-count {
  display:inline-flex;flex:0 0 auto;align-items:center;justify-content:center;
@@ -5623,33 +5615,36 @@ body > .pr-parts-floating-menu .pr-parts-dropdown-item > b {
 }
 
 /* Review Purchase Request — layout parity with Item Request's approved review modal. */
-#prModal .ui-form-modal {width:min(1050px,calc(100vw - 36px));max-width:1050px;}
+
 #prModal .pr-document.pr-review-simplified {gap:12px;padding:14px 16px;}
-#prModal .pr-ir-review-summary {display:grid;grid-template-columns:minmax(0,1.5fr) repeat(3,minmax(0,1fr));align-items:center;padding:14px 10px;border:1px solid #cee0f8;border-radius:11px;background:linear-gradient(105deg,#f2f7ff,#fff);}
+#prModal .pr-ir-review-summary {display:grid;grid-template-columns:minmax(0,1.5fr) repeat(3,minmax(0,1fr));align-items:center;padding:14px 10px;border:1px solid #cee0f8;border-radius:11px;background:var(--pr-document-raised,linear-gradient(105deg,#f2f7ff,#fff));}
 #prModal .pr-ir-review-summary > div {min-width:0;display:flex;flex-direction:column;gap:7px;padding:5px 12px;border-right:1px solid #dfe8f5;}
 #prModal .pr-ir-review-summary > div:last-child {border-right:none;}
-#prModal .pr-ir-review-summary span {font-size:10px;color:#526e91;font-weight:800;letter-spacing:.04em;}
-#prModal .pr-ir-review-summary strong {font-size:12px;font-weight:800;color:#153960;overflow-wrap:anywhere;}
+#prModal .pr-ir-review-summary span {font-size:10px;color:var(--pr-document-muted,#526e91);font-weight:800;letter-spacing:.04em;}
+#prModal .pr-ir-review-summary strong {font-size:12px;font-weight:800;color:var(--pr-document-text,#153960);overflow-wrap:anywhere;}
 #prModal .pr-ir-review-summary .pr-ir-summary-main strong {font-size:15px;}
-#prModal .pr-ir-review-summary small {font-size:10px;color:#7286a0;}
-#prModal .pr-ir-review-summary .pr-ir-jo-approved {display:inline-flex;align-self:flex-start;align-items:center;gap:5px;border:1px solid #a9e5bf;background:#e5faed;color:#166534;padding:5px 9px;border-radius:99px;font-size:11px;}
+#prModal .pr-ir-review-summary small {font-size:10px;color:var(--pr-document-muted,#7286a0);}
+#prModal .pr-ir-review-summary .pr-ir-jo-approved {display:inline-flex;align-self:flex-start;align-items:center;gap:5px;border:1px solid #a9e5bf;background:#e5faed;color:#166534;padding:5px 9px;border-radius:7px;font-size:11px;}
 #prModal .pr-ir-review-top {display:grid;grid-template-columns:1.15fr .85fr;gap:12px;align-items:stretch;}
 #prModal .pr-ir-review-top > .pr-step-card {min-width:0;position:relative;}
-#prModal .pr-ir-panel-heading {display:flex;align-items:center;gap:8px;padding:12px 14px;background:#f0f5fc;border-bottom:1px solid #dce6f4;}
-#prModal .pr-ir-panel-heading h3 {margin:0;color:#163b6c;font-size:12px;font-weight:800;}
+#prModal .pr-ir-head-approval {display:flex;flex-direction:column;}
+#prModal .pr-ir-head-approval .pr-ir-approval-body {flex:1;}
+#prModal .pr-ir-panel-heading {display:flex;align-items:center;gap:8px;padding:12px 14px;background:var(--pr-document-raised,#f0f5fc);border-bottom:1px solid #dce6f4;}
+#prModal .pr-ir-panel-heading h3 {margin:0;color:var(--pr-document-text,#163b6c);font-size:12px;font-weight:800;}
 #prModal .pr-ir-panel-heading i {color:#1657ad;}
 #prModal .pr-ir-panel-body .pr-document-field {margin:0 0 12px;}
 #prModal .pr-ir-overview-facts {display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 #prModal .pr-ir-overview-facts > div {display:flex;flex-direction:column;gap:6px;min-width:0;}
-#prModal .pr-ir-overview-facts span,#prModal .pr-ir-approved-by span {font-size:11px;color:#657f9c;}
-#prModal .pr-ir-overview-facts strong {font-size:12px;color:#173c69;font-weight:800;}
-#prModal .pr-ir-panel-body > p {margin:12px 0 0;color:#687d98;font-size:11px;line-height:1.5;}
-#prModal .pr-ir-approval-body {display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:13px;}
-#prModal .pr-ir-approved-by,#prModal .pr-ir-signature {min-width:0;min-height:100px;border:1px solid #e0e8f4;border-radius:9px;padding:12px;background:#f4f8fd;display:flex;flex-direction:column;justify-content:center;gap:8px;}
-#prModal .pr-ir-approved-by strong {font-size:13px;color:#163b69;font-weight:800;}
+#prModal .pr-ir-overview-facts span,#prModal .pr-ir-approved-by span {font-size:11px;color:var(--pr-document-muted,#657f9c);}
+#prModal .pr-ir-overview-facts strong {font-size:12px;color:var(--pr-document-text,#173c69);font-weight:800;}
+#prModal .pr-ir-panel-body > p {margin:12px 0 0;color:var(--pr-document-muted,#687d98);font-size:11px;line-height:1.5;}
+#prModal .pr-ir-approval-body {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:15px;align-items:stretch;align-content:center;}
+#prModal .pr-ir-approved-by,#prModal .pr-ir-signature {min-width:0;min-height:112px;border:1px solid #d7e5f5;border-radius:12px;padding:14px;background:var(--pr-document-raised,#f4f8fd);display:flex;flex-direction:column;justify-content:center;gap:8px;box-sizing:border-box;}
+#prModal .pr-ir-approved-by strong {display:flex;align-items:center;gap:7px;font-size:15px;color:var(--pr-document-text,#163b69);font-weight:800;overflow-wrap:anywhere;}
+#prModal .pr-ir-approved-by strong::before {content:"";width:7px;height:7px;flex:none;border-radius:50%;background:#16a34a;box-shadow:0 0 0 3px #16a34a20;}
 #prModal .pr-ir-approved-by small,#prModal .pr-ir-signature small {font-size:10px;color:#7386a0;}
-#prModal .pr-ir-signature {background:#fff;align-items:center;text-align:center;}
-#prModal .pr-ir-signature > span {font-size:10px;color:#657f9c;}
+#prModal .pr-ir-signature {background:var(--pr-document-raised,#f4f8fd);align-items:center;text-align:center;}
+#prModal .pr-ir-signature > span {font-size:11px;font-weight:700;color:var(--pr-document-muted,#657f9c);}
 #prModal .pr-ir-signature img {max-width:100%;max-height:75px;object-fit:contain;}
 #prModal .pr-ir-signature img[hidden] {display:none;}
 #prModal .pr-ir-head-approval > .pr-jo-approval-status {position:absolute;right:12px;top:9px;font-size:10px;}
@@ -5665,8 +5660,8 @@ body > .pr-parts-floating-menu .pr-parts-dropdown-item > b {
 #prModal .pr-ir-summary-main strong{white-space:normal;overflow-wrap:anywhere}
 #prModal .pr-ir-review-top{grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr)}
 #prModal .pr-ir-panel-body{padding:13px 14px}
-#prModal .pr-ir-head-approval .pr-ir-approval-body{grid-template-columns:minmax(0,1fr) minmax(0,1fr);padding:12px}
-#prModal .pr-ir-head-approval .pr-ir-approved-by,#prModal .pr-ir-head-approval .pr-ir-signature{min-height:98px;height:auto;min-width:0;box-sizing:border-box}
+#prModal .pr-ir-head-approval .pr-ir-approval-body{grid-template-columns:repeat(2,minmax(0,1fr));padding:15px;align-items:stretch}
+#prModal .pr-ir-head-approval .pr-ir-approved-by,#prModal .pr-ir-head-approval .pr-ir-signature{min-height:112px;height:auto;min-width:0;box-sizing:border-box}
 #prModal .pr-ir-head-approval .pr-ir-signature img:not([hidden]){display:block!important;width:auto!important;height:auto!important;max-width:100%!important;max-height:82px!important;object-fit:contain}
 #prModal .pr-ir-head-approval .pr-ir-signature img[hidden]{display:none!important}
 #prModal .pr-document-parts .pr-shortage-table-wrap{width:100%;max-width:100%;overflow:hidden;box-sizing:border-box}
@@ -5695,19 +5690,55 @@ body > .pr-parts-floating-menu .pr-parts-dropdown-item > b {
 
 /* Review PR matches the IR dual table: procurement left, available IR right. */
 #prModal .pr-dual-parts-grid {display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;padding:12px 13px;}
-#prModal .pr-dual-parts-pane {min-width:0;padding:12px;border:1px solid #dce7f4;border-radius:10px;background:#fff;}
+#prModal .pr-dual-parts-pane {min-width:0;padding:12px;border:1px solid #dce7f4;border-radius:10px;background:var(--pr-document-surface,#fff);}
 #prModal .pr-dual-parts-heading {display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:11px;}
 #prModal .pr-dual-parts-heading strong {min-width:0;font-size:11px;font-weight:800;line-height:1.45;color:#ac3642;}
 #prModal .pr-dual-parts-pane.is-ir .pr-dual-parts-heading strong {color:#147348;}
 #prModal .pr-dual-parts-heading span {font-size:10px;color:#7385a0;white-space:nowrap;}
 #prModal .pr-dual-parts-pane .pr-shortage-table-wrap {overflow:hidden!important;width:100%;margin:0;}
-#prModal .pr-dual-parts-pane table.pr-review-parts-table {display:table!important;table-layout:fixed!important;width:100%!important;min-width:0!important;}
+#prModal .pr-dual-parts-pane table.pr-review-parts-table {display:table!important;min-width:0!important;}
 #prModal .pr-dual-parts-pane table.pr-review-parts-table th,#prModal .pr-dual-parts-pane table.pr-review-parts-table td {padding:11px 9px!important;font-size:11px;vertical-align:middle;text-align:left!important;overflow-wrap:anywhere;}
 #prModal .pr-dual-parts-pane table.pr-review-parts-table th {font-size:9px;}
 #prModal .pr-dual-parts-pane table.pr-review-parts-table th:nth-child(1),#prModal .pr-dual-parts-pane table.pr-review-parts-table td:nth-child(1) {width:44%!important;}
 #prModal .pr-dual-parts-pane table.pr-review-parts-table th:nth-child(2),#prModal .pr-dual-parts-pane table.pr-review-parts-table td:nth-child(2) {width:25%!important;}
 #prModal .pr-dual-parts-pane table.pr-review-parts-table th:nth-child(3),#prModal .pr-dual-parts-pane table.pr-review-parts-table td:nth-child(3) {width:31%!important;}
 #prModal .pr-dual-parts-pane.is-ir .pr-availability-badge.is-available {background:#e5faec!important;color:#166534!important;border:1px solid #a9e6bc!important;border-radius:8px;padding:5px 8px;font-weight:800;}
+
+/* Part status cells in Create PR and saved PR review: semantic status boxes. */
+:is(#prModal, #editPrModal) .pr-review-parts-table .pr-part-status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 26px;
+  max-width: 100%;
+  padding: 4px 6px;
+  box-sizing: border-box;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 10px;
+  font-weight: 750;
+  line-height: 1.3;
+  text-align: center;
+  white-space: nowrap;
+}
+:is(#prModal, #editPrModal) .pr-review-parts-table .pr-part-status-badge.is-purchase {
+  background: #fff3d6;
+  border-color: #ebc875;
+  color: #925800;
+}
+:is(#prModal, #editPrModal) .pr-review-parts-table .pr-part-status-badge.is-available {
+  background: #e5f7ed;
+  border-color: #a9dfc0;
+  color: #166534;
+}
+:is(#prModal, #editPrModal) .pr-review-parts-table .pr-part-status-badge.is-reference {
+  background: #e7f0ff;
+  border-color: #bbd3f7;
+  color: #1d4f91;
+}
+
 #prModal .pr-document-parts .pr-stock-note {margin:0 13px 12px;padding:0;font-size:11px;}
 @media(max-width:780px){#prModal .pr-dual-parts-grid{grid-template-columns:1fr;}}
 
@@ -5720,7 +5751,7 @@ body > .pr-parts-floating-menu .pr-parts-dropdown-item > b {
  padding:16px 18px 20px!important;
  gap:14px!important;
 }
-#prModal .pr-ir-review-summary {padding:15px 10px!important;min-height:94px;}
+#prModal .pr-ir-review-summary {padding:15px 10px!important;min-height:74px;}
 #prModal .pr-ir-review-summary > div {padding:3px 14px!important;gap:8px!important;}
 #prModal .pr-ir-review-summary .pr-ir-summary-main strong {font-size:15px!important;line-height:1.35;}
 #prModal .pr-ir-review-summary strong {font-size:12px!important;line-height:1.4;}
@@ -5728,14 +5759,14 @@ body > .pr-parts-floating-menu .pr-parts-dropdown-item > b {
 #prModal .pr-ir-panel-heading h3 {font-size:13px!important;line-height:1.35;}
 #prModal .pr-ir-panel-body {padding:15px!important;}
 #prModal .pr-ir-overview-facts strong {font-size:12px!important;}
-#prModal .pr-ir-approved-by strong {font-size:12px!important;}
-#prModal .pr-ir-head-approval .pr-ir-approval-body {padding:13px!important;}
-#prModal .pr-ir-head-approval .pr-ir-approved-by,#prModal .pr-ir-head-approval .pr-ir-signature {min-height:99px!important;}
+#prModal .pr-ir-approved-by strong {font-size:15px!important;}
+#prModal .pr-ir-head-approval .pr-ir-approval-body {padding:15px!important;}
+#prModal .pr-ir-head-approval .pr-ir-approved-by,#prModal .pr-ir-head-approval .pr-ir-signature {min-height:112px!important;}
 #prModal .pr-dual-parts-grid {padding:12px 13px 14px!important;gap:12px!important;}
 #prModal .pr-dual-parts-pane {padding:12px!important;}
 #prModal .pr-dual-parts-heading strong {font-size:12px!important;}
 #prModal .pr-dual-parts-heading span {font-size:10px!important;}
-#prModal .pr-dual-parts-pane table.pr-review-parts-table th {font-size:10px!important;padding:12px 10px!important;}
+#prModal .pr-dual-parts-pane table.pr-review-parts-table th {padding:12px 10px!important;}
 #prModal .pr-dual-parts-pane table.pr-review-parts-table td {font-size:12px!important;padding:12px 10px!important;line-height:1.45!important;}
 #prModal .pr-dual-parts-pane table.pr-review-parts-table th:nth-child(1),#prModal .pr-dual-parts-pane table.pr-review-parts-table td:nth-child(1) {width:48%!important;}
 #prModal .pr-dual-parts-pane table.pr-review-parts-table th:nth-child(2),#prModal .pr-dual-parts-pane table.pr-review-parts-table td:nth-child(2) {width:23%!important;}
@@ -5770,7 +5801,7 @@ body > .pr-parts-floating-menu .pr-parts-dropdown-item > b {
 
 /* Review PR uses the same edge-to-edge header / 14px content inset as Review IR.
    Remove legacy form padding responsible for the oversized blank band. */
-#prModal .ui-form-modal {width:min(1006px,calc(100vw - 36px))!important;max-width:1006px!important;max-height:calc(100dvh - 36px)!important;overflow:hidden!important;}
+#prModal .ui-form-modal {overflow:hidden!important;}
 #prModal .ui-form-content {padding:0!important;margin:0!important;display:flex!important;flex-direction:column!important;flex:1 1 auto!important;min-height:0!important;overflow:hidden!important;}
 #prModal .ui-form-modal-body {padding:0!important;margin:0!important;display:flex!important;flex-direction:column!important;flex:1 1 auto!important;min-height:0!important;overflow:hidden!important;}
 #prModal .ui-form-modal-scrollable {padding:0!important;margin:0!important;display:flex!important;flex-direction:column!important;flex:1 1 auto!important;min-height:0!important;overflow-y:auto!important;overflow-x:hidden!important;}
@@ -5783,13 +5814,13 @@ body > .pr-parts-floating-menu .pr-parts-dropdown-item > b {
 }
 
 /* Saved View PR / History: same review composition, strictly read-only. */
-#editPrModal .pr-view-document{padding:13px 16px 16px;display:flex;flex-direction:column;gap:12px;box-sizing:border-box;}
+#editPrModal .pr-view-document{padding:13px 16px 16px;display:flex;flex-direction:column;gap:12px;}
 #editPrModal .pr-view-document .pr-ir-review-summary{display:grid;grid-template-columns:minmax(0,1.5fr) repeat(3,minmax(0,1fr));}
 #editPrModal .pr-view-document .pr-ir-review-top{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:12px;}
 #editPrModal .pr-view-document .pr-ir-review-top > section{min-width:0;}
 #editPrModal .pr-view-document .pr-ir-panel-heading{display:flex;align-items:center;gap:8px;min-height:39px;box-sizing:border-box;}
 #editPrModal .pr-view-document .pr-ir-panel-heading h3{font-size:12px;margin:0;}
-#editPrModal .pr-view-document .pr-ir-panel-heading .pr-view-parts-note{margin-left:auto;color:#7185a1;font-size:10px;}
+#editPrModal .pr-view-document .pr-ir-panel-heading .pr-view-parts-note{margin-left:auto;color:var(--pr-view-muted,#7185a1);font-size:10px;}
 #editPrModal .pr-view-document .pr-ir-approval-body{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;padding:12px;}
 #editPrModal .pr-view-document .pr-ir-approved-by,#editPrModal .pr-view-document .pr-ir-signature{height:auto;min-height:100px;padding:12px;min-width:0;box-sizing:border-box;}
 #editPrModal .pr-view-document .pr-ir-signature img:not([hidden]){display:block!important;width:auto!important;height:auto!important;max-width:100%!important;max-height:82px!important;object-fit:contain;}
@@ -5797,24 +5828,24 @@ body > .pr-parts-floating-menu .pr-parts-dropdown-item > b {
 #editPrModal .pr-view-document .pr-view-approval-meta{display:none;}
 #editPrModal .pr-view-secondary-data{display:grid;grid-template-columns:1fr 1fr;gap:10px 13px;margin-top:13px;}
 #editPrModal .pr-view-secondary-data>div{display:flex;flex-direction:column;gap:5px;min-width:0;}
-#editPrModal .pr-view-secondary-data span,#editPrModal .pr-view-remarks-field>span{font-size:10px;color:#6a7f9a;}
-#editPrModal .pr-view-secondary-data strong,#editPrModal .pr-view-remarks-field strong{font-size:11px;color:#183b66;overflow-wrap:anywhere;}
+#editPrModal .pr-view-secondary-data span,#editPrModal .pr-view-remarks-field>span{font-size:10px;color:var(--pr-view-muted,#6a7f9a);}
+#editPrModal .pr-view-secondary-data strong,#editPrModal .pr-view-remarks-field strong{font-size:11px;color:var(--pr-view-fg,#183b66);overflow-wrap:anywhere;}
 #editPrModal .pr-view-document .pr-dual-parts-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;padding:12px;}
-#editPrModal .pr-view-document .pr-dual-parts-pane{min-width:0;box-sizing:border-box;padding:12px;border:1px solid #dce7f4;border-radius:10px;}
+#editPrModal .pr-view-document .pr-dual-parts-pane{min-width:0;box-sizing:border-box;padding:12px;border:1px solid var(--pr-view-border,#dce7f4);border-radius:10px;}
 #editPrModal .pr-view-document .pr-dual-parts-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:11px;}
-#editPrModal .pr-view-document .pr-dual-parts-heading strong{font-size:11px;color:#ae3742;}
-#editPrModal .pr-view-document .pr-dual-parts-pane.is-ir .pr-dual-parts-heading strong{color:#147348;}
+#editPrModal .pr-view-document .pr-dual-parts-heading strong{font-size:11px;color:var(--pr-view-red,#ae3742);}
+#editPrModal .pr-view-document .pr-dual-parts-pane.is-ir .pr-dual-parts-heading strong{color:var(--pr-view-green,#147348);}
 #editPrModal .pr-view-document .pr-dual-parts-heading span{font-size:10px;color:#7385a0;white-space:nowrap;}
 #editPrModal .pr-view-document .pr-shortage-table-wrap{width:100%;overflow:hidden;}
 #editPrModal .pr-view-document .pr-review-parts-table{display:table!important;width:100%!important;min-width:0!important;max-width:100%;table-layout:fixed!important;border-collapse:collapse;}
 #editPrModal .pr-view-document .pr-review-parts-table thead{display:table-header-group!important;}
 #editPrModal .pr-view-document .pr-review-parts-table tbody{display:table-row-group!important;}
 #editPrModal .pr-view-document .pr-review-parts-table tr{display:table-row!important;}
-#editPrModal .pr-view-document .pr-review-parts-table th,#editPrModal .pr-view-document .pr-review-parts-table td{display:table-cell!important;min-width:0!important;box-sizing:border-box;padding:11px 8px!important;text-align:left!important;white-space:normal!important;overflow-wrap:anywhere;font-size:11px;}
-#editPrModal .pr-view-document .pr-review-parts-table th{font-size:9px;background:#edf3fb;}
+#editPrModal .pr-view-document .pr-review-parts-table th,#editPrModal .pr-view-document .pr-review-parts-table td{display:table-cell!important;min-width:0!important;box-sizing:border-box;padding:11px 8px!important;white-space:normal!important;overflow-wrap:anywhere;font-size:11px;}
+#editPrModal .pr-view-document .pr-review-parts-table th{font-size:9px;background:var(--pr-view-raised,#edf3fb);}
 #editPrModal .pr-view-document .pr-availability-badge.is-available{background:#e5faec;color:#166534;border:1px solid #a9e6bc;border-radius:7px;padding:5px 8px;font-weight:800;}
-#editPrModal .pr-view-parts-note-row{padding:0 13px 12px;font-size:10px;color:#647c99;}
-#editPrModal .pr-view-remarks-field{margin-top:10px;display:flex;flex-direction:column;gap:6px;border:1px solid #dde8f4;background:#f7faff;border-radius:8px;padding:10px;}
+#editPrModal .pr-view-parts-note-row{padding:0 13px 12px;font-size:10px;color:var(--pr-view-muted,#647c99);}
+#editPrModal .pr-view-remarks-field{margin-top:10px;display:flex;flex-direction:column;gap:6px;border:1px solid var(--pr-view-border,#dde8f4);background:var(--pr-view-raised,#f7faff);border-radius:8px;padding:10px;}
 #editPrModal .pr-view-document .pr-review-status-pill{white-space:normal;}
 @media(max-width:780px){#editPrModal .pr-view-document .pr-ir-review-top,#editPrModal .pr-view-document .pr-dual-parts-grid{grid-template-columns:1fr;}}
 @media(max-width:530px){#editPrModal .pr-view-document .pr-ir-review-summary{grid-template-columns:1fr 1fr;}#editPrModal .pr-view-document .pr-ir-approval-body{grid-template-columns:1fr;}}
@@ -5822,32 +5853,32 @@ body > .pr-parts-floating-menu .pr-parts-dropdown-item > b {
 /* Reused Pending PR visual rules for read-only details. */
 /* Review Purchase Request — layout parity with Item Request's approved review modal. */
 #editPrModal .pr-document.pr-review-simplified {gap:12px;padding:14px 16px;}
-#editPrModal .pr-ir-review-summary {display:grid;grid-template-columns:minmax(0,1.5fr) repeat(3,minmax(0,1fr));align-items:center;padding:14px 10px;border:1px solid #cee0f8;border-radius:11px;background:linear-gradient(105deg,#f2f7ff,#fff);}
-#editPrModal .pr-ir-review-summary > div {min-width:0;display:flex;flex-direction:column;gap:7px;padding:5px 12px;border-right:1px solid #dfe8f5;}
+#editPrModal .pr-ir-review-summary {display:grid;grid-template-columns:minmax(0,1.5fr) repeat(3,minmax(0,1fr));align-items:center;padding:14px 10px;border:1px solid var(--pr-view-border,#cee0f8);border-radius:11px;background:var(--pr-view-summary-bg,linear-gradient(105deg,#f2f7ff,#fff));}
+#editPrModal .pr-ir-review-summary > div {min-width:0;display:flex;flex-direction:column;gap:7px;padding:5px 12px;border-right:1px solid var(--pr-view-border,#dfe8f5);}
 #editPrModal .pr-ir-review-summary > div:last-child {border-right:none;}
 #editPrModal .pr-ir-review-summary span {font-size:10px;color:#526e91;font-weight:800;letter-spacing:.04em;}
-#editPrModal .pr-ir-review-summary strong {font-size:12px;font-weight:800;color:#153960;overflow-wrap:anywhere;}
+#editPrModal .pr-ir-review-summary strong {font-size:12px;font-weight:800;color:var(--pr-view-fg,#153960);overflow-wrap:anywhere;}
 #editPrModal .pr-ir-review-summary .pr-ir-summary-main strong {font-size:15px;}
-#editPrModal .pr-ir-review-summary small {font-size:10px;color:#7286a0;}
+#editPrModal .pr-ir-review-summary small {font-size:10px;color:var(--pr-view-muted,#7286a0);}
 #editPrModal .pr-ir-review-summary .pr-ir-jo-approved {display:inline-flex;align-self:flex-start;align-items:center;gap:5px;border:1px solid #a9e5bf;background:#e5faed;color:#166534;padding:5px 9px;border-radius:99px;font-size:11px;}
 #editPrModal .pr-ir-review-top {display:grid;grid-template-columns:1.15fr .85fr;gap:12px;align-items:stretch;}
 #editPrModal .pr-ir-review-top > .pr-step-card {min-width:0;position:relative;}
-#editPrModal .pr-ir-panel-heading {display:flex;align-items:center;gap:8px;padding:12px 14px;background:#f0f5fc;border-bottom:1px solid #dce6f4;}
-#editPrModal .pr-ir-panel-heading h3 {margin:0;color:#163b6c;font-size:12px;font-weight:800;}
+#editPrModal .pr-ir-panel-heading {display:flex;align-items:center;gap:8px;padding:12px 14px;background:var(--pr-view-raised,#f0f5fc);border-bottom:1px solid #dce6f4;}
+#editPrModal .pr-ir-panel-heading h3 {margin:0;color:var(--pr-view-fg,#163b6c);font-size:12px;font-weight:800;}
 #editPrModal .pr-ir-panel-heading i {color:#1657ad;}
 #editPrModal .pr-ir-panel-body {padding:13px 14px;}
 #editPrModal .pr-ir-panel-body .pr-document-field {margin:0 0 12px;}
 #editPrModal .pr-ir-overview-facts {display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 #editPrModal .pr-ir-overview-facts > div {display:flex;flex-direction:column;gap:6px;min-width:0;}
-#editPrModal .pr-ir-overview-facts span,#editPrModal .pr-ir-approved-by span {font-size:11px;color:#657f9c;}
-#editPrModal .pr-ir-overview-facts strong {font-size:12px;color:#173c69;font-weight:800;}
-#editPrModal .pr-ir-panel-body > p {margin:12px 0 0;color:#687d98;font-size:11px;line-height:1.5;}
+#editPrModal .pr-ir-overview-facts span,#editPrModal .pr-ir-approved-by span {font-size:11px;color:var(--pr-view-muted,#657f9c);}
+#editPrModal .pr-ir-overview-facts strong {font-size:12px;color:var(--pr-view-fg,#173c69);font-weight:800;}
+#editPrModal .pr-ir-panel-body > p {margin:12px 0 0;color:var(--pr-view-muted,#687d98);font-size:11px;line-height:1.5;}
 #editPrModal .pr-ir-approval-body {display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:13px;}
-#editPrModal .pr-ir-approved-by,#editPrModal .pr-ir-signature {min-width:0;min-height:100px;border:1px solid #e0e8f4;border-radius:9px;padding:12px;background:#f4f8fd;display:flex;flex-direction:column;justify-content:center;gap:8px;}
-#editPrModal .pr-ir-approved-by strong {font-size:13px;color:#163b69;font-weight:800;}
-#editPrModal .pr-ir-approved-by small,#editPrModal .pr-ir-signature small {font-size:10px;color:#7386a0;}
-#editPrModal .pr-ir-signature {background:#fff;align-items:center;text-align:center;}
-#editPrModal .pr-ir-signature > span {font-size:10px;color:#657f9c;}
+#editPrModal .pr-ir-approved-by,#editPrModal .pr-ir-signature {min-width:0;min-height:100px;border:1px solid var(--pr-view-border,#e0e8f4);border-radius:9px;padding:12px;background:var(--pr-view-raised,#f4f8fd);display:flex;flex-direction:column;justify-content:center;gap:8px;}
+#editPrModal .pr-ir-approved-by strong {font-size:13px;color:var(--pr-view-fg,#163b69);font-weight:800;}
+#editPrModal .pr-ir-approved-by small,#editPrModal .pr-ir-signature small {font-size:10px;color:var(--pr-view-muted,#7386a0);}
+#editPrModal .pr-ir-signature {background:var(--pr-view-surface,#fff);align-items:center;text-align:center;}
+#editPrModal .pr-ir-signature > span {font-size:10px;color:var(--pr-view-muted,#657f9c);}
 #editPrModal .pr-ir-signature img {max-width:100%;max-height:75px;object-fit:contain;}
 #editPrModal .pr-ir-signature img[hidden] {display:none;}
 #editPrModal .pr-ir-head-approval > .pr-jo-approval-status {position:absolute;right:12px;top:9px;font-size:10px;}
@@ -5860,25 +5891,25 @@ body > .pr-parts-floating-menu .pr-parts-dropdown-item > b {
 
 /* Submitted/History View PR — card surfaces must not inherit plain legacy detail styles. */
 #editPrModal .pr-view-document {display:flex!important;flex-direction:column!important;gap:12px!important;width:100%;max-width:100%;box-sizing:border-box;}
-#editPrModal .pr-view-document > .pr-ir-review-summary {display:grid!important;border:1px solid #cee0f8!important;border-radius:11px!important;background:linear-gradient(105deg,#f2f7ff,#fff)!important;padding:14px 10px!important;}
+#editPrModal .pr-view-document > .pr-ir-review-summary {display:grid!important;border:1px solid var(--pr-view-border,#cee0f8)!important;border-radius:11px!important;background:var(--pr-view-summary-bg,linear-gradient(105deg,#f2f7ff,#fff))!important;padding:14px 10px!important;}
 #editPrModal .pr-view-document .pr-ir-review-top > .pr-step-card,
 #editPrModal .pr-view-document > .pr-view-parts,
-#editPrModal .pr-view-document > .pr-view-remarks {display:block!important;min-width:0;border:1px solid #dbe6f4!important;border-radius:11px!important;background:#fff!important;overflow:hidden!important;margin:0!important;box-shadow:none!important;}
-#editPrModal .pr-view-document .pr-ir-panel-heading {display:flex!important;align-items:center!important;gap:8px!important;padding:12px 14px!important;background:#f0f5fc!important;border-bottom:1px solid #dce6f4!important;}
+#editPrModal .pr-view-document > .pr-view-remarks {display:block!important;min-width:0;border:1px solid var(--pr-view-border,#dbe6f4)!important;border-radius:11px!important;background:var(--pr-view-surface,#fff)!important;overflow:hidden!important;margin:0!important;box-shadow:none!important;}
+#editPrModal .pr-view-document .pr-ir-panel-heading {display:flex!important;align-items:center!important;gap:8px!important;padding:12px 14px!important;background:var(--pr-view-raised,#f0f5fc)!important;border-bottom:1px solid var(--pr-view-border,#dce6f4)!important;}
 #editPrModal .pr-view-document .pr-ir-panel-body {display:block!important;padding:13px 14px!important;}
 #editPrModal .pr-view-document .pr-ir-overview-facts {display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px!important;}
 #editPrModal .pr-view-document .pr-ir-overview-facts > div {display:flex!important;flex-direction:column!important;gap:6px!important;}
-#editPrModal .pr-view-document .pr-ir-review-summary > div {display:flex!important;flex-direction:column!important;gap:7px!important;padding:5px 12px!important;min-width:0;border-right:1px solid #dfe8f5!important;}
+#editPrModal .pr-view-document .pr-ir-review-summary > div {display:flex!important;flex-direction:column!important;gap:7px!important;padding:5px 12px!important;min-width:0;border-right:1px solid var(--pr-view-border,#dfe8f5)!important;}
 #editPrModal .pr-view-document .pr-ir-review-summary > div:last-child {border-right:0!important;}
-#editPrModal .pr-view-document .pr-ir-review-summary span {font-size:10px!important;color:#526e91!important;font-weight:800!important;}
-#editPrModal .pr-view-document .pr-ir-review-summary strong {font-size:12px!important;line-height:1.45!important;color:#153960!important;overflow-wrap:anywhere!important;}
+#editPrModal .pr-view-document .pr-ir-review-summary span {font-size:10px!important;color:var(--pr-view-muted,#526e91)!important;font-weight:800!important;}
+#editPrModal .pr-view-document .pr-ir-review-summary strong {font-size:12px!important;line-height:1.45!important;color:var(--pr-view-fg,#153960)!important;overflow-wrap:anywhere!important;}
 #editPrModal .pr-view-document .pr-ir-review-summary .pr-ir-summary-main strong {font-size:15px!important;}
-#editPrModal .pr-view-document .pr-ir-approved-by,#editPrModal .pr-view-document .pr-ir-signature {display:flex!important;flex-direction:column!important;justify-content:center!important;gap:8px!important;border:1px solid #e0e8f4!important;border-radius:9px!important;background:#f4f8fd!important;}
-#editPrModal .pr-view-document .pr-ir-signature {align-items:center!important;text-align:center!important;background:#fff!important;}
+#editPrModal .pr-view-document .pr-ir-approved-by,#editPrModal .pr-view-document .pr-ir-signature {display:flex!important;flex-direction:column!important;justify-content:center!important;gap:8px!important;border:1px solid var(--pr-view-border,#e0e8f4)!important;border-radius:9px!important;background:var(--pr-view-raised,#f4f8fd)!important;}
+#editPrModal .pr-view-document .pr-ir-signature {align-items:center!important;text-align:center!important;background:var(--pr-view-surface,#fff)!important;}
 #editPrModal .pr-view-document .pr-ir-approval-body {display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;}
-#editPrModal .pr-view-document .pr-dual-parts-pane {border:1px solid #dce7f4!important;border-radius:10px!important;padding:12px!important;background:#fff!important;}
+#editPrModal .pr-view-document .pr-dual-parts-pane {border:1px solid var(--pr-view-border,#dce7f4)!important;border-radius:10px!important;padding:12px!important;background:var(--pr-view-surface,#fff)!important;}
 #editPrModal .pr-view-document .pr-dual-parts-heading {display:flex!important;align-items:center!important;justify-content:space-between!important;}
-#editPrModal .pr-view-document .pr-review-parts-table th {background:#edf3fb!important;font-size:10px!important;color:#506884!important;}
-#editPrModal .pr-view-document .pr-review-parts-table td {border-top:1px solid #e2eaf3!important;}
+#editPrModal .pr-view-document .pr-review-parts-table th {background:var(--pr-view-raised,#edf3fb)!important;font-size:10px!important;color:var(--pr-view-muted,#506884)!important;}
+#editPrModal .pr-view-document .pr-review-parts-table td {border-top:1px solid var(--pr-view-border,#e2eaf3)!important;}
 #editPrModal .pr-view-document .pr-review-parts-table th,#editPrModal .pr-view-document .pr-review-parts-table td {padding:10px 8px!important;text-align:left!important;font-size:11px!important;vertical-align:middle!important;}
 @media(max-width:780px){#editPrModal .pr-view-document .pr-ir-review-top,#editPrModal .pr-view-document .pr-dual-parts-grid{grid-template-columns:1fr!important;}}

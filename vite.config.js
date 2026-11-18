@@ -143,6 +143,7 @@ export default defineConfig({
                 // ======================================================
 
                 'resources/css/Maintenance/maintenance-dashboard.css',
+                'resources/css/Maintenance/maintenance-dark-mode.css',
                 'resources/css/Maintenance/referrals.css',
                 'resources/css/Maintenance/fuel-reports.css',
                 'resources/css/Maintenance/job-order.css',

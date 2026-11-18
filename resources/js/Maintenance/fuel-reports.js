@@ -2020,7 +2020,12 @@ window.GCTPartialNavigation.registerInitializer('maintenance-physical-fuel-form'
   if (!modal || !trigger || !form || !rows || !template || form.dataset.physicalBound === '1') return;
   form.dataset.physicalBound = '1';
 
-  const close = () => { modal.hidden = true; document.body.style.overflow = ''; trigger.focus(); };
+  const close = () => {
+    pickerInputs.forEach(picker => picker.closeMenu());
+    modal.hidden = true;
+    document.body.style.overflow = '';
+    trigger.focus();
+  };
   const recalc = () => {
     let total = 0;
     [...rows.querySelectorAll('[data-field="distance_km"]')].forEach(field => {
@@ -2059,7 +2064,51 @@ window.GCTPartialNavigation.registerInitializer('maintenance-physical-fuel-form'
     const menu = picker.querySelector('.fuel-paper-search-options');
     const options = [...menu.querySelectorAll('.fuel-paper-search-option')];
     const empty = menu.querySelector('.fuel-paper-search-empty');
-    const closeMenu = () => { menu.hidden = true; input.setAttribute('aria-expanded', 'false'); };
+    let suppressFocusOpen = false;
+    const refocusWithoutOpening = () => {
+      suppressFocusOpen = true;
+      input.focus({ preventScroll: true });
+      suppressFocusOpen = false;
+    };
+    const positionMenu = () => {
+      if (menu.hidden || !input.isConnected) return;
+      const bounds = input.getBoundingClientRect();
+      const viewWidth = window.visualViewport?.width || window.innerWidth;
+      const viewHeight = window.visualViewport?.height || window.innerHeight;
+      const margin = 10;
+      const width = Math.min(Math.max(bounds.width, 180), Math.max(100, viewWidth - margin * 2));
+      const left = Math.max(margin, Math.min(bounds.left, viewWidth - width - margin));
+      const roomBelow = viewHeight - bounds.bottom - margin - 5;
+      const roomAbove = bounds.top - margin - 5;
+      const above = roomBelow < 168 && roomAbove > roomBelow;
+      const room = Math.max(64, above ? roomAbove : roomBelow);
+      Object.assign(menu.style, {
+        position: 'fixed', left: left + 'px', right: 'auto', width: width + 'px',
+        top: above ? 'auto' : bounds.bottom + 5 + 'px',
+        bottom: above ? viewHeight - bounds.top + 5 + 'px' : 'auto',
+        maxHeight: Math.min(240, room) + 'px', zIndex: '120500',
+      });
+    };
+    const closeMenu = () => {
+      menu.hidden = true;
+      input.setAttribute('aria-expanded', 'false');
+      window.removeEventListener('resize', positionMenu);
+      window.removeEventListener('scroll', positionMenu, true);
+      window.visualViewport?.removeEventListener('resize', positionMenu);
+      window.visualViewport?.removeEventListener('scroll', positionMenu);
+      if (menu.parentElement === document.body) picker.appendChild(menu);
+      menu.removeAttribute('style');
+    };
+    const openMenu = () => {
+      if (menu.parentElement !== document.body) document.body.appendChild(menu);
+      menu.hidden = false;
+      input.setAttribute('aria-expanded', 'true');
+      positionMenu();
+      window.addEventListener('resize', positionMenu);
+      window.addEventListener('scroll', positionMenu, true);
+      window.visualViewport?.addEventListener('resize', positionMenu);
+      window.visualViewport?.addEventListener('scroll', positionMenu);
+    };
     const filter = () => {
       const term = input.value.trim().toLowerCase();
       let matches = 0;
@@ -2068,8 +2117,8 @@ window.GCTPartialNavigation.registerInitializer('maintenance-physical-fuel-form'
         if (!option.hidden) matches++;
       });
       empty.hidden = matches !== 0;
-      menu.hidden = false;
-      input.setAttribute('aria-expanded', 'true');
+      if (menu.hidden) openMenu();
+      else positionMenu();
     };
     const select = option => {
       hidden.value = option.dataset.value;
@@ -2080,7 +2129,9 @@ window.GCTPartialNavigation.registerInitializer('maintenance-physical-fuel-form'
       }
       closeMenu();
     };
-    input.addEventListener('focus', filter);
+    input.addEventListener('focus', () => {
+      if (!suppressFocusOpen) filter();
+    });
     input.addEventListener('input', () => {
       hidden.value = '';
       if (picker.dataset.picker === 'bus') document.getElementById('physical-plate').value = '';
@@ -2092,21 +2143,29 @@ window.GCTPartialNavigation.registerInitializer('maintenance-physical-fuel-form'
       if (e.key === 'ArrowDown') { e.preventDefault(); filter(); options.find(option => !option.hidden)?.focus(); }
     });
     options.forEach(option => {
-      option.addEventListener('click', () => { select(option); input.focus(); });
+      const choose = () => {
+        select(option);
+        refocusWithoutOpening();
+      };
+      option.addEventListener('click', choose);
       option.addEventListener('keydown', e => {
-        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); select(option); input.focus(); }
-        if (e.key === 'Escape') { closeMenu(); input.focus(); }
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); choose(); }
+        if (e.key === 'Escape') { closeMenu(); refocusWithoutOpening(); }
       });
     });
     picker.addEventListener('focusout', () => {
-      window.setTimeout(() => { if (!picker.contains(document.activeElement)) closeMenu(); }, 0);
+      window.setTimeout(() => {
+        if (!picker.contains(document.activeElement) && !menu.contains(document.activeElement)) closeMenu();
+      }, 0);
     });
     pickerInputs.push({input, hidden, options, select, filter, closeMenu});
     const restored = options.find(option => option.dataset.value === hidden.value);
     if (restored) select(restored);
   }
   document.addEventListener('pointerdown', e => {
-    if (!modal.hidden && !e.target.closest('.fuel-paper-search-picker')) pickerInputs.forEach(picker => picker.closeMenu());
+    if (!modal.hidden && !e.target.closest('.fuel-paper-search-picker') && !e.target.closest('.fuel-paper-search-options')) {
+      pickerInputs.forEach(picker => picker.closeMenu());
+    }
   });
   document.getElementById('addPhysicalTrip').addEventListener('click', addTrip);
   trigger.addEventListener('click', () => {
@@ -2114,6 +2173,9 @@ window.GCTPartialNavigation.registerInitializer('maintenance-physical-fuel-form'
     modal.hidden = false;
     document.body.style.overflow = 'hidden';
     pickerInputs[0]?.input.focus();
+  });
+  window.addEventListener('gct:navigation-before', () => {
+    pickerInputs.forEach(picker => picker.closeMenu());
   });
   document.getElementById('cancelPhysicalFuelForm').addEventListener('click', close);
   document.getElementById('closePhysicalFuelForm').addEventListener('click', close);

@@ -69,10 +69,10 @@ class OperationDarkModeFoundationTest extends TestCase
         );
     }
 
-    public function test_shared_theme_defines_dark_tokens_only_for_operation_pages(): void
+    public function test_shared_theme_defines_dark_tokens_for_operation_and_maintenance_pages(): void
     {
         $theme = file_get_contents(resource_path('css/Main-styles/theme.css'));
-        $this->assertStringContainsString('html[data-gct-theme="dark"] body[data-gct-operation-page="1"]', $theme);
+        $this->assertStringContainsString('html[data-gct-theme="dark"] body:is([data-gct-operation-page="1"], [data-gct-maintenance-page="1"])', $theme);
 
         foreach (['--gct-theme-canvas', '--gct-theme-surface', '--gct-theme-fg', '--gct-theme-border', '--bg', '--card', '--text'] as $token) {
             $this->assertStringContainsString($token.':', $theme);
@@ -263,8 +263,9 @@ class OperationDarkModeFoundationTest extends TestCase
             strpos($layout, '@vite($viteAssets)'),
             strpos($layout, 'document.documentElement.dataset.gctTheme = theme')
         );
-        $this->assertStringContainsString("nextDocument.body.dataset.gctOperationPage === '1'", $navigation);
-        $this->assertStringContainsString('delete document.body.dataset.gctOperationPage', $navigation);
+        $this->assertStringContainsString("['gctOperationPage', 'gctMaintenancePage']", $navigation);
+        $this->assertStringContainsString("nextDocument.body.dataset[scope] === '1'", $navigation);
+        $this->assertStringContainsString('delete document.body.dataset[scope]', $navigation);
         $this->assertStringContainsString("theme: 'light'", $preferences);
         $this->assertStringContainsString("['light', 'dark', 'system']", $preferences);
     }

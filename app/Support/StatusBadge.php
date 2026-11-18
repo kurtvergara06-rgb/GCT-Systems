@@ -81,6 +81,7 @@ final class StatusBadge
             'ongoing' => ['tone' => 'progress', 'icon' => 'fa-arrows-rotate'],
             'on-going' => ['tone' => 'progress', 'icon' => 'fa-arrows-rotate'],
             'on-duty' => ['tone' => 'progress', 'icon' => 'fa-user-gear'],
+            'working' => ['tone' => 'progress', 'icon' => 'fa-wrench'],
             'in-progress' => ['tone' => 'progress', 'icon' => 'fa-gears'],
             'processing' => ['tone' => 'progress', 'icon' => 'fa-gears'],
             'for-delivery' => ['tone' => 'progress', 'icon' => 'fa-truck'],

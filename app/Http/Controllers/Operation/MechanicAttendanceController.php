@@ -31,7 +31,10 @@ class MechanicAttendanceController extends Controller
             "Your role does not have permission to view {$module} records."
         );
 
-        $query = MechanicAttendance::query();
+        $showVoided = $request->query('records') === 'voided';
+        $query = $showVoided
+            ? MechanicAttendance::onlyTrashed()->with('voidedBy:id,name')
+            : MechanicAttendance::query();
 
         if ($request->filled('search')) {
             $search = trim($request->search);
@@ -122,7 +125,8 @@ class MechanicAttendanceController extends Controller
             'late',
             'onDuty',
             'nextMechanicId',
-            'summaryDate'
+            'summaryDate',
+            'showVoided'
         ));
     }
 
@@ -323,13 +327,39 @@ class MechanicAttendanceController extends Controller
             ->with('success', 'Mechanic attendance record updated successfully.');
     }
 
+    /**
+     * Controlled Void Attendance action. Preserve the original attendance
+     * and its timestamps for audit, instead of permanently deleting it.
+     */
     public function destroy(Request $request, MechanicAttendance $mechanicAttendance): JsonResponse|RedirectResponse
     {
-        $this->authorizeModuleAction($request, 'edit');
-        $deleted = DB::transaction(function () use ($mechanicAttendance): bool {
-            // Use the master mechanic lock consistently with attendance updates.
-            Mechanic::query()->where('mechanic_id', $mechanicAttendance->mechanic_id)->lockForUpdate()->firstOrFail();
-            $locked = MechanicAttendance::query()->lockForUpdate()->findOrFail($mechanicAttendance->id);
+        // Mechanic Attendance belongs to Maintenance. Only its Head (or
+        // an Admin Head) may void a historical record; a generic edit grant
+        // and Operation department approvals are insufficient.
+        $department = strtolower(trim((string) $request->user()?->department));
+        $role = strtolower(trim((string) $request->user()?->role));
+        abort_unless(
+            in_array($department, ['maintenance', 'admin'], true) && $role === 'head',
+            403,
+            'Only the Maintenance Head or Admin Head can void mechanic attendance.'
+        );
+        $this->authorizeModuleAction($request, 'approve');
+
+        $validated = $request->validate([
+            'void_reason' => ['required', 'string', 'min:10', 'max:1000'],
+        ]);
+
+        $voided = DB::transaction(function () use ($mechanicAttendance, $validated, $request): bool {
+            // Serialize against attendance edits and batch writes.
+            Mechanic::query()
+                ->where('mechanic_id', $mechanicAttendance->mechanic_id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            $locked = MechanicAttendance::query()
+                ->lockForUpdate()
+                ->findOrFail($mechanicAttendance->id);
+
             if (JobOrder::query()
                 ->assignedToMechanic($locked->mechanic_name, $locked->mechanic_id)
                 ->where('status', 'On Going')
@@ -337,13 +367,17 @@ class MechanicAttendanceController extends Controller
                 ->exists()) {
                 return false;
             }
+
+            $locked->void_reason = trim($validated['void_reason']);
+            $locked->voided_by = $request->user()->getAuthIdentifier();
+            $locked->save();
             $locked->delete();
 
             return true;
         }, 5);
 
-        if (! $deleted) {
-            $message = 'This mechanic has an active Job Order. Attendance cannot be deleted.';
+        if (! $voided) {
+            $message = 'This mechanic has an active Job Order. Attendance cannot be voided.';
             if ($request->ajax() || $request->expectsJson()) {
                 return response()->json(['message' => $message], 422);
             }
@@ -352,14 +386,16 @@ class MechanicAttendanceController extends Controller
         }
 
         $this->broadcastSystemDataUpdated(
-            $this->moduleName($request), 'Attendance', 'deleted', $mechanicAttendance->id,
-            'A mechanic attendance record was deleted.'
+            $this->moduleName($request), 'Attendance', 'voided', $mechanicAttendance->id,
+            'Mechanic attendance record voided by an authorized approver.'
         );
+
+        $message = 'Mechanic attendance record voided. The original is preserved in Voided History.';
         if ($request->ajax() || $request->expectsJson()) {
-            return response()->json(['success' => true, 'message' => 'Mechanic attendance record deleted successfully.']);
+            return response()->json(['success' => true, 'message' => $message]);
         }
 
-        return redirect()->route('mechanic-attendance')->with('success', 'Mechanic attendance record deleted successfully.');
+        return redirect()->route('mechanic-attendance')->with('success', $message);
     }
 
     public function import(Request $request): RedirectResponse

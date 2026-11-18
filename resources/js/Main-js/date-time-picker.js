@@ -185,15 +185,16 @@ class GctDateTimePicker {
         this.activeInput = input;
         this.activeTrigger = trigger;
 
-        // Filter / Sort use native top-layer popovers to escape clipped
-        // tables. Mount their calendar as a child of the top-layer filter
-        // so it remains clickable above the toolbar instead of behind it.
-        // PMS dialogs keep their existing in-dialog calendar placement.
+        // Filter / Sort calendars stay inside their top-layer toolbar.
+        // PMS calendars mount directly on body, outside the blurred modal:
+        // the backdrop-filter creates a containing block that offsets a
+        // position:fixed calendar when it is mounted inside the overlay.
         const toolbarPopover = input.closest('.gct-table-tool-popover');
         const pmsDialog = input.dataset.pickerPlacement === 'below'
             ? input.closest('.pms-monitor-dialog')
             : null;
-        const portalTarget = toolbarPopover || pmsDialog || document.body;
+        this.popover.classList.toggle('gct-picker-pms-compact', Boolean(pmsDialog));
+        const portalTarget = toolbarPopover || document.body;
         if (this.popover.parentElement !== portalTarget) {
             portalTarget.appendChild(this.popover);
         }
@@ -579,36 +580,41 @@ class GctDateTimePicker {
         let left = Math.min(Math.max(rect.left, margin), maxLeft);
         let top = rect.bottom + 8;
 
-        if (this.activeInput?.dataset.pickerPlacement === 'below') {
-            // The calendar is portalled to <body>, outside its parent modal.
-            // Keep it above modal/backdrop stacking layers so days receive clicks.
-            this.popover.style.zIndex = '';
-            // PMS modal: keep the calendar under its date field, using internal
-            // scrolling when there is insufficient viewport height.
-            this.popover.style.maxHeight = `${Math.max(120, window.innerHeight - top - margin)}px`;
-            this.popover.style.overflowY = 'auto';
-        } else {
-            this.popover.style.zIndex = '';
+        if (this.activeInput?.dataset.pickerPlacement === 'below'
+            && this.popover.classList.contains('gct-picker-pms-compact')) {
+            // Compact PMS calendar uses viewport coordinates (body portal).
+            // Flip above the field if it cannot fit below, keeping the full
+            // month visible whenever either side has sufficient room.
+            this.popover.style.position = 'fixed';
             this.popover.style.maxHeight = '';
             this.popover.style.overflowY = '';
-            if (top + this.popover.offsetHeight > window.innerHeight - margin) {
-                top = Math.max(margin, rect.top - this.popover.offsetHeight - 8);
+            this.popover.style.zIndex = '';
+            const calendarHeight = this.popover.scrollHeight;
+            const spaceBelow = window.innerHeight - rect.bottom - margin - 8;
+            const spaceAbove = rect.top - margin - 8;
+            const showAbove = calendarHeight > spaceBelow && spaceAbove > spaceBelow;
+            const available = Math.max(120, showAbove ? spaceAbove : spaceBelow);
+            top = showAbove
+                ? rect.top - Math.min(calendarHeight, available) - 8
+                : rect.bottom + 8;
+            top = Math.max(margin, Math.min(top, window.innerHeight - margin - Math.min(calendarHeight, available)));
+            if (calendarHeight > available) {
+                this.popover.style.maxHeight = `${available}px`;
+                this.popover.style.overflowY = 'auto';
             }
-        }
-
-        if (this.activeInput?.dataset.pickerPlacement === 'below'
-            && this.popover.parentElement?.matches('.pms-monitor-dialog')) {
-            // Absolute coordinates relative to the full-screen modal overlay.
-            // Fixed viewport coordinates inside a backdrop-filter containing block
-            // are offset, causing the calendar to appear at the page edge.
-            const overlayRect = this.popover.parentElement.getBoundingClientRect();
-            this.popover.style.position = 'absolute';
-            this.popover.style.left = `${left - overlayRect.left}px`;
-            this.popover.style.top = `${top - overlayRect.top}px`;
+            this.popover.style.left = `${left}px`;
+            this.popover.style.top = `${top}px`;
         } else {
             this.popover.style.position = 'fixed';
             this.popover.style.left = `${left}px`;
             this.popover.style.top = `${top}px`;
+            this.popover.style.maxHeight = '';
+            this.popover.style.overflowY = '';
+            this.popover.style.zIndex = '';
+            if (top + this.popover.offsetHeight > window.innerHeight - margin) {
+                top = Math.max(margin, rect.top - this.popover.offsetHeight - 8);
+                this.popover.style.top = `${top}px`;
+            }
         }
     }
 

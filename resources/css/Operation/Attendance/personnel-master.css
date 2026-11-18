@@ -697,7 +697,7 @@
   padding: 0 9px;
   background: #eef5ff;
   border: 1px solid #d6e6ff;
-  border-radius: 999px;
+  border-radius: 7px;
   color: #2257a5;
   font-size: 10px;
   font-weight: 800;
@@ -1096,7 +1096,7 @@
   padding: 0 8px;
   background: #f3f6fa;
   border: 1px solid #dde5ef;
-  border-radius: 999px;
+  border-radius: 7px;
   color: #5c6f87;
   font-size: 9px;
   font-weight: 800;
@@ -1117,8 +1117,8 @@
 
 /* Approved Add/Edit Mechanic modal */
 .personnel-modal-mechanic {
-  width: min(860px, calc(100vw - 36px));
-  max-height: calc(100vh - 36px);
+  width: min(800px, calc(100vw - 36px));
+  max-height: calc(100dvh - 36px);
   overflow: hidden;
   border: 1px solid #dfe7f1;
   border-radius: 18px;
@@ -1129,9 +1129,9 @@
   position: sticky;
   top: 0;
   z-index: 3;
-  min-height: 94px;
+  min-height: 82px;
   align-items: center;
-  padding: 18px 24px;
+  padding: 14px 22px;
   background: var(--gct-ui-surface, #fff);
 }
 
@@ -1180,11 +1180,11 @@
 }
 
 .personnel-mechanic-form {
-  max-height: calc(100vh - 132px);
+  max-height: calc(100dvh - 128px);
   overflow-y: auto;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 17px 20px;
-  padding: 20px 24px 22px;
+  gap: 15px 18px;
+  padding: 18px 22px 0;
   background: #fff;
 }
 
@@ -1430,11 +1430,11 @@
 }
 
 .personnel-specialization-selected {
-  min-height: 82px;
+  min-height: 62px;
   align-items: center;
   align-content: center;
   gap: 7px;
-  padding: 12px;
+  padding: 10px;
   background: #fff;
   border: 1px dashed #cad9e9;
   border-radius: 9px;
@@ -1490,11 +1490,13 @@
 }
 
 .personnel-mechanic-form .personnel-modal-actions {
-  grid-column: 2;
-  align-self: end;
+  grid-column: 1 / -1;
+  align-self: stretch;
   justify-content: flex-end;
-  margin: 0;
-  padding-top: 0;
+  margin: 0 -22px;
+  padding: 12px 22px;
+  border-top: 1px solid #dce6f1;
+  background: #f8fafc;
 }
 
 .personnel-mechanic-form .personnel-modal-actions button {
@@ -1552,10 +1554,8 @@
     padding: 16px 17px 18px;
   }
 
-  .personnel-specialization-field,
-  .personnel-mechanic-form .personnel-modal-actions {
-    grid-column: 1;
-  }
+  .personnel-specialization-field { grid-column: 1; }
+  .personnel-mechanic-form .personnel-modal-actions { grid-column: 1 / -1; margin-inline: -17px; padding-inline: 17px; }
 
   .personnel-mechanic-form .personnel-modal-actions {
     justify-content: stretch;
@@ -2769,4 +2769,410 @@
     width: 100%;
     margin-left: 0;
   }
+}
+
+
+/* Mechanic View: a read-only profile, not a disabled Add/Edit form. */
+.personnel-modal-mechanic .mechanic-profile-view[hidden] { display: none !important; }
+.personnel-modal-overlay[data-mode="view"] .personnel-modal-mechanic .personnel-mechanic-form { display: none; }
+.personnel-modal-mechanic .mechanic-profile-view {
+  padding: 20px 22px 0;
+  background: var(--gct-theme-surface, #ffffff);
+  color: var(--gct-theme-fg, #172b45);
+}
+.personnel-modal-mechanic .mechanic-profile-hero {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 17px;
+  border: 1px solid var(--gct-theme-border, #dce6f1);
+  border-radius: 12px;
+  background: var(--gct-theme-surface-raised, #f5f8fc);
+}
+.personnel-modal-mechanic .mechanic-profile-avatar {
+  display: grid;
+  place-items: center;
+  flex: 0 0 52px;
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  background: #e7f0ff;
+  color: #1453a5;
+  font-size: 22px;
+}
+.personnel-modal-mechanic .mechanic-profile-identity { min-width: 0; flex: 1; }
+.personnel-modal-mechanic .mechanic-profile-eyebrow {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--gct-theme-muted, #64748b);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+.personnel-modal-mechanic .mechanic-profile-identity h3 {
+  margin: 0 0 4px;
+  color: var(--gct-theme-fg, #172b45);
+  font-size: 19px;
+  overflow-wrap: anywhere;
+}
+.personnel-modal-mechanic .mechanic-profile-code {
+  color: var(--gct-theme-muted, #64748b);
+  font-size: 12px;
+  font-weight: 700;
+}
+.personnel-modal-mechanic .mechanic-profile-status {
+  flex: 0 0 auto;
+  padding: 7px 11px;
+  border: 1px solid #86efac;
+  border-radius: 7px;
+  background: #dcfce7;
+  color: #166534;
+  font-size: 11px;
+  font-weight: 800;
+}
+.personnel-modal-mechanic .mechanic-profile-status[data-status="inactive"] {
+  background: #f1f5f9;
+  color: #475569;
+  border-color: #cbd5e1;
+}
+.personnel-modal-mechanic .mechanic-profile-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+.personnel-modal-mechanic .mechanic-profile-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--gct-theme-border, #dce6f1);
+  border-radius: 10px;
+  background: var(--gct-theme-surface-raised, #f5f8fc);
+}
+.personnel-modal-mechanic .mechanic-profile-detail > span {
+  color: var(--gct-theme-muted, #64748b);
+  font-size: 11px;
+}
+.personnel-modal-mechanic .mechanic-profile-detail > span i { margin-right: 6px; }
+.personnel-modal-mechanic .mechanic-profile-detail strong {
+  color: var(--gct-theme-fg, #172b45);
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+.personnel-modal-mechanic .mechanic-profile-skills {
+  margin-top: 14px;
+  padding: 16px;
+  border: 1px solid var(--gct-theme-border, #dce6f1);
+  border-radius: 10px;
+  background: var(--gct-theme-surface-raised, #f5f8fc);
+}
+.personnel-modal-mechanic .mechanic-profile-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.personnel-modal-mechanic .mechanic-profile-section-head h4 {
+  margin: 0;
+  color: var(--gct-theme-fg, #172b45);
+  font-size: 13px;
+}
+.personnel-modal-mechanic .mechanic-profile-section-head h4 i { margin-right: 6px; color: #4288ee; }
+.personnel-modal-mechanic .mechanic-profile-section-head p {
+  margin: 4px 0 0;
+  color: var(--gct-theme-muted, #64748b);
+  font-size: 11px;
+}
+.personnel-modal-mechanic .mechanic-profile-skills-count {
+  flex: 0 0 auto;
+  font-size: 10px;
+  color: var(--gct-theme-muted, #64748b);
+}
+.personnel-modal-mechanic .mechanic-profile-skills-list { display: flex; gap: 8px; flex-wrap: wrap; }
+.personnel-modal-mechanic .mechanic-profile-skill {
+  padding: 7px 11px;
+  background: #ffffff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+  border-radius: 7px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.personnel-modal-mechanic .mechanic-profile-no-skills {
+  color: var(--gct-theme-muted, #64748b);
+  font-size: 12px;
+}
+.personnel-modal-mechanic .mechanic-profile-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 18px;
+  padding: 13px 0;
+  border-top: 1px solid var(--gct-theme-border, #dce6f1);
+}
+.personnel-modal-mechanic .mechanic-profile-close {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 16px;
+  background: #ffffff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+html[data-gct-theme="dark"] .personnel-modal-overlay[data-mode="view"] .personnel-modal-mechanic {
+  background: var(--gct-theme-surface, #162235);
+  border-color: var(--gct-theme-border, #35465e);
+}
+html[data-gct-theme="dark"] .personnel-modal-overlay[data-mode="view"] .personnel-modal-header-mechanic {
+  background: var(--gct-theme-surface-raised, #203047);
+  border-color: var(--gct-theme-border, #35465e);
+}
+html[data-gct-theme="dark"] .personnel-modal-overlay[data-mode="view"] .personnel-modal-title :is(h2, p) {
+  color: var(--gct-theme-fg, #edf3fc);
+}
+html[data-gct-theme="dark"] .personnel-modal-overlay[data-mode="view"] .personnel-modal-close {
+  background: #ffffff;
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+}
+html[data-gct-theme="dark"] .personnel-modal-overlay[data-mode="view"] .mechanic-profile-status[data-status="active"] {
+  background: #166534;
+  color: #f0fdf4;
+  border-color: #4ade80;
+}
+html[data-gct-theme="dark"] .personnel-modal-overlay[data-mode="view"] .mechanic-profile-status[data-status="inactive"] {
+  background: #334155;
+  color: #f1f5f9;
+  border-color: #64748b;
+}
+@media (max-width: 600px) {
+  .personnel-modal-mechanic .mechanic-profile-view { padding: 14px 14px 0; }
+  .personnel-modal-mechanic .mechanic-profile-hero { flex-wrap: wrap; }
+  .personnel-modal-mechanic .mechanic-profile-status { margin-left: auto; }
+  .personnel-modal-mechanic .mechanic-profile-grid { grid-template-columns: 1fr; }
+  .personnel-modal-mechanic .mechanic-profile-section-head { align-items: flex-start; }
+}
+
+
+/* Maintenance Catalog dark theme: one scoped palette for both tabs.
+   Base light-mode styles above stay unchanged; no catalog markup or event
+   handling depends on these colors. */
+html[data-gct-theme="dark"] .personnel-master-page .personnel-catalog-open {
+  background: #ffffff;
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+}
+html[data-gct-theme="dark"] .personnel-master-page .personnel-catalog-open:hover {
+  background: #ffffff;
+  color: #1e40af;
+  border-color: #2563eb;
+}
+html[data-gct-theme="dark"] .personnel-catalog-dialog {
+  --catalog-surface: var(--gct-theme-surface, #162235);
+  --catalog-raised: var(--gct-theme-surface-raised, #203047);
+  --catalog-input: var(--gct-theme-input, #101b2b);
+  --catalog-border: var(--gct-theme-border, #35465e);
+  --catalog-text: var(--gct-theme-fg, #edf3fc);
+  --catalog-muted: var(--gct-theme-muted, #b1bfd2);
+  color-scheme: dark;
+  background: var(--catalog-surface);
+  color: var(--catalog-text);
+  border-color: var(--catalog-border);
+}
+html[data-gct-theme="dark"] .personnel-catalog-dialog :is(
+  .personnel-catalog-heading, .personnel-catalog-tabs,
+  .personnel-catalog-browser, .personnel-catalog-editor,
+  .personnel-catalog-job-form, .personnel-catalog-job-actions,
+  .personnel-catalog-skill-form
+) {
+  background: var(--catalog-surface);
+  border-color: var(--catalog-border);
+  color: var(--catalog-text);
+}
+html[data-gct-theme="dark"] .personnel-catalog-dialog :is(
+  .personnel-catalog-editor-title,
+  .personnel-catalog-skill-card, .personnel-catalog-job-entry
+) {
+  background: var(--catalog-raised);
+  border-color: var(--catalog-border);
+  color: var(--catalog-text);
+}
+html[data-gct-theme="dark"] .personnel-catalog-dialog .personnel-catalog-job-entry:has(.personnel-catalog-edit-job[aria-pressed="true"]) {
+  background: #263f63;
+  border-color: #77aaf0;
+}
+html[data-gct-theme="dark"] .personnel-catalog-dialog :is(
+  .personnel-catalog-heading h2, .personnel-catalog-list-heading h3,
+  .personnel-catalog-editor-title h3, .personnel-catalog-job-entry strong,
+  .personnel-catalog-job-form > label, .personnel-catalog-job-form legend,
+  .personnel-catalog-job-form .personnel-catalog-active,
+  .personnel-catalog-skills-heading h3, .personnel-catalog-skill-card strong,
+  .personnel-catalog-skill-form label
+) {
+  color: var(--catalog-text);
+}
+html[data-gct-theme="dark"] .personnel-catalog-dialog :is(
+  .personnel-catalog-heading p, .personnel-catalog-list-heading p,
+  .personnel-catalog-job-entry small, .personnel-catalog-editor-title p,
+  .personnel-catalog-skills-heading p, .personnel-catalog-no-results,
+  .personnel-catalog-skill-edit-actions span
+) {
+  color: var(--catalog-muted);
+}
+html[data-gct-theme="dark"] .personnel-catalog-dialog :is(
+  .personnel-catalog-search-label, .personnel-catalog-job-form input[name="name"],
+  .personnel-catalog-skill-input-row input
+) {
+  background: var(--catalog-input);
+  border-color: var(--gct-theme-control-border, #465a76);
+  color: var(--catalog-text);
+}
+html[data-gct-theme="dark"] .personnel-catalog-dialog .personnel-catalog-search-label input {
+  background: transparent;
+  border: 0;
+  color: var(--catalog-text);
+  box-shadow: none;
+}
+html[data-gct-theme="dark"] .personnel-catalog-dialog input::placeholder {
+  color: var(--gct-theme-placeholder, #91a4bc);
+}
+html[data-gct-theme="dark"] .personnel-catalog-dialog .personnel-catalog-job-form .personnel-catalog-item {
+  background: var(--catalog-raised);
+  border-color: var(--catalog-border);
+  color: var(--catalog-text);
+}
+html[data-gct-theme="dark"] .personnel-catalog-dialog .personnel-catalog-job-form .personnel-catalog-item:has(input:checked) {
+  background: #243f65;
+  border-color: #77aaf0;
+  color: #d9eaff;
+}
+html[data-gct-theme="dark"] .personnel-catalog-dialog .personnel-catalog-tabs button:not([aria-selected="true"]) {
+  background: #ffffff;
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+}
+html[data-gct-theme="dark"] .personnel-catalog-dialog .personnel-catalog-tabs button[aria-selected="true"] {
+  background: #1765c6;
+  color: #ffffff;
+  border-color: #1765c6;
+}
+html[data-gct-theme="dark"] .personnel-catalog-dialog :is(
+  .personnel-catalog-close, .personnel-catalog-edit-job,
+  .personnel-catalog-skill-edit-toggle, .personnel-catalog-reset
+) {
+  background: #ffffff;
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+}
+html[data-gct-theme="dark"] .personnel-catalog-dialog :is(
+  .personnel-catalog-close, .personnel-catalog-edit-job,
+  .personnel-catalog-skill-edit-toggle, .personnel-catalog-reset
+):hover {
+  background: #ffffff;
+  color: #1e40af;
+  border-color: #2563eb;
+}
+html[data-gct-theme="dark"] .personnel-catalog-dialog .personnel-catalog-edit-job[aria-pressed="true"] {
+  background: #dbeafe;
+  color: #1e40af;
+  border-color: #93c5fd;
+}
+html[data-gct-theme="dark"] .personnel-catalog-dialog .personnel-catalog-skill-card.is-pending-delete {
+  background: #49262b;
+  border-color: #f87171;
+}
+html[data-gct-theme="dark"] .personnel-catalog-dialog .personnel-catalog-skill-edit-actions {
+  border-color: var(--catalog-border);
+}
+html[data-gct-theme="dark"] .personnel-catalog-dialog :is(
+  [data-catalog-panel], .personnel-catalog-job-list
+) {
+  scrollbar-width: thin;
+  scrollbar-color: #8396b2 #1b2b42;
+}
+
+
+/* Shared Add/Edit mechanic form. The View action uses its own profile layout.
+   Style these existing form surfaces directly, without changing form behavior. */
+html[data-gct-theme="dark"] .personnel-modal-overlay:is([data-mode="add"], [data-mode="edit"]) .personnel-modal-mechanic {
+  background: var(--gct-theme-surface, #162235);
+  border-color: var(--gct-theme-border, #35465e);
+}
+html[data-gct-theme="dark"] .personnel-modal-overlay:is([data-mode="add"], [data-mode="edit"]) .personnel-modal-header-mechanic {
+  background: var(--gct-theme-surface-raised, #203047);
+  border-color: var(--gct-theme-border, #35465e);
+}
+html[data-gct-theme="dark"] .personnel-modal-overlay:is([data-mode="add"], [data-mode="edit"]) .personnel-modal-title :is(h2, p) {
+  color: var(--gct-theme-fg, #edf3fc);
+}
+html[data-gct-theme="dark"] .personnel-modal-overlay:is([data-mode="add"], [data-mode="edit"]) .personnel-modal-close {
+  background: #ffffff;
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+}
+html[data-gct-theme="dark"] .personnel-modal-overlay:is([data-mode="add"], [data-mode="edit"]) .personnel-mechanic-form {
+  background: var(--gct-theme-surface, #162235);
+  color: var(--gct-theme-fg, #edf3fc);
+  scrollbar-width: thin;
+  scrollbar-color: #8396b2 #1b2b42;
+}
+html[data-gct-theme="dark"] .personnel-modal-overlay:is([data-mode="add"], [data-mode="edit"]) .personnel-mechanic-form .personnel-input-field {
+  color: var(--gct-theme-fg, #edf3fc);
+}
+html[data-gct-theme="dark"] .personnel-modal-overlay:is([data-mode="add"], [data-mode="edit"]) .personnel-input-shell {
+  background: var(--gct-theme-input, #101b2b);
+  border-color: var(--gct-theme-control-border, #465a76);
+}
+html[data-gct-theme="dark"] .personnel-modal-overlay:is([data-mode="add"], [data-mode="edit"]) .personnel-input-shell > i {
+  background: var(--gct-theme-surface-raised, #203047);
+  color: var(--gct-theme-muted, #b1bfd2);
+  border-color: var(--gct-theme-border, #35465e);
+}
+html[data-gct-theme="dark"] .personnel-modal-overlay:is([data-mode="add"], [data-mode="edit"]) .personnel-mechanic-form .personnel-input-shell :is(input, select) {
+  background: var(--gct-theme-input, #101b2b);
+  color: var(--gct-theme-fg, #edf3fc);
+  color-scheme: dark;
+}
+html[data-gct-theme="dark"] .personnel-modal-overlay:is([data-mode="add"], [data-mode="edit"]) .personnel-mechanic-form .personnel-input-shell input::placeholder {
+  color: var(--gct-theme-placeholder, #91a4bc);
+}
+html[data-gct-theme="dark"] .personnel-modal-overlay:is([data-mode="add"], [data-mode="edit"]) .personnel-specialization-field {
+  background: var(--gct-theme-surface-raised, #203047);
+  border-color: var(--gct-theme-border, #35465e);
+}
+html[data-gct-theme="dark"] .personnel-modal-overlay:is([data-mode="add"], [data-mode="edit"]) .personnel-specialization-topline .personnel-field-heading > div > span,
+html[data-gct-theme="dark"] .personnel-modal-overlay:is([data-mode="add"], [data-mode="edit"]) .personnel-selected-panel-title {
+  color: var(--gct-theme-fg, #edf3fc);
+}
+html[data-gct-theme="dark"] .personnel-modal-overlay:is([data-mode="add"], [data-mode="edit"]) .personnel-specialization-topline .personnel-field-heading small {
+  color: var(--gct-theme-muted, #b1bfd2);
+}
+html[data-gct-theme="dark"] .personnel-modal-overlay:is([data-mode="add"], [data-mode="edit"]) .personnel-specialization-selected {
+  background: var(--gct-theme-surface, #162235);
+  border-color: var(--gct-theme-border, #35465e);
+}
+html[data-gct-theme="dark"] .personnel-modal-overlay:is([data-mode="add"], [data-mode="edit"]) .personnel-specialization-empty :is(i, strong, span) {
+  color: var(--gct-theme-muted, #b1bfd2);
+}
+html[data-gct-theme="dark"] .personnel-modal-overlay:is([data-mode="add"], [data-mode="edit"]) .personnel-specialization-selected-chip {
+  background: #ffffff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+}
+html[data-gct-theme="dark"] .personnel-modal-overlay:is([data-mode="add"], [data-mode="edit"]) .personnel-mechanic-form .personnel-modal-actions {
+  background: var(--gct-theme-surface-raised, #203047);
+  border-color: var(--gct-theme-border, #35465e);
+}
+html[data-gct-theme="dark"] .personnel-modal-overlay:is([data-mode="add"], [data-mode="edit"]) .personnel-mechanic-form .personnel-modal-actions .secondary-btn {
+  background: #ffffff;
+  color: #1d4ed8;
+  border-color: #bfdbfe;
 }

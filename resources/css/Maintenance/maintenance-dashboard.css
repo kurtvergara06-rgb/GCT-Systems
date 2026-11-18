@@ -550,10 +550,18 @@
 }
 
 .dashboard-status {
-  padding: 3px 9px;
-  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex: 0 0 auto;
+  min-height: 30px;
+  padding: 5px 10px;
+  border: 1px solid currentColor;
+  border-radius: 8px;
   font-size: 10.5px;
   font-weight: 700;
+  line-height: 1.2;
   white-space: nowrap;
 }
 
@@ -588,23 +596,30 @@
   color: var(--md-muted);
 }
 
-.part-badge {
-  padding: 2px 6px;
-  border-radius: 5px;
+.recent-job-meta > .part-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 100%;
+  padding: 5px 9px;
+  border-radius: 7px;
   font-size: 10px;
   font-weight: 700;
+  line-height: 1.35;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
-.part-badge.part-waiting {
+.recent-job-meta > .part-badge.part-waiting {
   background: #fff7ed;
-  color: #c2410c;
-  border: 1px solid #ffedd5;
+  color: #9a3412;
+  border: 1px solid #fed7aa;
 }
 
-.part-badge.part-ready {
+.recent-job-meta > .part-badge.part-ready {
   background: #f0fdf4;
-  color: #15803d;
-  border: 1px solid #dcfce7;
+  color: #166534;
+  border: 1px solid #bbf7d0;
 }
 
 /* =========================================================
@@ -713,11 +728,20 @@
   color: var(--md-navy);
 }
 
-.roster-pill {
-  font-size: 9.5px;
+.roster-name-row .roster-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  flex: 0 0 auto;
+  min-height: 28px;
+  padding: 5px 9px;
+  border: 1px solid currentColor;
+  border-radius: 8px;
+  font-size: 10px;
   font-weight: 700;
-  padding: 1px 6px;
-  border-radius: 999px;
+  line-height: 1.2;
+  white-space: nowrap;
 }
 
 .roster-pill.pill-duty { background: #dbeafe; color: #1e40af; }

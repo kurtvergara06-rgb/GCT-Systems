@@ -79,6 +79,7 @@ Route::middleware([
             ->prefix('job-orders')
             ->group(function () {
                 Route::get('/{jobOrder}/approval-signature', 'approvalSignature')->middleware('system.permission:maintenance,view')->name('job-orders.approval-signature');
+                Route::post('/{jobOrder}/complete-approval-signature', 'completeApprovalSignature')->middleware('system.permission:maintenance,approve')->name('job-orders.complete-approval-signature');
                 Route::get('/inventory-options', 'inventoryOptions')->name('job-orders.inventory-options');
                 Route::get('/specializations', 'specializationOptions')->name('job-orders.specializations');
                 Route::get('/available-mechanics', 'availableMechanics')->name('job-orders.available-mechanics');

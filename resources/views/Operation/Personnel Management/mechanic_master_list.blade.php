@@ -300,6 +300,40 @@
             </button>
         </div>
 
+        {{-- Dedicated read-only profile. Add/Edit continue using the original form. --}}
+        <section class="mechanic-profile-view" data-mechanic-profile-view hidden aria-label="Mechanic profile">
+            <div class="mechanic-profile-hero">
+                <span class="mechanic-profile-avatar"><i class="fa-solid fa-user-gear" aria-hidden="true"></i></span>
+                <div class="mechanic-profile-identity">
+                    <span class="mechanic-profile-eyebrow">Mechanic Profile</span>
+                    <h3 data-mechanic-profile="mechanic_name">—</h3>
+                    <span class="mechanic-profile-code" data-mechanic-profile="mechanic_id">—</span>
+                </div>
+                <span class="mechanic-profile-status" data-mechanic-profile="employment_status">—</span>
+            </div>
+            <div class="mechanic-profile-grid">
+                <div class="mechanic-profile-detail">
+                    <span><i class="fa-solid fa-id-card" aria-hidden="true"></i> Mechanic ID</span>
+                    <strong data-mechanic-profile="id_detail">—</strong>
+                </div>
+                <div class="mechanic-profile-detail">
+                    <span><i class="fa-solid fa-phone" aria-hidden="true"></i> Contact Number</span>
+                    <strong data-mechanic-profile="contact_number">—</strong>
+                </div>
+            </div>
+            <section class="mechanic-profile-skills" aria-label="Specializations">
+                <div class="mechanic-profile-section-head">
+                    <div><h4><i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i> Specializations</h4>
+                    <p>Vehicle systems this mechanic is qualified to service</p></div>
+                    <span class="mechanic-profile-skills-count" data-mechanic-skills-count>0 skills</span>
+                </div>
+                <div class="mechanic-profile-skills-list" data-mechanic-profile-skills></div>
+            </section>
+            <div class="mechanic-profile-footer">
+                <button type="button" class="mechanic-profile-close" data-close-personnel-modal><i class="fa-solid fa-xmark" aria-hidden="true"></i> Close</button>
+            </div>
+        </section>
+
         <form method="POST" action="{{ route($mechanicRouteNames['store'], [], false) }}" data-personnel-form data-store-url="{{ route($mechanicRouteNames['store'], [], false) }}" class="personnel-modal-form personnel-mechanic-form">
             @csrf
             <input type="hidden" name="_method" value="POST" data-method-field>

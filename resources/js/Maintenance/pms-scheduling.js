@@ -1238,7 +1238,47 @@ window.GCTPartialNavigation.registerInitializer('maintenance-pms-scheduling', '.
   const empty = root.querySelector('.pms-bus-no-results');
   if (!input || !hidden || !list) return;
 
-  const close = () => { list.hidden = true; input.setAttribute('aria-expanded', 'false'); };
+  const picker = input.closest('.pms-bus-picker');
+  const positionList = () => {
+    if (list.hidden || !input.isConnected) return;
+    const rect = input.getBoundingClientRect();
+    const viewWidth = window.visualViewport?.width || window.innerWidth;
+    const viewHeight = window.visualViewport?.height || window.innerHeight;
+    const margin = 10;
+    const width = Math.min(Math.max(rect.width, 180), Math.max(100, viewWidth - margin * 2));
+    const below = viewHeight - rect.bottom - margin - 5;
+    const aboveRoom = rect.top - margin - 5;
+    const above = below < 164 && aboveRoom > below;
+    Object.assign(list.style, {
+      position: 'fixed',
+      left: Math.max(margin, Math.min(rect.left, viewWidth - width - margin)) + 'px',
+      right: 'auto', width: width + 'px',
+      top: above ? 'auto' : rect.bottom + 5 + 'px',
+      bottom: above ? viewHeight - rect.top + 5 + 'px' : 'auto',
+      maxHeight: Math.min(240, Math.max(64, above ? aboveRoom : below)) + 'px',
+      zIndex: '120500',
+    });
+  };
+  const close = () => {
+    list.hidden = true;
+    input.setAttribute('aria-expanded', 'false');
+    window.removeEventListener('resize', positionList);
+    window.removeEventListener('scroll', positionList, true);
+    window.visualViewport?.removeEventListener('resize', positionList);
+    window.visualViewport?.removeEventListener('scroll', positionList);
+    if (picker && list.parentElement === document.body) picker.appendChild(list);
+    list.removeAttribute('style');
+  };
+  const show = () => {
+    if (list.parentElement !== document.body) document.body.appendChild(list);
+    list.hidden = false;
+    input.setAttribute('aria-expanded', 'true');
+    positionList();
+    window.addEventListener('resize', positionList);
+    window.addEventListener('scroll', positionList, true);
+    window.visualViewport?.addEventListener('resize', positionList);
+    window.visualViewport?.addEventListener('scroll', positionList);
+  };
   const filter = () => {
     const search = input.value.trim().toLowerCase();
     let visible = 0;
@@ -1248,16 +1288,26 @@ window.GCTPartialNavigation.registerInitializer('maintenance-pms-scheduling', '.
       if (matches) visible++;
     });
     if (empty) empty.hidden = visible !== 0;
-    list.hidden = false;
-    input.setAttribute('aria-expanded', 'true');
+    if (list.hidden) show();
+    else positionList();
+  };
+  let suppressFocusOpen = false;
+  const focusInputWithoutOpening = () => {
+    suppressFocusOpen = true;
+    input.focus({ preventScroll: true });
+    suppressFocusOpen = false;
+    close();
   };
   const setSelected = (option) => {
     hidden.value = option.dataset.busId;
     input.value = option.dataset.busLabel;
     input.setCustomValidity('');
     close();
+    focusInputWithoutOpening();
   };
-  input.addEventListener('focus', filter);
+  input.addEventListener('focus', () => {
+    if (!suppressFocusOpen) filter();
+  });
   input.addEventListener('input', () => { hidden.value = ''; filter(); });
   input.addEventListener('keydown', event => {
     if (event.key === 'Escape') close();
@@ -1270,7 +1320,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-pms-scheduling', '.
   options.forEach((option, index) => {
     option.addEventListener('click', () => setSelected(option));
     option.addEventListener('keydown', event => {
-      if (event.key === 'Escape') { close(); input.focus(); }
+      if (event.key === 'Escape') { close(); focusInputWithoutOpening(); }
       if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
         event.preventDefault();
         const visible = options.filter(item => !item.hidden);
@@ -1279,9 +1329,10 @@ window.GCTPartialNavigation.registerInitializer('maintenance-pms-scheduling', '.
       }
     });
   });
-  root.addEventListener('pointerdown', event => {
-    if (!event.target.closest('.pms-bus-picker')) close();
+  document.addEventListener('pointerdown', event => {
+    if (!list.hidden && !event.target.closest('.pms-bus-picker') && !list.contains(event.target)) close();
   });
+  window.addEventListener('gct:navigation-before', close);
   const form = input.closest('form');
   form?.addEventListener('submit', event => {
     if (!hidden.value) {

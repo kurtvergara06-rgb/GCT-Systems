@@ -71,6 +71,54 @@ html {
   scrollbar-gutter: stable;
 }
 
+/* Modal scrollports share the system dark palette, regardless of department.
+   Keep scrolling functional, including nested panels and select lists. */
+html[data-gct-theme="dark"] :is(
+  [role="dialog"], [aria-modal="true"], .ui-form-modal,
+  .ui-form-modal-scrollable, .ui-form-body, .ui-form-content,
+  .modal-body, .ir-modal-body, .jo-head-review-body
+),
+html[data-gct-theme="dark"] :is([role="dialog"], [aria-modal="true"]) * {
+  scrollbar-color: #8396b2 #1b2b42;
+  scrollbar-width: thin;
+}
+html[data-gct-theme="dark"] :is(
+  [role="dialog"], [aria-modal="true"], .ui-form-modal,
+  .ui-form-modal-scrollable, .ui-form-body, .ui-form-content,
+  .modal-body, .ir-modal-body, .jo-head-review-body
+)::-webkit-scrollbar,
+html[data-gct-theme="dark"] :is([role="dialog"], [aria-modal="true"]) *::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+html[data-gct-theme="dark"] :is(
+  [role="dialog"], [aria-modal="true"], .ui-form-modal,
+  .ui-form-modal-scrollable, .ui-form-body, .ui-form-content,
+  .modal-body, .ir-modal-body, .jo-head-review-body
+)::-webkit-scrollbar-track,
+html[data-gct-theme="dark"] :is([role="dialog"], [aria-modal="true"]) *::-webkit-scrollbar-track {
+  background: #1b2b42;
+  border-radius: 8px;
+}
+html[data-gct-theme="dark"] :is(
+  [role="dialog"], [aria-modal="true"], .ui-form-modal,
+  .ui-form-modal-scrollable, .ui-form-body, .ui-form-content,
+  .modal-body, .ir-modal-body, .jo-head-review-body
+)::-webkit-scrollbar-thumb,
+html[data-gct-theme="dark"] :is([role="dialog"], [aria-modal="true"]) *::-webkit-scrollbar-thumb {
+  background: #8396b2;
+  border: 1px solid #1b2b42;
+  border-radius: 8px;
+}
+html[data-gct-theme="dark"] :is(
+  [role="dialog"], [aria-modal="true"], .ui-form-modal,
+  .ui-form-modal-scrollable, .ui-form-body, .ui-form-content,
+  .modal-body, .ir-modal-body, .jo-head-review-body
+)::-webkit-scrollbar-thumb:hover,
+html[data-gct-theme="dark"] :is([role="dialog"], [aria-modal="true"]) *::-webkit-scrollbar-thumb:hover {
+  background: #a7b9d0;
+}
+
 body {
   background: var(--bg-main);
   color: var(--text-main);
@@ -717,7 +765,7 @@ button.action-btn.delete[aria-disabled="true"] i { color: inherit !important; }
  * Semantic dark palette. Deliberately gated by the Operation page marker
  * until other departments are migrated. Light Mode keeps its original tokens.
  */
-html[data-gct-theme="dark"] body[data-gct-operation-page="1"] {
+html[data-gct-theme="dark"] body:is([data-gct-operation-page="1"], [data-gct-maintenance-page="1"]) {
   --gct-theme-canvas: #0b1220;
   --gct-theme-surface: #162235;
   --gct-theme-surface-raised: #203047;

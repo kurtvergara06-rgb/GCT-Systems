@@ -7,6 +7,14 @@
   --gct-scrollbar-thumb-hover: #778597;
 }
 
+/* One shared scrollbar palette for Dark Mode across tables and modal
+   scrollports. The scroll width and normal scrolling behavior stay intact. */
+html[data-gct-theme="dark"] {
+  --gct-scrollbar-track: var(--gct-theme-surface, #162235);
+  --gct-scrollbar-thumb: #7189a9;
+  --gct-scrollbar-thumb-hover: #a6b8ce;
+}
+
 /* Intentionally excludes html/body and non-scrollable input controls. */
 :is(
   .gct-scrollbar,

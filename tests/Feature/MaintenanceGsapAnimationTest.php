@@ -140,7 +140,7 @@ class MaintenanceGsapAnimationTest extends TestCase
 
         $this->assertStringContainsString("\$accountThemePage = collect(\$assets)->contains(", $layout);
         $this->assertStringContainsString("str_starts_with(\$asset, 'resources/css/Account/')", $layout);
-        $this->assertStringContainsString('@if(($operationThemePage || $accountThemePage) && auth()->check())', $layout);
+        $this->assertStringContainsString('@if(($operationThemePage || $maintenanceThemePage || $accountThemePage) && auth()->check())', $layout);
         $this->assertStringContainsString("document.querySelector('.account-page') !== null", $transitions);
         $this->assertStringContainsString('&& darkEnabledOnPage', $transitions);
         $this->assertStringContainsString('html[data-gct-theme="dark"].gct-page-booting #gctBootLoader', $layout);

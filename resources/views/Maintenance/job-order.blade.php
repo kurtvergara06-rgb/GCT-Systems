@@ -129,14 +129,12 @@
                     <table class="job-orders-table">
                         <thead>
                             <tr>
-                                <th>JO ID</th>
-                                <th>Maintenance Type</th>
-                                <th>Assigned Mechanic</th>
-                                <th>Start Date & Time</th>
-                                <th>Completion Date & Time</th>
-                                <th class="status-col">JO Status</th>
-                                <th class="status-col">Part Status</th>
-                                <th>Actions</th>
+                                <th scope="col">Job Order</th>
+                                <th scope="col">Maintenance</th>
+                                <th scope="col">Assigned Mechanic</th>
+                                <th scope="col" class="status-col">JO Status</th>
+                                <th scope="col" class="status-col">Parts Status</th>
+                                <th scope="col">Actions</th>
                             </tr>
                         </thead>
                         @php
@@ -314,72 +312,6 @@
                                         @endif
                                     </td>
 
-                                    <td class="{{ !$isOnHold && $jobOrder->start_date ? 'date-time-cell' : 'empty' }}">
-                                        @if(!$isOnHold && $jobOrder->start_date)
-                                            <span class="date-value">{{ date('M d, Y', strtotime($jobOrder->start_date)) }}</span>
-                                            <span class="time-value">{{ date('h:i A', strtotime($jobOrder->start_date)) }}</span>
-                                        @else
-                                            —
-                                        @endif
-                                    </td>
-
-                                    <td class="{{ $isCompleted && $jobOrder->completion_date ? 'date-time-cell' : 'empty' }}">
-                                        @if($isCompleted)
-                                            @if($jobOrder->completion_date)
-                                                <span class="date-value">{{ date('M d, Y', strtotime($jobOrder->completion_date)) }}</span>
-                                                <span class="time-value">{{ date('h:i A', strtotime($jobOrder->completion_date)) }}</span>
-                                            @else
-                                                <span class="empty">—</span>
-                                            @endif
-                                        @elseif($isApprovedReview && $jobOrder->maintenance_type === 'PMS'
-                                            && $jobOrder->status === 'On Hold' && !$jobOrder->actual_started_at)
-                                            @if($canReviewJobOrders && $hasMechanic && (!$hasNeededParts || $jobOrder->part_status === 'Issued'))
-                                                <form action="{{ route('job-orders.start-pms-service', $jobOrder) }}" method="POST">
-                                                    @csrf
-                                                    <label style="display:flex; align-items:center; gap:6px; font-size:12px; margin-bottom:6px;">
-                                                        <input type="checkbox" name="physical_release_confirmed" value="1" required>
-                                                        Bus physically released
-                                                    </label>
-                                                    <button type="submit" class="finish-btn"
-                                                        title="Start physical PMS now. Bus enters Under Maintenance and Operations is notified.">
-                                                        <i class="fa-solid fa-wrench" aria-hidden="true"></i>
-                                                        Start PMS
-                                                    </button>
-                                                </form>
-                                            @else
-                                                <button type="button" class="finish-btn locked-finish-btn" disabled
-                                                    title="PMS awaits Maintenance Head, assigned mechanic, and issued parts.">
-                                                    <i class="fa-solid fa-clock" aria-hidden="true"></i>
-                                                    PMS Planned
-                                                </button>
-                                            @endif
-                                        @elseif($canComplete)
-                                            <form id="finishForm-{{ $jobOrder->id }}" action="{{ route('job-orders.finish', $jobOrder->id) }}" method="POST" class="finish-order-form">
-                                                @csrf
-                                                <button
-                                                    type="button"
-                                                    class="finish-btn open-finish-modal"
-                                                    data-id="{{ $jobOrder->id }}"
-                                                    data-jo-no="{{ $jobOrder->job_order_no }}"
-                                                    title="Complete this Job Order"
-                                                >
-                                                    <i class="fa-solid fa-check"></i>
-                                                    Complete
-                                                </button>
-                                            </form>
-                                        @else
-                                            <button
-                                                type="button"
-                                                class="finish-btn locked-finish-btn"
-                                                disabled
-                                                title="{{ $lockedCompleteReason }}"
-                                            >
-                                                <i class="fa-solid fa-lock"></i>
-                                                Complete
-                                            </button>
-                                        @endif
-                                    </td>
-
                                     <td class="status-col">
                                         <x-ui.status-badge :status="$joStatus" class="{{ $isPendingReview ? 'jo-for-review-badge' : '' }}" />
                                     </td>
@@ -401,10 +333,41 @@
                                     </td>
 
                                     <td class="jo-actions-cell">
-                                        <div class="actions">
+                                        <div class="actions jo-compact-actions">
+                                            @if($isApprovedReview && $jobOrder->maintenance_type === 'PMS'
+                                                && $jobOrder->status === 'On Hold' && !$jobOrder->actual_started_at
+                                                && $canReviewJobOrders && $hasMechanic
+                                                && (!$hasNeededParts || $jobOrder->part_status === 'Issued'))
+                                                <form action="{{ route('job-orders.start-pms-service', $jobOrder) }}" method="POST" class="jo-inline-pms-form">
+                                                    @csrf
+                                                    <label class="jo-pms-release-confirmation" title="Confirm that the bus has been physically released before starting PMS.">
+                                                        <input type="checkbox" name="physical_release_confirmed" value="1" required aria-label="Bus physically released">
+                                                        <span class="sr-only">Bus physically released</span>
+                                                    </label>
+                                                    <button type="submit" class="finish-btn jo-icon-action" title="Start PMS for {{ $jobOrder->job_order_no }}" aria-label="Start PMS for {{ $jobOrder->job_order_no }}">
+                                                        <i class="fa-solid fa-wrench" aria-hidden="true"></i>
+                                                    </button>
+                                                </form>
+                                            @elseif($canComplete)
+                                                <form id="finishForm-{{ $jobOrder->id }}" action="{{ route('job-orders.finish', $jobOrder->id) }}" method="POST" class="finish-order-form">
+                                                    @csrf
+                                                    <button type="button" class="finish-btn open-finish-modal jo-icon-action"
+                                                        data-id="{{ $jobOrder->id }}" data-jo-no="{{ $jobOrder->job_order_no }}"
+                                                        data-jo-bus="{{ $jobOrder->bus_no }}"
+                                                        data-jo-type="{{ $jobOrder->maintenance_type }}"
+                                                        data-jo-mechanics="{{ $assignedMechanicNames->join(', ') ?: 'Not assigned' }}"
+                                                        data-jo-estimate="{{ $jobOrder->formatted_estimated_duration ?: 'Not provided' }}"
+                                                        data-jo-started="{{ $jobOrder->start_date?->format('M d, Y · h:i A') ?? 'Not started' }}"
+                                                        data-jo-parts="{{ !$hasNeededParts ? 'No Parts Required' : $partStatus }}"
+                                                        title="Complete Job Order {{ $jobOrder->job_order_no }}" aria-label="Complete Job Order {{ $jobOrder->job_order_no }}">
+                                                        <i class="fa-solid fa-check" aria-hidden="true"></i>
+                                                    </button>
+                                                </form>
+                                            @endif
+
                                             @if($isViewOnly && !($canReviewJobOrders && $isPendingReview))
                                                 <button type="button" class="action-btn view jo-open-view jo-labeled-view" data-id="{{ $jobOrder->id }}" aria-label="View Job Order {{ $jobOrder->job_order_no }}" title="View Job Order">
-                                                    <i class="fa-solid fa-eye" aria-hidden="true"></i><span>View</span>
+                                                    <i class="fa-solid fa-eye" aria-hidden="true"></i><span class="sr-only">View</span>
                                                 </button>
                                                 <template class="jo-view-content">
                                                     <div class="jo-view-summary">
@@ -558,6 +521,7 @@
                                             <x-ui.action-buttom-modal
                                                 class="{{ $isViewOnly ? 'view open-edit-modal jo-labeled-view' : 'edit open-edit-modal jo-labeled-view' }}"
                                                 title="{{ $isViewOnly ? 'View Job Order' : 'Edit Job Order' }}"
+                                                aria-label="{{ $isViewOnly ? 'View Job Order '.$jobOrder->job_order_no : 'Edit Job Order '.$jobOrder->job_order_no }}"
                                                 icon="{{ $isViewOnly ? 'fa-eye' : 'fa-pen-to-square' }}"
                                                 data-id="{{ $jobOrder->id }}"
                                                 data-update-url="{{ route('job-orders.update', $jobOrder->id, false) }}"
@@ -576,7 +540,7 @@
                                                 data-review-status="{{ $jobOrder->review_status }}"
                                                 data-review-notes="{{ $jobOrder->review_notes }}"
                                                 data-view-only="{{ $isViewOnly ? '1' : '0' }}"
-                                            ><span>{{ $isViewOnly ? 'View' : 'Edit' }}</span></x-ui.action-buttom-modal>
+                                            ><span class="sr-only">{{ $isViewOnly ? 'View' : 'Edit' }}</span></x-ui.action-buttom-modal>
                                             @endif
 
                                             @if($canReviewJobOrders && $isPendingReview)
@@ -858,7 +822,7 @@
                                 </tr>
                             @empty
                                 <x-ui.empty-row
-                                    colspan="8"
+                                    colspan="6"
                                     icon="fa-clipboard-check"
                                     message="No Job Orders Found"
                                     description="No maintenance job orders match your search or filter criteria. Try adjusting your filters."
@@ -980,14 +944,22 @@
     </x-ui.form-modal>
 
     <div id="finishJobModal" class="delete-modal-overlay">
-        <div class="delete-modal-box">
-            <div class="delete-icon finish-icon"><i class="fa-solid fa-check"></i></div>
-            <h2>Complete Job Order?</h2>
-            <p>
-                Confirm that all maintenance work for this Job Order has been completed.
-                Completion date and time will be recorded automatically.
+        <div class="delete-modal-box jo-completion-dialog" role="dialog" aria-modal="true" aria-labelledby="finishJobTitle" aria-describedby="finishJobDescription" tabindex="-1">
+            <div class="delete-icon finish-icon"><i class="fa-solid fa-check" aria-hidden="true"></i></div>
+            <h2 id="finishJobTitle">Complete Job Order?</h2>
+            <p id="finishJobDescription">
+                Review the saved Job Order details before confirming completion.
             </p>
-            <span id="finishJoNo" class="sr-only"></span>
+            <div class="jo-completion-details" aria-label="Job Order completion summary">
+                <div><span>Job Order</span><strong id="finishJoNo">—</strong></div>
+                <div><span>Bus ID</span><strong id="finishJoBus">—</strong></div>
+                <div><span>Maintenance</span><strong id="finishJoType">—</strong></div>
+                <div><span>Assigned Mechanics</span><strong id="finishJoMechanics">—</strong></div>
+                <div><span>Estimated Duration</span><strong id="finishJoEstimate">—</strong></div>
+                <div><span>Started</span><strong id="finishJoStarted">—</strong></div>
+                <div><span>Parts Status</span><strong id="finishJoParts">—</strong></div>
+            </div>
+            <p class="jo-completion-note">Confirm only after work is complete and all required parts are issued. The completion date and time will be recorded automatically.</p>
             <div class="delete-modal-actions">
                 <button type="button" id="cancelFinishJob" class="secondary-btn cancel-delete-btn">Cancel</button>
                 <button type="button" id="confirmFinishJob" class="warning-btn confirm-finish-btn">Yes, Complete</button>

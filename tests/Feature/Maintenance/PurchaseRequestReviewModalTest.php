@@ -288,7 +288,7 @@ class PurchaseRequestReviewModalTest extends TestCase
             $sharedCss
         );
         $this->assertStringContainsString(
-            'width: min(1160px, calc(100vw - 36px)) !important;',
+            'width: min(920px, calc(100vw - 32px)) !important;',
             $sharedCss
         );
         $this->assertStringContainsString(
@@ -346,11 +346,11 @@ class PurchaseRequestReviewModalTest extends TestCase
         );
 
         $this->assertStringContainsString(
-            'width: min(1160px, calc(100vw - 36px)) !important;',
+            'width: min(920px, calc(100vw - 32px)) !important;',
             $css
         );
         $this->assertStringContainsString(
-            'max-width: 1160px !important;',
+            'max-width: 920px !important;',
             $css
         );
         $this->assertStringContainsString(

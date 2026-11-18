@@ -33,7 +33,7 @@ class JobOrderHeadReviewModalLayoutTest extends TestCase
         $this->assertStringContainsString('$headReviewMechanics->skip(1)', $view);
         $this->assertStringContainsString('jo-review-mechanic-more', $view);
         $this->assertStringContainsString('fa-chevron-down', $view);
-        $this->assertStringContainsString('.jo-head-review-body .jo-review-details {overflow:visible;}', $css);
+        $this->assertMatchesRegularExpression('/\\.jo-head-review-body\\s+\\.jo-review-details\\s*\\{[^}]*overflow\\s*:\\s*visible\\s*;/s', $css);
         $this->assertStringContainsString('grid-template-columns: minmax(0, 1fr);', $css);
         $this->assertStringContainsString('Verify details, confirm duration, and authorize the Job Order.', $view);
         $this->assertStringContainsString('jo-review-detail-support-grid', $view);

@@ -1331,15 +1331,15 @@ textarea[readonly] {
    GLOBAL CONFIRMATION CARD
 ========================================================= */
 
-.global-confirmation-box {
-  width: 430px;
+.modal-card.global-confirmation-box {
+  width: min(480px, calc(100vw - 32px));
   max-width: 92vw;
 
-  padding: 30px 28px;
+  padding: 20px 24px;
 
   background: #ffffff;
 
-  border-radius: 18px;
+  border-radius: 16px;
 
   text-align: center;
 
@@ -1351,11 +1351,11 @@ textarea[readonly] {
 
 .global-confirmation-close {
   position: absolute;
-  top: 14px;
-  right: 14px;
+  top: 12px;
+  right: 12px;
 
-  width: 34px;
-  height: 34px;
+  width: 32px;
+  height: 32px;
 
   border: 1px solid #dce5f2;
   border-radius: 9px;
@@ -1381,18 +1381,18 @@ textarea[readonly] {
 ========================================================= */
 
 .global-confirmation-icon {
-  width: 62px;
-  height: 62px;
+  width: 48px;
+  height: 48px;
 
-  margin: 0 auto 16px;
+  margin: 0 auto 10px;
 
-  border-radius: 18px;
+  border-radius: 14px;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  font-size: 24px;
+  font-size: 20px;
 
   line-height: 1;
 }
@@ -1478,11 +1478,11 @@ textarea[readonly] {
 ========================================================= */
 
 .global-confirmation-box h2 {
-  margin: 0 0 8px;
+  margin: 0 0 6px;
 
   color: var(--text);
 
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 800;
 
   line-height: 1.3;
@@ -1494,9 +1494,9 @@ textarea[readonly] {
 ========================================================= */
 
 .global-confirmation-box p {
-  max-width: 340px;
+  max-width: 420px;
 
-  margin: 0 auto 22px;
+  margin: 0 auto 12px;
 
   color: var(--muted);
 
@@ -1511,6 +1511,34 @@ textarea[readonly] {
   font-weight: 800;
 }
 
+/* Shared confirmation colors follow the semantic dark theme at the modal
+   itself. This also covers modals mounted outside department page wrappers. */
+html[data-gct-theme="dark"] body:is([data-gct-operation-page="1"], [data-gct-maintenance-page="1"]) .global-confirmation-box {
+  background: var(--gct-theme-surface);
+  border-color: var(--gct-theme-border);
+  color: var(--gct-theme-fg);
+}
+
+html[data-gct-theme="dark"] body:is([data-gct-operation-page="1"], [data-gct-maintenance-page="1"]) .global-confirmation-box h2,
+html[data-gct-theme="dark"] body:is([data-gct-operation-page="1"], [data-gct-maintenance-page="1"]) .global-confirmation-box p strong {
+  color: var(--gct-theme-fg);
+}
+
+html[data-gct-theme="dark"] body:is([data-gct-operation-page="1"], [data-gct-maintenance-page="1"]) .global-confirmation-box p {
+  color: var(--gct-theme-muted);
+}
+
+html[data-gct-theme="dark"] body:is([data-gct-operation-page="1"], [data-gct-maintenance-page="1"]) .global-confirmation-close {
+  background: var(--gct-theme-surface-raised);
+  border-color: var(--gct-theme-border);
+  color: var(--gct-theme-fg);
+}
+
+html[data-gct-theme="dark"] body:is([data-gct-operation-page="1"], [data-gct-maintenance-page="1"]) .global-confirmation-close:hover {
+  background: var(--gct-theme-hover);
+  color: var(--gct-theme-fg);
+}
+
 
 /* =========================================================
    GLOBAL CONFIRMATION ACTIONS
@@ -1518,7 +1546,7 @@ textarea[readonly] {
 
 .global-confirmation-box
 .delete-modal-actions {
-  margin: 0;
+  margin: 12px 0 0;
 
   display: flex;
   align-items: center;
@@ -1536,7 +1564,7 @@ textarea[readonly] {
 .global-confirmation-box
 .cancel-btn {
   min-width: 100px;
-  height: 44px;
+  height: 40px;
 
   padding: 0 18px;
 
@@ -1569,7 +1597,7 @@ textarea[readonly] {
 
 .global-confirm-btn {
   min-width: 120px;
-  height: 44px;
+  height: 40px;
 
   padding: 0 18px;
 
@@ -1627,7 +1655,7 @@ textarea[readonly] {
 .global-confirmation-box
 .danger-btn {
   min-width: 120px;
-  height: 44px;
+  height: 40px;
 
   padding: 0 18px;
 
@@ -1674,7 +1702,7 @@ textarea[readonly] {
 .global-confirmation-box
 .primary-btn {
   min-width: 120px;
-  height: 44px;
+  height: 40px;
 
   padding: 0 18px;
 }
@@ -1940,10 +1968,10 @@ textarea[readonly] {
 
 @media (max-width: 520px) {
 
-  .global-confirmation-box {
+  .modal-card.global-confirmation-box {
     width: 100%;
 
-    padding: 30px 28px;
+    padding: 20px 18px;
   }
 
 

@@ -34,14 +34,14 @@
 
 .mechanic-page .availability-heading h2 {
   margin: 0;
-  color: #061f3d;
+  color: var(--mechanic-navy);
   font-size: 19px;
   font-weight: 800;
 }
 
 .mechanic-page .availability-heading p {
   margin: 3px 0 0;
-  color: #64748b;
+  color: var(--mechanic-muted);
   font-size: 12px;
 }
 
@@ -70,14 +70,15 @@
 
 .mechanic-page .mechanic-profile-cell {
   display: flex;
+  min-width: 0;
   align-items: center;
-  gap: 11px;
+  gap: 9px;
 }
 
 .mechanic-page .mechanic-avatar {
-  flex: 0 0 38px;
-  width: 38px;
-  height: 38px;
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
   border-radius: 10px;
   background: #e0ecff;
   border: 1px solid #bfdbfe;
@@ -85,17 +86,22 @@
   font-weight: 800;
 }
 
+.mechanic-page .mechanic-profile-meta {
+  min-width: 0;
+}
 .mechanic-page .mechanic-profile-meta strong {
   display: block;
-  color: #061f3d;
-  font-size: 13px;
+  color: var(--mechanic-navy);
+  font-size: 12px;
   font-weight: 800;
+  line-height: 1.35;
+  overflow-wrap: break-word;
 }
 
 .mechanic-page .mechanic-profile-meta small {
   display: block;
   margin-top: 2px;
-  color: #64748b;
+  color: var(--mechanic-muted);
   font-size: 11px;
 }
 
@@ -103,20 +109,22 @@
   display: inline-flex;
   align-items: center;
   padding: 5px 9px;
-  border: 1px solid #dce5f2;
+  border: 1px solid var(--mechanic-border);
   border-radius: 8px;
-  background: #f8fafc;
-  color: #1e293b;
+  background: var(--mechanic-card);
+  color: var(--mechanic-text);
   font-size: 11px;
   font-weight: 700;
 }
 
 .mechanic-page .assigned-job-card {
-  min-width: 250px;
-  padding: 10px 12px;
-  border: 1px solid #dce5f2;
-  border-radius: 10px;
-  background: #f8fbff;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border: 1px solid var(--mechanic-border);
+  border-radius: 9px;
+  background: var(--mechanic-card);
   transition: border-color 0.15s ease;
 }
 
@@ -126,18 +134,21 @@
 
 .mechanic-page .assigned-job-top {
   display: flex;
+  min-width: 0;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 6px;
+  gap: 5px;
+  margin-bottom: 4px;
 }
 
 .mechanic-page .assigned-job-number {
   display: inline-flex;
+  min-width: 0;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
+  overflow-wrap: anywhere;
   color: #0b40b5;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 800;
 }
 
@@ -146,8 +157,9 @@
 }
 
 .mechanic-page .assigned-job-state {
-  padding: 3px 8px;
-  border-radius: 999px;
+  flex: 0 0 auto;
+  padding: 3px 6px;
+  border-radius: 7px;
   background: #dbeafe;
   color: #1d4ed8;
   font-size: 9.5px;
@@ -158,11 +170,23 @@
 
 .mechanic-page .assigned-job-main {
   display: flex;
+  min-width: 0;
   align-items: center;
-  gap: 7px;
-  color: #0f172a;
-  font-size: 12px;
+  gap: 5px;
+  overflow: hidden;
+  color: var(--mechanic-text);
+  font-size: 11px;
   font-weight: 700;
+}
+.mechanic-page .assigned-job-main > span:first-child {
+  flex: 0 0 auto;
+}
+.mechanic-page .assigned-job-main .bus-badge-pill {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .mechanic-page .assigned-job-main .dot {
@@ -171,13 +195,29 @@
 
 .mechanic-page .assigned-job-issue {
   display: block;
-  max-width: 340px;
-  margin-top: 4px;
+  max-width: 100%;
+  margin-top: 3px;
   overflow: hidden;
-  color: #64748b;
+  color: var(--mechanic-muted);
   font-size: 11px;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* Keep availability status within its own column, including longer labels. */
+.mechanic-page .mechanic-availability-status-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 6px 8px;
+  border-radius: 7px;
+  font-size: 10px;
+  font-weight: 800;
+  white-space: nowrap;
+  text-align: center;
 }
 
 .mechanic-page .no-assignment {
@@ -205,7 +245,7 @@
 }
 
 .mechanic-page .time-cell strong {
-  color: #0f172a;
+  color: var(--mechanic-text);
   font-size: 12px;
 }
 
@@ -215,19 +255,11 @@
 }
 
 .mechanic-page .row-on-duty td {
-  background: rgba(239, 246, 255, 0.45);
+  background: var(--gct-ui-surface-hover, #eff6ff);
 }
 
 .mechanic-page .row-on-duty:hover td {
-  background: #f1f6fe;
-}
-
-.mechanic-page .mechanic-attendance-style-table {
-  min-width: 1080px;
-}
-
-.mechanic-page .mechanic-attendance-style-table th:nth-child(3) {
-  width: 32%;
+  background: var(--gct-ui-surface-raised, #e8f1ff);
 }
 
 @media (max-width: 900px) {
@@ -243,4 +275,44 @@
 /* Give Mechanic Availability table headers breathing room below Search / Filter / Sort. */
 .mechanic-page .mechanic-list-card > .gct-table-toolbar {
   margin-bottom: 16px;
+}
+
+/* Dark Mode: keep the board compact and its text readable. */
+html[data-gct-theme="dark"] .mechanic-page .availability-heading-icon {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+html[data-gct-theme="dark"] .mechanic-page .assigned-job-card {
+  background: var(--gct-theme-surface-raised, #203047);
+  border-color: var(--mechanic-border);
+}
+html[data-gct-theme="dark"] .mechanic-page .assigned-job-number {
+  color: #93c5fd;
+}
+html[data-gct-theme="dark"] .mechanic-page .bus-badge-pill {
+  background: var(--gct-theme-surface, #162235);
+  color: var(--gct-theme-fg, #edf3fc);
+  border-color: var(--mechanic-border);
+}
+html[data-gct-theme="dark"] .mechanic-page .mechanic-attendance-style-table :is(th, td) {
+  border-color: var(--mechanic-border);
+}
+html[data-gct-theme="dark"] .mechanic-page .row-on-duty td {
+  background: var(--gct-theme-surface-raised, #203047);
+}
+html[data-gct-theme="dark"] .mechanic-page .row-on-duty:hover td,
+html[data-gct-theme="dark"] .mechanic-page .mechanic-attendance-style-table tbody tr:hover td {
+  background: var(--gct-theme-hover, #2b3d57);
+}
+html[data-gct-theme="dark"] .mechanic-page .time-cell strong,
+html[data-gct-theme="dark"] .mechanic-page .mechanic-date-value {
+  color: var(--mechanic-text);
+}
+html[data-gct-theme="dark"] .mechanic-page .time-cell small,
+html[data-gct-theme="dark"] .mechanic-page .mechanic-profile-meta small {
+  color: var(--mechanic-muted);
+}
+html[data-gct-theme="dark"] .mechanic-page .mechanic-availability-table-wrap {
+  scrollbar-width: thin;
+  scrollbar-color: #8396b2 #1b2b42;
 }

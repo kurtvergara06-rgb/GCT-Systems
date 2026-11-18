@@ -24,7 +24,7 @@ class ItemRequestController extends Controller
     {
         $view = in_array($request->query('view'), ['pending', 'history'], true) ? $request->query('view') : 'active';
         $historyStatuses = ['Issued', 'Completed', 'Cancelled', 'Rejected'];
-        $requestsQuery = ItemRequest::with(['jobOrder.approver', 'requester']);
+        $requestsQuery = ItemRequest::with(['jobOrder.approver', 'jobOrder.audits' => fn ($query) => $query->whereIn('action', ['approved', 'legacy_signature_attached'])->with('user')->latest('id'), 'requester']);
         // Match Warehouse: a signed/Issued IR remains read-only but visible
         // in Active while its linked Job Order still has outstanding parts.
         $scopeHistory = static function ($query) use ($historyStatuses) {

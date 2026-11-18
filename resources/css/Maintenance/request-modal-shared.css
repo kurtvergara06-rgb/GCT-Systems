@@ -2,27 +2,21 @@
  * Presentation-only: no form actions, status logic, or modal lifecycle rules.
  * Loaded after the legacy IR/PR styles to unify the reviewed document layout. */
 #itemRequestModal .ir-review-document-modal,
-#viewItemRequestModal .ir-review-document-modal,
-#prModal .ui-form-modal,
-#editPrModal .ui-form-modal {
+#viewItemRequestModal .ir-review-document-modal {
   box-sizing: border-box;
-  width: min(1160px, calc(100vw - 36px)) !important;
-  max-width: 1160px !important;
+  width: min(920px, calc(100vw - 32px)) !important;
+  max-width: 920px !important;
   max-height: calc(100dvh - 36px);
 }
 #itemRequestModal .ir-modal-header,
-#viewItemRequestModal .ir-modal-header,
-#prModal .ui-form-modal-header,
-#editPrModal .ui-form-modal-header {
+#viewItemRequestModal .ir-modal-header {
   flex: 0 0 auto;
   box-sizing: border-box;
-  min-height: 76px;
-  padding: 15px 22px;
+  min-height: 64px;
+  padding: 12px 18px;
 }
 #itemRequestModal .ir-review-document-body,
-#viewItemRequestModal .ir-review-document-body,
-#prModal .ui-form-modal-scrollable,
-#editPrModal .ui-form-modal-scrollable {
+#viewItemRequestModal .ir-review-document-body {
   box-sizing: border-box;
   min-height: 0;
   overflow-y: auto;
@@ -177,8 +171,8 @@
 :is(#prModal, #editPrModal) > .ui-form-modal.ui-form-modal-xl {
   display: flex !important;
   flex-direction: column !important;
-  width: min(1160px, calc(100vw - 36px)) !important;
-  max-width: 1160px !important;
+  width: min(920px, calc(100vw - 32px)) !important;
+  max-width: 920px !important;
   max-height: calc(100dvh - 36px) !important;
   overflow: hidden !important;
   margin: auto;
@@ -186,9 +180,9 @@
 :is(#prModal, #editPrModal) .ui-form-modal-header {
   flex: 0 0 auto;
   height: 76px;
-  min-height: 76px;
-  padding: 15px 22px;
-  background: #fff;
+  min-height: 64px;
+  padding: 12px 18px;
+  background: var(--pr-document-raised, #fff);
 }
 :is(#prModal, #editPrModal) .ui-form-title-icon {
   width: 42px;
@@ -229,17 +223,16 @@
   bottom: 0;
   flex: 0 0 auto;
   z-index: 2;
-  height: 63px;
-  min-height: 63px;
+  min-height: 54px;
   margin: 0 !important;
-  padding: 11px 24px;
+  padding: 9px 18px;
   box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: flex-end;
   gap: 10px;
-  border-top: 1px solid #e0e8f3;
-  background: #fff;
+  border-top: 1px solid var(--pr-document-border, #e0e8f3);
+  background: var(--pr-document-raised, #fff);
 }
 :is(#prModal, #editPrModal) .pr-dual-parts-pane .pr-review-parts-table thead tr {
   height: 42px;
@@ -278,7 +271,7 @@
   object-fit: contain;
 }
 #editPrModal .pr-view-document .pr-ir-signature {
-  background: #fff !important;
+  background: var(--pr-document-raised, #fff) !important;
 }
 
 @media (max-width: 760px) {
@@ -301,6 +294,27 @@
     padding: 10px 14px;
   }
 }
+
+/* Canonical dark surfaces for the shared PR review / view document. */
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(#prModal,#editPrModal) {
+ --pr-document-surface:var(--gct-theme-surface,#162235);
+ --pr-document-raised:var(--gct-theme-surface-raised,#203047);
+ --pr-document-border:var(--gct-theme-border,#35465e);
+ --pr-document-text:var(--gct-theme-fg,#edf3fc);
+ --pr-document-muted:var(--gct-theme-muted,#b1bfd2);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(#prModal,#editPrModal) :is(.ui-form-modal,.ui-form-modal-scrollable,.pr-document,.pr-step-card,.pr-document-parts,.pr-dual-parts-pane,.pr-ir-panel-body,.pr-ir-approval-body,.pr-shortage-table-wrap) {
+ background:var(--pr-document-surface);border-color:var(--pr-document-border);color:var(--pr-document-text);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(#prModal,#editPrModal) :is(.ui-form-modal-header,.pr-document-footer,.pr-ir-review-summary,.pr-ir-panel-heading,.pr-step-heading,.pr-ir-approved-by,.pr-review-parts-table thead th) {
+ background:var(--pr-document-raised);border-color:var(--pr-document-border);color:var(--pr-document-text);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(#prModal,#editPrModal) :is(.ui-form-modal-header h2,.pr-ir-review-summary strong:not(.pr-ir-jo-approved),.pr-ir-panel-heading h3,.pr-ir-overview-facts strong,.pr-ir-approved-by strong,.pr-review-parts-table tbody td,.pr-step-heading h3) {color:var(--pr-document-text);}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(#prModal,#editPrModal) :is(.ui-form-modal-header p,.pr-ir-review-summary span,.pr-ir-review-summary small,.pr-ir-overview-facts span,.pr-ir-panel-body > p,.pr-ir-approved-by span,.pr-ir-approved-by small,.pr-dual-parts-heading span,.pr-review-parts-table thead th) {color:var(--pr-document-muted);}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(#prModal,#editPrModal) .pr-review-parts-table tbody td {background:var(--pr-document-surface);border-color:var(--pr-document-border);}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(#prModal,#editPrModal) .pr-ir-signature {background:#f8fafc;border-color:var(--pr-document-border);color:#475569;}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(#prModal,#editPrModal) .pr-ir-signature :is(span,small) {color:#475569;}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(#prModal,#editPrModal) :is(.ui-form-btn-cancel,.ui-form-close,.pr-view-close-btn) {background:#fff;border-color:#bfdbfe;color:#1d4ed8;}
 
 /* IR request lifecycle: a reference quantity does not prove stock availability. */
 #prModal .pr-dual-parts-pane.is-ir .pr-availability-badge.is-ir-pending,

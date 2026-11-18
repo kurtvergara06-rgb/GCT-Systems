@@ -170,9 +170,17 @@ window.GCTPartialNavigation.registerInitializer('maintenance-ui-enhancements', '
       add.type = 'button';
       add.className = 'jo-selected-jobs-add';
       add.innerHTML = '<i class="fa-solid fa-plus" aria-hidden="true"></i> Add Jobs';
-      add.addEventListener('click', () => {
+      add.addEventListener('click', (event) => {
+        // The Add Jobs button lives outside the combobox. Do not let its click
+        // reach the document-level outside-click listener, which closes the
+        // picker immediately after the trigger opens it.
+        event.stopPropagation();
         if (menu.hidden) trigger.click();
-        trigger.focus();
+        if (searchInput) {
+          searchInput.focus();
+        } else {
+          trigger.focus();
+        }
       });
       actions.append(add);
       panel.append(heading, selectedChips, actions);

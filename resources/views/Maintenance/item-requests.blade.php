@@ -35,8 +35,8 @@
             <div class="ir-toolbar">
                 <nav class="ir-tabs" aria-label="Item Request record view">
                     <a href="{{ route('item-requests', ['view' => 'pending']) }}" class="ir-active-tab {{ $view === 'pending' ? 'is-active' : '' }}" data-allow-partial-navigation="true"><i class="fa-solid fa-clock"></i> Pending Requests</a>
-                    <a href="{{ route('item-requests', ['view' => 'active']) }}" class="ir-active-tab {{ $view === 'active' ? 'is-active' : '' }}" data-allow-partial-navigation="true"><i class="fa-solid fa-list-check"></i> In Progress <span class="gct-record-tab-count">{{ $activeCount }}</span></a>
-                    <a href="{{ route('item-requests', ['view' => 'history']) }}" class="ir-active-tab {{ $view === 'history' ? 'is-active' : '' }}" data-allow-partial-navigation="true"><i class="fa-solid fa-clock-rotate-left"></i> History <span class="gct-record-tab-count">{{ $historyCount }}</span></a>
+                    <a href="{{ route('item-requests', ['view' => 'active']) }}" class="ir-active-tab {{ $view === 'active' ? 'is-active' : '' }}" data-allow-partial-navigation="true"><i class="fa-solid fa-list-check"></i> In Progress</a>
+                    <a href="{{ route('item-requests', ['view' => 'history']) }}" class="ir-active-tab {{ $view === 'history' ? 'is-active' : '' }}" data-allow-partial-navigation="true"><i class="fa-solid fa-clock-rotate-left"></i> History</a>
                 </nav>
                 <div class="gct-table-toolbar-row">
                     <x-ui.table-toolbar
@@ -141,6 +141,21 @@
                             $irParts = collect($ir->requested_parts ?? []);
                             $issueAvailable = $ir->jobOrder?->parts_issue_strategy === 'issue_available_only';
                             $prParts = collect($linkedPrPartsByJo->get($ir->jobOrder?->job_order_no, []));
+                            $approvalAudit = $ir->jobOrder?->audits?->firstWhere('action', 'approved');
+                            $prefix = 'maintenance/job-order-signatures/'.($ir->jobOrder?->id ?? 0).'/';
+                            $hasSavedSignature = $ir->jobOrder?->review_status === 'Approved'
+                                && $ir->jobOrder->audits->contains(function ($audit) use ($prefix) {
+                                    $path = data_get($audit->metadata, 'handwritten_signature_path');
+                                    return is_string($path)
+                                        && str_starts_with($path, $prefix)
+                                        && preg_match('/^[a-z0-9-]+\\.png$/i', substr($path, strlen($prefix)))
+                                        && \Illuminate\Support\Facades\Storage::disk('local')->exists($path);
+                                });
+                            $supplementaryAudit = $ir->jobOrder?->audits?->firstWhere('action', 'legacy_signature_attached');
+                            $originalApprover = $ir->jobOrder?->approver?->name ?? $approvalAudit?->user?->name;
+                            $approvalName = $originalApprover ?? $supplementaryAudit?->user?->name ?? 'Not recorded';
+                            $approvalLabel = $originalApprover ? 'Approved By'
+                                : ($supplementaryAudit?->user ? 'Supplementary Signature By' : 'Approved By');
                         @endphp
                         <tr class="ir-lifecycle-record">
                             <td>
@@ -214,7 +229,7 @@
                                     <span class="ir-split-policy">—</span>
                                 @endif
                             </td>
-                            <td><button class="ir-view-button" type="button" data-ir-view data-ir-number="IR-{{ $ir->created_at?->format('Y') ?? '0000' }}-{{ str_pad((string) $ir->id, 4, '0', STR_PAD_LEFT) }}" data-ir-job="{{ $ir->jobOrder?->job_order_no ?? '—' }}" data-ir-bus="{{ $ir->jobOrder?->bus_no ?? '—' }}" data-ir-status="{{ $ir->status }}" data-ir-date="{{ $ir->created_at?->copy()->timezone(config('app.business_timezone', 'Asia/Manila'))->format('M d, Y · h:i A') ?? '—' }}" data-ir-parts="{{ $irParts->map(fn ($p) => ($p['name'] ?? '—').' — '.($p['quantity'] ?? 0).' '.($p['unit'] ?? ''))->implode(' | ') }}" data-ir-pr-parts="{{ json_encode($prParts->values()->all()) }}" data-ir-approver="{{ $ir->jobOrder?->approver?->name ?? 'Not recorded' }}" data-ir-signature-url="{{ $ir->jobOrder ? route('job-orders.approval-signature', $ir->jobOrder, false) : '' }}" data-ir-requester="{{ $ir->requester?->name ?? 'Not recorded' }}" data-ir-remarks="{{ $ir->remarks ?? '' }}"><i class="fa-solid fa-eye" aria-hidden="true"></i> View IR</button></td>
+                            <td><button class="ir-view-button" type="button" data-ir-view data-ir-number="IR-{{ $ir->created_at?->format('Y') ?? '0000' }}-{{ str_pad((string) $ir->id, 4, '0', STR_PAD_LEFT) }}" data-ir-job="{{ $ir->jobOrder?->job_order_no ?? '—' }}" data-ir-bus="{{ $ir->jobOrder?->bus_no ?? '—' }}" data-ir-status="{{ $ir->status }}" data-ir-date="{{ $ir->created_at?->copy()->timezone(config('app.business_timezone', 'Asia/Manila'))->format('M d, Y · h:i A') ?? '—' }}" data-ir-parts="{{ $irParts->map(fn ($p) => ($p['name'] ?? '—').' — '.($p['quantity'] ?? 0).' '.($p['unit'] ?? ''))->implode(' | ') }}" data-ir-pr-parts="{{ json_encode($prParts->values()->all()) }}" data-ir-approver="{{ $approvalName }}" data-ir-approval-label="{{ $approvalLabel }}" data-ir-signature-url="{{ $hasSavedSignature ? route('job-orders.approval-signature', $ir->jobOrder, false) : '' }}" data-ir-signature-state="{{ $hasSavedSignature ? 'saved' : 'missing' }}" data-ir-requester="{{ $ir->requester?->name ?? 'Not recorded' }}" data-ir-remarks="{{ $ir->remarks ?? '' }}"><i class="fa-solid fa-eye" aria-hidden="true"></i> View IR</button></td>
                         </tr>
                         @empty
                         <tr><td colspan="6"><div class="ir-empty">
@@ -268,7 +283,7 @@
                 <section class="ir-review-section" aria-labelledby="ir-view-head-approval-title">
                     <header><h3 id="ir-view-head-approval-title"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Head Approval</h3></header>
                     <div class="ir-review-section-content ir-review-approval-grid">
-                        <div class="ir-review-approver"><span>Approved By</span><strong id="ir-detail-approver">—</strong><small>Maintenance Head</small></div>
+                        <div class="ir-review-approver"><span id="ir-detail-approval-label">Approved By</span><strong id="ir-detail-approver">—</strong><small>Maintenance Head</small></div>
                         <div class="ir-review-signature"><span>Authorized Signature</span><img id="ir-detail-signature" alt="Saved Job Order approval signature" hidden><small id="ir-detail-signature-placeholder">Signature unavailable</small></div>
                     </div>
                 </section>

@@ -1148,33 +1148,133 @@ class JobOrderController extends Controller
             ->with('success', 'Review the suggested shortage and submit the Purchase Request.');
     }
 
+    /**
+     * Serve only an actual, privately saved JO approval signature. Legacy
+     * signature completions are separate, attributed audit events.
+     */
     public function approvalSignature(Request $request, JobOrder $jobOrder)
     {
-        // The route requires Maintenance view permission. Never expose the
-        // private storage path or allow an arbitrary requested file path.
-        if ($jobOrder->review_status !== 'Approved') {
-            abort(404);
-        }
-        $audit = $jobOrder->audits()
-            ->where('action', 'approved')
-            ->latest('id')
-            ->first();
-        $path = $audit?->metadata['handwritten_signature_path'] ?? null;
-        $expectedPrefix = 'maintenance/job-order-signatures/'.$jobOrder->id.'/';
-        if (! is_string($path) || ! str_starts_with($path, $expectedPrefix)
-            || ! preg_match('/^[a-z0-9-]+\\.png$/i', substr($path, strlen($expectedPrefix)))) {
-            abort(404);
-        }
+        abort_unless($jobOrder->review_status === 'Approved', 404);
+
         $disk = \Illuminate\Support\Facades\Storage::disk('local');
-        if (! $disk->exists($path)) {
-            abort(404);
+        $prefix = 'maintenance/job-order-signatures/'.$jobOrder->id.'/';
+        $audits = $jobOrder->audits()->whereIn('action', ['approved', 'legacy_signature_attached'])
+            ->latest('id')->get();
+
+        foreach ($audits as $audit) {
+            $path = data_get($audit->metadata, 'handwritten_signature_path');
+            if (! is_string($path) || ! str_starts_with($path, $prefix)
+                || ! preg_match('/^[a-z0-9_-]+\\.png$/i', substr($path, strlen($prefix)))) {
+                continue;
+            }
+            if (! $disk->exists($path)) {
+                continue;
+            }
+            return response($disk->get($path), 200, [
+                'Content-Type' => 'image/png',
+                'Cache-Control' => 'private, no-store',
+                'X-Content-Type-Options' => 'nosniff',
+                'Content-Disposition' => 'inline',
+            ]);
         }
-        return response($disk->get($path), 200, [
-            'Content-Type' => 'image/png',
-            'Cache-Control' => 'private, no-store',
-            'X-Content-Type-Options' => 'nosniff',
-            'Content-Disposition' => 'inline',
+
+        abort(404);
+    }
+
+    /**
+     * Legacy approved JOs can lack a historical signature. A Maintenance Head
+     * may attest with a NEW signature, never backdate or forge the old approval.
+     */
+    public function completeApprovalSignature(Request $request, JobOrder $jobOrder)
+    {
+        $this->assertMaintenanceHead();
+
+        $validated = $request->validate([
+            'signature_image' => ['nullable', 'required_without:reuse_saved_signature', 'file', 'mimes:png', 'max:2048'],
+            'reuse_saved_signature' => ['sometimes', 'accepted'],
+            'electronic_signature' => ['required', 'string', 'max:255'],
         ]);
+        $user = $request->user();
+        if (mb_strtolower(trim($validated['electronic_signature'])) !== mb_strtolower(trim((string) $user->name))) {
+            throw ValidationException::withMessages(['electronic_signature' => 'The signatory must match your authenticated full name.']);
+        }
+
+        $bytes = null;
+        $sourceJobOrderId = null;
+        if ($request->boolean('reuse_saved_signature')) {
+            // Reuse only a PNG previously signed by the same authenticated Head.
+            // Its application to this JO is separately and explicitly audited.
+            $auditRecords = \App\Models\Maintenance\JobOrderAudit::query()
+                ->where('user_id', $user->id)
+                ->whereIn('action', ['approved', 'legacy_signature_attached'])
+                ->latest('id')->get();
+            $disk = \Illuminate\Support\Facades\Storage::disk('local');
+            foreach ($auditRecords as $candidate) {
+                $path = data_get($candidate->metadata, 'handwritten_signature_path');
+                $prefix = 'maintenance/job-order-signatures/'.$candidate->job_order_id.'/';
+                if (! is_string($path) || ! str_starts_with($path, $prefix)
+                    || ! preg_match('/^[a-z0-9_-]+\\.png$/i', substr($path, strlen($prefix)))
+                    || ! $disk->exists($path)) {
+                    continue;
+                }
+                $bytes = $disk->get($path);
+                $sourceJobOrderId = $candidate->job_order_id;
+                break;
+            }
+            if ($bytes === null) {
+                throw ValidationException::withMessages(['reuse_saved_signature' => 'No previous signature was found for your account. Upload a signature once to enable reuse.']);
+            }
+        } else {
+            $bytes = $validated['signature_image']->get();
+        }
+        if (strlen($bytes) < 100 || strlen($bytes) > 2097152
+            || bin2hex(substr($bytes, 0, 8)) !== '89504e470d0a1a0a'
+            || ! @getimagesizefromstring($bytes)) {
+            throw ValidationException::withMessages(['signature_image' => 'Upload a valid PNG signature image (maximum 2 MB).']);
+        }
+
+        $signaturePath = null;
+        try {
+            DB::transaction(function () use ($jobOrder, $user, $bytes, $sourceJobOrderId, &$signaturePath) {
+                $locked = JobOrder::query()->lockForUpdate()->findOrFail($jobOrder->id);
+                if ($locked->review_status !== 'Approved' || ! ItemRequest::query()->where('job_order_id', $locked->id)->exists()) {
+                    throw ValidationException::withMessages(['signature_image' => 'Only approved Job Orders linked to Item Requests can complete a missing signature.']);
+                }
+
+                $disk = \Illuminate\Support\Facades\Storage::disk('local');
+                $prefix = 'maintenance/job-order-signatures/'.$locked->id.'/';
+                foreach ($locked->audits()->whereIn('action', ['approved', 'legacy_signature_attached'])->get() as $audit) {
+                    $existing = data_get($audit->metadata, 'handwritten_signature_path');
+                    if (is_string($existing) && str_starts_with($existing, $prefix)
+                        && preg_match('/^[a-z0-9_-]+\\.png$/i', substr($existing, strlen($prefix)))
+                        && $disk->exists($existing)) {
+                        throw ValidationException::withMessages(['signature_image' => 'A saved signature already exists for this Job Order. Refresh to view it.']);
+                    }
+                }
+
+                $signaturePath = $prefix.\Illuminate\Support\Str::uuid().'.png';
+                if (! $disk->put($signaturePath, $bytes)) {
+                    throw ValidationException::withMessages(['signature_image' => 'Could not save the signature; please retry.']);
+                }
+                $this->workflow->audit($locked, 'legacy_signature_attached', $locked->review_status, $locked->review_status,
+                    'Maintenance Head explicitly signed a legacy approved Job Order.', [
+                        'signed_by' => $user->id,
+                        'signed_at' => now()->toISOString(),
+                        'signature_source_job_order_id' => $sourceJobOrderId,
+                        'original_approved_at' => $locked->approved_at?->toISOString(),
+                        'handwritten_signature_path' => $signaturePath,
+                        'handwritten_signature_sha256' => hash('sha256', $bytes),
+                    ]);
+            });
+        } catch (\Throwable $exception) {
+            if ($signaturePath !== null) {
+                \Illuminate\Support\Facades\Storage::disk('local')->delete($signaturePath);
+            }
+            throw $exception;
+        }
+
+        return redirect()->route('item-requests', ['view' => 'active'])
+            ->with('success', 'New signature saved and recorded in the Job Order audit history.');
     }
 
     public function approve(Request $request, JobOrder $jobOrder, \App\Services\Maintenance\PartsReservationService $reservations)

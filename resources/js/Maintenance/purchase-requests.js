@@ -1350,7 +1350,14 @@ window.GCTPartialNavigation.registerInitializer(
           const state = row.insertCell();
           name.textContent = part.name || '—';
           qty.textContent = [part.quantity ?? 0, part.unit || ''].join(' ').trim();
-          state.textContent = status;
+          const badge = document.createElement('span');
+          badge.className = 'pr-part-status-badge';
+          const normalizedStatus = String(status || '').trim().toLowerCase();
+          if (normalizedStatus === 'for purchase') badge.classList.add('is-purchase');
+          else if (normalizedStatus === 'available') badge.classList.add('is-available');
+          else if (normalizedStatus === 'submitted' || normalizedStatus === 'reference only') badge.classList.add('is-reference');
+          badge.textContent = status || '—';
+          state.append(badge);
         });
       };
       const purchased = parseParts(data.item || '');
@@ -2226,6 +2233,17 @@ window.GCTPartialNavigation.registerInitializer('maintenance-pr-pending-review-a
   const text = (id, value) => { const e = document.getElementById(id); if (e) e.textContent = value || '—'; };
   const clear = (node) => { if (node) node.replaceChildren(); };
   let sequence = 0;
+  const renderPartStatus = (cell, label) => {
+    const status = document.createElement('span');
+    status.className = 'pr-part-status-badge';
+    const value = String(label || '').trim();
+    const normalized = value.toLowerCase();
+    if (normalized === 'for purchase') status.classList.add('is-purchase');
+    else if (normalized === 'available') status.classList.add('is-available');
+    else if (normalized === 'submitted' || normalized === 'reference only') status.classList.add('is-reference');
+    status.textContent = value || '—';
+    cell.append(status);
+  };
   const render = (node, parts, category) => {
     if (!node) return;
     node.replaceChildren();
@@ -2233,7 +2251,8 @@ window.GCTPartialNavigation.registerInitializer('maintenance-pr-pending-review-a
       const row = node.insertRow();
       for (const value of [part.name || '—', (part.quantity || 0) + ' ' + (part.unit || ''), category]) {
         const cell = row.insertCell();
-        cell.textContent = value;
+        if (cell.cellIndex === 2) renderPartStatus(cell, value);
+        else cell.textContent = value;
       }
     }
     if (!parts.length) {

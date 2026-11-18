@@ -2294,13 +2294,24 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-orders', '.jo-p
           }
 
 
-          if (finishJoNo) {
+          const completionDetails = {
+            finishJoNo: joNo || 'this job order',
+            finishJoBus: button.dataset.joBus || '—',
+            finishJoType: button.dataset.joType || '—',
+            finishJoMechanics: button.dataset.joMechanics || 'Not assigned',
+            finishJoEstimate: button.dataset.joEstimate || 'Not provided',
+            finishJoStarted: button.dataset.joStarted || 'Not started',
+            finishJoParts: button.dataset.joParts || '—',
+          };
+          Object.entries(completionDetails).forEach(([fieldId, value]) => {
+            const field = finishJobModal?.querySelector(`#${fieldId}`);
+            if (field) field.textContent = value;
+          });
 
-            finishJoNo.textContent =
-              joNo ||
-              'this job order';
+          if (confirmFinishJob) {
+            confirmFinishJob.disabled = false;
+            confirmFinishJob.innerHTML = '<i class="fa-solid fa-check" aria-hidden="true"></i> Yes, Complete';
           }
-
 
           openModal(
             finishJobModal
@@ -2811,16 +2822,25 @@ window.GCTPartialNavigation.registerInitializer('maintenance-job-order-new-combo
   };
 
   const positionBusMenu = () => {
-    if (!config.portal || menu.hidden || !trigger.isConnected) {
-      return;
-    }
+    if (!config.portal || menu.hidden || !trigger.isConnected) return;
 
     const bounds = trigger.getBoundingClientRect();
+    const viewportWidth = window.visualViewport?.width || window.innerWidth;
+    const viewportHeight = window.visualViewport?.height || window.innerHeight;
+    const margin = 10;
+    const width = Math.min(bounds.width, Math.max(100, viewportWidth - margin * 2));
+    const below = viewportHeight - bounds.bottom - margin - 5;
+    const aboveRoom = bounds.top - margin - 5;
+    const openAbove = below < 180 && aboveRoom > below;
     Object.assign(menu.style, {
       position: 'fixed',
-      left: `${bounds.left}px`,
-      top: `${bounds.bottom + 5}px`,
-      width: `${bounds.width}px`,
+      left: `${Math.max(margin, Math.min(bounds.left, viewportWidth - width - margin))}px`,
+      right: 'auto',
+      top: openAbove ? 'auto' : `${bounds.bottom + 5}px`,
+      bottom: openAbove ? `${viewportHeight - bounds.top + 5}px` : 'auto',
+      width: `${width}px`,
+      maxHeight: `${Math.min(270, Math.max(64, openAbove ? aboveRoom : below))}px`,
+      overflowY: 'auto',
       zIndex: '110500',
     });
   };

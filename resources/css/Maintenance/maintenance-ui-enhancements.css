@@ -171,7 +171,7 @@
 }
 
 .jo-overdue-row .jo-estimate-inline {
-  color: #991b1b;
+  color: var(--jo-overdue-estimate-color, #991b1b);
 }
 
 .fuel-chart-card.has-empty-chart .fuel-chart-container {

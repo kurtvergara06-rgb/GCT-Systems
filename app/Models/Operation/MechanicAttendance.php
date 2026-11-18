@@ -3,10 +3,14 @@
 namespace App\Models\Operation;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\Admin\User;
 use Illuminate\Validation\ValidationException;
 
 class MechanicAttendance extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = [
         'mechanic_id',
         'mechanic_name',
@@ -16,10 +20,13 @@ class MechanicAttendance extends Model
         'time_in',
         'time_out',
         'status',
+        'void_reason',
+        'voided_by',
     ];
 
     protected $casts = [
         'attendance_date' => 'date',
+        'deleted_at' => 'datetime',
     ];
 
     protected static function booted(): void
@@ -62,7 +69,10 @@ class MechanicAttendance extends Model
             }
 
             if ($attendance->attendance_date) {
-                $duplicate = static::query()
+                // The database unique key also covers voided records. Check
+                // history so attempts to replace a voided record fail with
+                // a validation message rather than a SQL constraint error.
+                $duplicate = static::withTrashed()
                     ->where('mechanic_id', $mechanic->mechanic_id)
                     ->whereDate('attendance_date', $attendance->attendance_date)
                     ->when($attendance->exists, fn ($query) => $query->whereKeyNot($attendance->getKey()))
@@ -70,11 +80,16 @@ class MechanicAttendance extends Model
 
                 if ($duplicate) {
                     throw ValidationException::withMessages([
-                        'attendance_date' => 'This mechanic already has an attendance record for the selected date.',
+                        'attendance_date' => 'An attendance record already exists for this mechanic and date (including voided history). The original remains reserved for auditing.',
                     ]);
                 }
             }
         });
+    }
+
+    public function voidedBy()
+    {
+        return $this->belongsTo(User::class, 'voided_by');
     }
 
     public function mechanic()

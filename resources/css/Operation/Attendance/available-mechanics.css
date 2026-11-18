@@ -606,3 +606,102 @@
   line-height: 1.25;
   overflow-wrap: anywhere;
 }
+
+
+/* Mechanic Attendance records: match the Master List's segmented tabs and
+   right-aligned table tools. Scoped here to avoid affecting other departments. */
+.mechanic-attendance-page .attendance-card > .section-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+.mechanic-attendance-page .attendance-card > .section-header > div {
+  min-width: 0;
+  flex: 1 1 280px;
+}
+.mechanic-attendance-page .attendance-card > .section-header .batch-attendance-open {
+  flex: 0 0 auto;
+  min-height: 44px;
+}
+.mechanic-attendance-page .mechanic-attendance-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0 0 14px;
+}
+.mechanic-attendance-page .mechanic-attendance-record-tabs {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: 4px;
+  max-width: 100%;
+  min-height: 44px;
+  box-sizing: border-box;
+  padding: 4px;
+  border: 1px solid var(--gct-ui-border, #d9e2ee);
+  border-radius: 12px;
+  background: var(--gct-ui-surface-raised, #f2f5fa);
+}
+.mechanic-attendance-page .mechanic-attendance-record-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 8px 14px;
+  border: 0;
+  border-radius: 9px;
+  color: var(--gct-ui-muted, #475569);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.25;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.mechanic-attendance-page .mechanic-attendance-record-tab.is-active {
+  background: var(--gct-ui-surface-hover, #e2e8f0);
+  color: var(--gct-ui-text, #112b50);
+}
+.mechanic-attendance-page .mechanic-attendance-record-tab:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+.mechanic-attendance-page .mechanic-attendance-controls > .gct-table-toolbar {
+  width: auto;
+  min-width: 0;
+  margin: 0 0 0 auto;
+}
+.mechanic-attendance-page .mechanic-attendance-table-wrap {
+  margin-top: 0;
+}
+html[data-gct-theme="dark"] .mechanic-attendance-page .mechanic-attendance-record-tabs {
+  background: var(--gct-theme-surface-raised, #203047);
+  border-color: var(--gct-theme-border, #35465e);
+}
+html[data-gct-theme="dark"] .mechanic-attendance-page .mechanic-attendance-record-tab {
+  color: var(--gct-theme-muted, #b1bfd2);
+}
+html[data-gct-theme="dark"] .mechanic-attendance-page .mechanic-attendance-record-tab.is-active {
+  background: #2d415e;
+  color: #fff;
+}
+@media (max-width: 760px) {
+  .mechanic-attendance-page .attendance-card > .section-header .batch-attendance-open {
+    max-width: 100%;
+  }
+  .mechanic-attendance-page .mechanic-attendance-controls {
+    align-items: stretch;
+  }
+  .mechanic-attendance-page .mechanic-attendance-record-tabs {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+  .mechanic-attendance-page .mechanic-attendance-controls > .gct-table-toolbar {
+    margin-left: 0;
+  }
+}

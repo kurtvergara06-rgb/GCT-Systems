@@ -21,6 +21,15 @@ it('keeps common status meanings visually distinct', function (): void {
         ->toMatchArray(['tone' => 'success', 'icon' => 'fa-check-double']);
 });
 
+it('uses a wrench for mechanics actively Working without changing other assignment states', function (): void {
+    expect(StatusBadge::resolve('Working'))
+        ->toMatchArray(['key' => 'working', 'label' => 'Working', 'tone' => 'progress', 'icon' => 'fa-wrench'])
+        ->and(StatusBadge::resolve('Assigned'))
+        ->toMatchArray(['tone' => 'progress', 'icon' => 'fa-user-check'])
+        ->and(StatusBadge::resolve('Available'))
+        ->toMatchArray(['tone' => 'positive', 'icon' => 'fa-circle-check']);
+});
+
 it('renders Pending DDR as a known operational waiting status', function (): void {
     expect(StatusBadge::resolve('Pending DDR'))
         ->toMatchArray([

@@ -89,18 +89,39 @@ window.GCTPartialNavigation.registerInitializer('operation-mechanic-attendance',
 
   const deleteAttendanceModal = document.getElementById('deleteAttendanceModal');
   const deleteAttendanceName = document.getElementById('deleteAttendanceName');
+  const voidAttendanceReason = document.getElementById('voidAttendanceReason');
   let selectedDeleteForm = null;
 
   document
     .getElementById('cancelDeleteAttendance')
     ?.addEventListener('click', () => {
       selectedDeleteForm = null;
+      if (voidAttendanceReason) voidAttendanceReason.value = '';
       closeModal(deleteAttendanceModal);
     });
 
   document
     .getElementById('confirmDeleteAttendance')
-    ?.addEventListener('click', () => selectedDeleteForm?.requestSubmit());
+    ?.addEventListener('click', () => {
+      if (!selectedDeleteForm || !voidAttendanceReason) return;
+      const reason = voidAttendanceReason.value.trim();
+      if (reason.length < 10) {
+        voidAttendanceReason.setCustomValidity('Please give a specific reason of at least 10 characters.');
+        voidAttendanceReason.reportValidity();
+        voidAttendanceReason.setCustomValidity('');
+        voidAttendanceReason.focus();
+        return;
+      }
+      let field = selectedDeleteForm.querySelector('input[name="void_reason"]');
+      if (!field) {
+        field = document.createElement('input');
+        field.type = 'hidden';
+        field.name = 'void_reason';
+        selectedDeleteForm.appendChild(field);
+      }
+      field.value = reason;
+      selectedDeleteForm.requestSubmit();
+    });
 
   // Server-side search/filter replaces tbody rows. Bind actions on each newly
   // inserted row without duplicating handlers on existing buttons.
@@ -118,6 +139,12 @@ window.GCTPartialNavigation.registerInitializer('operation-mechanic-attendance',
         ['Time-out', button.dataset.timeOut],
         ['Status', button.dataset.status],
       ];
+      if (button.dataset.voided === '1') {
+        fields.push(['Record State', 'Voided']);
+        fields.push(['Voided At', button.dataset.voidedAt || 'Not recorded']);
+        fields.push(['Voided By', button.dataset.voidedBy || 'Not recorded']);
+        fields.push(['Void Reason', button.dataset.voidReason || 'Not recorded']);
+      }
       if (viewMechanicAttendanceContent) {
         viewMechanicAttendanceContent.innerHTML = fields.map(([label, value]) => {
           const status = String(value ?? '').trim().toLowerCase();
@@ -188,7 +215,9 @@ window.GCTPartialNavigation.registerInitializer('operation-mechanic-attendance',
             || 'this attendance record';
         }
 
+        if (voidAttendanceReason) voidAttendanceReason.value = '';
         openModal(deleteAttendanceModal);
+        voidAttendanceReason?.focus();
       });
     });
 

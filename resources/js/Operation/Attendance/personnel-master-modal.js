@@ -261,6 +261,43 @@ window.GCTPartialNavigation.registerInitializer('operation-personnel-master', '.
     const headerIcon = modal.querySelector('[data-personnel-modal-icon]');
     const viewNotice = modal.querySelector('[data-personnel-view-notice]');
     const driverProfile = modal.querySelector('[data-driver-profile-view]');
+    const mechanicProfile = modal.querySelector('[data-mechanic-profile-view]');
+    const showMechanicProfile = (record) => {
+        if (!mechanicProfile) return;
+        const values = {
+            mechanic_name: record.mechanic_name || 'Not recorded',
+            mechanic_id: record.mechanic_id || 'Not recorded',
+            id_detail: record.mechanic_id || 'Not recorded',
+            contact_number: record.contact_number || 'Not recorded',
+            employment_status: record.employment_status || 'Not recorded',
+        };
+        Object.entries(values).forEach(([key, value]) => {
+            const element = mechanicProfile.querySelector('[data-mechanic-profile="' + key + '"]');
+            if (element) element.textContent = String(value);
+        });
+        const status = mechanicProfile.querySelector('[data-mechanic-profile="employment_status"]');
+        if (status) status.dataset.status = String(record.employment_status || '').toLowerCase();
+        const list = mechanicProfile.querySelector('[data-mechanic-profile-skills]');
+        const skills = String(record.specialization || '').split(/[,;]+/).map(value => value.trim()).filter(Boolean);
+        if (list) {
+            list.replaceChildren();
+            if (!skills.length) {
+                const empty = document.createElement('span');
+                empty.className = 'mechanic-profile-no-skills';
+                empty.textContent = 'No specializations recorded';
+                list.append(empty);
+            }
+            skills.forEach((skill) => {
+                const chip = document.createElement('span');
+                chip.className = 'mechanic-profile-skill';
+                chip.textContent = skill;
+                list.append(chip);
+            });
+        }
+        const count = mechanicProfile.querySelector('[data-mechanic-skills-count]');
+        if (count) count.textContent = skills.length + (skills.length === 1 ? ' specialization' : ' specializations');
+    };
+
     const setDriverProfile = (record) => {
         if (!driverProfile) return;
         for (const key of ['driver_id', 'driver_name', 'contact_number', 'employment_status']) {
@@ -804,6 +841,7 @@ window.GCTPartialNavigation.registerInitializer('operation-personnel-master', '.
         }
 
         modal.dataset.mode = 'edit';
+        if (mechanicProfile) mechanicProfile.hidden = true;
         if (driverProfile) driverProfile.hidden = true;
         updateBusPicker();
         if (viewNotice) viewNotice.hidden = true;
@@ -890,6 +928,10 @@ window.GCTPartialNavigation.registerInitializer('operation-personnel-master', '.
             submitButton.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Update ${entity}`;
         } else {
             modal.dataset.mode = 'view';
+            if (mechanicProfile) {
+                showMechanicProfile(record);
+                mechanicProfile.hidden = false;
+            }
             if (driverProfile) {
                 setDriverProfile(record);
                 driverProfile.hidden = false;

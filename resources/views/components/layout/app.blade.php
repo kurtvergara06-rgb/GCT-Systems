@@ -5,9 +5,12 @@
 ])
 
 @php
-  // Dark page-specific components are enabled in Operation and Account.
+  // Scoped dark-mode components are enabled for Operation, Maintenance, and Account.
   $operationThemePage = collect($assets)->contains(
     fn ($asset) => is_string($asset) && str_starts_with($asset, 'resources/css/Operation/')
+  );
+  $maintenanceThemePage = collect($assets)->contains(
+    fn ($asset) => is_string($asset) && str_starts_with($asset, 'resources/css/Maintenance/')
   );
   // Account pages share the saved appearance preference and already have
   // dark CSS. Resolve their theme before the first-paint loading cover too.
@@ -42,7 +45,8 @@
   ], request()->is('admin/*', 'analytics/*', 'batch-file-processing*')
     ? ['resources/css/Admin/administration-standards.css']
     : [],
-    $operationThemePage ? ['resources/css/Operation/operation-dark-mode.css'] : []
+    $operationThemePage ? ['resources/css/Operation/operation-dark-mode.css'] : [],
+    $maintenanceThemePage ? ['resources/css/Maintenance/maintenance-dark-mode.css'] : []
   )));
 @endphp
 
@@ -86,7 +90,7 @@
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
   >
 
-  @if(($operationThemePage || $accountThemePage) && auth()->check())
+  @if(($operationThemePage || $maintenanceThemePage || $accountThemePage) && auth()->check())
     {{-- Resolve the saved browser theme before styles paint to avoid a light flash. --}}
     <script>
       (() => {
@@ -139,6 +143,9 @@
     html[data-gct-theme="dark"] #gctBootLoader .gct-navigation-loader__spinner {
       border-color: #35465e; border-top-color: #f9b817; border-right-color: #9bc7ff;
     }
+    html[data-gct-theme="dark"] #gctBootLoader .gct-navigation-loader__spinner::after {
+      background: #162235;
+    }
     @keyframes gctNavigationSpin { to { transform: rotate(360deg); } }
   </style>
   <script>document.documentElement.classList.add('gct-page-booting');</script>
@@ -157,7 +164,7 @@
   @stack('styles')
 </head>
 
-<body @if($operationThemePage) data-gct-operation-page="1" @endif @if($performanceProfile) data-gct-performance-profile="1" @endif>
+<body @if($operationThemePage) data-gct-operation-page="1" @endif @if($maintenanceThemePage) data-gct-maintenance-page="1" @endif @if($performanceProfile) data-gct-performance-profile="1" @endif>
   <div id="gctBootLoader" role="status" aria-live="polite" aria-label="Loading page">
     <div class="gct-navigation-loader__content">
       <span class="gct-navigation-loader__spinner" aria-hidden="true"></span>

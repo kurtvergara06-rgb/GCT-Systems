@@ -53,10 +53,6 @@
           icon="fa-screwdriver-wrench"
           color="blue"
         />
-        <div class="mechanic-assigned-summary" style="grid-column: 1 / -1; font-size: 12px; color: #365071; padding: 3px 4px;">
-          <i class="fa-solid fa-clipboard-check" aria-hidden="true"></i>
-          <strong>{{ $assignedMechanics ?? 0 }} Assigned</strong> — reserved for a Job Order, but not yet working.
-        </div>
       </section>
 
       <section data-ajax-region="records" class="table-card mechanic-list-card mechanic-table-card">
@@ -83,8 +79,18 @@
           </x-slot:filters>
         </x-ui.table-toolbar>
 
-        <div class="table-wrap">
+        <div class="table-wrap mechanic-availability-table-wrap gct-master-scroll-10" role="region" tabindex="0" aria-label="Mechanic Availability records, scrollable">
           <table class="mechanic-attendance-style-table">
+            <colgroup>
+              <col style="width: 11%">
+              <col style="width: 18%">
+              <col style="width: 24%">
+              <col style="width: 10%">
+              <col style="width: 8%">
+              <col style="width: 8%">
+              <col style="width: 9%">
+              <col style="width: 12%">
+            </colgroup>
             <thead>
               <tr>
                 <th>ID</th>
@@ -193,7 +199,7 @@
                   <td>
                     <x-ui.status-badge :status="$effectiveStatus" class="attendance-badge {{ $statusClass }}" />
                   </td>
-                  <td><x-ui.status-badge :status="$assignmentStatus" /></td>
+                  <td><x-ui.status-badge :status="$assignmentStatus" class="mechanic-availability-status-box" /></td>
                 </tr>
               @empty
                 <x-ui.empty-row

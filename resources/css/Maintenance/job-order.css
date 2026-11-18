@@ -1036,13 +1036,13 @@ textarea[readonly] {
 
 .jo-page .table-wrap {
   width: 100%;
-  overflow-x: auto;
+  overflow-x: visible;
   border-radius: 10px;
 }
 
 .jo-page .job-orders-table {
   width: 100%;
-  min-width: 1080px;
+  min-width: 0;
   border-collapse: separate;
   border-spacing: 0;
 }
@@ -1533,24 +1533,6 @@ textarea[readonly] {
   box-shadow: 0 7px 16px rgba(255, 180, 0, .22);
 }
 
-/* The records scroll inside the table instead of extending the whole page. */
-.app:has(:is(#jobModal, #editJobModal)) .table-wrap {
-  position: relative;
-  width: 100%;
-  max-height: clamp(360px, 52vh, 620px);
-  border: 1px solid #e1e9f3;
-  border-radius: 13px;
-  overflow: auto;
-  overscroll-behavior: contain;
-  scrollbar-gutter: stable;
-}
-
-.app:has(:is(#jobModal, #editJobModal)) table {
-  min-width: 1180px;
-  border-collapse: separate;
-  border-spacing: 0;
-}
-
 .app:has(:is(#jobModal, #editJobModal)) table thead {
   background: #f3f7fb;
 }
@@ -1685,20 +1667,6 @@ textarea[readonly] {
   background: #fff1f2;
   border-color: #ffd9dc;
   color: #d92d3a;
-}
-
-.app:has(:is(#jobModal, #editJobModal)) .table-card .finish-btn,
-.app:has(:is(#jobModal, #editJobModal)) .table-card .locked-finish-btn {
-  min-width: 72px;
-  height: 30px !important;
-  padding: 0 12px !important;
-  border: 1px solid #bde8ca !important;
-  box-shadow: none !important;
-  font-size: 10.5px !important;
-}
-
-.app:has(:is(#jobModal, #editJobModal)) .table-card .locked-finish-btn {
-  border-color: #dce4ee !important;
 }
 
 @media (max-width: 1200px) {
@@ -1953,9 +1921,6 @@ textarea[readonly] {
 ========================================================= */
 
 .jo-page .maintenance-record-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
     gap: 16px;
 }
 
@@ -2033,7 +1998,6 @@ textarea[readonly] {
   border-radius: 18px;
   background: #ffffff;
   box-shadow: 0 26px 74px rgba(6, 31, 61, .24);
-  overflow: hidden;
 }
 
 :is(#jobModal, #editJobModal) .ui-form-modal-header {
@@ -2088,14 +2052,11 @@ textarea[readonly] {
 :is(#jobModal, #editJobModal) .ui-form-modal-scrollable {
   max-height: calc(100vh - 190px);
   padding-right: 4px;
-  overflow-y: auto;
-  overscroll-behavior: contain;
   scrollbar-width: thin;
 }
 
 :is(#jobModal, #editJobModal) .jo-create-section {
   margin-bottom: 15px;
-  overflow: hidden;
   border: 1px solid #dce5f2;
   border-radius: 14px;
   background: #ffffff;
@@ -2109,8 +2070,6 @@ textarea[readonly] {
 :is(#jobModal, #editJobModal) .jo-create-section-header {
   min-height: 58px;
   padding: 12px 14px;
-  display: flex;
-  align-items: center;
   gap: 11px;
   border-bottom: 1px solid #e9eef5;
   background: linear-gradient(180deg, #fbfdff 0%, #f8fbff 100%);
@@ -2120,7 +2079,6 @@ textarea[readonly] {
   width: 38px;
   height: 38px;
   flex: 0 0 38px;
-  border: 1px solid #d5e5ff;
   border-radius: 10px;
   display: inline-flex;
   align-items: center;
@@ -2310,14 +2268,11 @@ textarea[readonly] {
 
 :is(#jobModal, #editJobModal) .jo-create-parts-table {
   margin: 0 14px 14px;
-  overflow: hidden;
   border: 1px solid #dce5f2;
-  border-radius: 11px;
   background: #ffffff;
 }
 
 :is(#jobModal, #editJobModal) .jo-create-parts-table-head {
-  min-height: 36px;
   display: grid;
   grid-template-columns: 42px minmax(0, 1fr) 96px 120px 58px;
   align-items: center;
@@ -2327,7 +2282,6 @@ textarea[readonly] {
   background: #f5f8fc;
   color: #526177;
   font-size: 9.5px;
-  font-weight: 800;
   letter-spacing: .04em;
   text-transform: uppercase;
 }
@@ -2367,12 +2321,9 @@ textarea[readonly] {
 
 :is(#jobModal, #editJobModal) .jo-create-parts-repeater .jo-part-row input,
 :is(#jobModal, #editJobModal) .jo-create-parts-repeater .jo-part-row select {
-  width: 100%;
-  min-width: 0;
   height: 38px;
   padding: 0 10px;
   border: 1px solid #d7e2ef;
-  border-radius: 8px;
   background: #ffffff;
   color: #1e293b;
   font-size: 11.5px;
@@ -2385,11 +2336,7 @@ textarea[readonly] {
 }
 
 :is(#jobModal, #editJobModal) .jo-create-parts-repeater .remove-part-btn {
-  width: 34px;
-  height: 34px;
-  justify-self: center;
   border: 1px solid #fecdd3;
-  border-radius: 8px;
   background: #fff1f2;
   color: #dc2626;
 }
@@ -3217,10 +3164,7 @@ textarea[readonly] {
 .jo-mechanic-multi-menu {
     display: flex;
     flex-direction: column;
-    overflow: hidden;
     border: 1px solid #dbe3ef;
-    border-radius: 12px;
-    background: #fff;
     box-shadow: 0 18px 45px rgba(15, 23, 42, .18);
 }
 .jo-mechanic-multi-menu[hidden] { display: none; }
@@ -3529,12 +3473,10 @@ body > .jo-custom-skill-panel .jo-custom-skill-choice input[type="checkbox"] {
 }
 :is(#jobModal, #editJobModal) .jo-create-parts-table {
   border: 1px solid #e1e8f3; border-radius: 11px;
-  background: #fff; overflow: hidden; margin-top: 10px;
 }
 :is(#jobModal, #editJobModal) .jo-create-parts-table-head,
 :is(#jobModal, #editJobModal) .jo-create-parts-repeater .jo-part-row {
   grid-template-columns: 34px minmax(160px, 1fr) 90px 110px 56px;
-  column-gap: 10px; align-items: center;
 }
 :is(#jobModal, #editJobModal) .jo-create-parts-table-head {
   min-height: 36px; padding: 8px 12px; background: #f6f9fd;
@@ -3548,7 +3490,7 @@ body > .jo-custom-skill-panel .jo-custom-skill-choice input[type="checkbox"] {
   min-width: 0; width: 100%; min-height: 36px; border-radius: 8px;
 }
 :is(#jobModal, #editJobModal) .jo-create-parts-repeater .remove-part-btn {
-  width: 34px; min-width: 34px; height: 34px; justify-self: center;
+  width: 34px; min-width: 34px; height: 34px;
   border-radius: 8px;
 }
 :is(#jobModal, #editJobModal) .jo-parts-policy-grid {
@@ -3629,8 +3571,7 @@ body > .jo-inventory-search-menu .jo-inventory-search-option:disabled { opacity:
 :is(#jobModal, #editJobModal) .jo-create-parts-repeater .jo-inventory-search-wrap,
 :is(#jobModal, #editJobModal) .jo-create-parts-repeater .jo-inventory-search-trigger { min-width: 0; }
 :is(#jobModal, #editJobModal) .jo-create-parts-repeater .jo-inventory-search-trigger {
-  min-height: 38px; max-width: 100%; border-radius: 8px;
-  background: #fff; padding: 8px 12px;
+  min-height: 38px; max-width: 100%; border-radius: 8px; padding: 8px 12px;
 }
 :is(#jobModal, #editJobModal) .jo-create-parts-repeater select.jo-auto-unit-select {
   width: 100%; min-height: 38px; padding: 8px 24px 8px 10px;
@@ -3638,7 +3579,7 @@ body > .jo-inventory-search-menu .jo-inventory-search-option:disabled { opacity:
   appearance: none; background: #f1f5f9;
 }
 :is(#jobModal, #editJobModal) .jo-create-parts-repeater .jo-part-row input[type="number"] {
-  min-height: 38px; text-align: center;
+  min-height: 38px;
 }
 :is(#jobModal, #editJobModal) .jo-parts-availability-panel {
   margin-top: 12px; padding: 12px 14px;
@@ -3692,65 +3633,6 @@ body > .jo-inventory-search-menu .jo-inventory-search-option:disabled { opacity:
 }
 
 
-/* Job Orders list: calm, compact active table while keeping all actions usable. */
-.jo-page .job-orders-table th {
-  padding: 10px 11px;
-  font-size: 10px;
-}
-.jo-page .job-orders-table td {
-  padding: 10px 11px;
-  font-size: 12px;
-  line-height: 1.35;
-}
-.jo-page .job-orders-table tbody tr.jo-overdue-row,
-.jo-page .job-orders-table tbody tr.jo-overdue-row td {
-  background-color: #fff !important;
-}
-.jo-page .job-orders-table tbody tr.jo-overdue-row:hover,
-.jo-page .job-orders-table tbody tr.jo-overdue-row:hover td {
-  background-color: #f8fbff !important;
-}
-.jo-page .job-orders-table .jo-estimate-inline {
-  display: block;
-  margin-top: 3px;
-  color: #64748b;
-  font-size: 11px;
-  line-height: 1.3;
-}
-.jo-page .job-orders-table .jo-overdue-indicator {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  width: fit-content;
-  max-width: 100%;
-  margin-top: 4px;
-  padding: 3px 7px;
-  border: 1px solid #fecaca;
-  border-radius: 6px;
-  color: #b42318;
-  background: #fff5f5;
-  font-size: 10px;
-  font-weight: 650;
-  line-height: 1.2;
-}
-.jo-page .job-orders-table .jo-overdue-indicator i { font-size: 10px; }
-.jo-page .job-orders-table .date-time-cell .date-value { font-size: 12px; }
-.jo-page .job-orders-table .date-time-cell .time-value { margin-top: 2px; font-size: 10px; }
-.jo-page .job-orders-table .mechanic-name-text {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-}
-.jo-page .job-orders-table .actions { gap: 6px; justify-content: center; }
-.jo-page .job-orders-table .actions .action-btn,
-.jo-page .job-orders-table .actions > button,
-.jo-page .job-orders-table .actions form > button {
-  min-width: 30px;
-  width: 30px;
-  height: 30px;
-}
-
-
 /* Assigned Mechanic: compact profile rows consistent with driver list styling. */
 .jo-page .job-orders-table .jo-mechanic-profiles { display: flex; flex-direction: column; gap: 7px; min-width: 150px; }
 .jo-page .job-orders-table .jo-mechanic-profile { display: flex; align-items: center; gap: 9px; min-width: 0; }
@@ -3759,10 +3641,10 @@ body > .jo-inventory-search-menu .jo-inventory-search-option:disabled { opacity:
   border-radius: 9px; display: inline-flex; align-items: center; justify-content: center;
   background: #eaf2ff; color: #2469d7; font-size: 13px;
 }
-.jo-page .job-orders-table .jo-mechanic-profile-text { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.jo-page .job-orders-table .jo-mechanic-profile-text { display: flex; flex-direction: column; gap: 2px; }
 .jo-page .job-orders-table .jo-mechanic-profile-name {
   color: #1d3152; font-weight: 750; font-size: 12px;
-  line-height: 1.25; overflow-wrap: anywhere;
+  line-height: 1.25;
 }
 .jo-page .job-orders-table .jo-mechanic-profile-caption {
   color: #8292a9; font-size: 10px; line-height: 1.2;
@@ -3811,9 +3693,6 @@ body > .jo-inventory-search-menu .jo-inventory-search-option:disabled { opacity:
   padding-top: 12px;
   padding-bottom: 12px;
 }
-:is(#jobModal, #editJobModal) .jo-create-duration .jo-estimated-duration-field {
-  max-width: 100%;
-}
 :is(#jobModal, #editJobModal) .jo-create-duration .jo-duration-control {
   max-width: 440px;
 }
@@ -3852,7 +3731,6 @@ body.jo-head-review-open { overflow: hidden; }
 }
 .jo-head-review-overlay[hidden] { display: none !important; }
 .jo-head-review-dialog {
-  width: min(640px, 100%); max-height: min(86vh, 790px);
   overflow: hidden; display: flex; flex-direction: column;
   border-radius: 16px; background: #fff;
   border: 1px solid #dce6f3; box-shadow: 0 24px 72px rgba(15,23,42,.28);
@@ -3868,12 +3746,12 @@ body.jo-head-review-open { overflow: hidden; }
   border-bottom: 1px solid #e5eaf3;
 }
 .jo-head-review-heading strong { display: block; font-size: 17px; color: #122c51; }
-.jo-head-review-heading small { display: block; margin-top: 4px; color: #70829c; font-size: 11px; }
+.jo-head-review-heading small { display: block; margin-top: 4px; color: #70829c; }
 .jo-head-review-close {
   width: 34px; height: 34px; flex: none; border: 1px solid #dce6f3;
   border-radius: 9px; background: #f8fafc; color: #344967; cursor: pointer;
 }
-.jo-head-review-body { overflow-y: auto; padding: 18px 20px 20px; }
+.jo-head-review-body { padding: 18px 20px 20px; }
 .jo-head-review-body .jo-review-panel {
   position: static !important; inset: auto !important;
   width: auto !important; max-width: none !important; box-shadow: none !important;
@@ -3907,7 +3785,7 @@ body.jo-head-review-open { overflow: hidden; }
 
 
 /* Streamlined Maintenance Head review: one action form at a time. */
-.jo-head-review-body .jo-review-panel { display: flex; flex-direction: column; gap: 14px; }
+.jo-head-review-body .jo-review-panel { display: flex; gap: 14px; }
 .jo-head-review-body .jo-review-panel form[hidden],
 .jo-head-review-body .jo-review-panel [hidden] { display: none !important; }
 .jo-head-review-body .jo-review-summary {
@@ -3924,7 +3802,7 @@ body.jo-head-review-open { overflow: hidden; }
   padding: 0 !important; margin: 0 !important; border: 0 !important; gap: 13px;
 }
 .jo-head-review-body .jo-head-duration-review,
-.jo-head-review-body .jo-head-authorization { display: flex; flex-direction: column; gap: 8px; }
+.jo-head-review-body .jo-head-authorization { gap: 8px; }
 .jo-head-review-body .jo-head-duration-review > strong,
 .jo-head-review-body .jo-head-authorization > strong,
 .jo-head-review-body .jo-review-form > strong { color: #183355; font-size: 13px; }
@@ -3932,7 +3810,7 @@ body.jo-head-review-open { overflow: hidden; }
 .jo-head-review-body .jo-head-authorization { border-top: 1px solid #e6edf5; padding-top: 14px; }
 .jo-head-review-body .jo-review-submit { margin-left: auto; }
 .jo-head-review-body .jo-review-footer {
-  display: flex; align-items: center; gap: 8px; justify-content: flex-end;
+  display: flex; align-items: center; justify-content: flex-end;
   padding-top: 13px; border-top: 1px solid #e5ebf4;
 }
 .jo-head-review-body .jo-review-footer button {
@@ -3951,7 +3829,7 @@ body.jo-head-review-open { overflow: hidden; }
   border: 1px solid #e1e9f4; background: #f8fafd; border-radius: 10px;
 }
 .jo-head-review-body .jo-review-details h4 { margin: 0; font-size: 13px; color: #173656; }
-.jo-head-review-body .jo-review-detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.jo-head-review-body .jo-review-detail-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
 .jo-head-review-body .jo-review-detail-grid > div,
 .jo-head-review-body .jo-review-detail-long { min-width: 0; display: grid; gap: 4px; }
 .jo-head-review-body .jo-review-detail-grid span,
@@ -4002,12 +3880,12 @@ body.jo-head-review-open { overflow: hidden; }
 
 
 /* Streamlined JO Head review: compact summary and always-visible decision footer. */
-.jo-head-review-dialog { width: min(720px, 100%); max-height: min(88vh, 790px); }
+
 .jo-head-review-body { padding: 0 !important; min-height: 0; overflow-y: auto; }
 .jo-head-review-body .jo-review-panel { gap: 10px; padding: 14px 16px 0 !important; }
 .jo-head-review-body .jo-review-details { padding: 11px 13px; gap: 8px; }
-.jo-head-review-body .jo-review-details-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
-.jo-head-review-body .jo-review-details-heading span { font-size: 11px; font-weight: 650; color: #4b6791; }
+.jo-head-review-body .jo-review-details-heading { flex-wrap: wrap; gap: 8px; }
+.jo-head-review-body .jo-review-details-heading span { font-weight: 650; color: #4b6791; }
 .jo-head-review-body .jo-review-detail-grid { gap: 7px 14px; }
 .jo-head-review-body .jo-review-detail-grid > div { gap: 2px; }
 .jo-head-review-body .jo-review-detail-long { padding-top: 6px; gap: 2px; }
@@ -4017,7 +3895,7 @@ body.jo-head-review-open { overflow: hidden; }
 .jo-head-review-body .jo-head-authorization { padding-top: 10px; }
 .jo-head-review-body .jo-review-panel .jo-review-form { gap: 10px; }
 .jo-head-review-body .jo-review-footer {
-  position: sticky; bottom: 0; z-index: 8;
+  position: sticky; z-index: 8;
   margin: 0 -16px; padding: 12px 16px;
   background: #fff; border-top: 1px solid #dde7f3;
   box-shadow: 0 -8px 20px rgba(17,39,70,.05);
@@ -4038,17 +3916,11 @@ body.jo-head-review-open { overflow: hidden; }
 
 
 /* Head Review redesign: desktop-wide modal with verification and actual signature. */
-.jo-head-review-dialog {
-  width: min(880px, calc(100vw - 32px)) !important;
-  max-height: min(calc(100dvh - 24px), 940px) !important;
-}
+
 .jo-head-review-body .jo-review-panel {
   display: flex !important;
   flex-direction: column;
   gap: 12px;
-}
-.jo-head-review-body .jo-review-detail-grid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 .jo-head-review-body .jo-review-mode[data-review-mode="approve"] .jo-review-approve-form {
   display: grid !important;
@@ -4094,11 +3966,9 @@ body.jo-head-review-open { overflow: hidden; }
 }
 .jo-head-review-body .jo-signature-grid small { color: #64748b; font-size: 10px; }
 .jo-head-review-body .jo-review-footer {
-  position: sticky !important; bottom: 0; z-index: 15;
-  background: white; margin-top: 2px;
+  margin-top: 2px;
 }
 @media (max-width: 720px) {
-  .jo-head-review-dialog { width: min(100%, calc(100vw - 20px)) !important; }
   .jo-head-review-body .jo-review-mode[data-review-mode="approve"] .jo-review-approve-form {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -4108,7 +3978,6 @@ body.jo-head-review-open { overflow: hidden; }
 /* Head review visual parity with approved reference: compact fact rows,
    paired verification / authorization and horizontal signature layout. */
 @media (min-width: 721px) {
-  .jo-head-review-dialog { width: min(880px, calc(100vw - 32px)) !important; }
   .jo-head-review-body .jo-review-details { padding: 13px 16px; }
   .jo-head-review-body .jo-review-detail-grid > div {
     display: grid; grid-template-columns: minmax(115px, 42%) minmax(0,1fr);
@@ -4143,7 +4012,7 @@ body.jo-head-review-open { overflow: hidden; }
 .jo-head-review-body .jo-duration-metric > span { font-size: 11px; color: #597297; }
 .jo-head-review-body .jo-duration-metric > strong { font-size: 18px; color: #183d83; }
 .jo-head-review-body .jo-signature-draw-wrap,
-.jo-head-review-body .jo-signature-identity { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+.jo-head-review-body .jo-signature-identity { display: flex; flex-direction: column; min-width: 0; }
 .jo-head-review-body .jo-head-duration-review p,
 .jo-head-review-body .jo-head-authorization p { font-size: 11px; }
 .jo-head-review-body .jo-signature-pad { min-height: 124px; }
@@ -4153,7 +4022,6 @@ body.jo-head-review-open { overflow: hidden; }
 /* Canonical Head review composition: details, verification, authorization. */
 .jo-head-review-heading {
   padding: 15px 22px;
-  background: #fff;
 }
 .jo-head-review-heading strong { font-size: 19px; letter-spacing: -.01em; }
 .jo-head-review-heading small { font-size: 11px; }
@@ -4171,7 +4039,7 @@ body.jo-head-review-open { overflow: hidden; }
   border-bottom: 1px solid #e2eaf5;
 }
 .jo-head-review-body .jo-review-details-heading h4 {
-  display: inline-flex; align-items: center; gap: 9px;
+  display: inline-flex; gap: 9px;
   font-size: 14px;
 }
 .jo-head-review-body .jo-review-details-heading h4 i { color: #17438e; }
@@ -4294,7 +4162,6 @@ body.jo-head-review-open { overflow: hidden; }
 
 /* Head review: uploaded signature preview replaces the drawing canvas. */
 .jo-signature-upload-zone {
-  min-height: 158px;
   border: 1px dashed #bfd0ea;
   border-radius: 11px;
   background: #fbfcff;
@@ -4310,7 +4177,7 @@ body.jo-head-review-open { overflow: hidden; }
 .jo-signature-upload-placeholder > i { font-size: 24px; color: #59739c; }
 .jo-signature-upload-placeholder > small { color: #667994; }
 .jo-signature-upload-zone .jo-signature-file { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
-.jo-signature-preview { display: block; width: 100%; max-height: 110px; object-fit: contain; }
+.jo-signature-preview { display: block; max-height: 110px; object-fit: contain; }
 .jo-signature-preview[hidden], .jo-signature-upload-placeholder[hidden], .jo-signature-remove[hidden] { display: none !important; }
 .jo-signature-upload-actions { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
 .jo-signature-upload-actions button { border: 1px solid #d4deed; border-radius: 7px; padding: 7px 12px; background: #fff; color: #173a69; font-size: 12px; font-weight: 600; cursor: pointer; }
@@ -4368,14 +4235,8 @@ body.jo-head-review-open { overflow: hidden; }
 }
 
 
-/* Job Order ledger refinement: compact, readable rows and aligned actions. */
-.jo-page .job-orders-table { table-layout: fixed; min-width: 1060px; }
-.jo-page .job-orders-table th:nth-child(1) { width: 8%; }
-.jo-page .job-orders-table th:nth-child(2) { width: 18%; }
-.jo-page .job-orders-table th:nth-child(3) { width: 18%; }
-.jo-page .job-orders-table th:nth-child(4) { width: 13%; }
-.jo-page .job-orders-table th:nth-child(5) { width: 15%; }
-.jo-page .job-orders-table th:nth-child(8) { width: 7%; }
+/* Job Order ledger refinement: preserve compact row treatment.
+   Six-column widths are defined once in the overview section below. */
 .jo-page .job-orders-table tbody td {
   vertical-align: middle;
   padding-block: 12px;
@@ -4389,9 +4250,7 @@ body.jo-head-review-open { overflow: hidden; }
 .jo-page .job-orders-table .jo-mechanic-profile-name { overflow-wrap: anywhere; }
 .jo-page .job-orders-table .jo-actions-cell .actions { white-space: nowrap; }
 .jo-page .job-orders-table .locked-finish-btn:disabled { cursor: not-allowed !important; }
-@media (max-width: 1150px) {
-  .jo-page .job-orders-table { min-width: 1060px; }
-}
+
 
 /* Explicit review and no-purchase-request states in the Job Orders ledger. */
 .jo-page .job-orders-table .jo-for-review-badge {
@@ -4452,20 +4311,20 @@ body.jo-head-review-open { overflow: hidden; }
 .jo-view-overlay[hidden] { display: none !important; }
 .jo-view-overlay { position: fixed; inset: 0; z-index: 10050; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(10, 25, 49, .56); backdrop-filter: blur(5px); }
 body.jo-readonly-open { overflow: hidden; }
-.jo-view-dialog { width: min(790px, 100%); max-height: min(790px, calc(100vh - 40px)); display: flex; flex-direction: column; overflow: hidden; border: 1px solid #d8e4f5; border-radius: 15px; background: #fff; color: #152c4d; box-shadow: 0 20px 60px rgba(0,0,0,.24); }
+.jo-view-dialog { max-height: min(790px, calc(100vh - 40px)); display: flex; flex-direction: column; overflow: hidden; border: 1px solid #d8e4f5; border-radius: 15px; background: #fff; color: #152c4d; box-shadow: 0 20px 60px rgba(0,0,0,.24); }
 .jo-view-header { flex: none; display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; padding: 17px 20px; border-bottom: 1px solid #e1e8f2; background: #f7faff; }
 .jo-view-header h2 { margin: 0; font-size: 19px; font-weight: 800; }
 .jo-view-header p { margin: 5px 0 0; color: #60738e; font-size: 12px; }
 .jo-view-header button, .jo-view-footer button { border: 1px solid #d2deee; border-radius: 8px; background: #fff; color: #16365f; padding: 8px 12px; font-size: 12px; font-weight: 700; cursor: pointer; }
-.jo-view-body { overflow: auto; overscroll-behavior: contain; padding: 16px 20px 20px; display: grid; gap: 12px; }
+.jo-view-body { overflow: auto; padding: 16px 20px 20px; display: grid; gap: 12px; }
 .jo-view-summary { padding: 12px 15px; border: 1px solid #d8e6fb; background: #f0f6ff; border-radius: 11px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .jo-view-summary > div, .jo-view-grid > div { min-width: 0; display: flex; flex-direction: column; gap: 5px; }
 .jo-view-summary span, .jo-view-grid span { font-size: 10px; letter-spacing: .02em; color: #6a7b92; font-weight: 600; }
 .jo-view-summary strong { color: #0c3f87; font-size: 14px; }
 .jo-view-section { border: 1px solid #dce6f4; border-radius: 11px; overflow: hidden; }
-.jo-view-section h3 { margin: 0; padding: 11px 14px; background: #f4f7fc; border-bottom: 1px solid #e0e8f3; font-size: 12px; font-weight: 800; color: #16365f; display: flex; align-items: center; gap: 8px; }
+.jo-view-section h3 { margin: 0; padding: 11px 14px; background: #f4f7fc; border-bottom: 1px solid #e0e8f3; font-weight: 800; color: #16365f; display: flex; align-items: center; gap: 8px; }
 .jo-view-grid { padding: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px 22px; }
-.jo-view-grid strong { color: #1c3554; font-weight: 700; font-size: 12px; overflow-wrap: anywhere; }
+.jo-view-grid strong { color: #1c3554; font-weight: 700; overflow-wrap: anywhere; }
 .jo-view-help { margin: 0 14px 14px; font-size: 11px; color: #64748b; }
 .jo-view-audit { border: 1px solid #dce6f4; border-radius: 10px; padding: 13px 15px; font-size: 12px; }
 .jo-view-audit summary { cursor: pointer; font-weight: 800; }
@@ -4478,10 +4337,10 @@ body.jo-readonly-open { overflow: hidden; }
 
 
 /* Read-only Job Order modal â€” refined FROMS visual hierarchy. */
-.jo-view-dialog { width: min(850px, 100%); border-radius: 17px; }
-.jo-view-header { padding: 19px 23px; background: linear-gradient(120deg,#f1f6ff 0%,#fff 100%); }
+.jo-view-dialog { border-radius: 17px; }
+.jo-view-header { padding: 13px 18px; background: linear-gradient(120deg,#f1f6ff 0%,#fff 100%); }
 .jo-view-heading { display: flex; align-items: center; gap: 13px; }
-.jo-view-heading-icon { display: grid; place-items: center; flex: none; width: 42px; height: 42px; border: 1px solid #bcd4ff; border-radius: 12px; color: #0d4b9c; background: #e7f0ff; font-size: 18px; }
+.jo-view-heading-icon { display: grid; place-items: center; flex: none; width: 36px; height: 36px; border: 1px solid #bcd4ff; border-radius: 12px; color: #0d4b9c; background: #e7f0ff; font-size: 18px; }
 .jo-view-body { gap: 14px; background: #fbfcff; padding: 17px 22px 22px; }
 .jo-view-summary { border-color: #b8d1f5; background: linear-gradient(100deg,#eaf3ff,#f7faff); padding: 15px 18px; }
 .jo-view-summary span { text-transform: uppercase; letter-spacing: .07em; font-size: 10px; }
@@ -4507,7 +4366,7 @@ body.jo-readonly-open { overflow: hidden; }
 .jo-view-audit ol { list-style: none; margin: 14px 0 0 9px; padding: 0 0 0 16px; border-left: 2px solid #bfd4f1; }
 .jo-view-audit li { position: relative; padding: 2px 0 16px 10px; line-height: 1.5; }
 .jo-view-audit li::before { content: ''; position: absolute; left: -22px; top: 7px; width: 9px; height: 9px; border: 2px solid #fff; border-radius: 100%; background: #2868bd; box-shadow: 0 0 0 1px #9fbee9; }
-.jo-view-footer { background: #f9fbff; }
+.jo-view-footer { background: #f9fbff; padding: 9px 16px; }
 .jo-view-footer button { background: #0f4a99; color: #fff; border-color: #0f4a99; min-width: 90px; }
 .jo-view-footer button:hover { background: #0b3876; color: #fff; }
 
@@ -4625,7 +4484,6 @@ body.jo-readonly-open { overflow: hidden; }
 :is(#jobModal, #editJobModal) .jo-create-parts-repeater .jo-part-row {
   grid-template-columns: 28px minmax(0,1fr) 80px 96px 108px 50px;
   column-gap: 9px;
-  align-items: center;
 }
 :is(#jobModal, #editJobModal) .jo-create-parts-repeater .jo-row-stock-badge {
   position: static !important;
@@ -4634,7 +4492,6 @@ body.jo-readonly-open { overflow: hidden; }
   grid-row: 1;
   width: fit-content;
   max-width: 108px;
-  justify-self: start;
   display: inline-flex;
   font-size: 10px;
   padding: 4px 8px;
@@ -4746,8 +4603,8 @@ body.jo-readonly-open { overflow: hidden; }
   border-radius: 8px;
   background: #f8fbff;
 }
-.jo-review-part-name { color: #1a3558; font-size: 12px; font-weight: 700; overflow-wrap: anywhere; }
-.jo-review-part-qty { color: #536c8d; font-size: 11px; white-space: nowrap; }
+.jo-review-part-name { color: #1a3558; font-size: 12px; overflow-wrap: anywhere; }
+.jo-review-part-qty { color: #536c8d; white-space: nowrap; }
 .jo-review-part-availability {
   display: inline-flex;
   align-items: center;
@@ -4830,7 +4687,7 @@ body.jo-readonly-open { overflow: hidden; }
 }
 .jo-review-part-name { font-size: 11px; font-weight: 700; }
 .jo-review-part-qty { font-size: 11px; white-space: normal; }
-.jo-review-part-availability { justify-self: start; min-width: 90px; }
+.jo-review-part-availability { min-width: 90px; }
 @media (max-width: 600px) {
   .jo-review-parts-table-header,
   .jo-review-panel .jo-review-part-item,
@@ -4900,7 +4757,6 @@ body.jo-readonly-open { overflow: hidden; }
 
 /* Head review summary: slightly larger labels and values for readability. */
 .jo-head-review-body .jo-review-details-heading h4 {
-  font-size: 15px;
   line-height: 1.4;
 }
 .jo-head-review-body .jo-review-detail-grid span,
@@ -4938,85 +4794,6 @@ body.jo-readonly-open { overflow: hidden; }
   margin: 0 !important;
   box-sizing: border-box;
 }
-
-/* Keep read-only JO actions consistent with the labeled PR View button. */
-.app:has(:is(#jobModal, #editJobModal)) .jo-page .job-orders-table .actions .jo-labeled-view {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  width: auto;
-  min-width: 82px;
-  height: 34px;
-  padding: 0 12px;
-  white-space: nowrap;
-  background: #edf4ff;
-  border: 1px solid #d4e3fb;
-  color: #1656c8;
-  border-radius: 8px;
-  font-size: 12px;
-  font-weight: 700;
-}
-.app:has(:is(#jobModal, #editJobModal)) .jo-page .job-orders-table .actions .jo-labeled-view:hover {
-  background: #1252c5;
-  border-color: #1252c5;
-  color: #fff;
-}
-
-/* Read-only table actions: keep the View label inside its own button. */
-.app:has(:is(#jobModal, #editJobModal)) .jo-page .job-orders-table .jo-actions-cell .actions .jo-labeled-view,
-.jo-page .job-orders-table .jo-actions-cell .actions .jo-labeled-view {
-  box-sizing: border-box;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 auto;
-  gap: 6px;
-  width: 88px;
-  min-width: 88px;
-  max-width: 88px;
-  padding: 0 10px;
-  overflow: hidden;
-}
-.jo-page .job-orders-table .jo-actions-cell .actions .jo-labeled-view i,
-.jo-page .job-orders-table .jo-actions-cell .actions .jo-labeled-view span {
-  flex-shrink: 0;
-  position: static;
-}
-
-/* JO read-only action matches the PR View control; override legacy 30px rules. */
-.jo-page .job-orders-table td.jo-actions-cell {
-  min-width: 120px;
-  width: 120px;
-  overflow: visible;
-}
-.app:has(:is(#jobModal, #editJobModal)) .jo-page .job-orders-table td.jo-actions-cell .actions,
-.jo-page .job-orders-table td.jo-actions-cell .actions {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: visible;
-}
-.app:has(:is(#jobModal, #editJobModal)) .jo-page .job-orders-table td.jo-actions-cell .actions button.jo-labeled-view,
-.app:has(:is(#jobModal, #editJobModal)) .jo-page .job-orders-table td.jo-actions-cell .actions .action-btn.jo-labeled-view,
-.jo-page .job-orders-table td.jo-actions-cell .actions button.jo-labeled-view,
-.jo-page .job-orders-table td.jo-actions-cell .actions .action-btn.jo-labeled-view {
-  box-sizing: border-box;
-  flex: 0 0 92px;
-  width: 92px;
-  min-width: 92px;
-  max-width: 92px;
-  height: 34px;
-  padding: 0 11px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  overflow: visible;
-  white-space: nowrap;
-  line-height: 1;
-}
-
 
 /* Compact read-only Parts, approval and audit sections â€” no decorative accent lines. */
 #joReadonlyOverlay .jo-view-parts-cell {
@@ -5058,10 +4835,8 @@ body.jo-readonly-open { overflow: hidden; }
 #joReadonlyOverlay .jo-view-signature img {
   display: block;
   width: min(100%, 450px);
-  max-width: 100%;
   height: 95px;
   padding: 6px 14px;
-  object-fit: contain;
   border: 1px solid #e2e9f4;
   border-radius: 9px;
   background: #fbfdff;
@@ -5142,26 +4917,18 @@ body.jo-readonly-open { overflow: hidden; }
 #joReadonlyOverlay .jo-view-warehouse-grid .jo-view-parts-list {
   margin-top: 10px;
   gap: 8px;
-  padding: 0;
   list-style: none;
 }
 #joReadonlyOverlay .jo-view-warehouse-grid .jo-view-parts-list li {
-  display: flex;
   list-style: none;
-  align-items: center;
-  justify-content: space-between;
   min-height: 38px;
   margin: 0;
-  padding: 9px 12px;
-  border: 0;
-  border-radius: 9px;
   background: #f3f7fc;
   font-size: 13px;
-  line-height: 1.45;
 }
 #joReadonlyOverlay .jo-view-warehouse-grid .jo-view-parts-list li::marker { content: ""; }
-#joReadonlyOverlay .jo-view-warehouse-grid .jo-view-part-name { font-size: 13px; font-weight: 700; }
-#joReadonlyOverlay .jo-view-warehouse-grid .jo-view-part-quantity { font-size: 13px; font-weight: 800; }
+#joReadonlyOverlay .jo-view-warehouse-grid .jo-view-part-name { font-weight: 700; }
+#joReadonlyOverlay .jo-view-warehouse-grid .jo-view-part-quantity { font-weight: 800; }
 #joReadonlyOverlay .jo-view-head-approval-section .jo-view-approval-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -5279,7 +5046,6 @@ body.jo-readonly-open { overflow: hidden; }
 #joReadonlyOverlay .jo-view-warehouse-grid .jo-view-parts-list li {
   display: flex;
   justify-content: space-between;
-  align-items: center;
   box-sizing: border-box;
   min-width: 0;
   min-height: 44px;
@@ -5290,14 +5056,11 @@ body.jo-readonly-open { overflow: hidden; }
   line-height: 1.45;
 }
 #joReadonlyOverlay .jo-view-warehouse-grid .jo-view-part-name {
-  min-width: 0;
   font-size: 13px;
-  overflow-wrap: anywhere;
 }
 #joReadonlyOverlay .jo-view-warehouse-grid .jo-view-part-quantity {
   flex: 0 0 auto;
   font-size: 13px;
-  white-space: nowrap;
 }
 #joReadonlyOverlay .jo-view-section .jo-view-grid > div {
   border-left: 0 !important;
@@ -5342,8 +5105,6 @@ body.jo-readonly-open { overflow: hidden; }
   padding: 3px 9px;
   border: 1px solid transparent;
   border-radius: 999px;
-  font-size: 11px;
-  font-weight: 750;
   line-height: 1.3;
   white-space: nowrap;
 }
@@ -5565,11 +5326,9 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
   row-gap: 0;
 }
 .jo-head-review-body .jo-review-detail-grid > div {
-  display: grid;
   grid-template-columns: minmax(140px, 42%) minmax(0, 1fr);
   align-items: start;
   gap: 10px;
-  min-width: 0;
   border-bottom: 1px solid #e7edf5;
   padding: 9px 2px;
 }
@@ -5601,7 +5360,7 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
 
 
 /* Compact readonly Job Order detail summary; no workflow behavior changes. */
-.jo-view-dialog { width: min(880px, 100%); }
+
 .jo-view-body { gap: 10px; padding: 13px 18px 18px; }
 .jo-view-summary { padding: 11px 14px; }
 .jo-view-section h3 { padding: 9px 13px; }
@@ -5849,18 +5608,18 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
 .jo-mechanic-multi-menu .jo-mechanic-multi-option.is-selected { background: #f1f6ff; }
 .jo-mechanic-multi-menu .jo-mechanic-multi-option:disabled { opacity: .63; cursor: not-allowed; }
 .jo-mechanic-multi-menu .jo-mechanic-option-avatar {
-  display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%;
-  background: #d7e6f9; color: #24588e; font-size: 11px; font-weight: 800;
+  display: grid; place-items: center; width: 32px; height: 32px;
+  background: #d7e6f9; color: #24588e; font-weight: 800;
 }
 .jo-mechanic-multi-menu .jo-mechanic-option-copy { min-width: 0; display: flex; flex-direction: column; gap: 5px; }
-.jo-mechanic-multi-menu .jo-mechanic-option-copy > strong { display: block; color: #152e50; font-size: 12px; font-weight: 750; }
+.jo-mechanic-multi-menu .jo-mechanic-option-copy > strong { display: block; color: #152e50; }
 .jo-mechanic-multi-menu .jo-mechanic-option-skills { display: flex; flex-wrap: wrap; gap: 4px; }
 .jo-mechanic-multi-menu .jo-mechanic-option-skills small {
   display: inline-flex; width: auto; border: 1px solid #d8e7fa;
-  padding: 3px 6px; border-radius: 5px; background: #eaf2fd;
-  color: #285c9e; font-size: 10px; line-height: 1.1;
+  padding: 3px 6px; background: #eaf2fd;
+  color: #285c9e; line-height: 1.1;
 }
-.jo-mechanic-multi-menu .jo-mechanic-option-status { font-size: 11px; color: #218155; font-weight: 700; white-space: nowrap; }
+.jo-mechanic-multi-menu .jo-mechanic-option-status { color: #218155; white-space: nowrap; }
 .jo-mechanic-multi-menu .jo-mechanic-option-status::before { content: '●'; font-size: 9px; margin-right: 5px; }
 .jo-mechanic-multi-menu .jo-mechanic-option-status.is-unavailable { color: #bd454b; }
 .jo-mechanic-multi-menu .jo-mechanic-multi-option > i { color: #a6b8cf; font-size: 17px; }
@@ -5877,10 +5636,10 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
 /* Compact polish for the portal-based mechanic picker; no behavior changes. */
 .jo-mechanic-multi-menu {
   overflow: hidden;
-  border-radius: 12px !important;
-  border: 1px solid #cbdcf2 !important;
-  background: #fff !important;
-  box-shadow: 0 18px 40px rgba(17, 42, 78, .16) !important;
+  border-radius: 12px;
+  border: 1px solid #cbdcf2;
+  background: #fff;
+  box-shadow: 0 18px 40px rgba(17, 42, 78, .16);
 }
 .jo-mechanic-multi-menu .jo-mechanic-combobox-search {
   padding: 10px 11px !important;
@@ -6176,23 +5935,38 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
   min-width: 0;
   padding: 10px;
 }
+/* One visible search field: the input owns the border, not its wrapper. */
 :is(#jobModal, #editJobModal) .jo-maintenance-job-search {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  padding: 0 10px;
+  position: relative;
+  display: block;
   height: 37px;
-  border: 1px solid #cbdcf0;
-  border-radius: 8px;
-  background: #fff;
+  padding: 0;
+  border: 0;
+  background: transparent;
   color: #52739f;
 }
+:is(#jobModal, #editJobModal) .jo-maintenance-job-search > i {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  z-index: 1;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
 :is(#jobModal, #editJobModal) .jo-maintenance-job-search input {
+  display: block;
+  box-sizing: border-box;
   width: 100%;
   min-width: 0;
-  border: 0;
-  outline: 0;
-  background: transparent;
+  height: 37px;
+  min-height: 37px;
+  margin: 0;
+  padding: 0 12px 0 36px;
+  border: 1px solid #cbdcf0;
+  border-radius: 8px;
+  outline: none;
+  background: #fff;
+  box-shadow: none;
   font-size: 12px;
   color: #16365d;
 }
@@ -6416,38 +6190,38 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
 }
 
 /* Readonly Job Order detail — wide document layout */
-#joReadonlyOverlay .jo-view-dialog { width: min(1160px, calc(100vw - 36px)); max-width: 1160px; }
-#joReadonlyOverlay .jo-view-body { padding: 16px 18px 20px; }
+#joReadonlyOverlay .jo-view-dialog { width: min(1020px, calc(100vw - 36px)); max-width: 1020px; max-height: min(720px, calc(100dvh - 64px)); }
+#joReadonlyOverlay .jo-view-body { padding: 12px 15px 14px; }
 #joReadonlyOverlay .jo-view-summary {
   display: grid;
   grid-template-columns: minmax(180px,1.35fr) repeat(4,minmax(0,1fr));
-  align-items: center; gap: 0; padding: 16px 12px;
+  align-items: center; gap: 0; padding: 10px 8px;
   background: linear-gradient(120deg,#f4f8ff,#fff);
   border: 1px solid #cedff7; border-radius: 12px;
 }
 #joReadonlyOverlay .jo-view-summary > div {
-  display: flex; flex-direction: column; gap: 7px;
-  padding: 5px 16px; min-width: 0;
+  display: flex; flex-direction: column; gap: 5px;
+  padding: 4px 12px; min-width: 0;
   border-right: 1px solid #e0e8f3;
 }
 #joReadonlyOverlay .jo-view-summary > div:last-child { border-right: 0; }
-#joReadonlyOverlay .jo-view-summary span { font-size: 11px; color: #5d708d; font-weight: 600; }
+#joReadonlyOverlay .jo-view-summary span { font-size: 10px; color: #5d708d; font-weight: 600; }
 #joReadonlyOverlay .jo-view-summary strong { font-size: 13px; color: #16345b; overflow-wrap: anywhere; }
-#joReadonlyOverlay .jo-view-summary-number strong { font-size: 20px; color: #102b56; }
+#joReadonlyOverlay .jo-view-summary-number strong { font-size: 18px; color: #102b56; }
 #joReadonlyOverlay .jo-view-summary-number small { font-size: 10px; color: #6b7c94; }
 #joReadonlyOverlay .jo-view-dual-column {
   display: grid; grid-template-columns: minmax(0,1.15fr) minmax(0,.85fr);
-  gap: 14px; margin-top: 14px; align-items: stretch;
+  gap: 11px; margin-top: 11px; align-items: stretch;
 }
 #joReadonlyOverlay .jo-view-dual-column > .jo-view-section { margin: 0; min-width: 0; }
 #joReadonlyOverlay .jo-view-section { border-radius: 11px; overflow: hidden; }
-#joReadonlyOverlay .jo-view-section h3 { padding: 12px 15px; font-size: 13px; background: #f1f6fd; }
-#joReadonlyOverlay .jo-view-section .jo-view-grid { padding: 14px; gap: 12px; }
+#joReadonlyOverlay .jo-view-section h3 { padding: 9px 12px; font-size: 12px; background: #f1f6fd; }
+#joReadonlyOverlay .jo-view-section .jo-view-grid { padding: 11px 12px; gap: 9px; }
 #joReadonlyOverlay .jo-view-complaint {
   grid-column: 1/-1; background: #f4f8fd; border: 0;
-  border-radius: 9px; padding: 12px !important;
+  border-radius: 9px; padding: 9px !important;
 }
-#joReadonlyOverlay .jo-view-warehouse-section { margin-top: 14px; }
+#joReadonlyOverlay .jo-view-warehouse-section { margin-top: 11px; }
 #joReadonlyOverlay .jo-view-warehouse-grid { display: block; }
 #joReadonlyOverlay .jo-view-parts-cell { display: block; }
 #joReadonlyOverlay .jo-view-stock-table {
@@ -6649,15 +6423,13 @@ body > .jo-mechanic-more-panel .jo-mechanic-profile-caption{font-size:10px;color
 :is(#jobModal,#editJobModal) .jo-create-parts-repeater .jo-part-row {
   column-gap: 13px !important;
   row-gap: 12px !important;
-  min-height: 78px;
   padding: 14px 16px !important;
 }
 :is(#jobModal,#editJobModal) .jo-inventory-name-field {
   display: none !important;
 }
 :is(#jobModal,#editJobModal) .jo-create-parts-repeater .jo-inventory-picker {
-  min-width:0;width:100%;min-height:42px;
-  border-radius:8px;border:1px solid #cbdcf0;
+  min-width:0;width:100%;min-height:42px;border:1px solid #cbdcf0;
   background:#fff;color:#17375c;padding:8px 10px;
   font:inherit;font-size:12px;
 }
@@ -6846,17 +6618,16 @@ body > .jo-part-picker-menu[hidden] {display:none!important}
 
 
 /* Head JO review: readable verification table, status and footer at all sizes. */
-.jo-head-review-dialog {width:min(900px,calc(100vw - 32px))!important;max-height:calc(100dvh - 28px)!important;}
+
 .jo-head-review-body .jo-review-panel {padding:16px 20px 0!important;}
-.jo-head-review-body .jo-review-details {padding:14px 16px!important;}
 .jo-head-review-body .jo-review-details-heading {margin-bottom:8px;}
-.jo-head-review-body .jo-review-detail-grid {column-gap:24px;row-gap:12px;}
-.jo-head-review-body .jo-review-requested-parts {overflow-x:auto;overscroll-behavior-x:contain;}
+.jo-head-review-body .jo-review-detail-grid {column-gap:24px;}
+.jo-head-review-body .jo-review-requested-parts {overscroll-behavior-x:contain;}
 .jo-head-review-body .jo-review-parts-list {min-width:620px;}
 .jo-head-review-body .jo-review-parts-table-header,
-.jo-head-review-body .jo-review-part-item {grid-template-columns:minmax(170px,2fr) minmax(85px,1fr) minmax(65px,.7fr) minmax(75px,.8fr) minmax(110px,1fr);gap:10px;align-items:center;}
+.jo-head-review-body .jo-review-part-item {grid-template-columns:minmax(170px,2fr) minmax(85px,1fr) minmax(65px,.7fr) minmax(75px,.8fr) minmax(110px,1fr);}
 .jo-head-review-body .jo-review-part-item {min-height:44px;}
-.jo-head-review-body .jo-review-part-availability.is-pending {display:inline-flex;justify-content:center;align-items:center;max-width:max-content;min-height:25px;padding:4px 9px;border:1px solid #d6e2f0;border-radius:6px;background:#f1f5fa;color:#4c6381;font:inherit;font-size:10px;font-weight:750;}
+.jo-head-review-body .jo-review-part-availability.is-pending {display:inline-flex;justify-content:center;align-items:center;max-width:max-content;min-height:25px;padding:4px 9px;border:1px solid #d6e2f0;border-radius:6px;color:#4c6381;font:inherit;font-size:10px;font-weight:750;}
 .jo-head-review-body .jo-review-footer {margin:0 -20px;padding:12px 20px;gap:8px;}
 @media(max-width:640px) {
  .jo-head-review-body .jo-review-panel {padding:12px 12px 0!important;}
@@ -6865,12 +6636,11 @@ body > .jo-part-picker-menu[hidden] {display:none!important}
 
 
 /* Head review: wider desktop dialog and compact expandable assignee summary. */
-.jo-head-review-dialog {width:min(1020px,calc(100vw - 32px))!important;max-height:calc(100dvh - 24px)!important;}
-.jo-head-review-body .jo-review-detail-grid {grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 20px;}
-.jo-head-review-body .jo-review-details {overflow:visible;}
+
+.jo-head-review-body .jo-review-detail-grid {gap:12px 20px;}
 .jo-head-review-body .jo-review-mechanic-field {min-width:0;display:grid;gap:6px;}
-.jo-head-review-body .jo-review-mechanic-summary {display:flex;flex-wrap:nowrap;align-items:center;gap:7px;min-width:0;}
-.jo-head-review-body .jo-review-mechanic-primary {display:inline-flex;align-items:center;gap:6px;min-width:0;max-width:min(240px,100%);padding:5px 9px;border:1px solid #cdddff;border-radius:7px;background:#eef5ff;color:#1b4f94;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.jo-head-review-body .jo-review-mechanic-summary {flex-wrap:nowrap;gap:7px;}
+.jo-head-review-body .jo-review-mechanic-primary {gap:6px;min-width:0;max-width:min(240px,100%);padding:5px 9px;border:1px solid #cdddff;color:#1b4f94;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .jo-head-review-body .jo-review-mechanic-more {position:relative;min-width:0;}
 .jo-head-review-body .jo-review-mechanic-more > summary {display:inline-flex;align-items:center;gap:7px;list-style:none;cursor:pointer;padding:5px 9px;border:1px solid #cbdcf3;border-radius:7px;background:#fff;color:#1e5498;font-size:11px;font-weight:800;white-space:nowrap;transition:border-color .18s ease,background .18s ease,box-shadow .18s ease;}
 .jo-head-review-body .jo-review-mechanic-more > summary::-webkit-details-marker {display:none;}
@@ -6889,7 +6659,7 @@ body > .jo-part-picker-menu[hidden] {display:none!important}
 .jo-head-review-title {display:flex;align-items:center;gap:12px;min-width:0;}
 .jo-head-review-title-icon {display:grid;place-items:center;flex:0 0 43px;width:43px;height:43px;border-radius:11px;border:1px solid #f5dc9c;background:#fff2d1;color:#e9a000;font-size:19px;}
 .jo-head-review-title-text {min-width:0;display:grid;gap:4px;}
-.jo-head-review-title-text strong {font-size:19px;line-height:1.2;color:#142e50;}
+.jo-head-review-title-text strong {line-height:1.2;color:#142e50;}
 .jo-head-review-title-text small {font-size:11px;color:#6f809a;line-height:1.4;}
 .jo-head-review-body .jo-review-instructions {margin:3px 0 10px;font-size:12px;color:#526b8c;}
 .jo-head-review-body .jo-review-detail-grid {grid-template-columns:repeat(2,minmax(0,1fr));column-gap:20px;row-gap:12px;}
@@ -6914,7 +6684,7 @@ body > .jo-part-picker-menu[hidden] {display:none!important}
 /* Head Review: separate Requested Parts card matching the approved reference.
    Stock fields remain unverified until a reservation-aware backend check exists. */
 .jo-head-review-body .jo-review-requested-parts {
-  display:block;width:100%;padding:0;border:1px solid #d9e5f5;border-radius:11px;background:#fff;overflow-x:auto;
+  display:block;width:100%;padding:0;border:1px solid #d9e5f5;border-radius:11px;background:#fff;
 }
 .jo-head-review-body .jo-review-parts-heading {
   display:flex;align-items:center;gap:10px;min-height:42px;padding:11px 14px;background:#f4f7fd;border-bottom:1px solid #dfe9f7;color:#17395f;
@@ -6966,8 +6736,7 @@ body > .jo-part-picker-menu[hidden] {display:none!important}
 @media(max-width:640px){.jo-head-review-body .jo-review-submitted-duration{gap:9px;flex-wrap:wrap;}}
 
 /* Head Review details: align complaint with field labels and amber status text. */
-.jo-head-review-body .jo-review-details .jo-review-complaint {
-  display:grid;grid-template-columns:170px minmax(0,1fr);
+.jo-head-review-body .jo-review-details .jo-review-complaint {grid-template-columns:170px minmax(0,1fr);
   align-items:center;column-gap:12px;padding:11px 14px;
 }
 .jo-head-review-body .jo-review-details .jo-review-complaint > span {margin:0;}
@@ -6976,33 +6745,6 @@ body > .jo-part-picker-menu[hidden] {display:none!important}
   color:#986000!important;background:#fff2d7;border-color:#efcd86;
 }
 @media(max-width:640px){.jo-head-review-body .jo-review-details .jo-review-complaint{grid-template-columns:1fr;row-gap:5px;}}
-
-
-/* Consistent Job Orders row spacing and room for labeled Edit/View actions. */
-.jo-page .job-orders-table {table-layout:fixed;width:100%;min-width:1160px;}
-.jo-page .job-orders-table th:nth-child(1){width:9%}
-.jo-page .job-orders-table th:nth-child(2){width:17%}
-.jo-page .job-orders-table th:nth-child(3){width:17%}
-.jo-page .job-orders-table th:nth-child(4){width:11%}
-.jo-page .job-orders-table th:nth-child(5){width:14%}
-.jo-page .job-orders-table th:nth-child(6){width:11%}
-.jo-page .job-orders-table th:nth-child(7){width:10%}
-.jo-page .job-orders-table th:nth-child(8){width:11%}
-.jo-page .job-orders-table th,.jo-page .job-orders-table td{padding:12px 10px;vertical-align:middle;}
-.jo-page .job-orders-table td.jo-actions-cell{min-width:120px;width:120px;}
-.jo-page .job-orders-table td.jo-actions-cell .actions{display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;}
-.jo-page .job-orders-table td.jo-actions-cell .actions .action-btn{min-height:32px;white-space:nowrap;}
-
-/* Keep icon and caption inside a single centered Edit/View control. */
-.jo-page .job-orders-table td.jo-actions-cell .actions .action-btn.jo-labeled-view {
-  box-sizing:border-box!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;
-  gap:7px!important;flex:0 0 92px!important;width:92px!important;min-width:92px!important;max-width:92px!important;
-  min-height:34px!important;padding:0 10px!important;white-space:nowrap!important;
-}
-.jo-page .job-orders-table td.jo-actions-cell .actions .action-btn.jo-labeled-view i,
-.jo-page .job-orders-table td.jo-actions-cell .actions .action-btn.jo-labeled-view span{
-  position:static!important;flex:none;display:inline-block;margin:0!important;line-height:1.1;
-}
 
 
 /* Match both Job Order status columns to the 34px View action, with 12px labels. */
@@ -7021,10 +6763,9 @@ body > .jo-part-picker-menu[hidden] {display:none!important}
 }
 
 
-/* Unified GCT review design — presentation only, retaining JO forms and signature cropper. */
-.jo-head-review-dialog{width:min(920px,calc(100vw - 32px))!important;max-height:calc(100dvh - 28px)!important;border-radius:15px!important;overflow:hidden}
+/* Head review shared signature and workflow presentation. Modal dimensions and
+   panel spacing are defined once in the layout section below. */
 .jo-head-review-body{min-height:0;overflow-y:auto;background:#f8fafd}
-.jo-head-review-body .jo-review-panel{display:flex!important;flex-direction:column;gap:12px!important;padding:14px 18px 0!important}
 .jo-head-review-body .jo-review-details,
 .jo-head-review-body .jo-review-requested-parts,
 .jo-head-review-body .jo-review-audit,
@@ -7035,7 +6776,7 @@ body > .jo-part-picker-menu[hidden] {display:none!important}
 .jo-head-review-body .jo-signature-draw-wrap{min-width:0;padding-right:16px;border-right:1px solid #dfe8f5}
 .jo-head-review-body .jo-signature-identity{min-width:0}
 .jo-head-review-body .jo-signature-upload-zone{min-height:165px;border:1px dashed #bdd5f8!important;border-radius:10px!important;background:#f8faff!important}
-.jo-head-review-body .jo-review-footer{position:sticky!important;bottom:0;z-index:10;margin:0 -18px!important;padding:12px 18px!important;background:#fff!important;border-top:1px solid #dbe6f5!important}
+.jo-head-review-body .jo-review-footer{position:sticky!important;bottom:0;z-index:10;background:#fff!important;border-top:1px solid #dbe6f5!important}
 .jo-head-review-body .jo-review-footer .jo-review-approve-submit:disabled{background:#e5e7eb!important;border-color:#d1d5db!important;color:#727987!important;cursor:not-allowed!important;opacity:1!important}
 .jo-head-review-body .jo-review-footer .jo-review-approve-submit:not(:disabled){background:#fbbf24!important;border-color:#e6aa18!important;color:#172a43!important}
 @media(max-width:700px){.jo-head-review-body .jo-signature-grid{grid-template-columns:1fr!important}.jo-head-review-body .jo-signature-draw-wrap{padding-right:0;padding-bottom:14px;border-right:0;border-bottom:1px solid #dfe8f5}}
@@ -7053,27 +6794,27 @@ body > .jo-part-picker-menu[hidden] {display:none!important}
 
 /* Maintenance Head Review Job Order — approved wide review composition. */
 .jo-head-review-dialog {
-  width:min(1120px,calc(100vw - 32px))!important;
+  width:min(960px,calc(100vw - 32px))!important;
   max-height:calc(100dvh - 28px)!important;
   border-radius:15px!important;
 }
 .jo-head-review-heading {
-  min-height:82px;
-  padding:14px 20px;
+  min-height:68px;
+  padding:10px 16px;
   background:#fff;
 }
 .jo-head-review-title-icon {
-  flex-basis:48px;
-  width:48px;
-  height:48px;
+  flex-basis:42px;
+  width:42px;
+  height:42px;
   border-radius:12px;
   font-size:20px;
 }
-.jo-head-review-title-text strong {font-size:21px;}
+.jo-head-review-title-text strong {font-size:19px;}
 .jo-head-review-title-text small {font-size:12px;}
 .jo-head-review-body .jo-review-panel {
-  gap:12px!important;
-  padding:16px 20px 0!important;
+  gap:10px!important;
+  padding:12px 16px 0!important;
 }
 .jo-head-review-body .jo-review-details {
   padding:0!important;
@@ -7084,8 +6825,8 @@ body > .jo-part-picker-menu[hidden] {display:none!important}
   align-items:center;
   justify-content:space-between;
   gap:16px;
-  min-height:70px;
-  padding:13px 18px;
+  min-height:58px;
+  padding:10px 14px;
   border-bottom:1px solid #dce7f5;
   background:#f7faff;
   border-radius:11px 11px 0 0;
@@ -7108,7 +6849,7 @@ body > .jo-part-picker-menu[hidden] {display:none!important}
   display:grid;
   grid-template-columns:repeat(4,minmax(0,1fr));
   gap:0;
-  padding:18px 14px;
+  padding:12px 10px;
 }
 .jo-head-review-body .jo-review-detail-grid > div {
   display:grid;
@@ -7116,8 +6857,8 @@ body > .jo-part-picker-menu[hidden] {display:none!important}
   grid-template-rows:auto auto;
   column-gap:10px;
   row-gap:4px;
-  min-height:52px;
-  padding:0 16px;
+  min-height:46px;
+  padding:0 12px;
   border-right:1px solid #dfe8f4;
 }
 .jo-head-review-body .jo-review-detail-grid > div:last-child {border-right:0;}
@@ -7140,14 +6881,19 @@ body > .jo-part-picker-menu[hidden] {display:none!important}
 }
 .jo-head-review-body .jo-review-detail-support-grid {
   display:grid;
-  grid-template-columns:minmax(0,2fr) minmax(260px,1fr);
-  gap:14px;
-  padding:0 14px 14px;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  align-items:stretch;
+  gap:12px;
+  padding:0 12px 12px;
 }
 .jo-head-review-body .jo-review-mechanic-field,
 .jo-head-review-body .jo-review-details .jo-review-complaint {
-  min-height:92px;
-  padding:14px 16px;
+  box-sizing:border-box;
+  width:100%;
+  height:100%;
+  min-height:88px;
+  margin:0;
+  padding:12px 14px;
   border:1px solid #dce7f5;
   border-radius:9px;
   background:#fbfdff;
@@ -7163,19 +6909,19 @@ body > .jo-part-picker-menu[hidden] {display:none!important}
 }
 .jo-head-review-body .jo-review-mechanic-field > span i,
 .jo-head-review-body .jo-review-details .jo-review-complaint > span i {color:#1762bd;font-size:15px;}
-.jo-head-review-body .jo-review-mechanic-summary {margin-top:9px;}
+.jo-head-review-body .jo-review-mechanic-summary {margin-top:8px;}
 .jo-head-review-body .jo-review-details .jo-review-complaint {
   display:grid;
   grid-template-columns:1fr;
   align-content:start;
   row-gap:8px;
 }
-.jo-head-review-body .jo-review-details .jo-review-complaint p {font-size:12px;}
+.jo-head-review-body .jo-review-details .jo-review-complaint p {margin:0;text-align:left;font-size:12px;overflow-wrap:anywhere;}
 .jo-head-review-body .jo-review-parts-heading {
   justify-content:space-between;
   gap:18px;
-  min-height:62px;
-  padding:11px 16px;
+  min-height:52px;
+  padding:9px 14px;
 }
 .jo-head-review-body .jo-review-parts-title {display:flex;align-items:center;gap:11px;min-width:0;}
 .jo-head-review-body .jo-review-parts-title > i {font-size:17px;}
@@ -7214,20 +6960,18 @@ body > .jo-part-picker-menu[hidden] {display:none!important}
 .jo-head-review-body .jo-review-shortage-advisory > span {display:flex;align-items:center;gap:9px;padding-left:16px;border-left:1px solid #ecd79f;color:#5d718e;font-size:10px;white-space:nowrap;}
 .jo-head-review-body .jo-review-shortage-advisory > span strong {color:#17365f;font-size:12px;}
 .jo-head-review-body .jo-review-footer {
-  margin:0 -20px!important;
-  padding:12px 20px!important;
+  margin:0 -16px!important;
+  padding:9px 16px!important;
 }
 .jo-head-review-body .jo-review-footer .jo-review-footer-close {
   margin-right:auto;
   color:#263f63;
 }
 .jo-head-review-body .jo-review-footer .jo-review-revision-trigger {color:#c02d3b;border-color:#f0b7bd;background:#fff8f8;}
-.jo-head-review-body .jo-review-footer .jo-review-approve-submit:not(:disabled) {background:#1263d7!important;border-color:#1263d7!important;color:#fff!important;}
 
 @media(max-width:900px) {
   .jo-head-review-body .jo-review-detail-grid {grid-template-columns:repeat(2,minmax(0,1fr));row-gap:18px;}
   .jo-head-review-body .jo-review-detail-grid > div:nth-child(2) {border-right:0;}
-  .jo-head-review-body .jo-review-detail-support-grid {grid-template-columns:1fr;}
   .jo-head-review-body .jo-review-parts-heading {align-items:flex-start;flex-direction:column;}
   .jo-head-review-body .jo-review-parts-progress {width:100%;flex-basis:auto;}
 }
@@ -7250,17 +6994,25 @@ body > .jo-part-picker-menu[hidden] {display:none!important}
 }
 
 
+/* Keep the empty parts message aligned with the card content and footer. */
+.jo-head-review-body .jo-review-requested-parts > p {
+  margin:0;
+  padding:12px 14px;
+  color:#536b8a;
+  font-size:12px;
+  line-height:1.5;
+}
+
 /* Head review detail cards: compact alignment and truthful assignment count. */
 .jo-head-review-body .jo-review-detail-grid>div{min-width:0;align-content:center;row-gap:7px}
 .jo-head-review-body .jo-review-detail-grid>div>span:first-child{display:flex;grid-column:1/-1;grid-row:1;align-items:center;gap:7px;min-width:0;color:#607998;font-size:11px}
 .jo-head-review-body .jo-review-detail-grid>div>span:first-child i{grid-column:auto;grid-row:auto;align-self:center;flex:0 0 16px;font-size:15px}
 .jo-head-review-body .jo-review-detail-grid>div>strong,
 .jo-head-review-body .jo-review-detail-grid .jo-review-parts-status-badge{grid-column:1/-1;grid-row:2;margin-left:23px;min-width:0}
-.jo-head-review-body .jo-review-detail-grid .jo-review-parts-status-badge{width:max-content;max-width:calc(100% - 23px);min-height:26px;display:inline-flex;align-items:center;justify-content:center;padding:5px 10px;line-height:1.2;white-space:normal}
+.jo-head-review-body .jo-review-detail-grid .jo-review-parts-status-badge{box-sizing:border-box;width:max-content;max-width:calc(100% - 23px);min-height:20px;display:inline-flex;align-items:center;justify-content:center;padding:2px 8px;line-height:1.2;white-space:normal;font-size:10px}
 .jo-head-review-body .jo-review-detail-grid .jo-review-parts-status-badge.is-not-requested{background:#fff5df;border:1px solid #f1cb76;color:#946000;border-radius:7px;font-size:11px;font-weight:750}
 .jo-head-review-body .jo-review-mechanic-field>span{display:flex;flex-wrap:wrap}
 .jo-head-review-body .jo-review-mechanic-count{display:inline-flex;justify-content:center;align-items:center;min-width:23px;height:21px;padding:0 6px;border-radius:6px;background:#e5efff;color:#1558b0;font-size:11px;font-weight:800}
-.jo-head-review-body .jo-review-detail-support-grid{align-items:stretch}
 .jo-head-review-body .jo-review-mechanic-summary{display:flex;flex-wrap:nowrap;align-items:center;gap:6px;max-width:100%}
 .jo-head-review-body .jo-review-mechanic-primary{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:min(230px,65%)}
 .jo-head-review-body .jo-review-mechanic-more{flex-shrink:0}
@@ -7429,38 +7181,198 @@ body > .jo-part-picker-menu[hidden] {display:none!important}
 
 
 
-/* Phase 1 responsive Job Orders pilot.
-   Keep this opt-in: other departments and modal tables use different layouts.
-   Avoid the shared 480px auto-height rule that creates a second scrolling axis. */
+/* Option 2: six-column Job Orders overview and icon-only actions.
+   A single scoped source of truth replaces the old 92px labeled buttons,
+   variable icon sizes, and forced-wide desktop list. */
+.jo-page .jo-table-card { min-width: 0; overflow-x: visible; }
 .jo-page .table-wrap.jo-responsive-table-wrap {
+  position: relative;
   width: 100%;
-  max-height: none !important;
-  overflow-x: auto;
-  overscroll-behavior-x: contain;
+  min-width: 0;
+  max-width: 100%;
+  max-height: none;
+  overflow: visible;
+  border-radius: 10px;
 }
-.jo-page .jo-responsive-table-wrap > .job-orders-table {
+.jo-page .jo-responsive-table-wrap > table.job-orders-table {
   width: 100%;
-  min-width: 1250px;
+  min-width: 0;
+  max-width: 100%;
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0;
 }
-.jo-page .jo-responsive-table-wrap .job-orders-table th:last-child,
+.jo-page .jo-responsive-table-wrap .job-orders-table :is(th, td) {
+  box-sizing: border-box;
+  min-width: 0;
+  padding: 12px 10px;
+  overflow-wrap: anywhere;
+}
+.jo-page .jo-responsive-table-wrap .job-orders-table th {
+  font-size: 10px;
+  line-height: 1.35;
+  letter-spacing: .025em;
+  white-space: normal;
+}
+.jo-page .jo-responsive-table-wrap .job-orders-table th:nth-child(1) { width: 15%; }
+.jo-page .jo-responsive-table-wrap .job-orders-table th:nth-child(2) { width: 21%; }
+.jo-page .jo-responsive-table-wrap .job-orders-table th:nth-child(3) { width: 21%; }
+.jo-page .jo-responsive-table-wrap .job-orders-table th:nth-child(4) { width: 13%; }
+.jo-page .jo-responsive-table-wrap .job-orders-table th:nth-child(5) { width: 16%; }
+.jo-page .jo-responsive-table-wrap .job-orders-table th:nth-child(6) { width: 14%; }
+.jo-page .jo-responsive-table-wrap .job-orders-table .jo-mechanic-profiles { min-width: 0; }
+.jo-page .jo-responsive-table-wrap .job-orders-table .jo-mechanic-profile { flex-wrap: wrap; gap: 6px; }
+.jo-page .jo-responsive-table-wrap .job-orders-table .jo-mechanic-profile-caption { display: none; }
+.jo-page .jo-responsive-table-wrap .job-orders-table .jo-mechanic-more { margin-left: 0; }
+.jo-page .jo-responsive-table-wrap .job-orders-table .jo-mechanic-more > summary { padding: 4px 7px; font-size: 10px; }
+.jo-page .jo-responsive-table-wrap .job-orders-table td.status-col :is(
+  .gct-status-badge, .status-badge, .badge, .part-status-badge,
+  .jo-for-review-badge, .jo-no-pr-badge,
+  .jo-parts-not-requested-badge, .jo-no-parts-required-badge
+) {
+  min-width: 0 !important;
+  max-width: 100%;
+  height: auto;
+  padding: 7px 8px !important;
+  font-size: 11px !important;
+  line-height: 1.3 !important;
+  white-space: normal;
+  text-align: center;
+}
+.jo-page .jo-responsive-table-wrap .job-orders-table :is(
+  .bus-badge-pill, .jo-parts-delay-indicator, .jo-overdue-indicator
+) { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+
+/* The action container centers one icon or an eligible two-icon pair. */
 .jo-page .jo-responsive-table-wrap .job-orders-table td.jo-actions-cell {
-  min-width: 150px;
+  width: auto;
+  min-width: 0;
+  padding-inline: 5px;
+  text-align: center;
+  vertical-align: middle;
+}
+.jo-page .jo-responsive-table-wrap .job-orders-table td.jo-actions-cell > .jo-compact-actions {
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+  margin: 0 auto;
   white-space: nowrap;
 }
-@media (max-width: 1279px) {
-  .jo-page .jo-responsive-table-wrap .job-orders-table th:last-child,
-  .jo-page .jo-responsive-table-wrap .job-orders-table td.jo-actions-cell {
-    position: sticky;
-    right: 0;
-    background: #fff;
-    z-index: 4;
-    box-shadow: -1px 0 0 #e2e8f0, -8px 0 12px -12px rgba(15, 23, 42, .38);
-  }
-  .jo-page .jo-responsive-table-wrap .job-orders-table th:last-child {
-    z-index: 7;
-    background: var(--jo-table-head, #f8fafc);
-  }
-  .jo-page .jo-responsive-table-wrap .job-orders-table tbody tr:hover td.jo-actions-cell {
-    background: #f8fbff;
-  }
+.jo-page .jo-compact-actions > :is(.finish-order-form, .jo-inline-pms-form) {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  width: auto;
+  max-width: none;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  gap: 5px;
+}
+.jo-page .jo-compact-actions button:is(.jo-icon-action, .jo-labeled-view) {
+  display: grid !important;
+  place-items: center !important;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  box-sizing: border-box;
+  flex: 0 0 34px;
+  width: 34px;
+  min-width: 34px;
+  max-width: 34px;
+  height: 34px !important;
+  min-height: 34px !important;
+  max-height: 34px;
+  padding: 0 !important;
+  margin: 0;
+  gap: 0;
+  line-height: 1;
+  border-radius: 8px;
+  text-align: center;
+  text-indent: 0;
+  white-space: nowrap;
+}
+.jo-page .jo-compact-actions button:is(.jo-icon-action, .jo-labeled-view) > i {
+  display: block;
+  position: static;
+  grid-area: 1 / 1;
+  place-self: center;
+  flex: none;
+  width: auto;
+  height: auto;
+  margin: 0 !important;
+  padding: 0;
+  line-height: 1;
+  font-size: 13px;
+  transform: none;
+}
+/* The View icon's accessible name comes from aria-label. */
+.jo-page .jo-compact-actions button.jo-labeled-view > .sr-only { display: none; }
+.jo-page .jo-compact-actions .jo-pms-release-confirmation {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0;
+  font-size: 10px;
+  cursor: pointer;
+}
+.jo-page .jo-compact-actions .jo-pms-release-confirmation input {
+  width: 15px;
+  height: 15px;
+  margin: 0;
+}
+.jo-page .jo-compact-actions .jo-pms-release-confirmation .sr-only { display: none; }
+
+/* Retain the detail-rich confirmation dialog without impacting other modals. */
+#finishJobModal .jo-completion-dialog {
+  width: min(510px, calc(100vw - 28px));
+  max-width: 100%;
+  max-height: calc(100dvh - 30px);
+  overflow-y: auto;
+}
+#finishJobModal .jo-completion-details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+  width: 100%;
+  margin: 16px 0;
+  text-align: left;
+}
+#finishJobModal .jo-completion-details > div {
+  min-width: 0;
+  padding: 10px 11px;
+  border: 1px solid #dce5f1;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+#finishJobModal .jo-completion-details span {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 10px;
+  color: #64748b;
+  font-weight: 600;
+}
+#finishJobModal .jo-completion-details strong {
+  display: block;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #172b4d;
+}
+#finishJobModal .jo-completion-note {
+  text-align: left;
+  color: #475569;
+  font-size: 11px;
+  line-height: 1.6;
+}
+/* Narrow screens may scroll rather than hiding interactive controls. */
+@media (max-width: 700px) {
+  .jo-page .table-wrap.jo-responsive-table-wrap { overflow-x: auto; overscroll-behavior-x: contain; }
+  .jo-page .jo-responsive-table-wrap > table.job-orders-table { min-width: 700px; }
+}
+@media (max-width: 520px) {
+  #finishJobModal .jo-completion-details { grid-template-columns: minmax(0, 1fr); }
 }

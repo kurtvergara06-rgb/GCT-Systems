@@ -592,12 +592,14 @@ const replaceMain = async (nextDocument, finalUrl, { push = true, restoreScroll 
     const nextMain = document.importNode(parsedMain, true);
     nextMain.classList.add('gct-main-entering');
     currentMain.replaceWith(nextMain);
-    // Navigation swaps <main>, not <body>. Update the Operation theme scope
-    // before applying the destination page's styles (including other modules).
-    if (nextDocument.body.dataset.gctOperationPage === '1') {
-        document.body.dataset.gctOperationPage = '1';
-    } else {
-        delete document.body.dataset.gctOperationPage;
+    // Partial navigation swaps <main>, not <body>. Keep department theme
+    // scopes in sync so Operation and Maintenance styles do not leak or disappear.
+    for (const scope of ['gctOperationPage', 'gctMaintenancePage']) {
+        if (nextDocument.body.dataset[scope] === '1') {
+            document.body.dataset[scope] = '1';
+        } else {
+            delete document.body.dataset[scope];
+        }
     }
     syncPageOwnedElements(nextDocument);
 

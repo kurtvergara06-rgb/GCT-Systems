@@ -17,6 +17,36 @@ const destroyMaintenanceDashboardCharts = () => {
     chartIds.forEach((id) => destroyChart(document.getElementById(id)));
 };
 
+// Canvas labels do not inherit dark-mode CSS; use the same theme tokens as
+// the surrounding Maintenance dashboard and update existing charts on toggle.
+const dashboardChartAppearance = () => {
+    const dark = document.documentElement.dataset.gctTheme === 'dark';
+    const styles = getComputedStyle(document.documentElement);
+    return {
+        text: dark ? (styles.getPropertyValue('--gct-theme-fg').trim() || '#edf3fc') : '#0f2742',
+        muted: dark ? (styles.getPropertyValue('--gct-theme-muted').trim() || '#b1bfd2') : '#64748b',
+        grid: dark ? 'rgba(148, 163, 184, 0.25)' : 'rgba(226, 232, 240, 0.65)',
+        ring: dark ? (styles.getPropertyValue('--gct-theme-surface').trim() || '#162235') : '#ffffff',
+    };
+};
+
+const updateDashboardChartAppearance = () => {
+    const colors = dashboardChartAppearance();
+    const workload = Chart.getChart(document.getElementById('maintenanceWorkloadChart'));
+    if (workload) {
+        workload.options.scales.x.ticks.color = colors.muted;
+        workload.options.scales.y.ticks.color = colors.muted;
+        workload.options.scales.y.grid.color = colors.grid;
+        workload.options.plugins.legend.labels.color = colors.text;
+        workload.update('none');
+    }
+    const fleet = Chart.getChart(document.getElementById('maintenanceFleetHealthChart'));
+    if (fleet) {
+        fleet.data.datasets[0].borderColor = colors.ring;
+        fleet.update('none');
+    }
+};
+
 const tooltipStyle = {
     backgroundColor: '#0f172a',
     titleColor: '#ffffff',
@@ -64,6 +94,7 @@ function initializeWorkloadChart() {
     const createdValues = trendData.map((d) => Number(d.created || 0));
     const completedValues = trendData.map((d) => Number(d.completed || 0));
 
+    const colors = dashboardChartAppearance();
     const maxVal = Math.max(0, ...createdValues, ...completedValues);
     const hasData = createdValues.some((v) => v > 0) || completedValues.some((v) => v > 0);
 
@@ -105,7 +136,7 @@ function initializeWorkloadChart() {
                 x: {
                     grid: { display: false },
                     ticks: {
-                        color: '#64748b',
+                        color: colors.muted,
                         font: { size: 11, weight: '600', family: 'Poppins, Inter, sans-serif' },
                     },
                 },
@@ -114,11 +145,11 @@ function initializeWorkloadChart() {
                     suggestedMax: maxVal > 0 ? maxVal + 1 : 5,
                     ticks: {
                         precision: 0,
-                        color: '#64748b',
+                        color: colors.muted,
                         font: { size: 10, family: 'Poppins, Inter, sans-serif' },
                     },
                     grid: {
-                        color: 'rgba(226, 232, 240, 0.65)',
+                        color: colors.grid,
                         borderDash: [3, 3],
                         drawTicks: false,
                     },
@@ -134,7 +165,7 @@ function initializeWorkloadChart() {
                         pointStyle: 'circle',
                         boxWidth: 8,
                         boxHeight: 8,
-                        color: '#0f2742',
+                        color: colors.text,
                         font: { size: 11, weight: '600', family: 'Poppins, Inter, sans-serif' },
                         padding: 16,
                     },
@@ -182,6 +213,7 @@ function initializeFleetHealthChart() {
     }
 
     const total = values.reduce((sum, v) => sum + Number(v || 0), 0);
+    const colorsForTheme = dashboardChartAppearance();
 
     new Chart(canvas, {
         type: 'doughnut',
@@ -190,7 +222,7 @@ function initializeFleetHealthChart() {
             datasets: [{
                 data: total === 0 ? [1] : values,
                 backgroundColor: total === 0 ? ['#e2e8f0'] : colors,
-                borderColor: '#ffffff',
+                borderColor: colorsForTheme.ring,
                 borderWidth: 3,
                 hoverOffset: 6,
             }],
@@ -220,11 +252,29 @@ function initializeFleetHealthChart() {
 /**
  * Main initializer
  */
+let maintenanceThemeObserver = null;
+
+const disconnectMaintenanceThemeObserver = () => {
+    maintenanceThemeObserver?.disconnect();
+    maintenanceThemeObserver = null;
+};
+
 function initializeMaintenanceDashboard() {
-    if (!document.querySelector('.maintenance-dashboard-page')) return;
+    if (!document.querySelector('.maintenance-dashboard-page')) {
+        disconnectMaintenanceThemeObserver();
+        return;
+    }
 
     initializeWorkloadChart();
     initializeFleetHealthChart();
+
+    if (!maintenanceThemeObserver) {
+        maintenanceThemeObserver = new MutationObserver(updateDashboardChartAppearance);
+        maintenanceThemeObserver.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ['data-gct-theme'],
+        });
+    }
 
     const groupingSelect = document.getElementById('maintenanceWorkloadGrouping');
     if (groupingSelect && !groupingSelect.dataset.bound) {
@@ -250,6 +300,9 @@ if (document.readyState === 'loading') {
 
 document.addEventListener('ajax:content-updated', initializeMaintenanceDashboard);
 
+// Partial navigation must release observers as well as canvases; the
+// next dashboard initialization attaches one fresh observer.
 window.addEventListener('gct:navigation-before', () => {
+    disconnectMaintenanceThemeObserver();
     destroyMaintenanceDashboardCharts();
 });

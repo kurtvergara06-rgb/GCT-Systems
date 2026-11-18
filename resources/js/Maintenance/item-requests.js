@@ -120,6 +120,8 @@ document.addEventListener('click', (event) => {
         });
         const approver = document.getElementById('ir-detail-approver');
         if (approver) approver.textContent = trigger.dataset.irApprover || 'Not recorded';
+        const approvalLabel = document.getElementById('ir-detail-approval-label');
+        if (approvalLabel) approvalLabel.textContent = trigger.dataset.irApprovalLabel || 'Approved By';
         const signature = document.getElementById('ir-detail-signature');
         const signaturePlaceholder = document.getElementById('ir-detail-signature-placeholder');
         if (signature) {
@@ -127,7 +129,7 @@ document.addEventListener('click', (event) => {
             signature.removeAttribute('src');
             if (signaturePlaceholder) {
                 signaturePlaceholder.hidden = false;
-                signaturePlaceholder.textContent = 'Signature unavailable';
+                signaturePlaceholder.textContent = 'No saved Job Order approval signature for this record.';
             }
             const url = trigger.dataset.irSignatureUrl;
             if (url) {
@@ -137,7 +139,11 @@ document.addEventListener('click', (event) => {
                 };
                 signature.onerror = () => {
                     signature.hidden = true;
-                    if (signaturePlaceholder) signaturePlaceholder.hidden = false;
+                    signature.removeAttribute('src');
+                    if (signaturePlaceholder) {
+                        signaturePlaceholder.hidden = false;
+                        signaturePlaceholder.textContent = 'Saved signature could not be loaded. Check the original Job Order approval record.';
+                    }
                 };
                 signature.src = url;
             }
@@ -274,35 +280,67 @@ document.addEventListener('click', event => {
     if (event.target.closest('#openItemRequestModal')) renderItemRequestPreview();
 });
 
-/* Close other IR/PR breakdowns and place the open popover above table clipping. */
+/* Only the open IR breakdown is portaled: a fixed child of a scrolling
+   table is still clipped by that table, regardless of its z-index. */
 if (!window.__gctIrSplitBreakdownBound) {
     window.__gctIrSplitBreakdownBound = true;
+    let active = null;
+    const close = () => {
+        if (!active) return;
+        const { details, popover } = active;
+        active = null;
+        details.open = false;
+        popover.removeAttribute('style');
+        if (details.isConnected) details.appendChild(popover);
+        else popover.remove();
+    };
+    const position = () => {
+        if (!active) return;
+        const { trigger, popover } = active;
+        if (!trigger.isConnected) { close(); return; }
+        const bounds = trigger.getBoundingClientRect();
+        const viewWidth = window.visualViewport?.width || window.innerWidth;
+        const viewHeight = window.visualViewport?.height || window.innerHeight;
+        const width = Math.min(335, Math.max(100, viewWidth - 32));
+        const below = viewHeight - bounds.bottom - 16;
+        const above = bounds.top - 16;
+        const openAbove = below < 170 && above > below;
+        Object.assign(popover.style, {
+            position: 'fixed',
+            width: width + 'px',
+            left: Math.max(16, Math.min(bounds.left, viewWidth - width - 16)) + 'px',
+            top: openAbove ? 'auto' : bounds.bottom + 7 + 'px',
+            bottom: openAbove ? viewHeight - bounds.top + 7 + 'px' : 'auto',
+            maxHeight: Math.min(300, Math.max(70, openAbove ? above : below)) + 'px',
+            overflowY: 'auto',
+            zIndex: '120500'
+        });
+    };
     document.addEventListener('toggle', (event) => {
         const details = event.target;
         if (!(details instanceof HTMLDetailsElement) || !details.matches('.ir-split-breakdown')) return;
-        if (!details.open) return;
-        document.querySelectorAll('.ir-split-breakdown[open]').forEach(other => {
-            if (other !== details) other.open = false;
-        });
+        if (!details.open) {
+            if (active?.details === details) close();
+            return;
+        }
+        close();
         const popover = details.querySelector('.ir-split-popover');
         const trigger = details.querySelector('summary');
         if (!popover || !trigger) return;
-        const bounds = trigger.getBoundingClientRect();
-        const width = Math.min(335, window.innerWidth - 32);
-        popover.style.position = 'fixed';
-        popover.style.width = width + 'px';
-        popover.style.left = Math.max(16, Math.min(bounds.left, window.innerWidth - width - 16)) + 'px';
-        popover.style.top = Math.min(bounds.bottom + 7, window.innerHeight - 32) + 'px';
+        document.body.appendChild(popover);
+        active = { details, popover, trigger };
+        position();
     }, true);
     document.addEventListener('click', event => {
-        document.querySelectorAll('.ir-split-breakdown[open]').forEach(details => {
-            if (!details.contains(event.target)) details.open = false;
-        });
+        if (active && !active.details.contains(event.target) && !active.popover.contains(event.target)) close();
     });
     document.addEventListener('keydown', event => {
-        if (event.key === 'Escape') document.querySelectorAll('.ir-split-breakdown[open]').forEach(details => details.open = false);
+        if (event.key === 'Escape') close();
     });
-    window.addEventListener('scroll', () => {
-        document.querySelectorAll('.ir-split-breakdown[open]').forEach(details => details.open = false);
+    window.addEventListener('scroll', event => {
+        if (active && !active.popover.contains(event.target)) close();
     }, true);
+    window.addEventListener('resize', position);
+    window.visualViewport?.addEventListener('resize', position);
+    window.addEventListener('gct:navigation-before', close);
 }

@@ -514,45 +514,31 @@
 ========================================================= */
 
 .pms-page .pms-view-tasks-btn {
-    width: 34px;
-    min-width: 34px;
-
+    width: auto;
+    min-width: 78px;
     height: 34px;
     min-height: 34px;
-
-    padding: 0;
-
+    padding: 0 10px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-
-    background: #eaf2ff;
-
+    gap: 6px;
+    white-space: nowrap;
+    background: #ffffff;
     border: 1px solid #d4e3ff;
     border-radius: 8px;
-
     color: var(--pms-blue);
-
-    font-size: 13px;
-
+    font-size: 12px;
+    font-weight: 700;
     cursor: pointer;
-
     box-shadow: none;
-
-    transition:
-        transform 0.18s ease,
-        background-color 0.18s ease,
-        border-color 0.18s ease,
-        color 0.18s ease;
+    transition: transform 0.18s ease, background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease;
 }
 
 .pms-page .pms-view-tasks-btn:hover {
-    background: var(--pms-blue);
-
+    background: #ffffff;
     border-color: var(--pms-blue);
-
-    color: #ffffff;
-
+    color: var(--pms-blue-dark);
     transform: translateY(-1px);
 }
 
@@ -861,8 +847,6 @@
     width: 100%;
 
     display: flex;
-    align-items: center;
-    justify-content: center;
 
     gap: 6px;
 }
@@ -882,19 +866,11 @@
     height: 34px;
     min-height: 34px;
 
-    padding: 0;
-
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-
     border-radius: 8px;
 
     font-size: 13px;
 
     line-height: 1;
-
-    text-decoration: none;
 
     transition:
         transform 0.18s ease,
@@ -945,8 +921,6 @@
     border-color: var(--pms-yellow-dark);
 
     color: var(--pms-navy);
-
-    transform: translateY(-1px);
 
     box-shadow:
         0 4px 10px rgba(255, 196, 0, 0.24);
@@ -1329,8 +1303,35 @@
   background: #fff;
 }
 
+/* Bus monitoring only: compact ledger spacing and stable column alignment.
+   Leave the separate PMS task popup's table sizing unchanged. */
 .pms-page .pms-table-card > .table-wrap:not(.pms-popup-table-wrap) .pms-table {
   margin: 0;
+  width: 100%;
+  min-width: 900px;
+  table-layout: fixed;
+}
+.pms-page .pms-table-card > .table-wrap:not(.pms-popup-table-wrap) .pms-table :is(th, td) {
+  box-sizing: border-box;
+  padding: 10px 12px;
+  vertical-align: middle;
+}
+.pms-page .pms-table-card > .table-wrap:not(.pms-popup-table-wrap) .pms-table th {
+  padding-block: 11px;
+}
+.pms-page .pms-table-card > .table-wrap:not(.pms-popup-table-wrap) .pms-table :is(th, td):nth-child(1) { width: 13%; }
+.pms-page .pms-table-card > .table-wrap:not(.pms-popup-table-wrap) .pms-table :is(th, td):nth-child(2) { width: 14%; }
+.pms-page .pms-table-card > .table-wrap:not(.pms-popup-table-wrap) .pms-table :is(th, td):nth-child(3) { width: 15%; }
+.pms-page .pms-table-card > .table-wrap:not(.pms-popup-table-wrap) .pms-table :is(th, td):nth-child(4) { width: 13%; }
+.pms-page .pms-table-card > .table-wrap:not(.pms-popup-table-wrap) .pms-table :is(th, td):nth-child(5) { width: 16%; }
+.pms-page .pms-table-card > .table-wrap:not(.pms-popup-table-wrap) .pms-table :is(th, td):nth-child(6) { width: 17%; }
+.pms-page .pms-table-card > .table-wrap:not(.pms-popup-table-wrap) .pms-table :is(th, td):nth-child(7) { width: 12%; }
+.pms-page .pms-table-card > .table-wrap:not(.pms-popup-table-wrap) .pms-row-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
 }
 
 .pms-page .pms-table-card > .table-wrap:not(.pms-popup-table-wrap) .pms-table thead {
@@ -2142,11 +2143,36 @@
 .pms-monitor-dialog .pms-bus-search-wrap {position:relative;}
 .pms-monitor-dialog .pms-bus-search-wrap>i {position:absolute;left:13px;top:50%;transform:translateY(-50%);color:#7188a6;pointer-events:none;}
 .pms-monitor-dialog .pms-bus-search-wrap>input {padding-left:36px!important;}
-.pms-monitor-dialog .pms-bus-options {position:absolute;top:calc(100% + 5px);left:0;right:0;z-index:120;max-height:164px;overflow-y:auto;overscroll-behavior:contain;padding:4px;background:#fff;border:1px solid #c8d9ee;border-radius:8px;box-shadow:0 12px 25px rgba(20,45,80,.18);}
+.pms-monitor-dialog .pms-bus-options, body > .pms-bus-options {position:absolute;top:calc(100% + 5px);left:0;right:0;z-index:120;max-height:164px;overflow-y:auto;overscroll-behavior:contain;padding:4px;background:var(--pms-bus-menu-bg,#fff);border:1px solid var(--pms-bus-menu-border,#c8d9ee);border-radius:8px;box-shadow:0 12px 25px rgba(20,45,80,.18);}
+body > .pms-bus-options {box-sizing:border-box;background:var(--pms-bus-menu-bg,var(--gct-theme-surface-raised,#fff));border-color:var(--pms-bus-menu-border,var(--gct-theme-border,#c8d9ee));color:var(--pms-bus-menu-text,var(--gct-theme-fg,#1f3d62));}
+body > .pms-bus-options .pms-bus-option {
+  display:block;
+  width:100%;
+  padding:9px 11px;
+  text-align:left;
+  border:0;
+  border-radius:5px;
+  font-size:12px;
+  cursor:pointer;
+  background:transparent;
+  color:inherit;
+}
+body > .pms-bus-options .pms-bus-option[hidden],
+body > .pms-bus-options .pms-bus-no-results[hidden] {display:none!important;}
+body > .pms-bus-options .pms-bus-option:is(:hover,:focus-visible) {
+  background:var(--pms-bus-menu-hover,var(--gct-theme-hover,#eaf2ff));
+  outline:none;
+}
+body > .pms-bus-options .pms-bus-no-results {
+  margin:0;
+  padding:10px;
+  font-size:12px;
+  color:var(--pms-bus-menu-muted,var(--gct-theme-muted,#64748b));
+}
 .pms-monitor-dialog .pms-bus-options[hidden],.pms-monitor-dialog .pms-bus-option[hidden],.pms-monitor-dialog .pms-bus-no-results[hidden] {display:none!important;}
 .pms-monitor-dialog .pms-bus-option {width:100%;display:block;padding:9px 11px;text-align:left;border:0;border-radius:5px;background:#fff;color:#1f3d62;font-size:12px;cursor:pointer;}
 .pms-monitor-dialog .pms-bus-option:hover,.pms-monitor-dialog .pms-bus-option:focus-visible {background:#eaf2ff;outline:none;}
 .pms-monitor-dialog .pms-bus-no-results {margin:0;padding:10px;font-size:12px;color:#64748b;}
-/* Allow popup lists room without clipping when the modal body is shorter than the menu. */
-.pms-monitor-dialog .pms-monitoring-form,.pms-monitor-dialog .pms-monitoring-form .pms-monitor-body {overflow:visible;}
+/* The bus picker is portaled to body while open; keep the modal scroll
+   contract intact instead of exposing all form overflow. */
 .pms-monitor-dialog .pms-monitoring-form .pms-monitor-body {padding-bottom:20px;}

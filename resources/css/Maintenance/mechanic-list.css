@@ -400,7 +400,8 @@
 .mechanic-page .mechanic-attendance-style-table {
   width: 100%;
 
-  min-width: 940px;
+  min-width: 1000px;
+  table-layout: fixed;
 
   border-collapse: separate;
 
@@ -418,7 +419,7 @@
 ========================================================= */
 
 .mechanic-page .mechanic-attendance-style-table th {
-  padding: 13px 14px;
+  padding: 11px 9px;
 
   color: #475569;
 
@@ -444,7 +445,7 @@
 ========================================================= */
 
 .mechanic-page .mechanic-attendance-style-table td {
-  padding: 13px 14px;
+  padding: 10px 9px;
 
   color:
     var(--mechanic-text);
@@ -473,35 +474,8 @@
 }
 
 
-/* =========================================================
-   COLUMN WIDTHS
-========================================================= */
-
-.mechanic-page .mechanic-attendance-style-table th:nth-child(1) {
-  width: 13%;
-}
-
-.mechanic-page .mechanic-attendance-style-table th:nth-child(2) {
-  width: 18%;
-}
-
-.mechanic-page .mechanic-attendance-style-table th:nth-child(3) {
-  width: 27%;
-}
-
-.mechanic-page .mechanic-attendance-style-table th:nth-child(4) {
-  width: 14%;
-}
-
-.mechanic-page .mechanic-attendance-style-table th:nth-child(5),
-.mechanic-page .mechanic-attendance-style-table th:nth-child(6) {
-  width: 12%;
-}
-
-.mechanic-page .mechanic-attendance-style-table th:nth-child(7) {
-  width: 14%;
-}
-
+/* Column widths are defined once in the table colgroup to keep
+   all eight header/body columns aligned. */
 
 /* =========================================================
    COLUMN ALIGNMENT
@@ -520,7 +494,9 @@
 .mechanic-page .mechanic-attendance-style-table td:nth-child(6),
 
 .mechanic-page .mechanic-attendance-style-table th:nth-child(7),
-.mechanic-page .mechanic-attendance-style-table td:nth-child(7) {
+.mechanic-page .mechanic-attendance-style-table td:nth-child(7),
+.mechanic-page .mechanic-attendance-style-table th:nth-child(8),
+.mechanic-page .mechanic-attendance-style-table td:nth-child(8) {
   text-align: center;
 }
 
@@ -886,7 +862,16 @@
 
 
   .mechanic-page .mechanic-attendance-style-table {
-    min-width: 900px;
+    min-width: 1000px;
   }
 
+}
+/* Availability uses the same semantic surfaces as other Maintenance pages. */
+html[data-gct-theme="dark"] .mechanic-page {
+  --mechanic-card: var(--gct-theme-surface, #162235);
+  --mechanic-text: var(--gct-theme-fg, #edf3fc);
+  --mechanic-navy: var(--gct-theme-fg, #edf3fc);
+  --mechanic-muted: var(--gct-theme-muted, #b1bfd2);
+  --mechanic-border: var(--gct-theme-border, #35465e);
+  --mechanic-table-head: var(--gct-theme-surface-raised, #203047);
 }

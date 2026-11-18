@@ -194,8 +194,8 @@
 
                                     </td>
                                     <td>
-                                      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-                                        <button class="pms-view-tasks-btn open-pms-tasks-modal" type="button" data-modal-target="pmsDetails-{{ $loop->index }}" aria-label="View PMS details for {{ $row->bus_no }}"><i class="fa-solid fa-eye"></i></button>
+                                      <div class="pms-row-actions">
+                                        <button class="pms-view-tasks-btn open-pms-tasks-modal" type="button" data-modal-target="pmsDetails-{{ $loop->index }}" aria-label="View PMS details for {{ $row->bus_no }}"><i class="fa-solid fa-eye" aria-hidden="true"></i><span>View</span></button>
                                         @if(auth()->user()?->hasSystemPermission('maintenance', 'edit'))
                                           @php
                                             $existingPmsJo = $openPmsJobsByBus->get(strtoupper(trim((string) $row->bus_no)));

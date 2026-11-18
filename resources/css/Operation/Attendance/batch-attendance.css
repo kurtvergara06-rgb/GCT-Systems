@@ -495,16 +495,196 @@
 .batch-attendance-header .batch-header-time-actions .batch-control-btn:hover {background:#ecf4ff;border-color:#91b4e0}
 @media(max-width:680px) {.batch-attendance-header {flex-wrap:wrap}.batch-attendance-header .batch-header-actions {margin-left:auto}.batch-attendance-header .batch-header-time-actions {flex-wrap:wrap}.batch-attendance-header .batch-header-time-actions .batch-control-btn {padding:7px 9px}}
 
-/* Mechanic bulk times share Clear All's toolbar baseline, right aligned. */
-.batch-attendance-mechanic .batch-attendance-controls {display:flex;align-items:end;gap:12px;flex-wrap:wrap}
-.batch-attendance-mechanic .batch-attendance-controls>.batch-action-row {flex:1 1 auto;align-items:center}
-.batch-attendance-mechanic .batch-toolbar-time-actions {display:flex;gap:8px;align-items:center;justify-content:flex-end;margin-left:auto}
-.batch-attendance-mechanic .batch-toolbar-time-actions .batch-control-btn {min-height:42px;padding:10px 14px;border-color:#ced6e2;color:#1c2430;background:#fff;font-size:12px;font-weight:700}
-.batch-attendance-mechanic .batch-toolbar-time-actions .batch-control-btn:hover {background:#f4f5f7;border-color:#9ba7b8;color:#111827}
-@media(max-width:780px) {.batch-attendance-mechanic .batch-toolbar-time-actions {width:100%;justify-content:flex-end}.batch-attendance-mechanic .batch-attendance-controls>.batch-action-row {flex:1 1 100%}}
+/* Mechanic attendance: consistent Time In/Time Out toolbar, scrollable roster
+   and footer on the same surface. Driver attendance keeps its own layout. */
+.batch-attendance-mechanic .batch-attendance-controls > .batch-action-row {
+  flex: 1 1 auto;
+  align-items: center;
+}
+.batch-attendance-mechanic .batch-toolbar-time-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-left: auto;
+}
+.batch-attendance-mechanic .batch-toolbar-time-actions .batch-control-btn {
+  min-height: 40px;
+  padding: 8px 13px;
+  background: #ffffff;
+  border-color: #cbd5e1;
+  color: #1d4ed8;
+}
+.batch-attendance-mechanic .batch-toolbar-time-actions .batch-control-btn:hover {
+  background: #eff6ff;
+  border-color: #93c5fd;
+  color: #1e40af;
+}
+.batch-attendance-mechanic .batch-toolbar-time-actions .batch-control-btn[aria-pressed="true"] {
+  background: #dbeafe;
+  border-color: #93c5fd;
+  color: #1e40af;
+}
+.batch-attendance-mechanic .batch-attendance-controls .batch-control-btn[hidden] { display: none; }
+.batch-attendance-mechanic .batch-attendance-controls .batch-control-btn:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+.batch-attendance-mechanic .batch-attendance-modal {
+  width: min(1450px, 96vw);
+  max-height: min(92dvh, 900px);
+}
+.batch-attendance-mechanic .batch-attendance-table thead th,
+.batch-attendance-mechanic .batch-attendance-table tbody td {
+  padding: 10px 12px;
+}
+.batch-attendance-mechanic .batch-attendance-footer {
+  align-items: center;
+  padding-top: 2px;
+  gap: 14px;
+}
+.batch-attendance-mechanic .batch-footer-actions { flex: 0 0 auto; }
+.batch-attendance-mechanic .batch-footer-actions button { min-width: 102px; }
+@media (max-width: 1080px) {
+  .batch-attendance-mechanic .batch-attendance-footer { align-items: stretch; }
+  .batch-attendance-mechanic .batch-footer-actions { justify-content: flex-end; }
+}
+@media (max-width: 780px) {
+  .batch-attendance-mechanic .batch-toolbar-time-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+  .batch-attendance-mechanic .batch-attendance-controls > .batch-action-row { flex: 1 1 100%; }
+}
 
-/* Time In/Time Out are alternate attendance workflows, not bulk timestamp actions. */
-.batch-attendance-mechanic .batch-toolbar-time-actions .batch-control-btn[aria-pressed="true"] {background:#f0f2f5;border-color:#9ba5b2;color:#111827}
-.batch-attendance-mechanic .batch-attendance-controls .batch-control-btn[hidden] {display:none}
 
-.batch-attendance-mechanic .batch-attendance-controls .batch-control-btn:disabled {opacity:.5;cursor:not-allowed;background:#f6f7f9}
+
+/* Dark Mode for the shared Mechanic Attendance Time In/Time Out dialog.
+   Scope to mechanic so Operation Driver Attendance is unaffected. */
+html[data-gct-theme="dark"] .batch-attendance-mechanic {
+  --batch-surface: var(--gct-theme-surface, #162235);
+  --batch-raised: var(--gct-theme-surface-raised, #203047);
+  --batch-input: var(--gct-theme-input, #101b2b);
+  --batch-border: var(--gct-theme-border, #35465e);
+  --batch-fg: var(--gct-theme-fg, #edf3fc);
+  --batch-muted: var(--gct-theme-muted, #b1bfd2);
+}
+html[data-gct-theme="dark"] .batch-attendance-mechanic .batch-attendance-modal {
+  background: var(--batch-surface);
+  border-color: var(--batch-border);
+  color: var(--batch-fg);
+}
+html[data-gct-theme="dark"] .batch-attendance-mechanic .batch-attendance-header h2,
+html[data-gct-theme="dark"] .batch-attendance-mechanic .batch-person-meta strong,
+html[data-gct-theme="dark"] .batch-attendance-mechanic .batch-shift-meta strong,
+html[data-gct-theme="dark"] .batch-attendance-mechanic .batch-summary-card strong {
+  color: var(--batch-fg);
+}
+html[data-gct-theme="dark"] .batch-attendance-mechanic .batch-attendance-header p,
+html[data-gct-theme="dark"] .batch-attendance-mechanic .batch-attendance-controls label span,
+html[data-gct-theme="dark"] .batch-attendance-mechanic .batch-person-meta small,
+html[data-gct-theme="dark"] .batch-attendance-mechanic .batch-shift-meta small,
+html[data-gct-theme="dark"] .batch-attendance-mechanic .batch-summary-label {
+  color: var(--batch-muted);
+}
+html[data-gct-theme="dark"] .batch-attendance-mechanic .batch-attendance-controls :is(input, select),
+html[data-gct-theme="dark"] .batch-attendance-mechanic .batch-time-cell input {
+  background: var(--batch-input);
+  border-color: var(--batch-border);
+  color: var(--batch-fg);
+  color-scheme: dark;
+}
+html[data-gct-theme="dark"] .batch-attendance-mechanic .batch-control-btn,
+html[data-gct-theme="dark"] .batch-attendance-mechanic .batch-time-cell button {
+  background: #ffffff;
+  border: 1px solid #bfdbfe;
+  color: #1d4ed8;
+}
+html[data-gct-theme="dark"] .batch-attendance-mechanic .batch-close-btn {
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  flex: 0 0 38px;
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  min-height: 38px;
+  padding: 0;
+  border: 1px solid #bfdbfe;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #1d4ed8;
+  font-family: inherit;
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 1;
+  box-shadow: none;
+  appearance: none;
+}
+html[data-gct-theme="dark"] .batch-attendance-mechanic .batch-close-btn:is(:hover, :focus-visible) {
+  background: #ffffff;
+  border-color: #2563eb;
+  color: #1e40af;
+}
+html[data-gct-theme="dark"] .batch-attendance-mechanic .batch-control-btn:is(:hover, :focus-visible),
+html[data-gct-theme="dark"] .batch-attendance-mechanic .batch-time-cell button:is(:hover, :focus-visible) {
+  background: #ffffff;
+  border-color: #2563eb;
+  color: #1e40af;
+}
+html[data-gct-theme="dark"] .batch-attendance-mechanic .batch-toolbar-time-actions .batch-control-btn[aria-pressed="true"] {
+  background: #dbeafe;
+  color: #1e40af;
+  border-color: #60a5fa;
+}
+html[data-gct-theme="dark"] .batch-attendance-mechanic .batch-table-wrap {
+  background: var(--batch-surface);
+  border-color: var(--batch-border);
+  scrollbar-color: #8396b2 #1b2b42;
+  scrollbar-width: thin;
+}
+html[data-gct-theme="dark"] .batch-attendance-mechanic .batch-attendance-table thead th {
+  background: var(--batch-raised);
+  border-color: var(--batch-border);
+  color: var(--batch-fg);
+}
+html[data-gct-theme="dark"] .batch-attendance-mechanic .batch-attendance-table tbody td,
+html[data-gct-theme="dark"] .batch-attendance-mechanic .batch-attendance-table tr.is-unavailable td {
+  background: var(--batch-surface);
+  border-color: var(--batch-border);
+  color: var(--batch-fg);
+}
+html[data-gct-theme="dark"] .batch-attendance-mechanic .batch-status-btn:not(.is-active) {
+  background: var(--batch-raised);
+  border-color: var(--batch-border);
+  color: var(--batch-fg);
+}
+html[data-gct-theme="dark"] .batch-attendance-mechanic .batch-status-btn:not(.is-active):hover {
+  background: #304663;
+  border-color: #7996b9;
+  color: #ffffff;
+}
+html[data-gct-theme="dark"] .batch-attendance-mechanic .batch-attendance-note {
+  background: var(--batch-raised);
+  border-color: var(--batch-border);
+  color: #bfdbfe;
+}
+html[data-gct-theme="dark"] .batch-attendance-mechanic .batch-summary-grid {
+  background: var(--batch-raised);
+  border-color: var(--batch-border);
+}
+html[data-gct-theme="dark"] .batch-attendance-mechanic .batch-summary-card {
+  border-color: var(--batch-border);
+}
+html[data-gct-theme="dark"] .batch-attendance-mechanic .batch-loading,
+html[data-gct-theme="dark"] .batch-attendance-mechanic .batch-empty {
+  color: var(--batch-muted);
+}
+html[data-gct-theme="dark"] .batch-attendance-mechanic .batch-error {
+  color: #fca5a5;
+}
+html[data-gct-theme="dark"] .batch-attendance-mechanic .batch-footer-actions .secondary-btn {
+  background: #ffffff;
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+}

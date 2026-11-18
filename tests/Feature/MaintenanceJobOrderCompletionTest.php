@@ -350,8 +350,9 @@ class MaintenanceJobOrderCompletionTest extends TestCase
 
         // Modal wording assertions
         $response->assertSee('Complete Job Order?');
-        $response->assertSee('Confirm that all maintenance work for this Job Order has been completed.');
-        $response->assertSee('Completion date and time will be recorded automatically.');
+        $response->assertSee('Review the saved Job Order details before confirming completion.');
+        $response->assertSee('Confirm only after work is complete and all required parts are issued. The completion date and time will be recorded automatically.');
+        $response->assertSee('id="finishJoParts"', false);
         $response->assertSee('Yes, Complete');
         $response->assertDontSee('Yes, Finish');
         $response->assertDontSee('Finish Job Order?');
@@ -360,10 +361,10 @@ class MaintenanceJobOrderCompletionTest extends TestCase
         $response->assertSee('action="' . route('job-orders.finish', $joNoParts->id) . '"', false);
         $response->assertSee('action="' . route('job-orders.finish', $joPartsIssued->id) . '"', false);
 
-        // Locked buttons with appropriate reasons
-        // Approved JOs with unissued required parts are intentionally displayed
-        // as On Hold, so the UI exposes the stronger operational lock reason.
-        $response->assertSee('Cannot complete while job order is on hold.');
+        // Blocked Job Orders have no completion action in the overview.
+        // The lock reason is calculated internally, not rendered as UI text.
+        $response->assertDontSee('action="' . route('job-orders.finish', $joPartsPending->id) . '"', false);
+        $response->assertDontSee('action="' . route('job-orders.finish', $joOnHold->id) . '"', false);
 
         // Completed row displays completion date format on the history tab
         $historyResponse = $this

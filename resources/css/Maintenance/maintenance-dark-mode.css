@@ -1,0 +1,2059 @@
+/*
+ * Maintenance dark mode bridge.
+ * Uses GCT semantic theme tokens; light mode and non-Maintenance pages untouched.
+ * Only surfaces and typography are themed here. Workflow/status colors, geometry,
+ * visibility, and modal interaction behavior remain owned by their page styles.
+ */
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] {
+  color-scheme: dark;
+  --jo-text: var(--gct-theme-fg);
+  --jo-muted: var(--gct-theme-muted);
+  --jo-overdue-estimate-color: #fda4af;
+  --jo-table-head: var(--gct-theme-surface-raised);
+  --ir-navy: var(--gct-theme-fg);
+  --ir-muted: var(--gct-theme-muted);
+  --ir-border: var(--gct-theme-border);
+}
+
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(
+  .app, .main, .maintenance-dashboard-main, .jo-page, .pms-page,
+  .purchase-page, .purchase-request-page, .maintenance-ir-page,
+  .mechanic-page, .referrals-page, .fuel-page
+) {
+  background-color: var(--gct-theme-canvas);
+  color: var(--gct-theme-fg);
+}
+
+/* Fuel Reports' cards use --fuel-navy for KPI values, so switch the
+   existing page palette instead of overriding every summary card. */
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .fuel-page {
+  --fuel-text: var(--gct-theme-fg);
+  --fuel-navy: var(--gct-theme-fg);
+  --fuel-muted: var(--gct-theme-muted);
+  --fuel-border: var(--gct-theme-border);
+  --fuel-border-strong: var(--gct-theme-border);
+  --fuel-white: var(--gct-theme-surface);
+  --fuel-soft: var(--gct-theme-surface-raised);
+  --gct-sticky-actions-background: var(--gct-theme-surface);
+  --gct-sticky-actions-heading: var(--gct-theme-surface-raised);
+}
+
+/* Common panels including summary metrics and department-specific cards. */
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(
+  .table-card, .panel-card, .stat-card, .stat-card-link, .dashboard-card,
+  .card, .jo-table-card, .pms-table-card, .mechanic-table-card,
+  .purchase-request-card, .fuel-card, .fuel-chart-card, .referrals-card,
+  .ir-summary-card, .ir-record-card, .ir-parts-popover,
+  .maintenance-chart-shell, .fleet-health-row, .ir-record-count,
+  .jo-completion-details > div
+) {
+  background-color: var(--gct-theme-surface);
+  border-color: var(--gct-theme-border);
+  color: var(--gct-theme-fg);
+}
+
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(
+  .topbar h1, .topbar h2, .section-header h2, .section-header h3,
+  .pms-header h2, .ir-record-header h2, .ir-summary-card strong,
+  .maintenance-chart-empty strong, .ir-empty strong,
+  .ir-modal-heading h2, .jo-completion-details strong
+) {
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(
+  .topbar p, .section-header p, .pms-header p, .ir-record-header p,
+  .ir-summary-card small, .ir-summary-card span:not(.ir-summary-icon),
+  .ir-modal-heading p, .ir-empty p, .ir-date,
+  .maintenance-chart-empty span, .jo-completion-details span,
+  .jo-completion-note, .maintenance-secondary-text
+) {
+  color: var(--gct-theme-muted);
+}
+
+/* Table backgrounds: scope to table parts, not semantic status badges. */
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(
+  .table-wrap, .ir-table-wrap, .jo-responsive-table-wrap, .table-card,
+  .ir-record-card
+) table {
+  background-color: var(--gct-theme-surface);
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(
+  .table-wrap, .ir-table-wrap, .jo-responsive-table-wrap, .table-card,
+  .ir-record-card
+) :is(th, thead td) {
+  background-color: var(--gct-theme-surface-raised);
+  border-color: var(--gct-theme-border);
+  color: var(--gct-theme-muted);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(
+  .table-wrap, .ir-table-wrap, .jo-responsive-table-wrap, .table-card,
+  .ir-record-card
+) tbody td {
+  background-color: var(--gct-theme-surface);
+  border-color: var(--gct-theme-border);
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(
+  .table-wrap, .ir-table-wrap, .jo-responsive-table-wrap, .table-card,
+  .ir-record-card
+) tbody tr:hover td {
+  background-color: var(--gct-theme-hover);
+}
+
+/* Generic controls and Maintenance-specific dropdowns. */
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(
+  .main input:not([type="checkbox"]):not([type="radio"]):not([type="color"]),
+  .main select, .main textarea,
+  .ui-form-modal input:not([type="checkbox"]):not([type="radio"]),
+  .ui-form-modal select, .ui-form-modal textarea,
+  .ir-field select, .ir-field textarea,
+  .ir-filter-control, .ir-filter-control input, .ir-filter-control select
+) {
+  background-color: var(--gct-theme-input);
+  border-color: var(--gct-theme-border);
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(
+  input, textarea
+)::placeholder {
+  color: var(--gct-theme-placeholder);
+  opacity: 1;
+}
+
+/* Modal skin only: no changes to display, position, z-index, or backdrop. */
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(
+  .modal-card, .modal-box, .delete-modal-box, .ui-form-modal,
+  .ir-modal, .pr-view-document, .ir-view-document,
+  .jo-view-section, .jo-view-summary, .pr-dual-parts-pane
+) {
+  background-color: var(--gct-theme-surface);
+  border-color: var(--gct-theme-border);
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(
+  .modal-header, .ui-form-modal-header, .ir-modal-header,
+  .ir-modal-footer, .jo-completion-details > div,
+  .pr-ir-review-top
+) {
+  background-color: var(--gct-theme-surface-raised);
+  border-color: var(--gct-theme-border);
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(
+  .modal-card h2, .modal-box h2, .delete-modal-box h2,
+  .ui-form-modal h2, .ir-modal h2, .ir-field label,
+  .form-group label
+) {
+  color: var(--gct-theme-fg);
+}
+
+/* Item Requests table: Parts Allocation disclosure uses a separate popover
+   outside #itemRequestModal, so theme its own existing card and text. */
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .maintenance-ir-page .ir-split-popover {
+  background: var(--gct-theme-surface);
+  border-color: var(--gct-theme-border);
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .maintenance-ir-page .ir-split-popover-heading {
+  background: var(--gct-theme-surface-raised);
+  border-color: var(--gct-theme-border);
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .maintenance-ir-page .ir-split-popover-section + .ir-split-popover-section {
+  border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .maintenance-ir-page .ir-split-popover-line,
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .maintenance-ir-page .ir-split-popover-line strong {
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .maintenance-ir-page .ir-split-popover-empty {
+  color: var(--gct-theme-muted);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .maintenance-ir-page .ir-split-popover-label.is-ir {
+  color: #59dfa0;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .maintenance-ir-page .ir-split-popover-label.is-pr {
+  color: #ff8795;
+}
+
+/* Open IR breakdown is portaled outside .maintenance-ir-page to avoid
+   clipping. Its dark palette follows the same component-level colors. */
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] > .ir-split-popover {
+  background: var(--gct-theme-surface);
+  border-color: var(--gct-theme-border);
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] > .ir-split-popover .ir-split-popover-heading {
+  background: var(--gct-theme-surface-raised);
+  color: var(--gct-theme-fg);
+  border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] > .ir-split-popover .ir-split-popover-section + .ir-split-popover-section {
+  border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] > .ir-split-popover .ir-split-popover-line,
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] > .ir-split-popover .ir-split-popover-line strong {
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] > .ir-split-popover .ir-split-popover-empty {
+  color: var(--gct-theme-muted);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] > .ir-split-popover .ir-split-popover-label.is-ir { color: #59dfa0; }
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] > .ir-split-popover .ir-split-popover-label.is-pr { color: #ff8795; }
+
+/* PR Parts Allocation shares IR's dark palette, but its floating menu is
+   portaled directly under body; .purchase-page selectors cannot reach it. */
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] > .pr-pending-parts-list.pr-parts-floating-menu {
+  background: var(--gct-theme-surface);
+  border-color: var(--gct-theme-border);
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] > .pr-pending-parts-list.pr-parts-floating-menu > div {
+  background: var(--gct-theme-surface);
+  border-color: var(--gct-theme-border);
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] > .pr-pending-parts-list.pr-parts-floating-menu > div strong {
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] > .pr-pending-parts-list.pr-parts-floating-menu .pr-ir-popover-title {
+  background: var(--gct-theme-surface-raised);
+  border-color: var(--gct-theme-border);
+  color: #ff8795;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] > .pr-pending-parts-list.pr-parts-floating-menu .pr-ir-popover-title.is-ir {
+  color: #59dfa0;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] > .pr-pending-parts-list.pr-parts-floating-menu .pr-ir-allocation-note {
+  background: var(--gct-theme-surface-raised);
+  color: var(--gct-theme-muted);
+}
+
+/* Review Item Request document: theme its own nested panels rather than
+   letting their hardcoded light backgrounds override the Maintenance modal. */
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #itemRequestModal {
+  --ir-review-surface: var(--gct-theme-surface, #162235);
+  --ir-review-raised: var(--gct-theme-surface-raised, #203047);
+  --ir-review-border: var(--gct-theme-border, #35465e);
+  --ir-review-text: var(--gct-theme-fg, #edf3fc);
+  --ir-review-muted: var(--gct-theme-muted, #b1bfd2);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #itemRequestModal :is(
+  .ir-review-document-modal, .ir-review-document-body, .ir-review-section,
+  .ir-review-parts-pane, .ir-preview-table-wrap
+) {
+  background: var(--ir-review-surface);
+  color: var(--ir-review-text);
+  border-color: var(--ir-review-border);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #itemRequestModal :is(
+  .ir-modal-header, .ir-modal-footer, .ir-review-section > header,
+  .ir-review-jo-banner, .ir-review-approver
+) {
+  background: var(--ir-review-raised);
+  border-color: var(--ir-review-border);
+  color: var(--ir-review-text);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #itemRequestModal .ir-review-signature {
+  background: #f8fafc;
+  border-color: var(--ir-review-border);
+  color: #334155;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #itemRequestModal .ir-review-signature > span {
+  color: #475569;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #itemRequestModal :is(
+  .ir-modal-heading h2, .ir-review-section > header h3,
+  .ir-review-jo-banner strong:not(.ir-jo-approved-badge),
+  .ir-review-overview-grid strong, .ir-review-approver strong,
+  .ir-preview-table td, .ir-review-remarks-section label
+) {
+  color: var(--ir-review-text);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #itemRequestModal :is(
+  .ir-modal-eyebrow, .ir-modal-heading p, .ir-review-jo-banner span,
+  .ir-review-jo-banner small, .ir-review-overview-grid span,
+  .ir-review-approver span, .ir-review-approver small,
+  .ir-review-muted, .ir-review-section-note, .ir-review-portion-head > span
+) {
+  color: var(--ir-review-muted);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #itemRequestModal .ir-preview-table th {
+  background: var(--ir-review-raised);
+  border-color: var(--ir-review-border);
+  color: var(--ir-review-muted);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #itemRequestModal .ir-preview-table td {
+  background: var(--ir-review-surface);
+  border-color: var(--ir-review-border);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #itemRequestModal .ir-preview-table tbody tr:nth-child(even) {
+  background: var(--ir-review-surface);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #itemRequestModal .ir-review-portion-head strong {
+  color: #86efac;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #itemRequestModal .ir-review-portion-head.is-pr strong {
+  color: #fda4af;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #itemRequestModal :is(
+  .ir-review-remarks-section textarea, .ir-note
+) {
+  background: var(--ir-review-raised);
+  border-color: var(--ir-review-border);
+  color: var(--ir-review-text);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #itemRequestModal .ir-icon-button,
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #itemRequestModal .ir-secondary-button {
+  background: #ffffff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #itemRequestModal .ir-icon-button:hover,
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #itemRequestModal .ir-secondary-button:hover {
+  background: #ffffff;
+  border-color: #2563eb;
+  color: #1e40af;
+}
+
+/* View Item Request shares Review IR's dark document surfaces while retaining
+   its own read-only details and semantic status chips. */
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #viewItemRequestModal {
+  --ir-view-surface: var(--gct-theme-surface, #162235);
+  --ir-view-raised: var(--gct-theme-surface-raised, #203047);
+  --ir-view-border: var(--gct-theme-border, #35465e);
+  --ir-view-fg: var(--gct-theme-fg, #edf3fc);
+  --ir-view-muted: var(--gct-theme-muted, #b1bfd2);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #viewItemRequestModal :is(
+  .ir-review-document-modal, .ir-review-document-body, .ir-review-section,
+  .ir-review-parts-pane, .ir-preview-table-wrap
+) {
+  background: var(--ir-view-surface);
+  color: var(--ir-view-fg);
+  border-color: var(--ir-view-border);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #viewItemRequestModal :is(
+  .ir-modal-header, .ir-modal-footer, .ir-review-section > header,
+  .ir-review-jo-banner, .ir-review-approver
+) {
+  background: var(--ir-view-raised);
+  border-color: var(--ir-view-border);
+  color: var(--ir-view-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #viewItemRequestModal :is(
+  .ir-modal-heading h2, .ir-review-section > header h3,
+  .ir-review-jo-banner strong:not(.ir-view-status),
+  .ir-review-overview-grid strong, .ir-review-approver strong,
+  .ir-preview-table td, .ir-view-remarks-label
+) { color: var(--ir-view-fg); }
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #viewItemRequestModal :is(
+  .ir-modal-eyebrow, .ir-modal-heading p, .ir-review-jo-banner span,
+  .ir-review-jo-banner small, .ir-review-overview-grid span,
+  .ir-review-approver span, .ir-review-approver small,
+  .ir-review-muted, .ir-review-section-note, .ir-review-portion-head > span
+) { color: var(--ir-view-muted); }
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #viewItemRequestModal .ir-review-signature {
+  background: #f8fafc;
+  border-color: var(--ir-view-border);
+  color: #334155;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #viewItemRequestModal .ir-review-signature > span,
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #viewItemRequestModal .ir-review-signature > small {
+  color: #475569;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #viewItemRequestModal .ir-preview-table th {
+  background: var(--ir-view-raised);
+  color: var(--ir-view-muted);
+  border-color: var(--ir-view-border);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #viewItemRequestModal .ir-preview-table td {
+  background: var(--ir-view-surface);
+  border-color: var(--ir-view-border);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #viewItemRequestModal .ir-review-portion-head strong {
+  color: #86efac;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #viewItemRequestModal .ir-review-portion-head.is-pr strong {
+  color: #fda4af;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #viewItemRequestModal :is(.ir-detail-text, .ir-note) {
+  background: var(--ir-view-raised);
+  border-color: var(--ir-view-border);
+  color: var(--ir-view-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #viewItemRequestModal .ir-icon-button,
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #viewItemRequestModal [data-ir-close] {
+  background: #ffffff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #viewItemRequestModal .ir-icon-button:hover,
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #viewItemRequestModal [data-ir-close]:hover {
+  background: #ffffff;
+  border-color: #2563eb;
+  color: #1e40af;
+}
+/* The static bar labels must contrast with dark table rows. */
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .maintenance-ir-page .ir-lifecycle-table .maintenance-ir-fulfillment strong {
+  color: var(--gct-theme-fg, #edf3fc) !important;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .maintenance-ir-page .ir-lifecycle-table .maintenance-ir-fulfillment small {
+  color: var(--gct-theme-muted, #b1bfd2) !important;
+}
+
+/* Purchase Requisitions use the Item Request table/tab language. The PR
+   stylesheet owns layout; these tokens switch only its hardcoded light skin. */
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .purchase-page {
+  --pr-submitted-text: var(--gct-theme-fg, #edf3fc);
+  --pr-submitted-muted: var(--gct-theme-muted, #b1bfd2);
+  --pr-even-row: var(--gct-theme-surface, #162235);
+  --pr-tabs-background: var(--gct-theme-surface-raised, #203047);
+  --pr-tabs-border: var(--gct-theme-border, #35465e);
+  --pr-tab-text: var(--gct-theme-muted, #b1bfd2);
+  --pr-tab-active-bg: #2d415e;
+  --pr-tab-active-text: #ffffff;
+  --gct-sticky-actions-background: var(--gct-theme-surface);
+  --gct-sticky-actions-heading: var(--gct-theme-surface-raised);
+  --gct-sticky-actions-hover: var(--gct-theme-hover);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .purchase-page .pr-ir-style-table tbody tr,
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .purchase-page .pr-ir-style-table tbody tr:nth-child(even) {
+  background: var(--gct-theme-surface);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .purchase-page .pr-ir-style-table tbody tr:hover {
+  background: var(--gct-theme-hover);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .purchase-page .pr-ir-style-table .pr-pending-review-btn,
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .purchase-page .pr-ir-style-table .pr-review-btn.open-view-pr-modal {
+  background: #ffffff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .purchase-page .pr-ir-style-table .pr-pending-review-btn:hover,
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .purchase-page .pr-ir-style-table .pr-review-btn.open-view-pr-modal:hover {
+  background: #ffffff;
+  border-color: #2563eb;
+  color: #1e40af;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .purchase-page .purchase-stats-grid :is(.stat-card-label,.stat-value,.stat-card-value,.stat-card small,.stat-card .stat-label) {
+  color: var(--gct-theme-fg, #edf3fc);
+}
+
+/* PR Pending, In Progress, and History share the same dark table surface.
+   Empty rows need an explicit surface because the shared empty component
+   otherwise inherits a light table cell from the legacy PR stylesheet. */
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .purchase-page .purchase-request-card .purchase-request-table {
+  background: var(--gct-theme-surface);
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .purchase-page .purchase-request-card .purchase-request-table thead th {
+  background: var(--gct-theme-surface-raised);
+  border-color: var(--gct-theme-border);
+  color: var(--gct-theme-muted);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .purchase-page .purchase-request-card .purchase-request-table tr.gct-empty-table-row > td.gct-empty-cell {
+  background: var(--gct-theme-surface);
+  border-color: var(--gct-theme-border);
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .purchase-page .purchase-request-card .gct-empty-content :is(.gct-empty-title,.gct-empty-icon) {
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .purchase-page .purchase-request-card .gct-empty-description {
+  color: var(--gct-theme-muted);
+}
+
+/* Purchase Requisition review: apply the Maintenance theme to the nested
+   document, form and approval cards. Keep the signature image itself unfiltered. */
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #prModal {
+  --pr-document-text: var(--gct-theme-fg);
+  --pr-document-muted: var(--gct-theme-muted);
+  --pr-document-surface: var(--gct-theme-surface);
+  --pr-document-raised: var(--gct-theme-surface-raised);
+  --pr-remarks-background: var(--gct-theme-input);
+  --pr-remarks-foreground: var(--gct-theme-fg);
+  --pr-remarks-border: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #prModal :is(
+  .pr-step-card, .pr-ir-approved-by, .pr-ir-signature,
+  .pr-ir-review-summary, .pr-document-footer
+) {
+  background: var(--gct-theme-surface);
+  border-color: var(--gct-theme-border);
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #prModal :is(
+  .pr-step-heading, .pr-ir-panel-heading, .pr-dual-parts-pane,
+  .pr-review-parts-table th
+) {
+  background: var(--gct-theme-surface-raised);
+  border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #prModal :is(
+  .pr-step-heading h3, .pr-ir-panel-heading h3, .pr-document-field > span,
+  .pr-step-additional .pr-document-field > span, .pr-ir-approved-by strong,
+  .pr-ir-overview-facts strong
+) {
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #prModal :is(
+  .pr-step-heading p, .pr-ir-overview-facts span,
+  .pr-ir-panel-body > p, .pr-ir-approved-by span,
+  .pr-ir-approved-by small, .pr-ir-signature > span,
+  .pr-ir-signature small, .pr-dual-parts-heading > span,
+  .pr-stock-note, .pr-document-field > span small
+) {
+  color: var(--gct-theme-muted);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #prModal .pr-review-parts-table td {
+  color: var(--gct-theme-fg);
+  border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #prModal .pr-dual-parts-pane.is-pr .pr-dual-parts-heading strong {
+  color: #ff8795;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #prModal .pr-dual-parts-pane.is-ir .pr-dual-parts-heading strong {
+  color: #59dfa0;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #prModal .pr-step-additional .pr-document-field :is(input, textarea),
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #prModal .pr-ir-panel-body .pr-document-field select {
+  background: var(--gct-theme-input);
+  border-color: var(--gct-theme-border);
+  color: var(--gct-theme-fg);
+  color-scheme: dark;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #prModal .pr-step-additional .pr-document-field input[readonly] {
+  background: var(--gct-theme-surface-raised);
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #prModal .pr-step-additional .pr-document-field textarea::placeholder {
+  color: var(--gct-theme-placeholder);
+  opacity: 1;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #prModal .pr-ir-signature {
+  background: var(--gct-theme-surface-raised);
+  border-color: var(--gct-theme-border);
+}
+/* The saved signature PNG may contain a white canvas. Preserve the actual
+   signature pixels rather than altering its appearance with CSS filters. */
+
+/* Saved PR details reuse PR review markup but have their own view wrapper.
+   Theme variables replace hard-coded light colors in purchase-requests.css. */
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #editPrModal {
+  --pr-view-surface: var(--gct-theme-surface);
+  --pr-view-raised: var(--gct-theme-surface-raised);
+  --pr-view-summary-bg: var(--gct-theme-surface-raised);
+  --pr-view-border: var(--gct-theme-border);
+  --pr-view-fg: var(--gct-theme-fg);
+  --pr-view-muted: var(--gct-theme-muted);
+  --pr-view-red: #ff8795;
+  --pr-view-green: #59dfa0;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #editPrModal .pr-view-document :is(
+  .pr-ir-panel-heading h3, .pr-ir-approved-by strong, .pr-ir-overview-facts strong,
+  .pr-view-secondary-data strong, .pr-view-remarks-field strong,
+  .pr-ir-review-summary strong:not(.pr-review-status-pill),
+  .pr-review-parts-table td
+) {
+  color: var(--pr-view-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #editPrModal .pr-view-document :is(
+  .pr-ir-approved-by span, .pr-ir-approved-by small, .pr-ir-signature > span,
+  .pr-ir-overview-facts span, .pr-ir-panel-body > p, .pr-view-secondary-data span,
+  .pr-view-remarks-field > span, .pr-ir-review-summary span, .pr-view-parts-note-row
+) {
+  color: var(--pr-view-muted);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #editPrModal .pr-view-document .pr-dual-parts-pane.is-pr .pr-dual-parts-heading strong {
+  color: var(--pr-view-red);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #editPrModal .pr-view-document .pr-dual-parts-pane.is-ir .pr-dual-parts-heading strong {
+  color: var(--pr-view-green);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #editPrModal .pr-view-document .pr-ir-signature img {
+  filter: none;
+}
+
+/* Physical Fuel Report is a separate modal component with its own layout.
+   Its source CSS consumes these tokens for consistent light/dark appearance. */
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .fuel-paper-overlay {
+  --fuel-paper-surface: var(--gct-theme-surface);
+  --fuel-paper-raised: var(--gct-theme-surface-raised);
+  --fuel-paper-input: var(--gct-theme-input);
+  --fuel-paper-fg: var(--gct-theme-fg);
+  --fuel-paper-muted: var(--gct-theme-muted);
+  --fuel-paper-border: var(--gct-theme-border);
+  --fuel-paper-hover: var(--gct-theme-hover);
+  color-scheme: dark;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .fuel-paper-overlay :is(input, textarea)::placeholder {
+  color: var(--gct-theme-placeholder);
+  opacity: 1;
+}
+
+/* Navigation and filtering surfaces. Preserve state colors on status pills. */
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(
+  .maintenance-record-tabs,
+  .maintenance-record-tab.is-active, .ir-icon-button,
+  .ir-secondary-button, .ir-apply-button, .secondary-btn,
+  .search-box, .filter-group select, .jo-mechanic-more-panel,
+  .topbar-dropdown, .topbar-dropdown-header, .topbar-list-item
+) {
+  background-color: var(--gct-theme-surface-raised);
+  border-color: var(--gct-theme-border);
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(
+  .topbar-list-item:hover, .ir-secondary-button:hover,
+  .maintenance-record-tab:hover, .fleet-health-row:hover
+) {
+  background-color: var(--gct-theme-hover);
+}
+
+/* Item Request tabs share the exact dark segmented pattern used by
+   Mechanic Attendance, instead of inheriting generic raised buttons. */
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .maintenance-ir-page .ir-tabs {
+  background: var(--gct-theme-surface-raised, #203047);
+  border-color: var(--gct-theme-border, #35465e);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .maintenance-ir-page .ir-active-tab {
+  background: transparent;
+  color: var(--gct-theme-muted, #b1bfd2);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .maintenance-ir-page .ir-active-tab.is-active {
+  background: #2d415e;
+  color: #fff;
+}
+
+/*
+ * Maintenance dashboard: complete the theme at the component level.
+ * Dashboard styles define literal white backgrounds and dark foregrounds.
+ * Alias its private palette and theme the remaining surfaces without altering
+ * layout, charts, state badges, buttons' geometry, or scroll behavior.
+ */
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .maintenance-dashboard-page {
+  --md-card: var(--gct-theme-surface);
+  --md-border: var(--gct-theme-border);
+  --md-text: var(--gct-theme-fg);
+  --md-muted: var(--gct-theme-muted);
+  --md-navy: var(--gct-theme-fg);
+  --md-blue: var(--gct-theme-accent);
+  --md-shadow: 0 4px 16px rgb(0 0 0 / 22%);
+  --md-shadow-sm: 0 2px 8px rgb(0 0 0 / 15%);
+  color: var(--gct-theme-fg);
+}
+
+/* The dashboard uses its own card class rather than the shared .dashboard-card. */
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .maintenance-dashboard-page .maintenance-dashboard-card {
+  background: var(--gct-theme-surface);
+  border-color: var(--gct-theme-border);
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .maintenance-dashboard-page :is(
+  .dashboard-card-header h2, .dashboard-empty-state h3,
+  .maintenance-chart-empty strong, .fleet-health-chart-center strong,
+  .status-name-desc strong, .fleet-count, .chart-kpi-pill strong,
+  .roster-metric-item strong, .roster-name-row h4,
+  .pms-bus-badge .bus-no-text, .pipeline-step .step-num,
+  .subhead-title, .blocked-header strong, .tally-count,
+  .ref-header-row strong, .gauge-stat .num, .fuel-tile-val,
+  .quick-tile span, .recent-job-description, .jo-badge-number
+) {
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .maintenance-dashboard-page :is(
+  .dashboard-card-header p, .maintenance-chart-empty span,
+  .fleet-health-chart-center span, .status-name-desc small,
+  .fleet-health-right small, .roster-group-label, .roster-assignment,
+  .pms-bus-badge .pms-type-text, .mileage-numbers,
+  .pipeline-step .step-label, .blocked-part-name,
+  .tally-label, .ref-desc, .gauge-stat .lbl, .fuel-tile-lbl,
+  .dashboard-empty-state p, .recent-job-meta span:not(.part-badge)
+) {
+  color: var(--gct-theme-muted);
+}
+
+/* Dashboard records: boxed semantic statuses, readable parts summary.
+   Do not recolor the shared status badge's icon/label or other metadata. */
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .maintenance-dashboard-page .recent-job-meta > .part-badge.part-waiting {
+  background: #3b2c22;
+  border-color: #a56d39;
+  color: #ffcf96;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .maintenance-dashboard-page .recent-job-meta > .part-badge.part-ready {
+  background: #173a2d;
+  border-color: #358463;
+  color: #8ff0bd;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .maintenance-dashboard-page .dashboard-status.hold {
+  background: #433521;
+  border-color: #b17f31;
+  color: #ffce83;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .maintenance-dashboard-page .dashboard-status.completed {
+  background: #173a2d;
+  border-color: #358463;
+  color: #8ff0bd;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .maintenance-dashboard-page .dashboard-status.ongoing {
+  background: #213858;
+  border-color: #477bbb;
+  color: #a9d0ff;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .maintenance-dashboard-page .roster-name-row .roster-pill.pill-available {
+  background: #173a2d;
+  border-color: #358463;
+  color: #8ff0bd;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .maintenance-dashboard-page .roster-name-row .roster-pill.pill-duty {
+  background: #213858;
+  border-color: #477bbb;
+  color: #a9d0ff;
+}
+
+/* Normal list rows and metric tiles. Leave status badges and colorful icons intact. */
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .maintenance-dashboard-page :is(
+  .chart-kpi-pill, .fleet-health-row, .roster-metric-item,
+  .recent-job-item, .roster-item, .pms-attention-row,
+  .pr-pipeline-strip, .blocked-item, .tally-box,
+  .referral-stream-item, .readiness-gauge-box,
+  .fuel-stat-tile, .quick-tile, .dashboard-empty-state-sm,
+  .bus-tag, .bus-badge-pill
+) {
+  background: var(--gct-theme-surface-raised);
+  border-color: var(--gct-theme-border);
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .maintenance-dashboard-page :is(
+  .fleet-health-row, .recent-job-item, .roster-item,
+  .pms-attention-row, .blocked-item, .referral-stream-item,
+  .quick-tile
+):hover {
+  background: var(--gct-theme-hover);
+  border-color: var(--gct-theme-control-border);
+}
+
+/* The overdue / pending rows retain their state emphasis through a border. */
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .maintenance-dashboard-page :is(
+  .recent-job-item.is-urgent-item, .pms-attention-row.is-overdue,
+  .referral-stream-item.is-pending, .tally-box.highlight-pending
+) {
+  background: var(--gct-theme-surface-raised);
+  border-color: #b75d64;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .maintenance-dashboard-page .pms-attention-row.is-due-soon {
+  background: var(--gct-theme-surface-raised);
+  border-color: #a7874d;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .maintenance-dashboard-page .tally-box.highlight-pending .tally-count {
+  color: #ff8b92;
+}
+
+/* Activity/fleet/PMS/pipeline text: retain the semantic state colors,
+   but make informational labels readable against raised dark surfaces. */
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .maintenance-dashboard-page .chart-kpi-pill {
+  background: var(--gct-theme-surface-raised);
+  border-color: var(--gct-theme-border);
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .maintenance-dashboard-page .chart-kpi-pill strong,
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .maintenance-dashboard-page .chart-kpi-pill span {
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .maintenance-dashboard-page :is(
+  .pms-mileage-details .mileage-numbers,
+  .pms-mileage-details .mileage-delta,
+  .fleet-health-right small,
+  .status-name-desc small,
+  .pipeline-step .step-label,
+  .pipeline-divider
+) {
+  color: var(--gct-theme-muted);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .maintenance-dashboard-page .pms-attention-row .pms-status-badge.overdue {
+  background: #48272d;
+  border: 1px solid #a84a59;
+  color: #ffb5bf;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .maintenance-dashboard-page .pms-attention-row .pms-status-badge.due-soon {
+  background: #42351f;
+  border: 1px solid #a9843f;
+  color: #ffda96;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .maintenance-dashboard-page .pms-attention-row .btn-create-jo-compact {
+  background: #2563b9;
+  color: #fff;
+}
+
+/* Empty chart, chart controls, internal links and raised data summaries. */
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .maintenance-dashboard-page .maintenance-chart-empty {
+  background: var(--gct-theme-surface-raised);
+  color: var(--gct-theme-muted);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .maintenance-dashboard-page :is(
+  .chart-group-select, .dashboard-view-link
+) {
+  background: var(--gct-theme-input);
+  border-color: var(--gct-theme-border);
+  color: var(--gct-theme-accent);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .maintenance-dashboard-page .chart-group-select {
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .maintenance-dashboard-page .dashboard-view-link:hover {
+  background: var(--gct-theme-hover);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .maintenance-dashboard-page .fleet-health-row:hover {
+  background: var(--gct-theme-hover);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .maintenance-dashboard-page .progress-bar-wrap {
+  background: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .maintenance-dashboard-page .gauge-percentage {
+  color: var(--gct-theme-accent);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .maintenance-dashboard-page .dashboard-eyebrow {
+  color: var(--gct-theme-accent);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .maintenance-dashboard-page .dashboard-scroll-body {
+  scrollbar-color: var(--gct-theme-control-border) transparent;
+}
+
+/* Legacy dark blue icon text on dark surfaces needs independent contrast.
+ * Do not recolor colored status pills or conditional warning labels.
+ */
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .maintenance-dashboard-page :is(
+  .linked-jo-pill, .pms-active-jo-badge
+) {
+  background: var(--gct-theme-subtle);
+  color: var(--gct-theme-accent);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .maintenance-dashboard-page .quick-tile i {
+  color: var(--gct-theme-accent);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .maintenance-dashboard-page :is(
+  .fleet-health-row .status-name-desc strong, .roster-item .roster-name-row h4
+) {
+  color: var(--gct-theme-fg);
+}
+
+/*
+ * Operation -> Maintenance Referrals (Active and History share the same view).
+ * This page has its own light palette and uses a native <dialog> for Review.
+ * Keep semantic badges, permissions, modal sizing, and sticky Actions behavior.
+ */
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .referrals-page {
+  --ref-navy: var(--gct-theme-fg);
+  --ref-muted: var(--gct-theme-muted);
+  --ref-border: var(--gct-theme-border);
+  --ref-card: var(--gct-theme-surface);
+  --ref-blue: var(--gct-theme-accent);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .referrals-page :is(
+  .referrals-card, .maintenance-record-tabs,
+  .referral-toolbar .search-box input, .referral-toolbar select
+) {
+  background: var(--gct-theme-surface);
+  border-color: var(--gct-theme-border);
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .referrals-page .maintenance-record-tab {
+  color: var(--gct-theme-muted);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .referrals-page .maintenance-record-tab:is(.is-active, :hover, :focus-visible) {
+  background: var(--gct-theme-surface-raised);
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .referrals-page .referrals-table :is(.incident-number, .location-text) {
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .referrals-page .referrals-table .problem-desc {
+  color: var(--gct-theme-muted);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .referrals-page .referrals-table .incident-type-tag {
+  color: #ff999e;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .referrals-page .referrals-table .bus-badge-pill {
+  background: var(--gct-theme-surface-raised);
+  color: var(--gct-theme-fg);
+  border-color: var(--gct-theme-control-border);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .referrals-page .referrals-table .linked-jo-pill {
+  background: var(--gct-theme-subtle);
+  color: var(--gct-theme-accent);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .referrals-page .referrals-table .linked-jo-pill:hover {
+  background: var(--gct-theme-hover);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .referrals-page .referrals-table td:last-child {
+  background: var(--gct-theme-surface);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .referrals-page .referrals-table tbody tr:hover td:last-child {
+  background: var(--gct-theme-hover);
+}
+/* Maintenance action buttons remain white even against dark table surfaces. */
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .referrals-page .btn-ref-review {
+  background: #ffffff;
+  color: #1d4ed8;
+  border-color: #93c5fd;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .referrals-page .btn-ref-review:is(:hover, :focus-visible) {
+  background: #ffffff;
+  color: #1e40af;
+  border-color: #2563eb;
+}
+
+/* Native dialog contents are inside the Referrals page on both record views. */
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .referrals-page .referral-review-dialog {
+  color-scheme: dark;
+  background: var(--gct-theme-surface);
+  color: var(--gct-theme-fg);
+  border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .referrals-page .referral-review-dialog :is(
+  .referral-review-head, .referral-review-footer, .referral-review-section
+) {
+  background: var(--gct-theme-surface);
+  border-color: var(--gct-theme-border);
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .referrals-page .referral-review-dialog :is(
+  .referral-review-banner, .referral-review-details > div, .referral-review-note
+) {
+  background: var(--gct-theme-surface-raised);
+  border-color: var(--gct-theme-border);
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .referrals-page .referral-review-dialog :is(
+  .referral-review-head h2, .referral-review-section h3,
+  .referral-review-details dd, .referral-review-summary dd,
+  .referral-review-banner > strong
+) {
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .referrals-page .referral-review-dialog :is(
+  .referral-review-head p, .referral-review-details dt, .referral-review-summary dt
+) {
+  color: var(--gct-theme-muted);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .referrals-page .referral-review-dialog .referral-review-summary > div {
+  border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .referrals-page .referral-review-dialog :is(
+  .referral-review-heading-icon, .referral-review-close, .referral-review-cancel
+) {
+  background: var(--gct-theme-surface-raised);
+  color: var(--gct-theme-fg);
+  border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .referrals-page .referral-review-dialog .referral-review-section h3 i,
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .referrals-page .referral-review-dialog .referral-review-details dt i {
+  color: var(--gct-theme-accent);
+}
+/* Keep status colors meaningful; only adjust chip contrast on dark surroundings. */
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .referrals-page .referral-review-dialog .referral-review-status:not(.is-pending) {
+  background: #164f3b;
+  color: #b6f5d2;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .referrals-page .referral-review-dialog .referral-review-incident-type {
+  background: #52262c;
+  color: #ffb7bb;
+}
+
+/*
+ * Job Orders: Active/History tables and all three modal flows.
+ * The source has light-only styles for the read-only overlay and create form,
+ * while the completion dialog already has a dark shell but light detail tiles.
+ */
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .jo-page .job-orders-table .jo-mechanic-profile-name {
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .jo-page .job-orders-table .jo-mechanic-more > summary {
+  background: #ffffff;
+  border-color: #93c5fd;
+  color: #1d4ed8;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .jo-page .job-orders-table .jo-compact-actions button.jo-labeled-view {
+  background: #ffffff;
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .jo-page .job-orders-table .jo-compact-actions button.jo-labeled-view:hover {
+  background: #ffffff;
+  color: #1e40af;
+  border-color: #2563eb;
+}
+/* JS moves the +more panel to the body, outside the table's page scope. */
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] > .jo-mechanic-more-panel,
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .job-orders-table .jo-mechanic-more-panel {
+  background: var(--gct-theme-surface-raised);
+  border-color: var(--gct-theme-border);
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(
+  .jo-mechanic-more-panel .jo-mechanic-profile-name,
+  .jo-mechanic-more-panel .jo-mechanic-more-title
+) {
+  color: var(--gct-theme-fg);
+}
+
+/* Maintenance Head Review Job Order: preserve the existing layout and semantic
+   status/action colors while theming the actual body-mounted review dialog. */
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .jo-head-review-dialog {
+  background: var(--gct-theme-surface);
+  border-color: var(--gct-theme-border);
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(
+  .jo-head-review-heading, .jo-head-review-body, .jo-head-review-body .jo-review-panel,
+  .jo-head-review-body .jo-review-mode, .jo-head-review-body .jo-review-form
+) {
+  background: var(--gct-theme-surface);
+  color: var(--gct-theme-fg);
+  border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .jo-head-review-body :is(
+  .jo-review-details, .jo-review-requested-parts, .jo-review-audit,
+  .jo-head-duration-review, .jo-head-authorization, .jo-review-parts-list,
+  .jo-review-part-item, .jo-review-submitted-duration
+) {
+  background: var(--gct-theme-surface) !important;
+  border-color: var(--gct-theme-border) !important;
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .jo-head-review-body :is(
+  .jo-review-details-heading, .jo-review-parts-heading, .jo-review-parts-table-header,
+  .jo-review-step-heading, .jo-review-detail-support-grid > div,
+  .jo-review-mechanic-field, .jo-review-complaint, .jo-review-summary > div,
+  .jo-duration-metric
+) {
+  background: var(--gct-theme-surface-raised) !important;
+  border-color: var(--gct-theme-border) !important;
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .jo-head-review-body .jo-review-footer {
+  background: var(--gct-theme-surface-raised) !important;
+  border-color: var(--gct-theme-border) !important;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(
+  .jo-head-review-heading strong, .jo-head-review-body .jo-review-details-heading h4,
+  .jo-head-review-body .jo-review-step-heading strong,
+  .jo-head-review-body .jo-review-detail-grid strong,
+  .jo-head-review-body .jo-review-detail-long p,
+  .jo-head-review-body .jo-review-mechanic-field strong,
+  .jo-head-review-body .jo-review-complaint p,
+  .jo-head-review-body .jo-review-parts-heading strong,
+  .jo-head-review-body .jo-review-part-name,
+  .jo-head-review-body .jo-review-submitted-duration p,
+  .jo-head-review-body .jo-review-audit summary,
+  .jo-head-review-body .jo-duration-metric strong,
+  .jo-head-review-body .jo-duration-decision-field label,
+  .jo-head-review-body .jo-signature-upload-placeholder,
+  .jo-head-review-body .jo-review-form > strong
+) {
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(
+  .jo-head-review-heading small, .jo-head-review-body .jo-review-details-heading p,
+  .jo-head-review-body .jo-review-detail-grid > div > span:first-child,
+  .jo-head-review-body .jo-review-details .jo-review-complaint > span,
+  .jo-head-review-body .jo-review-mechanic-field > span,
+  .jo-head-review-body .jo-review-parts-title small,
+  .jo-head-review-body .jo-review-submitted-duration span,
+  .jo-head-review-body .jo-review-step-heading p,
+  .jo-head-review-body .jo-duration-metric > span,
+  .jo-head-review-body .jo-duration-metric > small,
+  .jo-head-review-body .jo-signature-upload-placeholder > small,
+  .jo-head-review-body .jo-review-panel small
+) {
+  color: var(--gct-theme-muted);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .jo-head-review-body .jo-review-panel :is(
+  input, select, textarea
+) {
+  background: var(--gct-theme-input);
+  color: var(--gct-theme-fg);
+  border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .jo-head-review-body .jo-review-panel :is(
+  input, textarea
+)::placeholder {
+  color: var(--gct-theme-placeholder);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .jo-head-review-body .jo-review-panel label {
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .jo-head-review-body .jo-duration-metric > span {
+  color: var(--gct-theme-muted);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .jo-head-review-body .jo-duration-metric > strong {
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .jo-head-review-body .jo-duration-decision-field label {
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .jo-head-review-close {
+  background: #fff;
+  color: #1d4ed8;
+  border-color: #cbd5e1;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .jo-head-review-body .jo-review-footer :is(
+  .jo-review-footer-close, .jo-review-back
+) {
+  background: #fff;
+  color: #1d4ed8;
+  border-color: #cbd5e1;
+}
+/* Audit History content and empty parts messaging use the same readable
+   foreground tokens as the rest of this dialog. */
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .jo-head-review-body .jo-review-audit :is(ol, li, li strong) {
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .jo-head-review-body :is(.jo-review-audit li small, .jo-review-requested-parts > p) {
+  color: var(--gct-theme-muted);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .jo-head-review-body .jo-review-mechanic-count {
+  background: var(--gct-theme-surface);
+  color: var(--gct-theme-fg);
+  border: 1px solid var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .jo-head-review-body .jo-signature-upload-zone {
+  background: var(--gct-theme-surface-raised) !important;
+  border-color: var(--gct-theme-control-border) !important;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .jo-head-review-body .jo-signature-upload-zone .jo-signature-upload-actions {
+  background: var(--gct-theme-surface-raised);
+  border-top: 1px solid var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .jo-head-review-body .jo-signature-upload-placeholder > i,
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .jo-head-review-body .jo-duration-metric > span i,
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .jo-head-review-body .jo-duration-decision-field label i {
+  color: var(--gct-theme-accent);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .jo-head-review-body .jo-signature-grid small {
+  color: var(--gct-theme-muted);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .jo-head-review-body .jo-signature-identity input[name="electronic_signature"][readonly] {
+  background: var(--gct-theme-input);
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .jo-head-review-body .jo-signature-feedback.jo-signature-error {
+  color: #fda4af;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .jo-head-review-body .jo-review-detail-grid > div,
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .jo-head-review-body .jo-signature-draw-wrap {
+  border-color: var(--gct-theme-border);
+}
+
+/* Read-only View Job Order: keep its sections uniformly dark. */
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #joReadonlyOverlay :is(
+  .jo-view-dialog, .jo-view-body, .jo-view-section, .jo-view-audit
+) {
+  background: var(--gct-theme-surface);
+  color: var(--gct-theme-fg);
+  border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #joReadonlyOverlay :is(
+  .jo-view-header, .jo-view-footer, .jo-view-summary, .jo-view-section h3,
+  .jo-view-grid .jo-view-complaint, .jo-view-grid .jo-view-parts-cell
+) {
+  background: var(--gct-theme-surface-raised);
+  color: var(--gct-theme-fg);
+  border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #joReadonlyOverlay :is(
+  .jo-view-header h2, .jo-view-summary strong, .jo-view-grid strong,
+  .jo-view-section h3, .jo-view-audit summary, .jo-view-grid strong.jo-view-duration
+) {
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #joReadonlyOverlay :is(
+  .jo-view-header p, .jo-view-summary span, .jo-view-grid span,
+  .jo-view-help, .jo-view-audit small, .jo-view-signature > span
+) {
+  color: var(--gct-theme-muted);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #joReadonlyOverlay .jo-view-grid > div {
+  border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #joReadonlyOverlay :is(
+  .jo-view-header button, .jo-view-footer button
+) {
+  background: #ffffff;
+  color: #1d4ed8;
+  border-color: #cbd5e1;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #joReadonlyOverlay :is(
+  .jo-view-header button, .jo-view-footer button
+):hover {
+  background: #ffffff;
+  color: #1e40af;
+  border-color: #2563eb;
+}
+
+/* Create/Edit Job Order: dark sections, stepper, form controls and footers. */
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(#jobModal, #editJobModal) :is(
+  .ui-form-modal, .ui-form-modal-body, .ui-form-modal-scrollable,
+  .jo-create-section
+) {
+  background: var(--gct-theme-surface);
+  border-color: var(--gct-theme-border);
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(#jobModal, #editJobModal) :is(
+  .ui-form-modal-header, .ui-form-modal-footer, .jo-new-stepper,
+  .jo-create-section-header, .jo-create-parts-table-head
+) {
+  background: var(--gct-theme-surface-raised);
+  border-color: var(--gct-theme-border);
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(#jobModal, #editJobModal) :is(
+  .jo-create-section-header h3, .jo-new-step strong,
+  .jo-create-details-grid label, .ui-form-modal-title,
+  .ui-form-modal-header h2
+) {
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(#jobModal, #editJobModal) :is(
+  .jo-new-step small, .jo-create-section-header p, .jo-create-field-hint,
+  .ui-form-modal-header p, .jo-create-work-help
+) {
+  color: var(--gct-theme-muted);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(#jobModal, #editJobModal) :is(
+  .jo-new-step-index, .jo-mechanic-combobox-trigger,
+  .jo-mechanic-combobox-menu, .jo-mechanic-multi-menu,
+  .jo-mechanic-combobox-search, .jo-mechanic-combobox-option,
+  .jo-mechanic-multi-field .jo-create-field-hint
+) {
+  background: var(--gct-theme-surface-raised);
+  border-color: var(--gct-theme-border);
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(#jobModal, #editJobModal) .jo-new-step.is-current .jo-new-step-index {
+  background: #155ec9;
+  color: #ffffff;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(#jobModal, #editJobModal) :is(
+  input:not([type="checkbox"]):not([type="radio"]), select, textarea
+) {
+  background: var(--gct-theme-input);
+  border-color: var(--gct-theme-control-border);
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(#jobModal, #editJobModal) :is(
+  input, textarea
+)::placeholder {
+  color: var(--gct-theme-placeholder);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(#jobModal, #editJobModal) :is(
+  .ui-form-modal-close, .ui-form-modal-cancel, .jo-collapse-toggle
+) {
+  background: #ffffff;
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+}
+
+/* Complete JO: retain green confirmation and dark dialog, theme detail tiles. */
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #finishJobModal .jo-completion-dialog {
+  background: var(--gct-theme-surface);
+  border-color: var(--gct-theme-border);
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #finishJobModal .jo-completion-details > div {
+  background: var(--gct-theme-surface-raised);
+  border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #finishJobModal :is(
+  .jo-completion-details strong, .jo-completion-dialog h2
+) {
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #finishJobModal :is(
+  .jo-completion-details span, .jo-completion-note, #finishJobDescription
+) {
+  color: var(--gct-theme-muted);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #finishJobModal #cancelFinishJob {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  color: #1d4ed8;
+}
+
+/*
+ * Read-only Job Order: Warehouse/Parts, Head Approval and Audit History.
+ * These surfaces are hardcoded light in job-order.css. Keep signature paper
+ * light so dark ink remains visible and retain semantic stock/status badges.
+ */
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #joReadonlyOverlay :is(
+  .jo-view-release-policy, .jo-view-head-approval-section .jo-view-approval-grid > div,
+  .jo-view-stock-table, .jo-view-stock-row,
+  .jo-view-warehouse-grid .jo-view-parts-list li
+) {
+  background: var(--gct-theme-surface-raised);
+  border-color: var(--gct-theme-border);
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #joReadonlyOverlay :is(
+  .jo-view-stock-head, .jo-view-audit .jo-view-audit-heading
+) {
+  background: var(--gct-theme-surface-raised);
+  border-color: var(--gct-theme-border);
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #joReadonlyOverlay :is(
+  .jo-view-stock-row:nth-child(odd), .jo-view-stock-row:nth-child(even)
+) {
+  background: var(--gct-theme-surface);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #joReadonlyOverlay :is(
+  .jo-view-requested-parts-title, .jo-view-release-policy-content strong,
+  .jo-view-stock-row strong, .jo-view-head-approval-section .jo-view-approval-grid strong,
+  .jo-view-warehouse-grid .jo-view-part-name, .jo-view-warehouse-grid .jo-view-part-quantity
+) {
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #joReadonlyOverlay :is(
+  .jo-view-release-policy-label, .jo-view-release-policy-content p,
+  .jo-view-head-approval-section .jo-view-signature > span,
+  .jo-view-head-approval-section .jo-view-approval-grid span,
+  .jo-view-stock-row .jo-view-stock-qty
+) {
+  color: var(--gct-theme-muted);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #joReadonlyOverlay .jo-view-release-policy-icon {
+  background: var(--gct-theme-subtle);
+  color: var(--gct-theme-accent);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #joReadonlyOverlay .jo-view-head-approval-section .jo-view-signature img {
+  background: #f9fbfe;
+  border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #joReadonlyOverlay .jo-view-audit :is(
+  li, li strong, .jo-view-audit-heading
+) {
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #joReadonlyOverlay .jo-view-audit small {
+  color: var(--gct-theme-muted);
+}
+
+/*
+ * Read-only Job Order summary status boxes.
+ * Shared badge colors were being washed out by inherited dark-theme styling.
+ * Use strong semantic contrast only for the summary's status chips, not table badges.
+ */
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #joReadonlyOverlay .jo-view-summary [data-ui-component="status-badge"] {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  min-height: 32px;
+  padding: 6px 12px;
+  border: 1px solid #8093ac;
+  border-radius: 8px;
+  background: #34465e;
+  color: #f3f7ff;
+  opacity: 1;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #joReadonlyOverlay .jo-view-summary [data-ui-component="status-badge"][data-status-key="approved"] {
+  background: #166534;
+  border-color: #4ade80;
+  color: #f0fdf4;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #joReadonlyOverlay .jo-view-summary [data-ui-component="status-badge"][data-status-key="on-hold"] {
+  background: #92400e;
+  border-color: #fbbf24;
+  color: #fffbeb;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #joReadonlyOverlay .jo-view-summary [data-ui-component="status-badge"][data-status-key="pending"] {
+  background: #854d0e;
+  border-color: #facc15;
+  color: #fefce8;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #joReadonlyOverlay .jo-view-summary [data-ui-component="status-badge"][data-status-key="in-progress"] {
+  background: #1e40af;
+  border-color: #60a5fa;
+  color: #eff6ff;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #joReadonlyOverlay .jo-view-summary [data-ui-component="status-badge"][data-status-key="completed"] {
+  background: #166534;
+  border-color: #4ade80;
+  color: #f0fdf4;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #joReadonlyOverlay .jo-view-summary [data-ui-component="status-badge"] :is(.status-badge__icon, .status-badge__label) {
+  color: inherit;
+  opacity: 1;
+}
+
+/* Read-only JO: clear mechanic identity and semantic stock/shortage callouts. */
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #joReadonlyOverlay .jo-view-mechanic-chips .jo-view-mechanic-chip {
+  background: #ffffff;
+  border-color: #bfdbfe;
+  color: #16365f;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #joReadonlyOverlay .jo-view-part-availability.is-unavailable {
+  background: #7f1d1d;
+  border-color: #f87171;
+  color: #fff1f2;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #joReadonlyOverlay .jo-view-part-availability.is-available {
+  background: #166534;
+  border-color: #4ade80;
+  color: #f0fdf4;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #joReadonlyOverlay .jo-view-part-availability.is-partial {
+  background: #fff4df !important;
+  border-color: #f4c979 !important;
+  color: #783f07 !important;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #joReadonlyOverlay .jo-parts-delay-note {
+  background: #493417;
+  border-color: #bd872f;
+  color: #fff0ce;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #joReadonlyOverlay .jo-parts-delay-note :is(strong, p) {
+  color: #fff0ce;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] #joReadonlyOverlay .jo-parts-delay-note > i {
+  color: #fbbf24;
+}
+
+/*
+ * Create/Edit Job Order: Job Details body and custom Maintenance Job picker.
+ * The light basic-grid background and custom button are not native form inputs,
+ * so the earlier input/theme rules did not affect them.
+ */
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(#jobModal, #editJobModal) .jo-create-basic-grid {
+  background: var(--gct-theme-surface);
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(#jobModal, #editJobModal) .jo-create-basic-grid .ui-form-group label {
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(#jobModal, #editJobModal) .jo-maintenance-job-trigger {
+  background: var(--gct-theme-input);
+  color: var(--gct-theme-fg);
+  border-color: var(--gct-theme-control-border);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(#jobModal, #editJobModal) .jo-maintenance-job-label {
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(#jobModal, #editJobModal) .jo-maintenance-job-label.placeholder {
+  color: var(--gct-theme-placeholder);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(#jobModal, #editJobModal) :is(
+  .jo-maintenance-job-icon, .jo-maintenance-job-chevron
+) {
+  color: var(--gct-theme-accent);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(#jobModal, #editJobModal) :is(
+  .jo-maintenance-job-menu, .jo-maintenance-job-menu.jo-maintenance-job-menu-enhanced,
+  .jo-maintenance-job-search, .jo-maintenance-job-menu-summary,
+  .jo-maintenance-job-other-footer
+) {
+  background: var(--gct-theme-surface-raised);
+  color: var(--gct-theme-fg);
+  border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(#jobModal, #editJobModal) :is(
+  .jo-maintenance-job-option, .jo-maintenance-job-category,
+  .jo-maintenance-job-menu-summary-head strong, .jo-maintenance-job-search input
+) {
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(#jobModal, #editJobModal) .jo-maintenance-job-option:is(:hover, .is-selected) {
+  background: var(--gct-theme-hover);
+  color: var(--gct-theme-accent);
+}
+
+/*
+ * Job Order searchable dropdowns.
+ * Bus options are portalled to <body> and therefore cannot inherit modal
+ * styles. Maintenance Job uses separate browser and selected-item panes.
+ * Preserve option visibility, keyboard focus, filtering, and menu positioning.
+ */
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(
+  #jobModal, #editJobModal
+) :is(
+  .jo-create-details-grid,
+  .jo-maintenance-job-browser,
+  .jo-selected-jobs-panel
+) {
+  background: var(--gct-theme-surface);
+  border-color: var(--gct-theme-border);
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(
+  #jobModal, #editJobModal
+) .jo-selected-jobs-panel {
+  background: var(--gct-theme-surface-raised);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(
+  #jobModal, #editJobModal
+) .jo-selected-jobs-heading strong {
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(
+  #jobModal, #editJobModal
+) :is(.jo-selected-jobs-clear, .jo-maintenance-job-menu-summary-head button) {
+  color: var(--gct-theme-accent);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(
+  #jobModal, #editJobModal
+) :is(.jo-selected-jobs-add, .jo-selected-jobs-panel .jo-maintenance-job-chip,
+       .jo-maintenance-job-menu-chip) {
+  background: #ffffff;
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+}
+
+/* Bus search dropdown: theme both in-place and body-portalled states. */
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(
+  .jo-bus-menu-portal,
+  #jobModal .jo-bus-combobox .jo-mechanic-combobox-menu,
+  #editJobModal .jo-bus-combobox .jo-mechanic-combobox-menu
+) {
+  background: var(--gct-theme-surface-raised);
+  border-color: var(--gct-theme-border);
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(
+  .jo-bus-menu-portal,
+  #jobModal .jo-bus-combobox .jo-mechanic-combobox-menu,
+  #editJobModal .jo-bus-combobox .jo-mechanic-combobox-menu
+) .jo-mechanic-combobox-search {
+  background: var(--gct-theme-surface-raised);
+  border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(
+  .jo-bus-menu-portal,
+  #jobModal .jo-bus-combobox .jo-mechanic-combobox-menu,
+  #editJobModal .jo-bus-combobox .jo-mechanic-combobox-menu
+) .jo-mechanic-combobox-search input {
+  background: var(--gct-theme-input);
+  border-color: var(--gct-theme-control-border);
+  color: var(--gct-theme-fg);
+  color-scheme: dark;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(
+  .jo-bus-menu-portal,
+  #jobModal .jo-bus-combobox .jo-mechanic-combobox-menu,
+  #editJobModal .jo-bus-combobox .jo-mechanic-combobox-menu
+) .jo-mechanic-combobox-search input::placeholder {
+  color: var(--gct-theme-placeholder);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(
+  .jo-bus-menu-portal,
+  #jobModal .jo-bus-combobox .jo-mechanic-combobox-menu,
+  #editJobModal .jo-bus-combobox .jo-mechanic-combobox-menu
+) .jo-mechanic-combobox-option {
+  background: transparent;
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(
+  .jo-bus-menu-portal,
+  #jobModal .jo-bus-combobox .jo-mechanic-combobox-menu,
+  #editJobModal .jo-bus-combobox .jo-mechanic-combobox-menu
+) .jo-mechanic-combobox-option:is(:hover, .is-selected, :focus-visible) {
+  background: var(--gct-theme-hover);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(
+  .jo-bus-menu-portal,
+  #jobModal .jo-bus-combobox .jo-mechanic-combobox-menu,
+  #editJobModal .jo-bus-combobox .jo-mechanic-combobox-menu
+) .jo-mechanic-combobox-option strong {
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(
+  .jo-bus-menu-portal,
+  #jobModal .jo-bus-combobox .jo-mechanic-combobox-menu,
+  #editJobModal .jo-bus-combobox .jo-mechanic-combobox-menu
+) :is(.jo-mechanic-combobox-option small, .jo-mechanic-combobox-empty) {
+  color: var(--gct-theme-muted);
+}
+
+/* Maintenance Job picker: match outer pane, search input and option list. */
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(
+  #jobModal, #editJobModal
+) .jo-maintenance-job-search {
+  background: transparent;
+  border: 0;
+  color: var(--gct-theme-accent);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(
+  #jobModal, #editJobModal
+) .jo-maintenance-job-search input {
+  background: var(--gct-theme-input);
+  border: 1px solid var(--gct-theme-control-border);
+  color: var(--gct-theme-fg);
+  color-scheme: dark;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(
+  #jobModal, #editJobModal
+) .jo-maintenance-job-search input::placeholder {
+  color: var(--gct-theme-placeholder);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(
+  #jobModal, #editJobModal
+) :is(
+  .jo-maintenance-job-menu-summary,
+  .jo-maintenance-job-browser,
+  .jo-maintenance-job-other-footer
+) {
+  background: var(--gct-theme-surface-raised);
+  border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(
+  #jobModal, #editJobModal
+) .jo-maintenance-job-menu-summary-head strong {
+  color: var(--gct-theme-fg);
+}
+
+/* Dark but visible scrollbars in the JO modal and all searchable pickers. */
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(
+  #jobModal .ui-form-modal-scrollable, #editJobModal .ui-form-modal-scrollable,
+  #jobModal .jo-maintenance-job-options, #editJobModal .jo-maintenance-job-options,
+  #jobModal .jo-maintenance-job-menu-selected, #editJobModal .jo-maintenance-job-menu-selected,
+  #jobModal .jo-mechanic-combobox-options, #editJobModal .jo-mechanic-combobox-options,
+  .jo-bus-menu-portal .jo-mechanic-combobox-options
+) {
+  scrollbar-width: thin;
+  scrollbar-color: #8396b2 #1b2b42;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(
+  #jobModal .ui-form-modal-scrollable, #editJobModal .ui-form-modal-scrollable,
+  #jobModal .jo-maintenance-job-options, #editJobModal .jo-maintenance-job-options,
+  #jobModal .jo-maintenance-job-menu-selected, #editJobModal .jo-maintenance-job-menu-selected,
+  #jobModal .jo-mechanic-combobox-options, #editJobModal .jo-mechanic-combobox-options,
+  .jo-bus-menu-portal .jo-mechanic-combobox-options
+)::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(
+  #jobModal .ui-form-modal-scrollable, #editJobModal .ui-form-modal-scrollable,
+  #jobModal .jo-maintenance-job-options, #editJobModal .jo-maintenance-job-options,
+  #jobModal .jo-maintenance-job-menu-selected, #editJobModal .jo-maintenance-job-menu-selected,
+  #jobModal .jo-mechanic-combobox-options, #editJobModal .jo-mechanic-combobox-options,
+  .jo-bus-menu-portal .jo-mechanic-combobox-options
+)::-webkit-scrollbar-track {
+  background: #1b2b42;
+  border-radius: 8px;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(
+  #jobModal .ui-form-modal-scrollable, #editJobModal .ui-form-modal-scrollable,
+  #jobModal .jo-maintenance-job-options, #editJobModal .jo-maintenance-job-options,
+  #jobModal .jo-maintenance-job-menu-selected, #editJobModal .jo-maintenance-job-menu-selected,
+  #jobModal .jo-mechanic-combobox-options, #editJobModal .jo-mechanic-combobox-options,
+  .jo-bus-menu-portal .jo-mechanic-combobox-options
+)::-webkit-scrollbar-thumb {
+  background: #8396b2;
+  border: 2px solid #1b2b42;
+  border-radius: 8px;
+}
+
+/* Mechanic Assignment: consistent dark coverage card and searchable chooser. */
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(#jobModal, #editJobModal) :is(
+  .jo-skill-coverage, .jo-skill-coverage-body, .jo-coverage-table,
+  .jo-coverage-table .jo-coverage-row
+) {
+  background: var(--gct-theme-surface);
+  border-color: var(--gct-theme-border);
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(#jobModal, #editJobModal) :is(
+  .jo-skill-coverage-header, .jo-coverage-table-head
+) {
+  background: var(--gct-theme-surface-raised);
+  border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(#jobModal, #editJobModal) :is(
+  .jo-skill-coverage-title strong, .jo-skill-coverage-body strong,
+  .jo-coverage-table .jo-coverage-row strong, [data-coverage-count]
+) {
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(#jobModal, #editJobModal) :is(
+  .jo-skill-coverage-title small, .jo-coverage-empty,
+  .jo-coverage-table .jo-coverage-row > span:last-child
+) {
+  color: var(--gct-theme-muted);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(#jobModal, #editJobModal) .jo-skill-coverage-required {
+  border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(#jobModal, #editJobModal) [data-coverage-note] {
+  background: var(--gct-theme-surface-raised);
+  color: var(--gct-theme-muted);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(#jobModal, #editJobModal) [data-coverage="partial"] [data-coverage-note],
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(#jobModal, #editJobModal) [data-coverage="no-match"] [data-coverage-note] {
+  background: #493417;
+  color: #ffebb8;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(#jobModal, #editJobModal) .jo-skill-coverage-status {
+  background: var(--gct-theme-surface-raised);
+  color: var(--gct-theme-fg);
+  border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(#jobModal, #editJobModal) [data-coverage="full"] .jo-skill-coverage-status {
+  background: #166534;
+  border-color: #4ade80;
+  color: #f0fdf4;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(#jobModal, #editJobModal) [data-coverage="partial"] .jo-skill-coverage-status {
+  background: #92400e;
+  border-color: #fbbf24;
+  color: #fffbeb;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(#jobModal, #editJobModal) [data-coverage="no-match"] .jo-skill-coverage-status {
+  background: #7f1d1d;
+  border-color: #f87171;
+  color: #fff1f2;
+}
+
+/* Mechanic picker search, choices, details, and selected chips. */
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(#jobModal, #editJobModal) :is(
+  .jo-mechanic-multi-menu, .jo-multi-mechanic-combobox .jo-mechanic-combobox-menu,
+  .jo-mechanic-multi-menu .jo-mechanic-combobox-search
+) {
+  background: var(--gct-theme-surface-raised);
+  border-color: var(--gct-theme-border);
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(#jobModal, #editJobModal) .jo-mechanic-multi-menu .jo-mechanic-combobox-search input {
+  background: var(--gct-theme-input);
+  border-color: var(--gct-theme-control-border);
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(#jobModal, #editJobModal) .jo-mechanic-multi-menu .jo-mechanic-combobox-search input::placeholder {
+  color: var(--gct-theme-placeholder);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(#jobModal, #editJobModal) :is(
+  .jo-mechanic-structured-option, .jo-mechanic-multi-menu .jo-mechanic-combobox-option
+) {
+  background: var(--gct-theme-surface-raised);
+  border-color: var(--gct-theme-border);
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(#jobModal, #editJobModal) :is(
+  .jo-mechanic-structured-option, .jo-mechanic-multi-menu .jo-mechanic-combobox-option
+):is(:hover, .is-selected, :focus-visible) {
+  background: var(--gct-theme-hover);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(#jobModal, #editJobModal) :is(
+  .jo-mechanic-multi-menu .jo-mechanic-option-copy > strong,
+  .jo-mechanic-multi-menu .jo-mechanic-combobox-option strong,
+  .jo-mechanic-structured-option strong
+) {
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(#jobModal, #editJobModal) :is(
+  .jo-mechanic-multi-menu .jo-mechanic-combobox-option small,
+  .jo-mechanic-multi-menu .jo-mechanic-combobox-empty
+) {
+  color: var(--gct-theme-muted);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(#jobModal, #editJobModal) .jo-mechanic-chips .jo-mechanic-chip {
+  background: var(--gct-theme-surface-raised);
+  color: var(--gct-theme-fg);
+  border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(#jobModal, #editJobModal) .jo-mechanic-chips .jo-mechanic-chip-remove {
+  background: #ffffff;
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+}
+
+/* Job Order duration and requested parts: finish dark form surfaces. */
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(#jobModal, #editJobModal) :is(
+  .jo-create-duration .jo-duration-control,
+  .jo-create-parts-table, .jo-create-parts-repeater,
+  .jo-create-parts-repeater .jo-part-row,
+  .jo-create-parts-repeater .jo-part-row:nth-child(even),
+  .ui-form-actions
+) {
+  background: var(--gct-theme-surface);
+  border-color: var(--gct-theme-border);
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(#jobModal, #editJobModal) :is(
+  .jo-create-duration .jo-duration-compact-help,
+  .jo-create-parts-table-head
+) {
+  background: var(--gct-theme-surface-raised);
+  border-color: var(--gct-theme-border);
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(#jobModal, #editJobModal) :is(
+  .jo-create-duration .jo-duration-compact-help strong,
+  .jo-create-duration .jo-estimated-duration-field > label
+) {
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(#jobModal, #editJobModal) .jo-create-duration .jo-duration-control .jo-duration-unit-select {
+  background: var(--gct-theme-surface-raised);
+  color: var(--gct-theme-fg);
+  border-left-color: var(--gct-theme-control-border);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(#jobModal, #editJobModal) .jo-create-duration .jo-duration-control input {
+  background: var(--gct-theme-input);
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(#jobModal, #editJobModal) :is(
+  .jo-part-picker-trigger, .jo-create-parts-repeater .jo-part-row input[type="number"],
+  .jo-create-parts-repeater .jo-part-row select
+) {
+  background: var(--gct-theme-input);
+  border-color: var(--gct-theme-control-border);
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(#jobModal, #editJobModal) :is(
+  .jo-part-stock-group .jo-part-stock-note, .jo-create-parts-table-head
+) {
+  color: var(--gct-theme-muted);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(#jobModal, #editJobModal) .jo-part-stock-group .jo-inventory-stock-status[data-state="unknown"] {
+  background: var(--gct-theme-surface-raised);
+  border-color: var(--gct-theme-control-border);
+  color: var(--gct-theme-muted);
+}
+/* Inventory dropdown may be moved to body, so handle both locations. */
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(
+  .jo-part-picker-menu, .jo-inventory-search-menu
+) {
+  background: var(--gct-theme-surface-raised);
+  border-color: var(--gct-theme-border);
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(
+  .jo-part-picker-menu .jo-part-picker-search,
+  .jo-inventory-search-menu input[type="search"]
+) {
+  background: var(--gct-theme-input);
+  border-color: var(--gct-theme-control-border);
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(
+  .jo-part-picker-menu .jo-part-picker-option,
+  .jo-inventory-search-menu .jo-inventory-search-option
+) {
+  background: var(--gct-theme-surface-raised);
+  color: var(--gct-theme-fg);
+  border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(
+  .jo-part-picker-menu .jo-part-picker-option,
+  .jo-inventory-search-menu .jo-inventory-search-option
+):is(:hover, :focus-visible) {
+  background: var(--gct-theme-hover);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(
+  .jo-part-picker-menu .jo-part-picker-option small,
+  .jo-inventory-search-menu .jo-inventory-search-option small,
+  .jo-part-picker-menu .jo-part-picker-empty
+) {
+  color: var(--gct-theme-muted);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(
+  .jo-part-picker-menu .jo-part-picker-options,
+  .jo-inventory-search-menu .jo-inventory-search-results
+) {
+  scrollbar-width: thin;
+  scrollbar-color: #8396b2 #1b2b42;
+}
+
+/*
+ * Bus PMS Monitoring: theme the actual sticky table header and scrollport.
+ * PMS defines a separate --pms-table-head and light hover / scrollbar values;
+ * changing these scoped components prevents the header and Actions cell
+ * from turning white while preserving the white View action button.
+ */
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .pms-page {
+  --pms-table-head: var(--gct-theme-surface-raised);
+  --pms-card: var(--gct-theme-surface);
+  --pms-text: var(--gct-theme-fg);
+  --pms-muted: var(--gct-theme-muted);
+  --pms-border: var(--gct-theme-border);
+  --pms-soft-border: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .pms-page .pms-table-card > .table-wrap:not(.pms-popup-table-wrap) {
+  background: var(--gct-theme-surface);
+  border-color: var(--gct-theme-border);
+  scrollbar-color: #8396b2 #1b2b42;
+  scrollbar-width: thin;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .pms-page .pms-table-card > .table-wrap:not(.pms-popup-table-wrap) .pms-table thead,
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .pms-page .pms-table-card > .table-wrap:not(.pms-popup-table-wrap) .pms-table th {
+  background: var(--gct-theme-surface-raised);
+  color: var(--gct-theme-muted);
+  border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .pms-page .pms-table-card > .table-wrap:not(.pms-popup-table-wrap) .pms-table tbody tr,
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .pms-page .pms-table-card > .table-wrap:not(.pms-popup-table-wrap) .pms-table tbody td {
+  background: var(--gct-theme-surface);
+  border-color: var(--gct-theme-border);
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .pms-page .pms-table-card > .table-wrap:not(.pms-popup-table-wrap) .pms-table tbody tr:hover,
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .pms-page .pms-table-card > .table-wrap:not(.pms-popup-table-wrap) .pms-table tbody tr:hover td {
+  background: var(--gct-theme-hover);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .pms-page .pms-table-card > .table-wrap:not(.pms-popup-table-wrap)::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .pms-page .pms-table-card > .table-wrap:not(.pms-popup-table-wrap)::-webkit-scrollbar-track {
+  background: #1b2b42;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .pms-page .pms-table-card > .table-wrap:not(.pms-popup-table-wrap)::-webkit-scrollbar-thumb {
+  background: #8396b2;
+  border: 2px solid #1b2b42;
+  border-radius: 999px;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .pms-page .pms-table-card > .table-wrap:not(.pms-popup-table-wrap)::-webkit-scrollbar-thumb:hover {
+  background: #a3b5cf;
+}
+
+/* Bus PMS Monitoring dialogs (Details and Configure Baseline).
+   These panels are siblings of the records table and use their own light
+   palette, so table-surface rules cannot theme them. */
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .pms-monitor-dialog .pms-monitor-panel {
+  background: var(--gct-theme-surface);
+  border-color: var(--gct-theme-border);
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .pms-monitor-dialog :is(
+  .pms-monitor-header, .pms-monitor-footer
+) {
+  background: var(--gct-theme-surface-raised);
+  border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .pms-monitor-dialog .pms-monitor-body {
+  background: var(--gct-theme-surface);
+  color: var(--gct-theme-fg);
+  scrollbar-width: thin;
+  scrollbar-color: #8396b2 #1b2b42;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .pms-monitor-dialog :is(
+  .pms-monitor-heading h2, .pms-monitor-section-title,
+  .pms-monitor-summary strong, .pms-monitor-info-grid strong,
+  .pms-monitor-rule strong, .pms-monitor-empty strong,
+  .pms-monitor-source-note strong, .pms-monitor-field label
+) {
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .pms-monitor-dialog :is(
+  .pms-monitor-heading p, .pms-monitor-summary span,
+  .pms-monitor-info-grid span, .pms-monitor-rule p,
+  .pms-monitor-empty p, .pms-monitor-help
+) {
+  color: var(--gct-theme-muted);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .pms-monitor-dialog :is(
+  .pms-monitor-summary > div, .pms-monitor-info-grid > div,
+  .pms-monitor-rule, .pms-monitor-empty
+) {
+  background: var(--gct-theme-surface-raised);
+  border-color: var(--gct-theme-border);
+  color: var(--gct-theme-fg);
+}
+/* Preserve the mileage advisory as amber, with dark-mode contrast. */
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .pms-monitor-dialog .pms-monitor-source-note {
+  background: #493417;
+  border-color: #bd872f;
+  color: #ffebb8;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .pms-monitor-dialog .pms-monitor-source-note :is(strong, p) {
+  color: #ffebb8;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .pms-monitor-dialog .pms-monitor-source-note > i {
+  color: #fbbf24;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .pms-monitor-dialog .pms-monitor-header-icon {
+  background: var(--gct-theme-subtle);
+  border-color: var(--gct-theme-control-border);
+  color: var(--gct-theme-accent);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .pms-monitor-dialog .pms-monitor-field :is(input, select),
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .pms-monitor-dialog .pms-bus-search-wrap > input {
+  background: var(--gct-theme-input);
+  border-color: var(--gct-theme-control-border);
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .pms-monitor-dialog .pms-monitor-field input::placeholder {
+  color: var(--gct-theme-placeholder);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .pms-monitor-dialog .pms-bus-options {
+  background: var(--gct-theme-surface-raised);
+  border-color: var(--gct-theme-border);
+  scrollbar-width: thin;
+  scrollbar-color: #8396b2 #1b2b42;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .pms-monitor-dialog .pms-bus-option {
+  background: transparent;
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .pms-monitor-dialog .pms-bus-option:is(:hover, :focus-visible) {
+  background: var(--gct-theme-hover);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .pms-monitor-dialog .pms-bus-no-results {
+  color: var(--gct-theme-muted);
+}
+/* Secondary actions stay white; the primary Save Baseline remains blue. */
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .pms-monitor-dialog :is(
+  .pms-close-btn, .ui-form-btn-cancel
+) {
+  background: #ffffff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .pms-monitor-dialog :is(
+  .pms-close-btn, .ui-form-btn-cancel
+):hover {
+  background: #ffffff;
+  border-color: #2563eb;
+  color: #1e40af;
+}
+
+/* Maintenance Item Requests: readable submission dates and consistently dark
+   sticky Actions cells. Semantic IR/PR badges keep their own colors. */
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .maintenance-ir-page {
+  --ir-submitted-text: var(--gct-theme-fg, #edf3fc);
+  --ir-submitted-muted: var(--gct-theme-muted, #b1bfd2);
+  --gct-sticky-actions-background: var(--gct-theme-surface);
+  --gct-sticky-actions-heading: var(--gct-theme-surface-raised);
+  --gct-sticky-actions-hover: var(--gct-theme-hover);
+}
+/* In non-scrollable tables the shared Actions cell uses background: inherit.
+   Theme each row itself, including the light alternating-row rule, so that
+   inheritance produces the same dark surface without fighting sticky CSS. */
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .maintenance-ir-page .ir-table tbody tr,
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .maintenance-ir-page .ir-table tbody tr:nth-child(even) {
+  background: var(--gct-theme-surface);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .maintenance-ir-page .ir-table tbody tr:hover {
+  background: var(--gct-theme-hover);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .maintenance-ir-page .ir-split-table .ir-split-review,
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .maintenance-ir-page .ir-split-table .ir-view-button {
+  background: #ffffff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .maintenance-ir-page .ir-split-table .ir-split-review:hover,
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .maintenance-ir-page .ir-split-table .ir-view-button:hover {
+  background: #ffffff;
+  border-color: #2563eb;
+  color: #1e40af;
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .maintenance-ir-page .ir-split-table .ir-submitted-time :is(strong, small) {
+  color: var(--ir-submitted-text);
+}
+html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] .maintenance-ir-page .ir-split-table .ir-submitted-time small {
+  color: var(--ir-submitted-muted);
+}

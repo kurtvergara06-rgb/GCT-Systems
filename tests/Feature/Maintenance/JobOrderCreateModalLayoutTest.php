@@ -623,4 +623,73 @@ BLADE,
         );
     }
 
+
+    public function test_job_order_overview_keeps_six_columns_and_completion_in_actions(): void
+    {
+        $view = file_get_contents(resource_path('views/Maintenance/job-order.blade.php'));
+        $styles = file_get_contents(resource_path('css/Maintenance/job-order.css'));
+
+        foreach (['Job Order', 'Maintenance', 'Assigned Mechanic', 'JO Status', 'Parts Status', 'Actions'] as $heading) {
+            $this->assertStringContainsString('>'.$heading.'</th>', $view);
+        }
+
+        $this->assertStringNotContainsString('<th>Start Date & Time</th>', $view);
+        $this->assertStringNotContainsString('<th>Completion Date & Time</th>', $view);
+        $this->assertStringContainsString('colspan="6"', $view);
+
+        $actionsStart = strpos($view, '<td class="jo-actions-cell">');
+        $this->assertNotFalse($actionsStart);
+        $actions = substr($view, $actionsStart);
+
+        $this->assertStringContainsString('class="finish-order-form"', $actions);
+        $this->assertStringContainsString('open-finish-modal', $actions);
+        $this->assertStringContainsString('class="jo-inline-pms-form"', $actions);
+        $this->assertStringContainsString('name="physical_release_confirmed"', $actions);
+        $this->assertStringContainsString('@elseif($canComplete)', $actions);
+
+        // Actual timestamps remain available in the read-only detail modal.
+        $this->assertStringContainsString('<div class="jo-view-time-fields">', $view);
+        $this->assertStringContainsString('Not started', $view);
+        $this->assertStringContainsString('Not completed', $view);
+        $this->assertStringContainsString('/* Option 2: six-column Job Orders overview and icon-only actions.', $styles);
+    }
+
+    public function test_job_order_completion_uses_icon_actions_and_populates_a_details_modal(): void
+    {
+        $view = file_get_contents(resource_path('views/Maintenance/job-order.blade.php'));
+        $script = file_get_contents(resource_path('js/Maintenance/job-order.js'));
+        $styles = file_get_contents(resource_path('css/Maintenance/job-order.css'));
+
+        $this->assertStringContainsString('class="finish-btn open-finish-modal jo-icon-action"', $view);
+        $this->assertStringContainsString('aria-label="Complete Job Order', $view);
+        $this->assertStringContainsString('class="action-btn view jo-open-view jo-labeled-view"', $view);
+        $this->assertStringContainsString('<span class="sr-only">View</span>', $view);
+        $this->assertStringContainsString('class="jo-completion-details"', $view);
+        foreach (['finishJoNo', 'finishJoBus', 'finishJoType', 'finishJoMechanics', 'finishJoEstimate', 'finishJoStarted', 'finishJoParts'] as $id) {
+            $this->assertStringContainsString('id="'.$id.'"', $view);
+            $this->assertStringContainsString($id.':', $script);
+        }
+        $this->assertStringContainsString('selectedFinishForm', $script);
+        $this->assertStringContainsString('requestSubmit()', $script);
+        $this->assertStringContainsString('flex-flow: row nowrap;', $styles);
+        $this->assertStringContainsString('#finishJobModal .jo-completion-details', $styles);
+        $this->assertStringContainsString('class="actions jo-compact-actions"', $view);
+        $this->assertStringContainsString('justify-content: center;', $styles);
+        $this->assertStringContainsString('flex: 0 0 34px;', $styles);
+        $this->assertStringContainsString('place-items: center !important;', $styles);
+    }
+
+    public function test_job_orders_css_has_one_icon_action_layout_without_legacy_labeled_widths(): void
+    {
+        $css = file_get_contents(resource_path('css/Maintenance/job-order.css'));
+
+        $this->assertSame(1, substr_count($css, '/* Option 2: six-column Job Orders overview and icon-only actions.'));
+        $this->assertStringContainsString('min-width: 0;', $css);
+        $this->assertStringContainsString('place-items: center !important;', $css);
+        $this->assertStringContainsString('.jo-compact-actions button.jo-labeled-view > .sr-only { display: none; }', $css);
+        $this->assertStringNotContainsString('flex:0 0 92px', $css);
+        $this->assertStringNotContainsString('min-width: 1180px;', $css);
+        $this->assertStringNotContainsString('/* Exact icon centering:', $css);
+        $this->assertStringNotContainsString('/* Fix the legacy modal-aware table sizing rule:', $css);
+    }
 }

@@ -483,3 +483,44 @@
     background: var(--gct-theme-hover, #293a52);
   }
 }
+
+/* PMS only: smaller month picker, aligned to its date field by the JS portal.
+   Do not alter standard calendars used by other departments. */
+.gct-picker-popover.gct-picker-pms-compact {
+  width: 292px;
+  max-width: calc(100vw - 20px);
+  z-index: 120000;
+  border-radius: 12px;
+  scrollbar-width: thin;
+  scrollbar-color: #8396b2 #1b2b42;
+}
+.gct-picker-pms-compact .gct-picker-heading {
+  padding: 10px 12px 8px;
+}
+.gct-picker-pms-compact .gct-picker-heading strong {
+  font-size: 12px;
+}
+.gct-picker-pms-compact .gct-picker-close {
+  width: 28px;
+  height: 28px;
+  flex-basis: 28px;
+}
+.gct-picker-pms-compact .gct-calendar-nav {
+  padding: 8px 10px 5px;
+  grid-template-columns: 30px 1fr 30px;
+}
+.gct-picker-pms-compact .gct-calendar-nav-btn {
+  width: 30px;
+  height: 30px;
+}
+.gct-picker-pms-compact .gct-calendar-weekdays {
+  padding: 0 9px 4px;
+}
+.gct-picker-pms-compact .gct-calendar-grid {
+  padding: 0 9px 9px;
+  gap: 2px;
+}
+.gct-picker-pms-compact .gct-calendar-day {
+  border-radius: 6px;
+  font-size: 10px;
+}

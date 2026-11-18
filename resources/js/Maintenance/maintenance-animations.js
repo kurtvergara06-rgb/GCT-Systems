@@ -60,7 +60,10 @@ window.GCTMaintenanceReveal =
     ),
   });
 
+// The partial-navigation initializer owns these document listeners.
+// Its AbortController removes them before the next page initialization.
 const bindGlobalInteractions = () => {
+
   const pressSelector = [
     '.primary-btn',
     '.secondary-btn',

@@ -16,7 +16,6 @@ import '../css/Main-styles/page-transitions.css';
 import '../css/Main-styles/account-preferences.css';
 import '../css/Main-styles/session-guard.css';
 import '../css/Maintenance/maintenance-ui-enhancements.css';
-import '../css/Maintenance/purchase-request-modal-cleanup.css';
 
 import './Main-js/account-preferences.js';
 import './Main-js/session-guard.js';
@@ -25,7 +24,6 @@ import './Main-js/global-modal-backdrop.js';
 import './Main-js/system-animations.js';
 import './Main-js/page-transitions.js';
 import './Main-js/system-toast.js';
-import './Operation/Shuttle_Bus_Management/bus-availability-modal.js';
 import './Main-js/automatic-table-search.js';
 import './Main-js/auto-id-badges.js';
 import './Main-js/shared-shell-enhancements.js';
@@ -38,18 +36,27 @@ import './Main-js/ajax-regions.js';
 import './Main-js/topbar.js';
 import './Main-js/analytics-chart-interactions.js';
 import './Main-js/analytics-domain-panels.js';
-import './Maintenance/maintenance-ui-enhancements.js';
-import './Maintenance/maintenance-history-tabs.js';
-import './Maintenance/maintenance-animations.js';
 
 /* Page-only controls are lazy-loaded only when their page root exists. */
 const initializePageOnlyControls = () => {
+    // Maintenance's enhancements and GSAP listeners are page-specific.
+    // Dynamic imports remain cached by Vite, and their registerInitializer()
+    // calls immediately initialize the current Maintenance page.
+    if (document.body.dataset.gctMaintenancePage === '1') {
+        import('./Maintenance/maintenance-ui-enhancements.js');
+        import('./Maintenance/maintenance-animations.js');
+    }
+
     document.querySelectorAll('.descriptive-overview-kpi em, .descriptive-insight-card strong').forEach((node) => {
         if (node.textContent.trim() === 'New') {
             node.textContent = 'No prior data';
             node.classList.add('no-prior-data');
         }
     });
+
+    if (document.querySelector('.bus-availability-page')) {
+        import('./Operation/Shuttle_Bus_Management/bus-availability-modal.js');
+    }
 
     if (document.getElementById('routeModal')) {
         import('./Operation/Routes/route-pin-controls.js');
