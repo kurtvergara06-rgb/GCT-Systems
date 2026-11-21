@@ -1,8 +1,8 @@
 {
   "id": "/",
-  "name": "FROMS — Fleet Resource Optimization and Management System",
+  "name": "FROMS — GCT Fleet Operations",
   "short_name": "FROMS",
-  "description": "GCT Transport Services fleet operations platform",
+  "description": "GCT Transport Services fleet and operations management",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
