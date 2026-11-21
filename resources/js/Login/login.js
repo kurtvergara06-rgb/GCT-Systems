@@ -1,3 +1,4 @@
+import '../Main-js/desktop-runtime.js';
 document.addEventListener('DOMContentLoaded', () => {
   const emailInput = document.getElementById('loginEmail');
   const passwordInput = document.getElementById('loginPassword');
