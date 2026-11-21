@@ -6,7 +6,7 @@
   <meta name="csrf-token" content="{{ csrf_token() }}">
 
   <title>GCT Transport Services | Sign In</title>
-  <link rel="manifest" href="{{ asset('manifest.webmanifest') }}">
+
   <meta name="theme-color" content="#062d61">
   <link rel="icon" type="image/png" href="{{ asset('img/gct_logo.png') }}?v=20261121">
   <link rel="shortcut icon" type="image/png" href="{{ asset('img/gct_logo.png') }}?v=20261121">
