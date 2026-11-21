@@ -893,3 +893,10 @@ a.desktop-download-dialog-primary { text-decoration: none; }
 a.desktop-download-dialog-primary:hover { color: #fff; text-decoration: none; }
 .desktop-download-dialog-primary:focus-visible { outline: 3px solid #80ade8; outline-offset: 3px; }
 .auth-switch--install .desktop-download-link[hidden] { display: none !important; }
+
+/* Tauri website webview only: never promote an installer inside an installed app. */
+html[data-froms-desktop="true"] #fromsDesktopDownloadButton,
+html[data-froms-desktop="true"] #fromsDesktopDownloadAgain,
+html[data-froms-desktop="true"] #fromsDesktopDownloadHelp {
+  display: none !important;
+}
