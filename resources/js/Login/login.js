@@ -165,35 +165,37 @@ document.addEventListener('DOMContentLoaded', () => {
   const dialog = document.getElementById('fromsDesktopDownloadHelp');
   const link = document.getElementById('fromsDesktopInstallerLink');
   const status = document.getElementById('fromsDownloadStatus');
-  if (!button || !retryButton || !dialog || !link || !status) return;
+  if (!button || !dialog || !status) return;
+
+  const downloadReady = Boolean(link && retryButton);
 
   const key = 'froms-desktop-installer-requested-v1';
   let downloadRequested = false;
   try {
-    downloadRequested = window.localStorage.getItem(key) === 'yes';
+    downloadRequested = downloadReady && window.localStorage.getItem(key) === 'yes';
   } catch {
     // Storage may be disabled; downloading must remain available.
   }
 
   const updateVisibility = () => {
     button.hidden = downloadRequested;
-    retryButton.hidden = !downloadRequested;
+    if (retryButton) retryButton.hidden = !downloadRequested;
   };
   updateVisibility();
 
   const openGuide = () => {
-    status.textContent = '';
+    if (downloadReady) status.textContent = '';
     dialog.showModal();
   };
 
   button.addEventListener('click', openGuide);
-  retryButton.addEventListener('click', openGuide);
+  retryButton?.addEventListener('click', openGuide);
 
   dialog.querySelectorAll('[data-desktop-dialog-close]').forEach((closeButton) => {
     closeButton.addEventListener('click', () => dialog.close());
   });
 
-  link.addEventListener('click', () => {
+  link?.addEventListener('click', () => {
     // This tracks intent to download, NOT OS installation or download completion.
     downloadRequested = true;
     try {
