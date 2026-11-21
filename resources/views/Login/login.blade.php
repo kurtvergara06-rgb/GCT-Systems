@@ -314,7 +314,9 @@
       <div class="desktop-download-actions">
         <button type="button" class="desktop-download-dialog-secondary" data-desktop-dialog-close>Not now</button>
         @if($desktopDownloadReady)
-          <a id="fromsDesktopInstallerLink" class="desktop-download-dialog-primary" href="{{ $desktopInstallerUrl }}" rel="noopener noreferrer"><i class="fa-solid fa-download" aria-hidden="true"></i> Download installer</a>
+          <a id="fromsDesktopInstallerLink" class="desktop-download-dialog-primary" href="{{ $desktopInstallerUrl }}" rel="noopener noreferrer"><i class="fa-solid fa-download" aria-hidden="true"></i> Download .exe</a>
+        @else
+          <button type="button" class="desktop-download-dialog-primary" disabled aria-describedby="fromsDownloadStatus" title="Windows installer not published yet"><i class="fa-solid fa-download" aria-hidden="true"></i> Download .exe</button>
         @endif
       </div>
       <p class="desktop-download-note">@if($desktopDownloadReady)After downloading, open the installer on Windows. Your browser cannot verify when installation finishes.@else No PWA shortcut is installed; this page will offer the real Windows installer when it is ready. @endif</p>
