@@ -486,7 +486,7 @@
                         <div class="dashboard-card-header">
                             <div>
                                 <h3><i class="fa-solid fa-chart-column"></i> Threshold Gap by Category</h3>
-                                <p class="dashboard-eyebrow">{{ $isDemo ? 'Demonstration replenishment volumes' : 'Threshold gaps grouped by recorded part category' }}</p>
+                                <p class="dashboard-eyebrow">{{ $isDemo ? 'Illustrative preview quantities' : 'Threshold gaps grouped by recorded part category' }}</p>
                             </div>
                             <span class="dashboard-badge">Units</span>
                         </div>
@@ -549,7 +549,7 @@
                         <div>
                             @if(($restockingData->inventory_items_count ?? 0) === 0)
                                 <h3>No inventory records available</h3>
-                                <p>Enter genuine inventory and stock thresholds before generating restocking recommendations. No demonstration quantities are shown automatically.</p>
+                                <p>Enter genuine inventory and stock thresholds before generating restocking recommendations. Only recorded quantities are used for live recommendations.</p>
                             @else
                                 <h3>No restocking threshold gaps</h3>
                                 <p>No recorded replenishment threshold gap is currently available. No replenishment forecast is inferred.</p>
@@ -656,7 +656,7 @@
                     <div class="dashboard-card-header">
                         <div>
                             <h3><i class="fa-solid fa-lightbulb"></i> Strategic Restocking Playbooks</h3>
-                            <p class="dashboard-eyebrow">{{ $isDemo ? 'Demonstration scenarios for Warehouse Head review' : 'Recorded parts ranked by threshold gap for Warehouse Head review' }}</p>
+                            <p class="dashboard-eyebrow">{{ $isDemo ? 'Illustrative preview for Warehouse Head review' : 'Recorded parts ranked by threshold gap for Warehouse Head review' }}</p>
                         </div>
                         <span class="dashboard-badge">Playbooks</span>
                     </div>
