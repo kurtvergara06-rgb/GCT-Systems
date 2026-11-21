@@ -14,7 +14,7 @@
     // These local Blade variables never write to the database.
     // Live records must never be silently replaced with invented figures.
     // Illustrative values are opt-in for screenshots and never persisted.
-    $illustrativeAnalytics = request()->boolean('preview') && ($activeSummary === 'operational'
+    $illustrativeAnalytics = ! app()->isProduction() && request()->boolean('preview') && ($activeSummary === 'operational'
         ? ((int) $totalScheduledTrips === 0 && (int) $gpsTripCount === 0 && (int) $totalIncidents === 0)
         : ((int) $totalActivities === 0 && (int) $totalNotifications === 0));
     if ($illustrativeAnalytics && $activeSummary === 'operational') {
