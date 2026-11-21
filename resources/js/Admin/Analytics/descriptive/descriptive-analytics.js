@@ -45,11 +45,23 @@ function initDescriptiveAnalytics() {
     }
 }
 
+// Read chart chrome colors from the active theme when creating each chart.
+function descriptiveChartPalette() {
+    const isDark = document.documentElement.dataset.gctTheme === 'dark';
+    return {
+        text: isDark ? '#d3e0f1' : '#334155',
+        muted: isDark ? '#b1bfd2' : '#64748b',
+        grid: isDark ? '#35465e' : '#e7edf5',
+        surface: isDark ? '#162235' : '#ffffff',
+    };
+}
+
 /* =========================================================================
    THESIS OBJECTIVE 6.1.1 — OPERATIONAL SUMMARY CHARTS
    ========================================================================= */
 
 function initOperationalCharts(data) {
+    const chartPalette = descriptiveChartPalette();
     // 1. Activity & Telemetry Trend Chart
     const trendCanvas = document.getElementById('operationalActivityTrendChart');
     if (trendCanvas && data.trendLabels && data.trendLabels.length > 0) {
@@ -77,24 +89,6 @@ function initOperationalCharts(data) {
                         barPercentage: 0.65,
                         categoryPercentage: 0.75,
                     },
-                    {
-                        label: 'GPS Telemetry Records',
-                        data: data.trendGps || [],
-                        backgroundColor: '#0ea5e9',
-                        borderRadius: 6,
-                        maxBarThickness: 32,
-                        barPercentage: 0.65,
-                        categoryPercentage: 0.75,
-                    },
-                    {
-                        label: 'Incidents Reported',
-                        data: data.trendIncidents || [],
-                        backgroundColor: '#ef4444',
-                        borderRadius: 6,
-                        maxBarThickness: 32,
-                        barPercentage: 0.65,
-                        categoryPercentage: 0.75,
-                    },
                 ],
             },
             options: {
@@ -102,6 +96,7 @@ function initOperationalCharts(data) {
                 maintainAspectRatio: false,
                 plugins: {
                     legend: {
+                        display: false,
                         position: 'top',
                         labels: {
                             boxWidth: 10,
@@ -109,7 +104,7 @@ function initOperationalCharts(data) {
                             usePointStyle: true,
                             pointStyle: 'circle',
                             font: { size: 11, weight: '600', family: 'Inter, system-ui, sans-serif' },
-                            color: '#334155',
+                            color: chartPalette.text,
                             padding: 14,
                         },
                     },
@@ -124,12 +119,12 @@ function initOperationalCharts(data) {
                 scales: {
                     x: {
                         grid: { display: false },
-                        ticks: { font: { size: 10, weight: '500' }, color: '#64748b' },
+                        ticks: { font: { size: 10, weight: '500' }, color: chartPalette.muted },
                     },
                     y: {
                         beginAtZero: true,
-                        grid: { color: '#f1f5f9' },
-                        ticks: { font: { size: 10 }, color: '#64748b', precision: 0 },
+                        grid: { color: chartPalette.grid },
+                        ticks: { font: { size: 10 }, color: chartPalette.muted, precision: 0 },
                     },
                 },
             },
@@ -149,7 +144,7 @@ function initOperationalCharts(data) {
                         data: [data.activeBuses || 0, data.underMaintenance || 0, data.inactiveBuses || 0],
                         backgroundColor: ['#16a34a', '#f59e0b', '#94a3b8'],
                         borderWidth: 3,
-                        borderColor: '#ffffff',
+                        borderColor: chartPalette.surface,
                     },
                 ],
             },
@@ -196,7 +191,7 @@ function initOperationalCharts(data) {
                         data: data.tripStatusValues,
                         backgroundColor: bgColors,
                         borderWidth: 3,
-                        borderColor: '#ffffff',
+                        borderColor: chartPalette.surface,
                     },
                 ],
             },
@@ -257,12 +252,12 @@ function initOperationalCharts(data) {
                 scales: {
                     x: {
                         beginAtZero: true,
-                        grid: { color: '#f1f5f9' },
+                        grid: { color: chartPalette.grid },
                         ticks: { precision: 0, font: { size: 10 } },
                     },
                     y: {
                         grid: { display: false },
-                        ticks: { font: { size: 11, weight: '600' }, color: '#334155' },
+                        ticks: { font: { size: 11, weight: '600' }, color: chartPalette.text },
                     },
                 },
             },
@@ -275,6 +270,7 @@ function initOperationalCharts(data) {
    ========================================================================= */
 
 function initAdministrativeCharts(data) {
+    const chartPalette = descriptiveChartPalette();
     // 1. Audit Log Activity Trend (Smooth Area Curves)
     const activityTrendCanvas = document.getElementById('adminActivityTrendChart');
     if (activityTrendCanvas && data.trendLabels && data.trendLabels.length > 0) {
@@ -335,7 +331,7 @@ function initAdministrativeCharts(data) {
                             usePointStyle: true,
                             pointStyle: 'circle',
                             font: { size: 11, weight: '600' },
-                            color: '#334155',
+                            color: chartPalette.text,
                             padding: 14,
                         },
                     },
@@ -348,12 +344,12 @@ function initAdministrativeCharts(data) {
                 scales: {
                     x: {
                         grid: { display: false },
-                        ticks: { font: { size: 10 }, color: '#64748b' },
+                        ticks: { font: { size: 10 }, color: chartPalette.muted },
                     },
                     y: {
                         beginAtZero: true,
-                        grid: { color: '#f1f5f9' },
-                        ticks: { font: { size: 10 }, color: '#64748b', precision: 0 },
+                        grid: { color: chartPalette.grid },
+                        ticks: { font: { size: 10 }, color: chartPalette.muted, precision: 0 },
                     },
                 },
             },
@@ -383,7 +379,7 @@ function initAdministrativeCharts(data) {
                         data: data.moduleValues,
                         backgroundColor: bgColors,
                         borderWidth: 3,
-                        borderColor: '#ffffff',
+                        borderColor: chartPalette.surface,
                     },
                 ],
             },
@@ -445,12 +441,12 @@ function initAdministrativeCharts(data) {
                 scales: {
                     x: {
                         grid: { display: false },
-                        ticks: { font: { size: 10, weight: '600' }, color: '#334155' },
+                        ticks: { font: { size: 10, weight: '600' }, color: chartPalette.text },
                     },
                     y: {
                         beginAtZero: true,
-                        grid: { color: '#f1f5f9' },
-                        ticks: { precision: 0, font: { size: 10 }, color: '#64748b' },
+                        grid: { color: chartPalette.grid },
+                        ticks: { precision: 0, font: { size: 10 }, color: chartPalette.muted },
                     },
                 },
             },
@@ -480,7 +476,7 @@ function initAdministrativeCharts(data) {
                         data: data.userDeptValues,
                         backgroundColor: bgColors,
                         borderWidth: 3,
-                        borderColor: '#ffffff',
+                        borderColor: chartPalette.surface,
                     },
                 ],
             },

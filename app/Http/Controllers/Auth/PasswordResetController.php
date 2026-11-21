@@ -46,7 +46,7 @@ class PasswordResetController extends Controller
         $request->validate([
             'token' => ['required', 'string'],
             'email' => ['required', 'email'],
-            'password' => ['required', 'confirmed', PasswordRule::min(8)],
+            'password' => ['required', 'confirmed', ...array_slice(\App\Services\SecurityPolicy::passwordRules(), 2)],
         ]);
 
         // Never allow an old token to reactivate password access after an
@@ -62,7 +62,11 @@ class PasswordResetController extends Controller
                 $user->forceFill([
                     'password' => Hash::make($password),
                     'remember_token' => Str::random(60),
+                    'password_changed_at' => now(),
                 ])->save();
+                if (\App\Services\SecurityPolicy::current()['logout_on_password_change']) {
+                    \App\Services\SecurityPolicy::revokeOtherSessions((int) $user->id);
+                }
                 event(new PasswordReset($user));
             }
         );

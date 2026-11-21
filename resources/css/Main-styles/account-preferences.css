@@ -47,14 +47,14 @@ html.gct-reduced-motion *::after {
 .account-personalization-page { max-width: 1100px; }
 .gct-personalization-intro {
     display: flex; align-items: center; gap: 17px; padding: 21px 24px;
-    border-radius: 17px; margin-bottom: 20px; color: #fff;
-    background: linear-gradient(110deg,#092b57 0%,#0b40b5 75%,#2465db 100%);
+    border-radius: 17px; margin-bottom: 20px; color: #14345b;
+    background: linear-gradient(110deg,#ffffff 0%,#e9f2ff 75%,#d9eafe 100%);
     box-shadow: 0 10px 25px rgba(9,43,87,.14);
 }
-.gct-personalization-icon { flex: 0 0 48px; display: grid; place-items: center; width: 48px; height: 48px; border-radius: 14px; background: rgba(255,255,255,.15); font-size: 21px; }
-.gct-personalization-intro h2 { margin: 0 0 5px; color: #fff; font-size: 20px; font-weight: 800; letter-spacing: -.02em; }
-.gct-personalization-intro p { margin: 0; color: #deebff; font-size: 12px; line-height: 1.6; }
-.gct-preference-device-label { flex-shrink: 0; margin-left: auto; border: 1px solid rgba(255,255,255,.25); border-radius: 999px; padding: 8px 11px; font-size: 11px; font-weight: 650; color: #fff; }
+.gct-personalization-icon { flex: 0 0 48px; display: grid; place-items: center; width: 48px; height: 48px; border-radius: 14px; background: #d6e7fb; color: #1d58a6; font-size: 21px; }
+.gct-personalization-intro h2 { margin: 0 0 5px; color: #102a56; font-size: 20px; font-weight: 800; letter-spacing: -.02em; }
+.gct-personalization-intro p { margin: 0; color: #526987; font-size: 12px; line-height: 1.6; }
+.gct-preference-device-label { flex-shrink: 0; margin-left: auto; border: 1px solid #bad2ee; border-radius: 999px; padding: 8px 11px; font-size: 11px; font-weight: 650; color: #245a9f; }
 .gct-preference-section { margin-bottom: 17px; padding: 23px 26px; border-radius: 16px; }
 .gct-preference-section .account-card-header { padding-bottom: 17px; }
 .gct-preference-section .account-card-header h3 { display:flex; align-items:center; gap:10px; }
@@ -120,6 +120,29 @@ html[data-gct-font-size="small"] .main :is(p, label, input, select, textarea, td
 html[data-gct-font-size="large"] .main :is(p, label, input, select, textarea, td, small) { font-size: 14px; }
 html[data-gct-font-size="small"] .gct-preference-preview :is(p, strong) { font-size: 11px; }
 html[data-gct-font-size="large"] .gct-preference-preview :is(p, strong) { font-size: 15px; }
+
+/* Account introduction panels use light surfaces by default. */
+html[data-gct-theme="dark"] .account-page .gct-personalization-intro {
+    background: linear-gradient(110deg,#092b57 0%,#0b40b5 75%,#2465db 100%);
+    color: #fff;
+}
+html[data-gct-theme="dark"] .account-page .gct-personalization-icon,
+html[data-gct-theme="dark"] .account-page .gct-settings-intro-icon {
+    background: rgba(255,255,255,.17);
+    color: #fff;
+}
+html[data-gct-theme="dark"] .account-page .gct-personalization-intro h2,
+html[data-gct-theme="dark"] .account-page .gct-settings-intro strong { color: #fff; }
+html[data-gct-theme="dark"] .account-page .gct-personalization-intro p { color: #deebff; }
+html[data-gct-theme="dark"] .account-page .gct-preference-device-label {
+    border-color: rgba(255,255,255,.25);
+    color: #fff;
+}
+html[data-gct-theme="dark"] .account-page .gct-settings-intro {
+    background: linear-gradient(110deg, #0c3266, #0b40b5);
+    color: #fff;
+}
+html[data-gct-theme="dark"] .account-page .gct-settings-intro small { color: #e1ebff; }
 
 /* Dark applies to content surfaces while retaining GCT's navy sidebar,
    brand colors, badges and operational status meanings. */
@@ -253,13 +276,13 @@ html[data-gct-theme="dark"] .routes-page .routes-table .action-btn:focus-visible
 .gct-settings-intro {
     display: flex; align-items: center; gap: 14px;
     margin-bottom: 20px; padding: 18px 22px; border-radius: 15px;
-    background: linear-gradient(110deg, #0c3266, #0b40b5);
-    color: #fff; box-shadow: 0 10px 24px rgba(15,54,111,.13);
+    background: linear-gradient(110deg, #ffffff, #e3efff);
+    color: #14345b; box-shadow: 0 10px 24px rgba(15,54,111,.08);
 }
-.gct-settings-intro-icon { display: grid; place-items: center; flex: 0 0 43px; width: 43px; height: 43px; border-radius: 12px; background: rgba(255,255,255,.17); font-size: 18px; }
+.gct-settings-intro-icon { display: grid; place-items: center; flex: 0 0 43px; width: 43px; height: 43px; border-radius: 12px; background: #d6e7fb; color: #1d58a6; font-size: 18px; }
 .gct-settings-intro > span:last-child { display:grid; gap: 4px; }
-.gct-settings-intro strong { font-size: 16px; font-weight: 800; color:#fff; }
-.gct-settings-intro small { font-size: 11px; color:#e1ebff; }
+.gct-settings-intro strong { font-size: 16px; font-weight: 800; color:#102a56; }
+.gct-settings-intro small { font-size: 11px; color:#526987; }
 .gct-settings-panel { margin-bottom: 18px; padding: 24px; border-radius: 15px; }
 .gct-settings-panel .account-card-header { padding-bottom: 16px; }
 .gct-settings-panel .account-card-header-copy h3 { display:flex; align-items:center; gap: 10px; font-size:15px; }

@@ -142,6 +142,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 return { className: 'reject', icon: 'fa-xmark' };
             case 'issue':
                 return { className: 'success', icon: 'fa-box-open' };
+            case 'logout':
+                return { className: 'logout', icon: 'fa-right-from-bracket' };
             case 'status':
                 return { className: 'warning', icon: 'fa-arrows-rotate' };
             default:

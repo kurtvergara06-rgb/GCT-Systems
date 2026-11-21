@@ -39,12 +39,13 @@ class MaintenanceDashboardController extends Controller
         // 1. JOB ORDERS (Active, Breakdown, Overdue, Recent)
         // ---------------------------------------------------------------------
         $allJobOrders = JobOrder::query()
-            ->with(['maintenanceReferral.incident', 'incident'])
+            ->with(['maintenanceReferral.incident', 'incident', 'mechanicAssignments.mechanic'])
             ->latest('updated_at')
             ->get();
 
         $activeJobOrders = $allJobOrders->filter(function (JobOrder $jo) {
-            return in_array($jo->status, ['On Going', 'On Hold'], true);
+            return in_array($jo->status, ['On Going', 'On Hold'], true)
+                && ! in_array($jo->review_status, ['Rejected'], true);
         });
 
         $totalActiveJobOrders = $activeJobOrders->count();
@@ -135,21 +136,46 @@ class MaintenanceDashboardController extends Controller
         // ---------------------------------------------------------------------
         // 3. WORKFORCE: MECHANIC ATTENDANCE & AVAILABILITY
         // ---------------------------------------------------------------------
-        $activeAssignedMechanics = $activeJobOrders
-            ->whereNotNull('assigned_mechanic')
-            ->filter(fn (JobOrder $jo) => trim((string)$jo->assigned_mechanic) !== '')
-            ->keyBy(fn (JobOrder $jo) => Str::lower(trim($jo->assigned_mechanic)));
+        // Match assigned mechanics by stable master ID. Legacy JOs without
+        // assignment rows retain their comma-separated name snapshots.
+        // A grouped name string is never a valid per-mechanic lookup key.
+        $assignmentsById = collect();
+        $legacyAssignmentsByName = collect();
+        $activeJobOrders->each(function (JobOrder $jobOrder) use (&$assignmentsById, &$legacyAssignmentsByName): void {
+            foreach ($jobOrder->mechanicAssignments as $assignment) {
+                if ($assignment->mechanic_id !== null) {
+                    $assignmentsById->put((int) $assignment->mechanic_id, $jobOrder);
+                }
+            }
+            if ($jobOrder->mechanicAssignments->isNotEmpty()) {
+                return;
+            }
+            foreach (preg_split('/\s*,\s*/u', (string) $jobOrder->assigned_mechanic) ?: [] as $name) {
+                $key = Str::lower(trim($name));
+                if ($key !== '') {
+                    $legacyAssignmentsByName->put($key, $jobOrder);
+                }
+            }
+        });
 
         $businessDate = now(config('app.business_timezone', 'Asia/Manila'))->toDateString();
         $todayAttendance = MechanicAttendance::query()
             ->whereDate('attendance_date', $businessDate)
             ->latest('id')
             ->get()
-            ->unique('mechanic_id')
-            ->keyBy(fn (MechanicAttendance $att) => Str::lower(trim($att->mechanic_name)));
+            ->unique(fn (MechanicAttendance $attendance) => trim((string) $attendance->mechanic_id) !== ''
+                ? 'id:'.$attendance->mechanic_id
+                : 'name:'.Str::lower(trim($attendance->mechanic_name)));
+
+        $attendanceById = $todayAttendance
+            ->filter(fn (MechanicAttendance $attendance) => trim((string) $attendance->mechanic_id) !== '')
+            ->keyBy('mechanic_id');
+        $attendanceByLegacyName = $todayAttendance
+            ->filter(fn (MechanicAttendance $attendance) => trim((string) $attendance->mechanic_id) === '')
+            ->keyBy(fn (MechanicAttendance $attendance) => Str::lower(trim($attendance->mechanic_name)));
 
         $allMechanics = Mechanic::query()
-            ->where('employment_status', '!=', 'Inactive')
+            ->where('employment_status', 'Active')
             ->orderBy('mechanic_name')
             ->get();
 
@@ -159,42 +185,36 @@ class MaintenanceDashboardController extends Controller
 
         foreach ($allMechanics as $mechanic) {
             $nameKey = Str::lower(trim($mechanic->mechanic_name));
-            $attendance = $todayAttendance->get($nameKey);
-            $activeJob = $activeAssignedMechanics->get($nameKey);
+            $attendance = $attendanceById->get($mechanic->mechanic_id)
+                ?? $attendanceByLegacyName->get($nameKey);
+            $activeJob = $assignmentsById->get((int) $mechanic->id)
+                ?? $legacyAssignmentsByName->get($nameKey);
 
             $status = $attendance?->status ?? 'No Attendance';
             $isPresentOrLate = in_array($status, ['Present', 'Late', 'On Duty'], true);
+            $details = [
+                'mechanic' => $mechanic,
+                'name' => $mechanic->mechanic_name,
+                'mechanic_id' => $mechanic->mechanic_id,
+                'active_jo_no' => $activeJob?->job_order_no,
+                'bus_no' => $activeJob?->bus_no,
+                'shift' => $mechanic->shift ?? 'Day',
+            ];
 
-            if ($activeJob) {
-                $onDutyMechanicsList->push((object) [
-                    'mechanic' => $mechanic,
-                    'name' => $mechanic->mechanic_name,
-                    'mechanic_id' => $mechanic->mechanic_id,
-                    'status' => 'On Duty',
-                    'active_jo_no' => $activeJob->job_order_no,
-                    'bus_no' => $activeJob->bus_no,
-                    'shift' => $mechanic->shift ?? 'Day',
-                ]);
+            if ($activeJob && $activeJob->status === 'On Going' && $isPresentOrLate) {
+                $onDutyMechanicsList->push((object) array_merge($details, ['status' => 'On Duty']));
+            } elseif ($activeJob) {
+                // Reserved for work, or not verified Present; never offer an
+                // already-assigned mechanic as free for another JO.
+                $otherMechanicsList->push((object) array_merge($details, [
+                    'status' => $isPresentOrLate ? 'Assigned / On Hold' : $status,
+                ]));
             } elseif ($isPresentOrLate) {
-                $availableMechanicsList->push((object) [
-                    'mechanic' => $mechanic,
-                    'name' => $mechanic->mechanic_name,
-                    'mechanic_id' => $mechanic->mechanic_id,
+                $availableMechanicsList->push((object) array_merge($details, [
                     'status' => $status === 'Late' ? 'Late' : 'Available',
-                    'active_jo_no' => null,
-                    'bus_no' => null,
-                    'shift' => $mechanic->shift ?? 'Day',
-                ]);
+                ]));
             } else {
-                $otherMechanicsList->push((object) [
-                    'mechanic' => $mechanic,
-                    'name' => $mechanic->mechanic_name,
-                    'mechanic_id' => $mechanic->mechanic_id,
-                    'status' => $status,
-                    'active_jo_no' => null,
-                    'bus_no' => null,
-                    'shift' => $mechanic->shift ?? 'Day',
-                ]);
+                $otherMechanicsList->push((object) array_merge($details, ['status' => $status]));
             }
         }
 
@@ -243,18 +263,13 @@ class MaintenanceDashboardController extends Controller
         ];
 
         // Blocked repairs: active job orders waiting for parts
-        $blockedJobOrders = $activeJobOrders->filter(function (JobOrder $jo) {
-            return !empty($jo->part_needed)
-                && in_array($jo->part_status, [
-                    'Requested',
-                    'Approved',
-                    'Ordered',
-                    'Waiting Approval',
-                    'Waiting Purchase',
-                    'Waiting Delivery',
-                    'Ready for Issue',
-                    'Delivered'
-                ], true);
+        $blockedJobOrders = $activeJobOrders->filter(function (JobOrder $jo): bool {
+            // Actual JO workflow: repairs are blocked while On Hold and
+            // required parts have not been fully issued. IR and PR statuses
+            // change independently and must not be inferred from old labels.
+            return $jo->status === 'On Hold'
+                && trim((string) $jo->part_needed) !== ''
+                && $jo->part_status !== 'Issued';
         })->take(5);
 
         // ---------------------------------------------------------------------
@@ -270,8 +285,9 @@ class MaintenanceDashboardController extends Controller
         $inactiveBusesCount = (int) ($busStatusCounts['Inactive'] ?? 0);
         $underMaintenanceBusesCount = (int) ($busStatusCounts['Under Maintenance'] ?? 0);
 
-        // Buses currently in the repair bay based on active job orders
-        $busesInRepairBay = $activeJobOrders->pluck('bus_no')->filter()->unique()->count();
+        // A planned PMS may be approved but not physically started.
+        // Use the bus's Maintenance-controlled status as the source of truth.
+        $busesInRepairBay = $underMaintenanceBusesCount;
 
         $operationalRate = $totalBuses > 0
             ? round(($activeBusesCount / $totalBuses) * 100)

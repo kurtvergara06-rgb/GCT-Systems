@@ -16,10 +16,6 @@ use Illuminate\Support\Facades\RateLimiter;
 
 class LoginController extends Controller
 {
-    private const MAX_LOGIN_ATTEMPTS = 5;
-
-    private const LOGIN_COOLDOWN_SECONDS = 300;
-
     /**
      * Show the login page, or return an already-authenticated user to the
      * correct first-login step / department dashboard.
@@ -100,12 +96,15 @@ class LoginController extends Controller
             }
         }
 
-        if (RateLimiter::tooManyAttempts($loginKey, self::MAX_LOGIN_ATTEMPTS)) {
+        $policy = \App\Services\SecurityPolicy::current();
+        $maxAttempts = (int) $policy['failed_attempts'];
+        $cooldownSeconds = (int) $policy['lockout_duration'] * 60;
+        if (RateLimiter::tooManyAttempts($loginKey, $maxAttempts)) {
             // At most one additional audit record per email/IP cooldown window.
             $auditKey = 'login-lockout-audit:'.hash('sha256', $loginKey);
-            if (Cache::add($auditKey, true, self::LOGIN_COOLDOWN_SECONDS)) {
+            if (Cache::add($auditKey, true, $cooldownSeconds)) {
                 $this->auditLoginSecurity($request, $user, 'Login blocked during cooldown',
-                    'Login request denied while the five-minute cooldown is active.');
+                    'Login request denied during the configured cooldown.');
             }
 
             return back()
@@ -120,16 +119,16 @@ class LoginController extends Controller
         }
 
         if ($user === null || ! Hash::check($credentials['password'], $user->password)) {
-            RateLimiter::hit($loginKey, self::LOGIN_COOLDOWN_SECONDS);
+            RateLimiter::hit($loginKey, $cooldownSeconds);
             $attempts = RateLimiter::attempts($loginKey);
-            $locked = $attempts >= self::MAX_LOGIN_ATTEMPTS;
+            $locked = $attempts >= $maxAttempts;
             $this->auditLoginSecurity(
                 $request,
                 $user,
                 $locked ? 'Login temporarily locked' : 'Failed login attempt',
                 $locked
-                    ? 'Five unsuccessful login attempts; five-minute cooldown started.'
-                    : sprintf('Unsuccessful authentication attempt %d of %d.', $attempts, self::MAX_LOGIN_ATTEMPTS)
+                    ? 'Configured login attempt threshold reached; cooldown started.'
+                    : sprintf('Unsuccessful authentication attempt %d of %d.', $attempts, $maxAttempts)
             );
 
             return back()
@@ -144,6 +143,9 @@ class LoginController extends Controller
         Auth::login($user, $remember);
 
         $request->session()->regenerate();
+        if (! $policy['allow_multiple_sessions']) {
+            \App\Services\SecurityPolicy::revokeOtherSessions((int) $user->id, $request->session()->getId());
+        }
 
         /** @var User|null $authenticatedUser */
         $authenticatedUser = Auth::user();

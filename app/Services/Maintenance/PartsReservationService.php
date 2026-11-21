@@ -97,9 +97,14 @@ class PartsReservationService
      */
     public function topUp(JobOrder $jo): void
     {
-        if ($jo->review_status !== 'Approved' || $jo->status === 'Completed'
-            || ! isset($jo->inventory_snapshot['shortages'])) {
-            return; // legacy JOs retain their existing workflow
+        if ($jo->review_status !== 'Approved' || $jo->status === 'Completed') {
+            return;
+        }
+        // Old JOs can be topped up after a partial PO receipt only when
+        // the approved parts list contains explicit quantities. Never
+        // reserve one unit based on a bare legacy part name.
+        if (! $this->parser->hasExplicitQuantities((string) $jo->part_needed)) {
+            return;
         }
         $items = InventoryItem::query()->orderBy('id')->lockForUpdate()->get();
         $reserved = JobOrderPartReservation::query()->where('job_order_id', $jo->id)
@@ -112,7 +117,7 @@ class PartsReservationService
         $referenceNos = $requests->map(fn ($ir) => 'IR-'.($ir->created_at?->format('Y') ?? '0000').'-'.str_pad((string) $ir->id, 4, '0', STR_PAD_LEFT));
         $issuedByItem = [];
         if ($referenceNos->isNotEmpty()) {
-            $batchQuery = \App\Models\Warehouse\InventoryIssuance::query()->where(function ($query) use ($referenceNos) {
+            $batchQuery = \App\Models\Warehouse\InventoryIssuance::query()->confirmedSigned()->where(function ($query) use ($referenceNos) {
                 foreach ($referenceNos as $reference) {
                     $query->orWhere('reference_no', $reference)
                         ->orWhere('reference_no', 'like', $reference.'-B%');

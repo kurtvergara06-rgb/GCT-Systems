@@ -234,7 +234,7 @@
   border: 1px solid var(--delivery-border);
   border-radius: 9px;
 
-  background: #ffffff !important;
+  background: var(--delivery-filter-bg, #ffffff) !important;
 
   color: var(--delivery-text) !important;
 
@@ -448,6 +448,26 @@
 
 .empty-deliveries {
   padding: 0 !important;
+}
+
+/* Match the shared empty-row component to the table rather than a raised panel. */
+.incoming-delivery-card .incoming-delivery-table .gct-empty-table-row,
+.incoming-delivery-card .incoming-delivery-table .gct-empty-cell {
+  background: transparent;
+}
+.incoming-delivery-card .incoming-delivery-table .gct-empty-cell {
+  padding: 38px 18px;
+  text-align: center;
+  border-bottom: 0;
+}
+.incoming-delivery-card .incoming-delivery-table .gct-empty-content {
+  max-width: 460px;
+  margin-inline: auto;
+}
+.incoming-delivery-card .incoming-delivery-table .gct-empty-description {
+  max-width: 430px;
+  margin-inline: auto;
+  line-height: 1.5;
 }
 
 .delivery-empty-state {
@@ -810,14 +830,43 @@
 @media (max-width: 650px) { .incoming-receipt-meta { grid-template-columns: 1fr; } .incoming-receipt-content { padding: 12px; } }
 
 
-/* Receipt mode selector: full outstanding delivery or explicitly-entered partial receipt. */
-.incoming-receipt-mode { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:14px; }
-.incoming-receipt-mode-button { display:flex;align-items:center;gap:11px;text-align:left;border:1px solid #cad9ec;background:#f8fbff;color:#1a3a63;border-radius:8px;padding:11px 13px;cursor:pointer;min-width:0; }
-.incoming-receipt-mode-button i { font-size:17px;color:#245eb2;flex:none; }
-.incoming-receipt-mode-button span { display:flex;flex-direction:column;gap:3px;min-width:0; }
-.incoming-receipt-mode-button strong { font-size:12px; }
-.incoming-receipt-mode-button small { font-size:10px;color:#627b99;line-height:1.35; }
-.incoming-receipt-mode-button[aria-pressed="true"] { border-color:#175bc2;background:#e9f2ff;box-shadow:0 0 0 1px #175bc2 inset; }
+/* Receiving method: clearly selectable, mutually exclusive cards. */
+.incoming-receipt-method { margin-bottom: 14px; }
+.incoming-receipt-method h3 { margin: 0 0 4px; font-size: 13px; font-weight: 800; color: #17345b; }
+.incoming-receipt-method h3 span { color: #dc2626; }
+.incoming-receipt-method > p { margin: 0 0 12px; font-size: 11px; line-height: 1.5; color: #60758f; }
+.incoming-receipt-mode { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+.incoming-receipt-mode-button {
+  display: flex; align-items: flex-start; gap: 11px; width: 100%; min-width: 0;
+  min-height: 92px; padding: 15px 14px; text-align: left;
+  border: 1px solid #cad9ec; border-radius: 10px;
+  background: #f8fbff; color: #1a3a63; cursor: pointer;
+  transition: background-color .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+.incoming-receipt-mode-button > i { margin-top: 3px; font-size: 18px; color: #245eb2; flex: none; }
+.incoming-receipt-mode-copy { display:flex; flex:1; flex-direction:column; gap:5px; min-width:0; }
+.incoming-receipt-mode-button strong { font-size: 12px; color: inherit; }
+.incoming-receipt-mode-button small { font-size: 10px; color: #627b99; line-height: 1.45; }
+.incoming-receipt-mode-indicator {
+  flex: 0 0 18px; width: 18px; height: 18px; margin-top: 2px;
+  border: 2px solid #94a8c2; border-radius: 50%; background: transparent;
+}
+.incoming-receipt-mode-button:hover { background: #edf5ff; border-color: #7facdf; }
+.incoming-receipt-mode-button:focus-visible { outline: 3px solid #60a5fa; outline-offset: 2px; }
+.incoming-receipt-mode-button[aria-pressed="true"] {
+  background: #e9f2ff; border: 2px solid #175bc2;
+  padding: 14px 13px; box-shadow: 0 2px 9px rgba(23,91,194,.12);
+}
+.incoming-receipt-mode-button[aria-pressed="true"] .incoming-receipt-mode-indicator {
+  position:relative; border-color:#175bc2; background:#175bc2;
+}
+.incoming-receipt-mode-button[aria-pressed="true"] .incoming-receipt-mode-indicator::after {
+  content: ""; position:absolute; top:2px; left:5px; width:4px; height:8px;
+  border: solid white; border-width:0 2px 2px 0; transform:rotate(45deg);
+}
+.incoming-receipt-method > .incoming-receipt-selected-state {
+  margin: 10px 0 0; color: #385b86; font-size: 11px;
+}
 .incoming-receipt-items input[readonly] { background:#f2f5f9;color:#4f6785;cursor:default; }
 .incoming-receipt-footer button:disabled { opacity:.55;cursor:not-allowed; }
 @media(max-width:650px){.incoming-receipt-mode{grid-template-columns:1fr}}

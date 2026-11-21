@@ -142,6 +142,89 @@ class WarehouseIncomingDeliveryReceiptGateTest extends TestCase
         $this->assertSame(0, (int) $inventoryItem->fresh()->quantity_available);
     }
 
+    public function test_partial_receipts_restock_the_same_ir_for_successive_signed_swis_batches(): void
+    {
+        Storage::fake('local');
+        $warehouse = User::factory()->create([
+            'department' => 'Warehouse', 'role' => 'head', 'status' => 'Active',
+        ]);
+        $item = InventoryItem::create([
+            'item_code' => 'RECEIPT-FILTER', 'parts_name' => 'Oil Filter',
+            'item_name' => 'Oil Filter', 'category' => 'Filters',
+            'on_hand' => 2, 'quantity_available' => 2,
+            'unit' => 'pcs', 'unit_of_measurement' => 'pcs', 'reorder_level' => 1,
+        ]);
+        $jo = JobOrder::create([
+            'job_order_no' => 'JO-RECEIVE-PARTIAL', 'bus_no' => 'BUS-RECEIVE-02',
+            'problem_issue' => 'Replace filters', 'maintenance_type' => 'Corrective',
+            'assigned_mechanic' => 'Test Mechanic',
+            'part_needed' => 'Oil Filter - Qty: 7 pcs',
+            'review_status' => 'Approved', 'parts_issue_strategy' => 'issue_available_only',
+            'inventory_snapshot' => null, // Legacy JO must still get replenishment top-ups.
+            'part_status' => 'Submitted', 'status' => 'On Hold',
+        ]);
+        \App\Models\Maintenance\JobOrderPartReservation::create([
+            'job_order_id' => $jo->id, 'inventory_item_id' => $item->id, 'quantity' => 2,
+        ]);
+        $ir = ItemRequest::create([
+            'job_order_id' => $jo->id, 'requested_by' => $warehouse->id,
+            'status' => 'Submitted',
+            'requested_parts' => [[
+                'name' => 'Oil Filter', 'quantity' => 7, 'unit' => 'pcs',
+                'inventory_item_id' => $item->id,
+            ]],
+        ]);
+        $pr = PurchaseRequest::create([
+            'pr_no' => 'PR-RECEIVE-PARTIAL',
+            'job_order_no' => $jo->job_order_no, 'bus_no' => $jo->bus_no,
+            'item' => 'Oil Filter - Qty: 5 pcs', 'quantity' => 5,
+            'status' => 'For Delivery', 'source_type' => 'Maintenance Request',
+        ]);
+        $po = PurchaseOrder::create([
+            'po_no' => 'PO-RECEIVE-PARTIAL', 'po_date' => today()->toDateString(),
+            'purchase_request_id' => $pr->id,
+            'supplier_name' => 'Test Supplier',
+            'items' => [[
+                'pr_no' => $pr->pr_no, 'item_description' => 'Oil Filter',
+                'quantity' => 5, 'unit' => 'pcs', 'cost' => 100,
+            ]],
+            'status' => 'For Delivery',
+        ]);
+
+        $issue = function (int $quantity, string $filename) use ($warehouse, $ir): void {
+            $this->actingAs($warehouse)->post(route('warehouse.item-requests.issue', $ir), [
+                'received_by' => 'Test Mechanic',
+                'signed_slip' => UploadedFile::fake()->create($filename, 100, 'application/pdf'),
+                'handover_confirmed' => '1',
+                'issued_quantities' => [$quantity],
+            ])->assertRedirect()->assertSessionHasNoErrors();
+        };
+        $issue(2, 'first.pdf');
+        $this->assertSame('Partially Issued', $ir->fresh()->status);
+
+        $this->actingAs($warehouse)->post(route('incoming-deliveries.receive', $po), [
+            'received_quantities' => [2],
+        ])->assertRedirect('/warehouse/incoming-deliveries')->assertSessionHasNoErrors();
+        $this->assertNull($po->fresh()->inventory_posted_at);
+        $this->assertSame(2, (int) $item->fresh()->quantity_available);
+        $this->assertSame(2, (int) \App\Models\Maintenance\JobOrderPartReservation::where('job_order_id', $jo->id)->sum('quantity'));
+        $this->assertSame(1, ItemRequest::where('job_order_id', $jo->id)->count());
+        $issue(2, 'second.pdf');
+
+        $this->actingAs($warehouse)->post(route('incoming-deliveries.receive', $po), [
+            'received_quantities' => [3],
+        ])->assertRedirect('/warehouse/incoming-deliveries')->assertSessionHasNoErrors();
+        $this->assertNotNull($po->fresh()->inventory_posted_at);
+        $this->assertSame(3, (int) $item->fresh()->quantity_available);
+        $this->assertSame(3, (int) \App\Models\Maintenance\JobOrderPartReservation::where('job_order_id', $jo->id)->sum('quantity'));
+        $issue(3, 'third.pdf');
+
+        $this->assertSame('Issued', $ir->fresh()->status);
+        $this->assertSame(0, (int) $item->fresh()->quantity_available);
+        $this->assertSame(1, ItemRequest::where('job_order_id', $jo->id)->count());
+        $this->assertSame(3, \App\Models\Warehouse\InventoryIssuance::query()->confirmedSigned()->count());
+    }
+
     public function test_ineligible_or_invalid_purchase_order_cannot_change_inventory(): void
     {
         $warehouseHead = User::factory()->create([

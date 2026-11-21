@@ -55,7 +55,10 @@ class AdminUserController extends Controller
         if ($applicationsPage) {
             $query->where('status', $request->query('status') === 'Rejected' ? 'Rejected' : 'Pending');
         } else {
-            $query->whereNotIn('status', ['Pending', 'Rejected']);
+            // Account directory is divided into Active and Deactivated views.
+            // Unknown/legacy values default safely to Active.
+            $accountStatus = $request->query('status') === 'Inactive' ? 'Inactive' : 'Active';
+            $query->where('status', $accountStatus);
         }
 
         if ($request->filled('search')) {
@@ -81,10 +84,6 @@ class AdminUserController extends Controller
 
         if ($request->filled('role') && $request->role !== 'All Roles') {
             $query->where('role', $request->role);
-        }
-
-        if (! $applicationsPage && $request->filled('status') && $request->status !== 'All Status') {
-            $query->where('status', $request->status);
         }
 
         TableSort::apply($query, $request, ['created_at' => 'created_at', 'name' => 'name', 'email' => 'email', 'department' => 'department', 'role' => 'role', 'status' => 'status'], 'created_at', 'desc');
@@ -121,14 +120,10 @@ class AdminUserController extends Controller
         // must enforce the same rule before either action can mutate data.
         abort_unless($request->user()?->hasSystemPermission('administration', 'full_control'), 403);
 
-        if ($request->boolean('_permission_update')) {
-            return $this->updateRolePermissions($request);
-        }
-
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['required', 'string', 'min:6'],
+            'password' => \App\Services\SecurityPolicy::passwordRules(false),
             'department' => ['required', 'string', Rule::in($this->departments)],
             'role' => ['required', 'string', Rule::in(array_keys($this->roles))],
             'status' => ['required', 'string', Rule::in($this->statuses)],
@@ -139,6 +134,7 @@ class AdminUserController extends Controller
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
             'must_change_password' => true,
+            'password_changed_at' => now(),
             'onboarding_completed' => true,
             'onboarding_completed_at' => now(),
             'department' => $validated['department'],
@@ -151,47 +147,64 @@ class AdminUserController extends Controller
             ->with('success', 'User account created successfully. The user must change the temporary password at first login.');
     }
 
-    private function updateRolePermissions(Request $request)
+    public function updateRolePermissions(Request $request, RolePermission $rolePermission)
     {
-        $permissionService = app(RolePermissionService::class);
+        // A department-page role check alone is insufficient for writes.
+        abort_unless($request->user()?->hasSystemPermission('administration', 'full_control'), 403);
 
         $validated = $request->validate([
-            'role_key' => ['required', 'string', 'exists:role_permissions,role_key'],
             'permissions' => ['required', 'array'],
+            'permissions.*' => ['array'],
+            'permissions.*.*' => ['boolean'],
         ]);
 
-        $rolePermission = RolePermission::where('role_key', $validated['role_key'])->firstOrFail();
+        abort_if($rolePermission->role_key === 'admin_head', 403, 'The protected System Admin role cannot be changed.');
+        abort_if(app(RolePermissionService::class)->roleModuleKey($rolePermission) === null, 403);
 
-        if ($rolePermission->role_key === 'admin_head') {
-            return redirect()
-                ->route('admin.roles-permissions')
-                ->with('error', 'System Admin permissions are protected and always have full system access.');
-        }
-
-        if ($permissionService->roleModuleKey($rolePermission) === null) {
-            return redirect()
-                ->route('admin.roles-permissions', ['role' => $rolePermission->role_key])
-                ->with('error', 'This role is not mapped to a valid department module.');
-        }
-
+        $permissionService = app(RolePermissionService::class);
         $normalized = $permissionService->isolatedPermissions(
             $rolePermission,
             $validated['permissions']
         );
 
+        if ($rolePermission->permissions === $normalized) {
+            return redirect()
+                ->route('admin.roles-permissions', ['role' => $rolePermission->role_key])
+                ->with('success', 'No permission changes were needed.');
+        }
+
+        $previous = (array) $rolePermission->permissions;
+        $changes = [];
+        foreach ($normalized as $module => $capabilities) {
+            foreach ($capabilities as $capability => $allowed) {
+                $before = (bool) data_get($previous, $module.'.'.$capability, false);
+                if ($before !== $allowed) {
+                    $changes[] = $module.'.'.$capability.': '.($before ? 'allowed' : 'denied').' → '.($allowed ? 'allowed' : 'denied');
+                }
+            }
+        }
+
         $rolePermission->update([
             'permissions' => $normalized,
-            'updated_by' => Auth::id(),
+            'updated_by' => $request->user()->id,
         ]);
 
-        $roleModuleKey = $permissionService->roleModuleKey($rolePermission);
+        app(ActivityLogService::class)->record(
+            $request->user(),
+            $request,
+            'Updated role permissions',
+            'Updated',
+            'Admin',
+            $rolePermission->role_key,
+            'Changes: '.implode('; ', $changes)
+        );
 
         event(new SystemDataUpdated(
-            ucfirst((string) $roleModuleKey),
+            ucfirst((string) $permissionService->roleModuleKey($rolePermission)),
             'RolePermission',
             'permissions_updated',
             $rolePermission->role_key,
-            $rolePermission->label.' permissions were updated.'
+            $rolePermission->label.' permissions changed by user ID '.$request->user()->id.': '.implode('; ', $changes)
         ));
 
         return redirect()
@@ -201,6 +214,7 @@ class AdminUserController extends Controller
 
     public function update(Request $request, User $user)
     {
+        abort_unless($request->user()?->hasSystemPermission('administration', 'full_control'), 403);
         if ($this->isProtectedSystemAdmin($user)) {
             return redirect()->route('admin.users')->with('error', 'The protected System Admin account cannot be edited from Account Management.');
         }
@@ -367,6 +381,7 @@ class AdminUserController extends Controller
 
     public function updateStatus(Request $request, User $user)
     {
+        abort_unless($request->user()?->hasSystemPermission('administration', 'full_control'), 403);
         if ($this->isProtectedSystemAdmin($user)) {
             return redirect()->route('admin.users')->with('error', 'The protected System Admin account must remain Active.');
         }
@@ -476,14 +491,18 @@ class AdminUserController extends Controller
         }
 
         $validated = $request->validate([
-            'password' => ['required', 'confirmed', Password::min(8)],
+            'password' => \App\Services\SecurityPolicy::passwordRules(),
         ]);
 
         $user->update([
             'password' => Hash::make($validated['password']),
             'must_change_password' => true,
+            'password_changed_at' => now(),
         ]);
 
+        if (\App\Services\SecurityPolicy::current()['logout_on_password_change']) {
+            \App\Services\SecurityPolicy::revokeOtherSessions((int) $user->id);
+        }
         return redirect()
             ->route('admin.users')
             ->with('success', 'Password reset successfully. The user must change the temporary password at next login.');
@@ -491,6 +510,7 @@ class AdminUserController extends Controller
 
     public function destroy(User $user)
     {
+        abort_unless(auth()->user()?->hasSystemPermission('administration', 'full_control'), 403);
         if ($this->isProtectedSystemAdmin($user)) {
             return redirect()->route('admin.users')->with('error', 'The protected System Admin account cannot be deleted.');
         }

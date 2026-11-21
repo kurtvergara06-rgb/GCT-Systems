@@ -3,6 +3,16 @@
    Predictive Fleet & Trip Analytics
    ========================================================= */
 
+html[data-gct-theme="dark"] .predictive-fleet-page {
+    --ft-navy: #edf3fc;
+    --ft-text: #edf3fc;
+    --ft-text-dark: #edf3fc;
+    --ft-muted: #b1bfd2;
+    --ft-border: #41536d;
+    --ft-bg: #111e31;
+    --ft-white: #18263b;
+}
+
 .predictive-fleet-page {
     --ft-primary: #2563eb;
     --ft-primary-dark: #1d4ed8;
@@ -110,7 +120,7 @@
 .predictive-fleet-page .ft-kpi-label {
     font-size: 12px;
     font-weight: 600;
-    color: #475569;
+    color: light-dark(#475569, var(--gct-theme-muted));
     line-height: 1.35;
 }
 
@@ -364,7 +374,7 @@
 .predictive-fleet-page .ft-risk-dot.high { background: #ef4444; }
 
 .predictive-fleet-page .ft-risk-name {
-    color: #475569;
+    color: light-dark(#475569, var(--gct-theme-muted));
     font-weight: 500;
 }
 
@@ -372,7 +382,7 @@
     margin-left: auto;
     font-size: 11px;
     font-weight: 700;
-    color: #0f172a;
+    color: light-dark(#0f172a, var(--gct-theme-fg));
 }
 
 .predictive-fleet-page .ft-risk-num small {
@@ -409,7 +419,7 @@
 }
 
 .predictive-fleet-page .ft-issue:hover {
-    background: #f8fafc;
+    background: light-dark(#f8fafc, var(--gct-theme-surface));
 }
 
 .predictive-fleet-page .ft-issue-number {
@@ -465,7 +475,7 @@
     margin: 0;
     font-size: 11px;
     font-weight: 700;
-    color: #1e293b;
+    color: light-dark(#1e293b, var(--gct-theme-fg));
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -485,7 +495,7 @@
 
 .predictive-fleet-page .ft-issue-count {
     font-size: 10.5px;
-    color: #334155;
+    color: light-dark(#334155, var(--gct-theme-fg));
     font-weight: 600;
     white-space: nowrap;
 }
@@ -576,10 +586,10 @@
     top: 0;
     z-index: 5;
     padding: 9px 12px;
-    background: #ffffff;
+    background: light-dark(#ffffff, var(--gct-theme-surface));
     border-bottom: 1px solid var(--ft-border);
     box-shadow: 0 1px 0 var(--ft-border);
-    color: #64748b;
+    color: light-dark(#64748b, var(--gct-theme-muted));
     font-size: 9px;
     font-weight: 700;
     text-transform: uppercase;
@@ -591,13 +601,13 @@
 .predictive-fleet-page .ft-table tbody td {
     padding: 10px 12px;
     border-bottom: 1px solid #f1f5f9;
-    color: #475569;
+    color: light-dark(#475569, var(--gct-theme-muted));
     vertical-align: middle;
     white-space: nowrap;
 }
 
 .predictive-fleet-page .ft-table tbody tr:hover td {
-    background: #f8fafc;
+    background: light-dark(#f8fafc, var(--gct-theme-surface));
 }
 
 .predictive-fleet-page .ft-table tbody tr:last-child td {
@@ -614,13 +624,13 @@
     align-items: center;
     gap: 6px;
     font-weight: 600;
-    color: #334155;
+    color: light-dark(#334155, var(--gct-theme-fg));
     white-space: nowrap;
 }
 
 .predictive-fleet-page .ft-ml-eta > .fa-clock {
     font-size: 9px;
-    color: #64748b;
+    color: light-dark(#64748b, var(--gct-theme-muted));
     opacity: 0.8;
 }
 
@@ -655,7 +665,7 @@
 
 .predictive-fleet-page .ft-risk-pct {
     font-weight: 700;
-    color: #1e293b;
+    color: light-dark(#1e293b, var(--gct-theme-fg));
     width: 28px;
 }
 
@@ -741,15 +751,15 @@
     justify-content: space-between;
     gap: 12px;
     padding: 10px 12px;
-    background: #f8fafc;
-    border: 1px solid #edf2f7;
+    background: light-dark(#f8fafc, var(--gct-theme-surface));
+    border: 1px solid light-dark(#edf2f7, var(--gct-theme-border));
     border-radius: 10px;
     transition: background 0.15s ease, border-color 0.15s ease;
 }
 
 .predictive-fleet-page .ft-route-item:hover {
-    background: #ffffff;
-    border-color: #cbd5e1;
+    background: light-dark(#ffffff, var(--gct-theme-surface));
+    border-color: light-dark(#cbd5e1, var(--gct-theme-border));
 }
 
 .predictive-fleet-page .ft-route-info {
@@ -761,7 +771,7 @@
     display: block;
     font-size: 11px;
     font-weight: 700;
-    color: #1e293b;
+    color: light-dark(#1e293b, var(--gct-theme-fg));
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -854,7 +864,7 @@
     gap: 10px;
     margin-top: 3px;
     font-size: 9.5px;
-    color: #64748b;
+    color: light-dark(#64748b, var(--gct-theme-muted));
 }
 
 .predictive-fleet-page .ft-route-meta span {
@@ -896,7 +906,7 @@
 .predictive-fleet-page .ft-route-score-label {
     display: block;
     font-size: 8.5px;
-    color: #94a3b8;
+    color: light-dark(#94a3b8, var(--gct-theme-placeholder));
     text-transform: uppercase;
     letter-spacing: 0.03em;
     font-weight: 600;
@@ -932,7 +942,7 @@
     gap: 6px;
     font-size: 9.5px;
     font-weight: 600;
-    color: #64748b;
+    color: light-dark(#64748b, var(--gct-theme-muted));
 }
 
 .predictive-fleet-page .legend-solid-line {
@@ -961,14 +971,14 @@
     align-items: flex-start;
     gap: 10px;
     padding: 12px;
-    background: #f8fafc;
-    border: 1px solid #edf2f7;
+    background: light-dark(#f8fafc, var(--gct-theme-surface));
+    border: 1px solid light-dark(#edf2f7, var(--gct-theme-border));
     border-radius: 10px;
     transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
 }
 
 .predictive-fleet-page .ft-insight-tile:hover {
-    background: #ffffff;
+    background: light-dark(#ffffff, var(--gct-theme-surface));
     box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
     transform: translateY(-1px);
 }
@@ -1041,14 +1051,14 @@
     margin: 0 0 3px;
     font-size: 11px;
     font-weight: 700;
-    color: #0f172a;
+    color: light-dark(#0f172a, var(--gct-theme-fg));
     line-height: 1.25;
 }
 
 .predictive-fleet-page .ft-insight-body p {
     margin: 0;
     font-size: 9.5px;
-    color: #64748b;
+    color: light-dark(#64748b, var(--gct-theme-muted));
     line-height: 1.35;
 }
 
@@ -1059,7 +1069,7 @@
     justify-content: center;
     gap: 7px;
     padding: 12px 0 20px;
-    color: #64748b;
+    color: light-dark(#64748b, var(--gct-theme-muted));
     font-size: 10.5px;
     font-weight: 500;
 }
@@ -1114,7 +1124,7 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: #64748b;
+    color: light-dark(#64748b, var(--gct-theme-muted));
 }
 
 .predictive-domain-fleet-trip .predictive-toolbar-refresh {
@@ -1130,14 +1140,14 @@
     flex-wrap: wrap;
     gap: 10px 16px;
     padding: 10px 14px;
-    background: #fff;
+    background: light-dark(#fff, var(--gct-theme-surface));
     border: 1px solid #e0e8f3;
     border-radius: 12px;
 }
 .predictive-fleet-page .ft-dashboard-filter-heading { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-.predictive-fleet-page .ft-dashboard-filter-heading strong { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #152c4f; }
+.predictive-fleet-page .ft-dashboard-filter-heading strong { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ft-text); }
 .predictive-fleet-page .ft-dashboard-filter-heading strong i { color: #377de2; }
-.predictive-fleet-page .ft-dashboard-filter-heading span { font-size: 10px; color: #667b98; }
+.predictive-fleet-page .ft-dashboard-filter-heading span { font-size: 10px; color: var(--ft-muted); }
 .predictive-fleet-page .ft-data-empty {
     min-height: 164px;
     display: flex;
@@ -1148,7 +1158,7 @@
     padding: 24px;
     border: 1px dashed #d6e3f3;
     border-radius: 10px;
-    background: #f8fbff;
+    background: light-dark(#f8fbff, var(--gct-theme-surface));
     text-align: center;
 }
 .predictive-fleet-page .ft-data-empty--compact { min-height: 154px; }
@@ -1163,15 +1173,15 @@
     color: #3574cf;
     font-size: 15px;
 }
-.predictive-fleet-page .ft-data-empty strong { color: #183457; font-size: 12px; line-height: 1.35; }
-.predictive-fleet-page .ft-data-empty > span:last-child { max-width: 300px; color: #627591; font-size: 10.5px; line-height: 1.5; }
+.predictive-fleet-page .ft-data-empty strong { color: var(--ft-text); font-size: 12px; line-height: 1.35; }
+.predictive-fleet-page .ft-data-empty > span:last-child { max-width: 300px; color: var(--ft-muted); font-size: 10.5px; line-height: 1.5; }
 .predictive-fleet-page .ft-insights-grid > .ft-data-empty { grid-column: 1 / -1; }
-.predictive-fleet-page .ft-evidence-note { margin: 12px 0 0; display: flex; align-items: flex-start; gap: 6px; font-size: 10px; color: #64748b; line-height: 1.5; }
+.predictive-fleet-page .ft-evidence-note { margin: 12px 0 0; display: flex; align-items: flex-start; gap: 6px; font-size: 10px; color: light-dark(#64748b, var(--gct-theme-muted)); line-height: 1.5; }
 .predictive-fleet-page .ft-evidence-note i { margin-top: 2px; }
 .predictive-fleet-page .ft-availability-summary { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 9px; }
-.predictive-fleet-page .ft-availability-summary > div { display: flex; flex-direction: column; gap: 5px; padding: 12px; border-radius: 9px; background: #f7faff; border: 1px solid #e0eaf7; }
-.predictive-fleet-page .ft-availability-summary span { color: #61738e; font-size: 10px; }
-.predictive-fleet-page .ft-availability-summary strong { color: #142e59; font-weight: 800; font-size: 19px; }
+.predictive-fleet-page .ft-availability-summary > div { display: flex; flex-direction: column; gap: 5px; padding: 12px; border-radius: 9px; background: light-dark(#f7faff, var(--gct-theme-surface)); border: 1px solid #e0eaf7; }
+.predictive-fleet-page .ft-availability-summary span { color: var(--ft-muted); font-size: 10px; }
+.predictive-fleet-page .ft-availability-summary strong { color: var(--ft-text); font-weight: 800; font-size: 19px; }
 @media (max-width: 700px) {
     .predictive-fleet-page .ft-dashboard-filter-row { align-items: stretch; }
     .predictive-fleet-page .ft-dashboard-filter-heading { width: 100%; }
@@ -1188,11 +1198,11 @@
     color: #52647f;
     font-size: 11px;
 }
-.predictive-fleet-page .ft-availability-detail strong { color: #142e59; }
+.predictive-fleet-page .ft-availability-detail strong { color: var(--ft-text); }
 .predictive-fleet-page .ft-availability-progress {
     height: 9px;
     border-radius: 999px;
-    background: #e8eef7;
+    background: light-dark(#e8eef7, #32465f);
     overflow: hidden;
     margin-top: 8px;
 }
@@ -1234,3 +1244,47 @@
 .predictive-fleet-page .ft-python-status__item.is-offline { background: #fef2f2; border-color: #fecaca; color: #b91c1c; }
 .predictive-fleet-page .ft-python-status__item.is-muted { background: #f8fafc; color: #64748b; }
 .predictive-fleet-page .ft-python-status > small { color: #64748b; font-size: 10px; }
+
+/* Shared KPI component has independent text variables. Keep numerical values and
+   descriptive metadata visible in the fleet's dark cards. */
+html[data-gct-theme="dark"] .predictive-fleet-page .analytics-kpi-card__label,
+html[data-gct-theme="dark"] .predictive-fleet-page .analytics-kpi-card__description {
+    color: #b1bfd2;
+}
+html[data-gct-theme="dark"] .predictive-fleet-page .analytics-kpi-card__value {
+    color: #edf3fc;
+}
+html[data-gct-theme="dark"] .predictive-fleet-page .analytics-kpi-card__change {
+    color: var(--change-color, #b1bfd2);
+}
+html[data-gct-theme="dark"] .predictive-fleet-page .ft-insight-tile {
+    background: #203047;
+    border-color: #41536d;
+}
+
+/* Theme-specific fleet forecast surfaces: avoid dark text and pale tiles in Dark Mode. */
+html[data-gct-theme="dark"] .predictive-fleet-page .ft-dashboard-filter-row {
+    background: #18263b;
+    border-color: #41536d;
+}
+html[data-gct-theme="dark"] .predictive-fleet-page .ft-data-empty {
+    background: #1b2b40;
+    border-color: #526781;
+}
+html[data-gct-theme="dark"] .predictive-fleet-page .ft-data-empty__icon {
+    background: #294466;
+    color: #b7d4ff;
+}
+html[data-gct-theme="dark"] .predictive-fleet-page .ft-availability-summary > div {
+    background: #203047;
+    border-color: #41536d;
+}
+html[data-gct-theme="dark"] .predictive-fleet-page .ft-availability-detail {
+    color: #b1bfd2;
+}
+html[data-gct-theme="dark"] .predictive-fleet-page .ft-insight-tile--blue,
+html[data-gct-theme="dark"] .predictive-fleet-page .ft-insight-tile--orange,
+html[data-gct-theme="dark"] .predictive-fleet-page .ft-insight-tile--yellow,
+html[data-gct-theme="dark"] .predictive-fleet-page .ft-insight-tile--green {
+    background: #203047;
+}

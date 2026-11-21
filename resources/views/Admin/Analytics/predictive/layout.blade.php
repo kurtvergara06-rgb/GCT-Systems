@@ -1,4 +1,5 @@
 @php
+    if (! isset($maintenanceAnalytics)) {
     $tabs = [
         'all' => ['All', 'fa-table-cells-large'],
         'fleet-trip' => ['Fleet & Trip', 'fa-route'],
@@ -56,14 +57,41 @@
     if ($activeDomain === 'fuel') {
         $pageAssets[] = 'resources/js/Admin/Analytics/predictive/fuel-model.js';
     }
+    }
+    if (isset($maintenanceAnalytics)) {
+        $activeDomain = 'maintenance';
+        $departmentScoped = true;
+        $pageTitle = $title = ucfirst($stage).' Analytics';
+        $pageSubtitle = $subtitle = match ($stage) {
+            'descriptive' => 'Maintenance performance overview',
+            'diagnostic' => 'Maintenance and fuel issue investigation',
+            'predictive' => 'Estimates based on verified historical maintenance and fuel records',
+            default => 'Recommendations for Maintenance Head review',
+        };
+        $pageAssets = [
+            'resources/css/Admin/Analytics/design-system.css',
+            'resources/css/Admin/Analytics/maintenance.css',
+            'resources/js/Admin/Analytics/maintenance.js',
+        ];
+    }
 @endphp
 
 <x-layout.app title="FROMS - {{ $pageTitle }}" :assets="$pageAssets" :partial-navigation="false">
     <div class="app">
-        <x-layout.sidebar department="Admin" />
+        <x-layout.sidebar :department="isset($maintenanceAnalytics) ? auth()->user()->department : 'Admin'" />
 
-        <main class="main analytics-stage-page predictive-analytics-page predictive-domain-{{ $activeDomain }}">
-            <x-layout.topbar :title="$pageTitle" :subtitle="$pageSubtitle" />
+        <main class="main analytics-stage-page {{ isset($maintenanceAnalytics) ? 'department-analytics-page' : '' }} predictive-analytics-page predictive-domain-{{ $activeDomain }}">
+            <x-layout.topbar :title="$pageTitle" :subtitle="$pageSubtitle" >
+                @if(isset($maintenanceAnalytics))
+                    <x-slot:toolbar>
+                        @include('Admin.Analytics.maintenance.filters')
+                    </x-slot:toolbar>
+                @endif
+            </x-layout.topbar>
+            @if(isset($maintenanceAnalytics))
+                @include('Admin.Analytics.maintenance.content')
+            @else
+
 
             <x-analytics.stage-controls
                 :url="$predictiveUrl"
@@ -85,6 +113,7 @@
                 @include('Admin.Analytics.predictive.inventory-ml')
             @endif
 
+            @endif
         </main>
     </div>
 </x-layout.app>

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Complete Registration | GCT-Systems</title>
-@vite(['resources/css/Main-styles/theme.css','resources/css/Login/login.css'])
+@vite(['resources/css/Main-styles/theme.css','resources/css/Login/login.css','resources/js/Login/legal-modal.js'])
 <style>
   .google-register-panel{width:100%;max-width:470px;margin:0 auto}
   .google-register-card{padding:26px;border:1px solid #dce6f1;background:#fff;border-radius:16px}
@@ -63,6 +63,11 @@
           <label for="googleEmployeePasswordConfirmation">Confirm Password</label>
           <input id="googleEmployeePasswordConfirmation" type="password" name="password_confirmation" placeholder="Re-enter your password" autocomplete="new-password" minlength="8" required>
           <div class="google-register-note"><span aria-hidden="true">ⓘ</span><span>After submitting, you'll receive a six-digit email OTP. An administrator will assign your department and role after verification.</span></div>
+          <label class="auth-privacy-ack google-privacy-ack" for="googlePrivacyAcknowledged">
+            <input id="googlePrivacyAcknowledged" type="checkbox" name="privacy_acknowledged" value="1" required @checked(old('privacy_acknowledged'))>
+            <span>I acknowledge that I have read the <a data-legal-modal="Privacy Notice" href="{{ route('legal.privacy') }}">Privacy Notice</a> and <a data-legal-modal="Terms of Use" href="{{ route('legal.terms') }}">Terms of Use</a>.</span>
+          </label>
+          @error('privacy_acknowledged')<p class="google-register-error" role="alert">{{ $message }}</p>@enderror
           <button type="submit" class="google-register-submit">Continue to Email Verification →</button>
         </form>
         <a class="google-register-back" href="{{ route('login') }}">Back to Sign In</a>

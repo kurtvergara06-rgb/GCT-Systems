@@ -58,11 +58,8 @@ class OperationRolePermissionAuditTest extends TestCase
             ->assertDontSee('open-edit-driver-attendance-modal', false)
             ->assertDontSee('id="driverAttendanceModal"', false);
 
-        $this->actingAs($head)->get(route('mechanic-attendance'))
-            ->assertOk()
-            ->assertDontSee('data-batch-attendance-open', false)
-            ->assertDontSee('open-edit-attendance-modal', false)
-            ->assertDontSee('id="editMechanicAttendanceModal"', false);
+        // Mechanic Attendance is Maintenance-owned, even for Operation Heads.
+        $this->actingAs($head)->get(route('mechanic-attendance'))->assertForbidden();
 
         $this->actingAs($head)->get(route('incidents'))
             ->assertOk()
@@ -117,9 +114,7 @@ class OperationRolePermissionAuditTest extends TestCase
         ]);
         $staff = $this->operationUser('staff');
 
-        $this->actingAs($admin)->post(route('admin.users.store'), [
-            '_permission_update' => '1',
-            'role_key' => 'operation_staff',
+        $this->actingAs($admin)->put(route('admin.roles-permissions.update', ['rolePermission' => 'operation_staff']), [
             'permissions' => [
                 'operation' => ['view' => '1', 'edit' => '0', 'approve' => '0'],
             ],
@@ -130,9 +125,7 @@ class OperationRolePermissionAuditTest extends TestCase
             ->assertDontSee('data-batch-attendance-open', false);
         $this->actingAs($staff)->post(route('driver-attendance.store'), [])->assertForbidden();
 
-        $this->actingAs($admin)->post(route('admin.users.store'), [
-            '_permission_update' => '1',
-            'role_key' => 'operation_staff',
+        $this->actingAs($admin)->put(route('admin.roles-permissions.update', ['rolePermission' => 'operation_staff']), [
             'permissions' => [
                 'operation' => ['view' => '0', 'edit' => '0', 'approve' => '0'],
             ],
@@ -155,7 +148,7 @@ class OperationRolePermissionAuditTest extends TestCase
             'daily-driver-reports.store', 'daily-driver-reports.update', 'daily-driver-reports.destroy',
             'incidents.maintenance-referral.store', 'incidents.store', 'incidents.details.update',
             'incidents.destroy', 'incidents.update', 'incidents.dispatch', 'incidents.response',
-            'operation.attendance.batch.store', 'auto-scheduling.confirm',
+            'auto-scheduling.confirm',
             'operation.clients.store', 'operation.clients.status',
             'client-trip-times.store', 'client-trip-times.update',
             'client-trip-times.slots.store', 'client-trip-times.slots.update', 'client-trip-times.slots.destroy',
@@ -175,6 +168,12 @@ class OperationRolePermissionAuditTest extends TestCase
             );
         }
 
+        // Batch endpoints are type-aware and enforce Operation permissions for
+        // drivers versus Maintenance permissions for mechanics in the controller.
+        $this->assertNotNull(Route::getRoutes()->getByName('operation.attendance.batch.store'));
+        $this->assertNotNull(Route::getRoutes()->getByName('operation.attendance.batch.roster'));
+
+        // Mechanic attendance routes remain named for Maintenance ownership.
         // Mechanic attendance is shared through a legacy URL, so its controller
         // resolves Operation or Maintenance permissions from the current user's
         // department instead of applying one module's middleware to both roles.

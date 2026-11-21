@@ -191,12 +191,12 @@
     padding: 10px 14px;
     border: 1px solid #e8eef5;
     border-radius: 10px;
-    background: #f8fafc;
+    background: light-dark(#f8fafc, var(--gct-theme-surface));
     transition: background 0.15s ease, border-color 0.15s ease;
 }
 .descriptive-overview-domain .descriptive-shift-row:hover {
-    background: #f1f5f9;
-    border-color: #cbd5e1;
+    background: light-dark(#f1f5f9, var(--gct-theme-surface));
+    border-color: light-dark(#cbd5e1, var(--gct-theme-border));
 }
 .descriptive-overview-domain .descriptive-shift-icon {
     width: 36px;
@@ -224,13 +224,13 @@
     display: block;
     font-size: 13px;
     font-weight: 700;
-    color: #1e293b;
+    color: light-dark(#1e293b, var(--gct-theme-fg));
     line-height: 1.25;
 }
 .descriptive-overview-domain .descriptive-shift-info small {
     display: block;
     font-size: 11px;
-    color: #64748b;
+    color: light-dark(#64748b, var(--gct-theme-muted));
     margin-top: 2px;
 }
 .descriptive-overview-domain .descriptive-shift-stat {

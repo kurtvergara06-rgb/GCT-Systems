@@ -441,12 +441,20 @@ window.GCTPartialNavigation.registerInitializer('purchase-orders', '.purchase-or
     event.preventDefault();
     if (viewButton && document.getElementById('poDetailOverlay')) {
       const overlay=document.getElementById('poDetailOverlay');
+
       const put=(id,value)=>{document.getElementById(id).textContent=value||'—'};
       const cash=(x)=>'₱'+Number(x||0).toLocaleString('en-PH',{minimumFractionDigits:2,maximumFractionDigits:2});
       put('poDetailNo',button.dataset.poNo);put('poDetailPr',button.dataset.detailPr);
       const rawDate=button.dataset.poDate||'';const parsedDate=/^\d{4}-\d{2}-\d{2}/.test(rawDate)?new Date(rawDate.slice(0,10)+'T12:00:00'):null;
       put('poDetailDate',parsedDate&&!Number.isNaN(parsedDate.getTime())?parsedDate.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):rawDate);
       put('poDetailStatus',button.dataset.status);
+      const detailStatus = document.getElementById('poDetailStatus');
+      if (detailStatus) {
+        const normalizedStatus = String(button.dataset.status || '').trim().toLowerCase();
+        detailStatus.dataset.statusTone = ['delivered', 'picked up'].includes(normalizedStatus)
+          ? 'success'
+          : normalizedStatus === 'rejected' ? 'danger' : 'pending';
+      }
       const receiptProgress = document.getElementById('poDetailReceiptProgress');
       if (receiptProgress) {
         const received = Number(button.dataset.detailReceived || 0);

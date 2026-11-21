@@ -184,7 +184,7 @@ class AccountController extends Controller
             'password' => [
                 'required',
                 'confirmed',
-                Password::min(8),
+                ...array_slice(\App\Services\SecurityPolicy::passwordRules(), 2),
             ],
         ]);
 
@@ -199,7 +199,11 @@ class AccountController extends Controller
         $user->update([
             'password' => Hash::make($validated['password']),
             'must_change_password' => false,
+            'password_changed_at' => now(),
         ]);
+        if (\App\Services\SecurityPolicy::current()['logout_on_password_change']) {
+            \App\Services\SecurityPolicy::revokeOtherSessions((int) $user->id, $request->session()->getId());
+        }
 
         return redirect()
             ->route('account.settings')

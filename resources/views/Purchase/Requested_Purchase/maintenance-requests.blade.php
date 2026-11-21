@@ -59,6 +59,8 @@
           </div>
         </div>
 
+
+
         <div class="requested-pr-list-controls">
         <nav class="requested-pr-record-tabs" aria-label="Purchase requisition records">
           <a href="{{ route('maintenance-requests', ['record_view' => 'active']) }}" class="requested-pr-record-tab {{ $recordView !== 'history' ? 'is-active' : '' }}" aria-current="{{ $recordView !== 'history' ? 'page' : 'false' }}">
@@ -119,17 +121,22 @@
                 @endphp
 
                 <tr>
-                  <td><div class="requested-pr-reference"><strong>{{ $purchaseRequest->display_pr_no }}</strong></div></td>
+                  <td><div class="requested-pr-reference"><x-ui.id-badge :value="$purchaseRequest->display_pr_no" size="small" tone="neutral" class="purchase-record-id" /></div></td>
                   <td class="requested-pr-bus"><strong>{{ $purchaseRequest->bus_no ?: '—' }}</strong></td>
                   <td>
                     <div class="requested-pr-part">
                       <strong>{{ $firstItem }}</strong>
                       @if(count($parts) > 1)
                         <details class="requested-pr-more">
-                          <summary>+{{ count($parts) - 1 }} more parts</summary>
+                          <summary aria-label="Show {{ count($parts) - 1 }} additional requested parts">+{{ count($parts) - 1 }} more parts <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
                           <div class="requested-pr-more-panel">
                             @foreach(array_slice($parts, 1) as $part)
-                              <div>{{ $part['name'] ?? $part['item'] ?? 'Part' }}</div>
+                              @php
+                                    $moreQuantity = trim((string) ($part['quantity_display'] ?? $part['quantity'] ?? '—'));
+                                    $moreUnit = trim((string) ($part['unit'] ?? $part['unit_of_measurement'] ?? ''));
+                                    $moreQuantityLabel = $moreQuantity . ($moreUnit !== '' && !preg_match('/[a-zA-Z]/', $moreQuantity) ? ' ' . $moreUnit : '');
+                                  @endphp
+                                  <div class="requested-pr-more-row"><span>{{ $part['name'] ?? $part['item'] ?? 'Part' }}</span><strong>{{ $moreQuantityLabel }}</strong></div>
                             @endforeach
                           </div>
                         </details>
@@ -189,16 +196,14 @@
                   </td>
                 </tr>
               @empty
-                <x-ui.empty-row
-                  colspan="7"
-                  message="No requested purchases found."
-                />
+                  <x-ui.empty-row colspan="7" message="No requested purchases found." />
               @endforelse
             </tbody>
           </table>
         </div>
 
-        <x-ui.table-footer :items="$purchaseRequests" />
+          <x-ui.table-footer :items="$purchaseRequests" />
+
       </section>
     </main>
   </div>

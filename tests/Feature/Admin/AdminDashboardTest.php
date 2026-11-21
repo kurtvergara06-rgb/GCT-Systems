@@ -1,0 +1,151 @@
+<?php
+
+namespace Tests\Feature\Admin;
+
+use App\Models\Admin\ActivityLog;
+use App\Models\Admin\BatchUpload;
+use App\Models\Admin\User;
+use App\Services\AdminDashboardService;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
+use Tests\TestCase;
+
+class AdminDashboardTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_admin_user_can_access_redesigned_admin_dashboard_with_all_metrics(): void
+    {
+        $admin = User::factory()->create([
+            'department' => 'Admin',
+            'role' => 'Head',
+            'status' => 'Active',
+        ]);
+
+        // Create sample batch upload
+        BatchUpload::create([
+            'file_name' => 'telematics_test_batch.csv',
+            'stored_name' => 'telematics_test_batch_123.csv',
+            'file_path' => 'batches/telematics_test_batch_123.csv',
+            'file_type' => 'csv',
+            'module' => 'Operation',
+            'data_type' => 'GPS Trip Records',
+            'data_origin' => 'genuine',
+            'status' => 'processed',
+            'total_records' => 120,
+            'processed_records' => 120,
+            'failed_records' => 0,
+            'progress_percentage' => 100,
+            'uploaded_by' => $admin->id,
+        ]);
+
+        // Create sample activity log
+        ActivityLog::create([
+            'user_id' => $admin->id,
+            'user_name' => $admin->name,
+            'user_role' => 'Head',
+            'department' => 'Admin',
+            'activity' => 'Logged into Admin Module',
+            'module' => 'Authentication',
+            'reference' => 'AUTH-001',
+            'event_type' => 'security',
+            'details' => 'User logged in successfully',
+            'ip_address' => '127.0.0.1',
+            'user_agent' => 'PHPUnit Browser',
+        ]);
+
+        Cache::put('admin-dashboard:ai-model-health:v2', [], 120);
+
+        $response = $this->actingAs($admin)
+            ->get(route('admin.dashboard'));
+
+        $response->assertOk();
+        $response->assertViewIs('Admin.admin-dashboard');
+
+        // Render response content so View Composer runs
+        $content = $response->getContent();
+
+        // Verify key view data keys
+        $response->assertViewHas('departmentDistribution');
+        $response->assertViewHas('batchMetrics');
+        $response->assertViewHas('recentBatches');
+        $response->assertViewHas('metricsDetail');
+        $response->assertViewHas('fleetMetrics');
+        $response->assertViewHas('recentActivityLogs');
+        $response->assertViewHas('recentUsers');
+
+        // Verify HTML markup rendering for new sections
+        $this->assertStringContainsString('admin-dashboard-main', $content);
+        $this->assertStringContainsString('admin-command-metrics', $content);
+        $this->assertStringNotContainsString('Cross-Department Operational Supervision', $content);
+        $this->assertStringNotContainsString('admin-kpi-grid', $content);
+        $this->assertStringContainsString('AI &amp; Machine Learning Health', $content);
+        $this->assertStringContainsString('Action Required', $content);
+        $this->assertStringContainsString('Recent Activity', $content);
+        $this->assertStringContainsString('Quick Actions', $content);
+        $this->assertStringNotContainsString('adminUsersTable', $content);
+        $this->assertStringNotContainsString('admin-batch-panel', $content);
+        $this->assertStringContainsString('telematics_test_batch.csv', $content);
+    }
+
+
+    public function test_admin_dashboard_shows_five_ml_cards_from_cached_model_health(): void
+    {
+        $admin = User::factory()->create([
+            'department' => 'Admin',
+            'role' => 'Head',
+            'status' => 'Active',
+        ]);
+
+        $statuses = collect([
+            ['key' => 'eta', 'state' => 'Development Only', 'tone' => 'warning', 'sample_count' => 362],
+            ['key' => 'fuel', 'state' => 'Ready', 'tone' => 'ready', 'sample_count' => 156],
+            ['key' => 'delay', 'state' => 'Development Only', 'tone' => 'warning', 'sample_count' => 500],
+            ['key' => 'inventory', 'state' => 'Development Only', 'tone' => 'warning', 'sample_count' => 47872],
+            ['key' => 'scheduling', 'state' => 'Partial ML', 'tone' => 'partial', 'sample_count' => 373],
+        ])->map(fn (array $entry) => (object) array_merge([
+            'data_source' => 'Genuine Data',
+            'dataset_type' => 'GCT operational records',
+            'model_version' => '1.0.0',
+            'reason' => 'Status verified by model endpoint.',
+            'details' => [],
+        ], $entry))->all();
+
+        // Simulate the real cache payload: plain PHP arrays, never objects.
+        Cache::put(
+            'admin-dashboard:ai-model-health:v2',
+            array_map(fn (object $status): array => (array) $status, $statuses),
+            120
+        );
+
+        $response = $this->actingAs($admin)->get(route('admin.dashboard'));
+
+        $response->assertOk()
+            ->assertSee('AI &amp; Machine Learning Health', false)
+            ->assertSee('ETA Prediction')
+            ->assertSee('Fuel Prediction')
+            ->assertSee('Delay Prediction')
+            ->assertSee('Inventory Forecast')
+            ->assertSee('Auto Scheduling')
+            ->assertSee('Partial ML')
+            ->assertSee('47,872 training samples')
+            ->assertSee('data-ml-details', false)
+            ->assertSee('adminMlDetailsDialog', false)
+            ->assertDontSee('65%');
+    }
+
+    public function test_admin_dashboard_service_returns_expected_data_structure(): void
+    {
+        $service = app(AdminDashboardService::class);
+        $data = $service->data();
+
+        $this->assertIsArray($data);
+        $this->assertArrayHasKey('departmentDistribution', $data);
+        $this->assertArrayHasKey('batchMetrics', $data);
+        $this->assertArrayHasKey('fleetMetrics', $data);
+        $this->assertArrayHasKey('metricsDetail', $data);
+        $this->assertArrayHasKey('pendingApplications', $data);
+        $this->assertArrayHasKey('activitiesToday', $data);
+        $this->assertArrayHasKey('securityEventsToday', $data);
+    }
+}

@@ -1,10 +1,7 @@
 <x-layout.app
     title="FROMS - Security Settings"
     :assets="[
-        'resources/css/Main-styles/main.css',
-        'resources/css/Main-styles/sidebar.css',
-        'resources/css/Admin/Settings/security-settings.css',
-        'resources/js/Main-js/sidebar.js'
+        'resources/css/Admin/Settings/security-settings.css'
     ]"
 >
     <div class="app">
@@ -16,7 +13,6 @@
             <x-layout.topbar
                 title="Security Settings"
                 subtitle="Configure authentication, session protection, login rules, and account security policies"
-                notification-count="6"
             />
 
 
@@ -81,7 +77,7 @@
 
                     <div>
                         <span>Password Policy</span>
-                        <strong>Enabled</strong>
+                        <strong>{{ $policy['minimum_password_length'] }}+ Characters</strong>
                     </div>
 
                     <i class="fa-solid fa-circle-check"></i>
@@ -97,7 +93,7 @@
 
                     <div>
                         <span>Session Timeout</span>
-                        <strong>120 Minutes</strong>
+                        <strong>{{ $policy['session_timeout'] ? $policy['session_timeout'].' Minutes' : config('session.lifetime').' Minutes (Server)' }}</strong>
                     </div>
 
                     <i class="fa-solid fa-circle-check"></i>
@@ -113,7 +109,7 @@
 
                     <div>
                         <span>Account Lockout</span>
-                        <strong>5 Attempts</strong>
+                        <strong>{{ $policy['failed_attempts'] }} Attempts</strong>
                     </div>
 
                     <i class="fa-solid fa-triangle-exclamation"></i>
@@ -129,7 +125,7 @@
 
                     <div>
                         <span>Security Logging</span>
-                        <strong>Active</strong>
+                        <strong>Mandatory</strong>
                     </div>
 
                     <i class="fa-solid fa-circle-info"></i>
@@ -241,7 +237,18 @@
 
 
                 {{-- RIGHT SETTINGS --}}
-                <div class="security-content">
+                <form class="security-content" id="security-settings-form" action="{{ route('admin.settings.security.update') }}" method="POST">
+                    @csrf
+                    @method('PUT')
+                    @if(session('success'))
+                        <div class="security-policy-message" role="status">{{ session('success') }}</div>
+                    @endif
+                    @if($errors->any())
+                        <div class="security-policy-message security-policy-error" role="alert">{{ $errors->first() }}</div>
+                    @endif
+                    @unless($canEdit)
+                        <div class="security-policy-message">Read only: only authorized administrators can edit security policies.</div>
+                    @endunless
 
                     {{-- =================================================
                         PASSWORD POLICY
@@ -276,12 +283,11 @@
                                     Minimum Password Length
                                 </label>
 
-                                <select id="minimum_password_length">
-                                    <option>6 Characters</option>
-                                    <option selected>8 Characters</option>
-                                    <option>10 Characters</option>
-                                    <option>12 Characters</option>
-                                </select>
+                                <select id="minimum_password_length" name="minimum_password_length" @disabled(!$canEdit)>
+<option value="8" @selected((int) old('minimum_password_length', $policy['minimum_password_length']) === 8)>8 Characters</option>
+<option value="10" @selected((int) old('minimum_password_length', $policy['minimum_password_length']) === 10)>10 Characters</option>
+<option value="12" @selected((int) old('minimum_password_length', $policy['minimum_password_length']) === 12)>12 Characters</option>
+</select>
 
                                 <small>
                                     Recommended minimum is 8 characters.
@@ -296,12 +302,12 @@
                                     Password Expiration
                                 </label>
 
-                                <select id="password_expiration">
-                                    <option>Never</option>
-                                    <option>30 Days</option>
-                                    <option selected>90 Days</option>
-                                    <option>180 Days</option>
-                                </select>
+                                <select id="password_expiration" name="password_expiration" @disabled(!$canEdit)>
+<option value="0" @selected((int) old('password_expiration', $policy['password_expiration']) === 0)>Never</option>
+<option value="30" @selected((int) old('password_expiration', $policy['password_expiration']) === 30)>30 Days</option>
+<option value="90" @selected((int) old('password_expiration', $policy['password_expiration']) === 90)>90 Days</option>
+<option value="180" @selected((int) old('password_expiration', $policy['password_expiration']) === 180)>180 Days</option>
+</select>
 
                                 <small>
                                     Defines when users should update their password.
@@ -329,7 +335,7 @@
                                 </div>
 
                                 <label class="switch">
-                                    <input type="checkbox" checked>
+                                    <input type="checkbox" name="require_uppercase" value="1" @checked(old('require_uppercase', $policy['require_uppercase'])) @disabled(!$canEdit)>
                                     <span class="switch-slider"></span>
                                 </label>
 
@@ -351,7 +357,7 @@
                                 </div>
 
                                 <label class="switch">
-                                    <input type="checkbox" checked>
+                                    <input type="checkbox" name="require_number" value="1" @checked(old('require_number', $policy['require_number'])) @disabled(!$canEdit)>
                                     <span class="switch-slider"></span>
                                 </label>
 
@@ -373,7 +379,7 @@
                                 </div>
 
                                 <label class="switch">
-                                    <input type="checkbox" checked>
+                                    <input type="checkbox" name="require_special" value="1" @checked(old('require_special', $policy['require_special'])) @disabled(!$canEdit)>
                                     <span class="switch-slider"></span>
                                 </label>
 
@@ -429,12 +435,13 @@
 
                                 </div>
 
-                                <select id="session_timeout">
-                                    <option>30 Minutes</option>
-                                    <option>60 Minutes</option>
-                                    <option selected>120 Minutes</option>
-                                    <option>240 Minutes</option>
-                                </select>
+                                <select id="session_timeout" name="session_timeout" @disabled(!$canEdit)>
+<option value="0" @selected((int) old('session_timeout', $policy['session_timeout']) === 0)>Server Default</option>
+<option value="30" @selected((int) old('session_timeout', $policy['session_timeout']) === 30) @disabled((int) config('session.lifetime') < 30)>30 Minutes</option>
+<option value="60" @selected((int) old('session_timeout', $policy['session_timeout']) === 60) @disabled((int) config('session.lifetime') < 60)>60 Minutes</option>
+<option value="120" @selected((int) old('session_timeout', $policy['session_timeout']) === 120) @disabled((int) config('session.lifetime') < 120)>120 Minutes</option>
+<option value="240" @selected((int) old('session_timeout', $policy['session_timeout']) === 240) @disabled((int) config('session.lifetime') < 240)>240 Minutes</option>
+</select>
 
                             </div>
 
@@ -458,7 +465,7 @@
                                 </div>
 
                                 <label class="switch">
-                                    <input type="checkbox">
+                                    <input type="checkbox" name="allow_multiple_sessions" value="1" @checked(old('allow_multiple_sessions', $policy['allow_multiple_sessions'])) @disabled(!$canEdit)>
                                     <span class="switch-slider"></span>
                                 </label>
 
@@ -484,7 +491,7 @@
                                 </div>
 
                                 <label class="switch">
-                                    <input type="checkbox" checked>
+                                    <input type="checkbox" name="logout_on_password_change" value="1" @checked(old('logout_on_password_change', $policy['logout_on_password_change'])) @disabled(!$canEdit)>
                                     <span class="switch-slider"></span>
                                 </label>
 
@@ -587,12 +594,12 @@
                                     Maximum Failed Attempts
                                 </label>
 
-                                <select id="failed_attempts">
-                                    <option>3 Attempts</option>
-                                    <option selected>5 Attempts</option>
-                                    <option>7 Attempts</option>
-                                    <option>10 Attempts</option>
-                                </select>
+                                <select id="failed_attempts" name="failed_attempts" @disabled(!$canEdit)>
+<option value="3" @selected((int) old('failed_attempts', $policy['failed_attempts']) === 3)>3 Attempts</option>
+<option value="5" @selected((int) old('failed_attempts', $policy['failed_attempts']) === 5)>5 Attempts</option>
+<option value="7" @selected((int) old('failed_attempts', $policy['failed_attempts']) === 7)>7 Attempts</option>
+<option value="10" @selected((int) old('failed_attempts', $policy['failed_attempts']) === 10)>10 Attempts</option>
+</select>
 
                             </div>
 
@@ -603,12 +610,12 @@
                                     Lockout Duration
                                 </label>
 
-                                <select id="lockout_duration">
-                                    <option>5 Minutes</option>
-                                    <option selected>15 Minutes</option>
-                                    <option>30 Minutes</option>
-                                    <option>60 Minutes</option>
-                                </select>
+                                <select id="lockout_duration" name="lockout_duration" @disabled(!$canEdit)>
+<option value="5" @selected((int) old('lockout_duration', $policy['lockout_duration']) === 5)>5 Minutes</option>
+<option value="15" @selected((int) old('lockout_duration', $policy['lockout_duration']) === 15)>15 Minutes</option>
+<option value="30" @selected((int) old('lockout_duration', $policy['lockout_duration']) === 30)>30 Minutes</option>
+<option value="60" @selected((int) old('lockout_duration', $policy['lockout_duration']) === 60)>60 Minutes</option>
+</select>
 
                             </div>
 
@@ -663,7 +670,7 @@
                                 </div>
 
                                 <label class="switch">
-                                    <input type="checkbox" checked>
+                                    <input type="checkbox" checked disabled title="Core security audit logging is mandatory">
                                     <span class="switch-slider"></span>
                                 </label>
 
@@ -689,7 +696,7 @@
                                 </div>
 
                                 <label class="switch">
-                                    <input type="checkbox" checked>
+                                    <input type="checkbox" checked disabled title="Core security audit logging is mandatory">
                                     <span class="switch-slider"></span>
                                 </label>
 
@@ -715,7 +722,7 @@
                                 </div>
 
                                 <label class="switch">
-                                    <input type="checkbox" checked>
+                                    <input type="checkbox" checked disabled title="Core security audit logging is mandatory">
                                     <span class="switch-slider"></span>
                                 </label>
 
@@ -731,17 +738,17 @@
                                 <div>
 
                                     <strong>
-                                        Notify on Suspicious Login Activity
+                                        Audit Suspicious Login Activity
                                     </strong>
 
                                     <span>
-                                        Generate an administrative alert when repeated failures occur.
+                                        Record repeated login failures in Activity Logs; alerts are not configured on this page.
                                     </span>
 
                                 </div>
 
                                 <label class="switch">
-                                    <input type="checkbox" checked>
+                                    <input type="checkbox" checked disabled title="Core security audit logging is mandatory">
                                     <span class="switch-slider"></span>
                                 </label>
 
@@ -787,7 +794,7 @@
                             </strong>
 
                             <span>
-                                Review security policy changes before saving.
+                                Core audit logging remains mandatory. Changes apply to subsequent requests.
                             </span>
 
                         </div>
@@ -795,16 +802,16 @@
                         <div class="save-actions">
 
                             <button
-                                type="button"
-                                class="reset-button"
+                                type="reset"
+                                class="reset-button" @disabled(!$canEdit)
                             >
                                 <i class="fa-solid fa-rotate-left"></i>
                                 Reset
                             </button>
 
                             <button
-                                type="button"
-                                class="save-button"
+                                type="submit"
+                                class="save-button" @disabled(!$canEdit)
                             >
                                 <i class="fa-solid fa-shield-halved"></i>
                                 Save Security Settings
@@ -814,7 +821,7 @@
 
                     </section>
 
-                </div>
+                </form>
 
             </section>
 

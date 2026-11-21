@@ -316,23 +316,7 @@
 .pagination svg { width: 18px !important; height: 18px !important; }
 .pagination p { display: none; }
 
-.warehouse-view-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: var(--modal-backdrop-z-index, 99999);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  box-sizing: border-box;
-  background: var(--modal-backdrop-bg, rgba(15, 23, 42, 0.42));
-  backdrop-filter: var(--modal-backdrop-blur, blur(5px));
-  -webkit-backdrop-filter: var(--modal-backdrop-blur, blur(5px));
-  overscroll-behavior: contain;
-}
-
-.warehouse-view-overlay.show,
-.warehouse-view-overlay.active { display: flex; }
+/* Warehouse View overlay positioning moved to shared warehouse-status.css. */
 
 .warehouse-edit-style-modal {
   width: min(850px, calc(100vw - 32px));
@@ -657,7 +641,6 @@ body > .warehouse-pr-stock-popover .warehouse-pr-stock-popover-amount small{font
   cursor:pointer;white-space:nowrap;box-shadow:0 5px 12px rgba(210,146,0,.12);
 }
 .warehouse-part-main .warehouse-create-pr-btn:hover{background:#f4ac00}
-.warehouse-part-main .warehouse-restock-pr-dialog{width:min(530px,calc(100vw - 28px));max-width:530px;padding:24px}
 .warehouse-part-main .warehouse-restock-pr-dialog .modal-header p{margin:5px 0 0;font-size:12px;color:#64748b}
 .warehouse-part-main .warehouse-restock-pr-info{display:flex;gap:11px;align-items:flex-start;border:1px solid #d6e6fb;border-radius:10px;background:#f0f6ff;padding:15px;margin-top:18px;color:#23486f}
 .warehouse-part-main .warehouse-restock-pr-info i{margin-top:3px;color:#176bc8}
@@ -665,11 +648,10 @@ body > .warehouse-pr-stock-popover .warehouse-pr-stock-popover-amount small{font
 .warehouse-part-main .warehouse-restock-pr-dialog .modal-actions{margin-top:20px}
 
 /* Create Inventory Restocking PR */
-.warehouse-part-main .warehouse-restock-pr-dialog{width:min(690px,calc(100vw - 28px));max-width:690px;max-height:calc(100dvh - 38px);overflow-y:auto;padding:22px;border-radius:16px}
 .warehouse-part-main .warehouse-restock-pr-heading{display:flex;align-items:center;gap:12px}
 .warehouse-part-main .warehouse-restock-pr-heading-icon{display:grid;place-items:center;width:42px;height:42px;border-radius:11px;background:#e9f2ff;color:#1466d9;font-size:19px}
-.warehouse-part-main .warehouse-restock-pr-section{margin-top:12px;border:1px solid #dce7f7;border-radius:12px;padding:14px}
-.warehouse-part-main .warehouse-restock-pr-section-title{display:flex;flex-direction:column;gap:3px;margin-bottom:12px}
+.warehouse-part-main .warehouse-restock-pr-section{margin-top:10px;border:1px solid #dce7f7;border-radius:12px;padding:0;overflow:hidden}
+.warehouse-part-main .warehouse-restock-pr-section-title{display:flex;flex-direction:column;gap:3px;margin:0 0 10px;padding:9px 13px;background:#f2f6fc;border-bottom:1px solid #dce7f7}
 .warehouse-part-main .warehouse-restock-pr-section-title strong{color:#123c76;font-size:12px}
 .warehouse-part-main .warehouse-restock-pr-section-title small{color:#7284a1;font-size:11px}
 .warehouse-part-main .warehouse-restock-pr-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
@@ -687,12 +669,9 @@ body > .warehouse-pr-stock-popover .warehouse-pr-stock-popover-amount small{font
 .warehouse-part-main .warehouse-restock-add-item{margin-top:11px;border:1px dashed #7ea9e8;border-radius:8px;padding:9px 13px;background:#f1f7ff;color:#1552a6;font-weight:750;font-size:11px;cursor:pointer}
 .warehouse-part-main .warehouse-restock-pr-submit{border:0;border-radius:8px;padding:10px 17px;background:#ffba00;color:#102849;font-weight:800}
 .warehouse-part-main .warehouse-restock-pr-submit:disabled{opacity:.5;cursor:not-allowed}
-@media(max-width:580px){.warehouse-part-main .warehouse-restock-pr-grid{grid-template-columns:1fr}.warehouse-part-main .warehouse-restock-pr-item{grid-template-columns:minmax(0,1fr) 90px 32px}.warehouse-part-main .warehouse-restock-pr-dialog{padding:14px}}
+@media(max-width:580px){.warehouse-part-main .warehouse-restock-pr-grid{grid-template-columns:1fr}.warehouse-part-main .warehouse-restock-pr-item{grid-template-columns:minmax(0,1fr) 90px 32px}}
 
 /* Restocking PR authorization: same numbered card treatment as JO review. */
-.warehouse-part-main .warehouse-restock-pr-dialog{width:min(920px,calc(100vw - 28px));max-width:920px}
-.warehouse-part-main .warehouse-restock-pr-section{padding:0;overflow:hidden}
-.warehouse-part-main .warehouse-restock-pr-section-title{margin:0 0 12px;padding:11px 14px;background:#f2f6fc;border-bottom:1px solid #dce7f7}
 .warehouse-part-main .warehouse-restock-pr-section>.warehouse-restock-pr-grid,
 .warehouse-part-main .warehouse-restock-pr-section>.form-group,
 .warehouse-part-main .warehouse-restock-pr-section>.warehouse-restock-pr-items{margin:0 13px 13px}
@@ -717,15 +696,15 @@ body > .warehouse-pr-stock-popover .warehouse-pr-stock-popover-amount small{font
 
 /* Wider PR authoring dialog: keep the four sections readable without excessive scrolling. */
 .warehouse-part-main .warehouse-restock-pr-dialog {
+  box-sizing: border-box;
   width: min(920px, calc(100vw - 32px));
   max-width: 920px;
   max-height: calc(100dvh - 28px);
+  margin: auto;
   padding: 18px 22px;
   overflow-y: auto;
   overflow-x: hidden;
 }
-.warehouse-part-main .warehouse-restock-pr-section { margin-top: 10px; }
-.warehouse-part-main .warehouse-restock-pr-section-title { padding: 9px 13px; margin-bottom: 10px; }
 .warehouse-part-main .warehouse-restock-pr-authorization { gap: 18px; grid-template-columns: minmax(0,1.1fr) minmax(0,1fr); }
 .warehouse-part-main .warehouse-restock-pr-item { grid-template-columns: minmax(0,2.5fr) minmax(110px,.8fr) 34px; }
 .warehouse-part-main .warehouse-restock-pr-section > .warehouse-restock-pr-grid,
@@ -771,6 +750,67 @@ body > .warehouse-pr-stock-popover .warehouse-pr-stock-popover-amount small{font
 .warehouse-part-main .warehouse-restock-pr-dialog select.restock-pr-item-select { font-weight: 750; color: #102a56; }
 .warehouse-part-main .warehouse-restock-pr-dialog #restockPrSignatoryName[readonly] { font-weight: 750; background: #f4f7fc; color: #102a56; }
 
+
+/* Restocking PR dialog: readable labels and controls on the dark surface.
+   Scope the contrast treatment to this dialog; signature canvas/upload stay light. */
+html[data-gct-theme="dark"] .warehouse-part-main .warehouse-restock-pr-dialog .warehouse-restock-pr-section-title strong {
+  color: #bfdbfe;
+}
+html[data-gct-theme="dark"] .warehouse-part-main .warehouse-restock-pr-dialog .warehouse-restock-pr-section-title small,
+html[data-gct-theme="dark"] .warehouse-part-main .warehouse-restock-pr-dialog .warehouse-restock-stock-info,
+html[data-gct-theme="dark"] .warehouse-part-main .warehouse-restock-pr-dialog .warehouse-restock-signature-help,
+html[data-gct-theme="dark"] .warehouse-part-main .warehouse-restock-pr-dialog .warehouse-restock-signatory-column .form-group small {
+  color: #aebfd5;
+}
+html[data-gct-theme="dark"] .warehouse-part-main .warehouse-restock-pr-dialog .form-group label,
+html[data-gct-theme="dark"] .warehouse-part-main .warehouse-restock-pr-dialog .warehouse-restock-signature-column > label:first-child {
+  color: #e2e8f0;
+}
+html[data-gct-theme="dark"] .warehouse-part-main .warehouse-restock-pr-dialog .warehouse-restock-signature-or {
+  color: #cbd5e1;
+}
+html[data-gct-theme="dark"] .warehouse-part-main .warehouse-restock-pr-dialog .warehouse-restock-pr-heading + .close-btn {
+  background: #273b55;
+  border-color: #40536e;
+  color: #f8fafc;
+}
+html[data-gct-theme="dark"] .warehouse-part-main .warehouse-restock-pr-dialog .modal-actions .secondary-btn {
+  color: #e2e8f0;
+  border-color: #40536e;
+  background: #25374f;
+}
+
+/* Head authorization uses dark fields and upload control; drawing canvas remains white. */
+html[data-gct-theme="dark"] .warehouse-part-main .warehouse-restock-pr-dialog #restockPrSignatoryName[readonly] {
+  background: #24364f;
+  border-color: #40536e;
+  color: #f1f5f9;
+}
+html[data-gct-theme="dark"] .warehouse-part-main .warehouse-restock-pr-dialog .warehouse-restock-pr-info {
+  background: #20344f;
+  border-color: #405e81;
+  color: #e2e8f0;
+}
+html[data-gct-theme="dark"] .warehouse-part-main .warehouse-restock-pr-dialog .warehouse-restock-pr-info p {
+  color: #e2e8f0;
+}
+html[data-gct-theme="dark"] .warehouse-part-main .warehouse-restock-pr-dialog .warehouse-restock-signature-upload {
+  background: #24364f;
+  border-color: #526b8b;
+  color: #dbeafe;
+  transition: background-color .18s ease, border-color .18s ease;
+}
+html[data-gct-theme="dark"] .warehouse-part-main .warehouse-restock-pr-dialog .warehouse-restock-signature-upload:hover {
+  background: #304766;
+  border-color: #7ca8e3;
+}
+html[data-gct-theme="dark"] .warehouse-part-main .warehouse-restock-pr-dialog .warehouse-restock-signature-upload:focus-within {
+  outline: 2px solid #93c5fd;
+  outline-offset: 2px;
+}
+html[data-gct-theme="dark"] .warehouse-part-main .warehouse-restock-pr-dialog .warehouse-restock-signature-upload small {
+  color: #b9cbe1;
+}
 
 /* Signature image crop dialog (local-only draft preview). */
 .warehouse-restock-crop-dialog[hidden] { display: none !important; }
@@ -820,25 +860,197 @@ body > .warehouse-pr-stock-popover .warehouse-pr-stock-popover-amount small{font
 .warehouse-restock-submit-confirmation-box button{border:0;border-radius:8px;padding:11px 18px;background:#ffba00;color:#102849;font-size:12px;font-weight:800;cursor:pointer}
 
 
-/* Warehouse restock PR: compact read-only View details without Maintenance actions. */
-.warehouse-restock-view-overlay { position:fixed;inset:0;z-index:99999;align-items:center;justify-content:center;padding:20px;background:rgba(15,23,42,.45);backdrop-filter:blur(5px); }
-.warehouse-restock-view-overlay.show,.warehouse-restock-view-overlay.active { display:flex!important; }
-.warehouse-restock-view-dialog { width:min(760px,95vw);max-height:88vh;overflow-y:auto;background:#fff;border-radius:14px;padding:0!important; }
-.warehouse-restock-view-header { display:flex;justify-content:space-between;align-items:flex-start;gap:16px;padding:19px 22px;border-bottom:1px solid #dde7f4; }
-.warehouse-restock-view-header small { font-size:10px;font-weight:800;letter-spacing:.07em;color:#1458bb; }
-.warehouse-restock-view-header h2 { font-size:19px;margin:4px 0;color:#142d52; }
-.warehouse-restock-view-header p { margin:0;color:#60728b;font-size:12px; }
-.warehouse-restock-view-close { border:1px solid #d0dff1;border-radius:7px;background:#f7faff;color:#173b69;padding:8px 12px;cursor:pointer; }
-.warehouse-restock-view-content { padding:18px 22px; }
-.warehouse-restock-view-facts { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:18px; }
-.warehouse-restock-view-facts>div { border:1px solid #dce6f4;background:#f8fbff;border-radius:7px;padding:11px; }
-.warehouse-restock-view-facts small { display:block;font-size:10px;color:#657e9b;text-transform:uppercase; }
-.warehouse-restock-view-facts strong { display:block;font-size:12px;margin-top:5px;color:#17365b;overflow-wrap:anywhere; }
-.warehouse-restock-view-content h3 { font-size:12px;color:#14355f;margin:14px 0 9px; }
-.warehouse-restock-view-table-wrap { overflow-x:auto;border:1px solid #dce6f4;border-radius:8px; }
-.warehouse-restock-view-table-wrap table { width:100%;border-collapse:collapse; }
-.warehouse-restock-view-table-wrap th { background:#eff5fc;font-size:10px;text-transform:uppercase; }
-.warehouse-restock-view-table-wrap td,.warehouse-restock-view-table-wrap th { padding:11px;border-bottom:1px solid #e1eaf5;text-align:left; }
-.warehouse-restock-view-table-wrap td { font-size:12px; }
-.warehouse-restock-view-dialog footer { padding:12px 22px;border-top:1px solid #dde7f4;text-align:left; }
-@media(max-width:650px){.warehouse-restock-view-facts{grid-template-columns:1fr}}
+/* Warehouse restocking PR: compact read-only details, isolated from the editable PR modal. */
+#warehouseRestockViewModal.warehouse-restock-view-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: 20px;
+  background: rgba(7, 17, 34, .7);
+  backdrop-filter: blur(5px);
+}
+#warehouseRestockViewModal.warehouse-restock-view-overlay:is(.show, .active) { display: flex !important; }
+#warehouseRestockViewModal .warehouse-restock-view-dialog {
+  --restock-surface: #ffffff;
+  --restock-card: #f5f8fc;
+  --restock-border: #d9e4f1;
+  --restock-heading: #142d52;
+  --restock-muted: #526987;
+  --restock-text: #1a385c;
+  --restock-table-head: #eaf1fb;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  width: min(760px, 100%);
+  max-width: 760px;
+  max-height: calc(100dvh - 40px);
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--restock-border);
+  border-radius: 16px;
+  background: var(--restock-surface);
+  color: var(--restock-text);
+}
+#warehouseRestockViewModal .warehouse-restock-view-header {
+  display: flex;
+  flex: 0 0 auto;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 20px 24px 17px;
+  border-bottom: 1px solid var(--restock-border);
+}
+#warehouseRestockViewModal .warehouse-restock-view-header small {
+  color: #2863ba;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .07em;
+}
+#warehouseRestockViewModal .warehouse-restock-view-header h2 {
+  margin: 5px 0 6px;
+  color: var(--restock-heading);
+  font-size: 19px;
+  font-weight: 800;
+}
+#warehouseRestockViewModal .warehouse-restock-view-header p {
+  margin: 0;
+  color: var(--restock-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+#warehouseRestockViewModal .warehouse-restock-view-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 38px;
+  padding: 8px 13px;
+  border: 1px solid var(--restock-border);
+  border-radius: 9px;
+  background: var(--restock-card);
+  color: var(--restock-heading);
+  font-size: 12px;
+  font-weight: 750;
+  cursor: pointer;
+}
+#warehouseRestockViewModal .warehouse-restock-view-close:hover {
+  border-color: #80a8de;
+  background: #dbeafe;
+  color: #174a94;
+}
+#warehouseRestockViewModal .warehouse-restock-view-close:focus-visible {
+  outline: 2px solid #60a5fa;
+  outline-offset: 2px;
+}
+#warehouseRestockViewModal .warehouse-restock-view-content {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 18px 24px 20px;
+}
+#warehouseRestockViewModal .warehouse-restock-view-facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 20px;
+}
+#warehouseRestockViewModal .warehouse-restock-view-facts > div {
+  min-width: 0;
+  padding: 13px 14px;
+  border: 1px solid var(--restock-border);
+  border-radius: 9px;
+  background: var(--restock-card);
+}
+#warehouseRestockViewModal .warehouse-restock-view-facts small {
+  display: block;
+  color: var(--restock-muted);
+  font-size: 10px;
+  text-transform: uppercase;
+}
+#warehouseRestockViewModal .warehouse-restock-view-facts strong {
+  display: block;
+  margin-top: 5px;
+  color: var(--restock-heading);
+  font-size: 12px;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+#warehouseRestockViewModal .warehouse-restock-view-content h3 {
+  margin: 17px 0 9px;
+  color: var(--restock-heading);
+  font-size: 12px;
+  font-weight: 800;
+}
+#warehouseRestockViewModal .warehouse-restock-view-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--restock-border);
+  border-radius: 9px;
+}
+#warehouseRestockViewModal .warehouse-restock-view-table-wrap table {
+  width: 100%;
+  min-width: 0;
+  table-layout: fixed;
+  border-collapse: collapse;
+  background: var(--restock-surface);
+}
+#warehouseRestockViewModal .warehouse-restock-view-table-wrap :is(th, td) {
+  padding: 12px 14px;
+  text-align: left;
+  border-bottom: 1px solid var(--restock-border);
+  overflow-wrap: anywhere;
+}
+#warehouseRestockViewModal .warehouse-restock-view-table-wrap th {
+  background: var(--restock-table-head);
+  color: var(--restock-muted);
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+#warehouseRestockViewModal .warehouse-restock-view-table-wrap td {
+  background: var(--restock-surface);
+  color: var(--restock-text);
+  font-size: 12px;
+  font-weight: 650;
+}
+#warehouseRestockViewModal .warehouse-restock-view-table-wrap tbody tr:last-child td { border-bottom: 0; }
+#warehouseRestockViewModal #warehouseRestockViewRemarks {
+  margin: 0;
+  color: var(--restock-text);
+  font-size: 12px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+#warehouseRestockViewModal .warehouse-restock-view-dialog footer {
+  flex: 0 0 auto;
+  padding: 12px 24px;
+  border-top: 1px solid var(--restock-border);
+  text-align: right;
+}
+html[data-gct-theme="dark"] #warehouseRestockViewModal .warehouse-restock-view-dialog {
+  --restock-surface: #162235;
+  --restock-card: #24364e;
+  --restock-border: #38516e;
+  --restock-heading: #f1f5f9;
+  --restock-muted: #b6c6dc;
+  --restock-text: #e2e8f0;
+  --restock-table-head: #293d57;
+}
+html[data-gct-theme="dark"] #warehouseRestockViewModal .warehouse-restock-view-header small { color: #93c5fd; }
+html[data-gct-theme="dark"] #warehouseRestockViewModal .warehouse-restock-view-close:hover {
+  background: #304b6b;
+  border-color: #6994c4;
+  color: #ffffff;
+}
+@media (max-width: 650px) {
+  #warehouseRestockViewModal.warehouse-restock-view-overlay { padding: 12px; }
+  #warehouseRestockViewModal .warehouse-restock-view-dialog { max-height: calc(100dvh - 24px); }
+  #warehouseRestockViewModal .warehouse-restock-view-header,
+  #warehouseRestockViewModal .warehouse-restock-view-content { padding: 14px; }
+  #warehouseRestockViewModal .warehouse-restock-view-dialog footer { padding: 12px 14px; }
+  #warehouseRestockViewModal .warehouse-restock-view-facts { grid-template-columns: 1fr; }
+}

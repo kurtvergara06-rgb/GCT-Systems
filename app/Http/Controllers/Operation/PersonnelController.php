@@ -305,6 +305,7 @@ class PersonnelController extends Controller
 
     public function storeMechanic(Request $request): RedirectResponse
     {
+        $this->authorizeMaintenanceMechanicEdit();
         $mechanic = Mechanic::create($this->validateMechanic($request));
 
         $this->broadcastSystemDataUpdated(
@@ -320,6 +321,7 @@ class PersonnelController extends Controller
 
     public function updateMechanic(Request $request, Mechanic $mechanic): RedirectResponse
     {
+        $this->authorizeMaintenanceMechanicEdit();
         $validated = $this->validateMechanic($request, $mechanic);
 
         $mechanic = DB::transaction(function () use ($mechanic, $validated): Mechanic {
@@ -362,6 +364,7 @@ class PersonnelController extends Controller
 
     public function deactivateMechanic(Mechanic $mechanic): RedirectResponse
     {
+        $this->authorizeMaintenanceMechanicEdit();
         $mechanic = DB::transaction(function () use ($mechanic): Mechanic {
             $lockedMechanic = Mechanic::query()
                 ->whereKey($mechanic->id)
@@ -387,6 +390,7 @@ class PersonnelController extends Controller
 
     public function activateMechanic(Mechanic $mechanic): RedirectResponse
     {
+        $this->authorizeMaintenanceMechanicEdit();
         $mechanic->update(['employment_status' => 'Active']);
 
         $this->broadcastSystemDataUpdated(
@@ -398,6 +402,17 @@ class PersonnelController extends Controller
         );
 
         return back()->with('success', 'Mechanic has been reactivated and is available for future attendance records.');
+    }
+
+    private function authorizeMaintenanceMechanicEdit(): void
+    {
+        $user = auth()->user();
+        abort_unless(
+            in_array(strtolower(trim((string) $user?->department)), ['maintenance', 'admin'], true)
+                && ($user?->hasSystemPermission('maintenance', 'edit') ?? false),
+            403,
+            'Mechanic records belong to Maintenance.'
+        );
     }
 
     private function validateDriver(Request $request, ?Driver $driver = null): array
@@ -541,6 +556,7 @@ class PersonnelController extends Controller
 
     public function storeMechanicSpecialization(Request $request): \Illuminate\Http\JsonResponse
     {
+        $this->authorizeMaintenanceMechanicEdit();
         $validated = $request->validate([
             'name' => ['required', 'string', 'min:2', 'max:100', 'regex:/^[\\pL\\pN][\\pL\\pN \\&\\/\\-\\(\\)]+$/u'],
         ]);
@@ -578,6 +594,7 @@ class PersonnelController extends Controller
 
     public function deleteMechanicSpecialization(Request $request, int $specialization): \Illuminate\Http\JsonResponse
     {
+        $this->authorizeMaintenanceMechanicEdit();
         $option = DB::table('mechanic_specialization_options')->where('id', $specialization)->first();
         if (! $option) {
             return response()->json(['message' => 'Custom specialization not found.'], 404);

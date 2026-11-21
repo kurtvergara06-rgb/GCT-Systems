@@ -1,0 +1,802 @@
+/*
+ * Purchasing department dark palette.
+ * Loaded last for Purchase pages; no changes to Light Mode, print media,
+ * signature canvases, semantic status badges, or workflow behavior.
+ */
+@media screen {
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] {
+    color-scheme: dark;
+  }
+
+  /* Set tokens on the components that declare their own light defaults.
+     Inherited body tokens alone cannot override component-local variables. */
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] :is(
+    .purchase-module-page, .purchase-dashboard-page
+  ) {
+    --purchase-navy: var(--gct-theme-fg);
+    --purchase-text: var(--gct-theme-fg);
+    --purchase-muted: var(--gct-theme-muted);
+    --purchase-border: var(--gct-theme-border);
+    --purchase-surface: var(--gct-theme-surface);
+    --purchase-surface-soft: var(--gct-theme-surface-raised);
+    --purchase-blue-soft: var(--gct-theme-subtle);
+    --purchase-blue: var(--gct-theme-accent);
+    --pd-navy: var(--gct-theme-fg);
+    --pd-text: var(--gct-theme-fg);
+    --pd-muted: var(--gct-theme-muted);
+    --pd-border: var(--gct-theme-border);
+    --pd-card: var(--gct-theme-surface);
+    --records-navy: var(--gct-theme-fg);
+    --records-text: var(--gct-theme-fg);
+    --records-muted: var(--gct-theme-muted);
+    --records-border: var(--gct-theme-border);
+    --records-card: var(--gct-theme-surface);
+    --records-head: var(--gct-theme-surface-raised);
+    --gct-sticky-actions-background: var(--gct-theme-surface);
+    --gct-sticky-actions-heading: var(--gct-theme-surface-raised);
+  }
+
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] :is(.app, .main, .purchase-module-page, .purchase-dashboard-page) {
+    background-color: var(--gct-theme-canvas);
+    color: var(--gct-theme-fg);
+  }
+
+  /* Primary surfaces across dashboard, requests, restock, history, PO lists. */
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] :is(
+    .table-card, .records-card, .requested-purchase-card, .restock-card,
+    .purchase-order-card, .po-card, .maintenance-history-card, .restock-history-card,
+    .purchase-dashboard-card, .dashboard-card, .dashboard-mini-card,
+    .purchase-spend-card, .source-card, .stat-card, .stat-card-link,
+    .recent-order-card, .recent-request-card, .quick-actions-card,
+    .requested-pr-style-modal, .restock-view-modal, .schedule-modal,
+    .po-modal-box, .po-status-modal, .po-detail-dialog, .po-head-review-dialog,
+    .po-head-crop-dialog, .shared-pr-details-modal
+  ) {
+    background: var(--gct-theme-surface) !important;
+    border-color: var(--gct-theme-border) !important;
+    color: var(--gct-theme-fg);
+  }
+
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] .purchase-module-page.records-page :is(
+    .records-card, .stats-grid .stat-card, .stats-grid .stat-card-link
+  ) {
+    background: var(--gct-theme-surface) !important;
+    border-color: var(--gct-theme-border) !important;
+  }
+
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] :is(
+    .po-toolbar, .requested-toolbar, .restock-toolbar, .toolbar,
+    .records-toolbar, .records-table-wrap, .table-wrap, .purchase-order-card .table-wrap,
+    .purchase-module-page .table-wrap, .purchase-list-controls,
+    .purchase-record-tabs, .requested-pr-record-tabs, .po-record-tabs,
+    .purchase-history-record-tabs, .chart-kpi-pill,
+    .fulfillment-status-row, .purchase-status-row, .recent-order-item,
+    .dashboard-view-link, .po-status-current, .po-status-choice,
+    .po-items-container, .po-item-row, .po-form-section, .po-details-section,
+    .requested-pr-details-section, .restock-view-section,
+    .requested-pr-form-section, .restock-form-section,
+    .requested-pr-summary, .restock-summary,
+    .requested-pr-section, .restock-section,
+    .po-head-review-section, .po-head-review-content,
+    .po-head-review-card, .po-detail-section
+  ) {
+    background-color: var(--gct-theme-surface) !important;
+    border-color: var(--gct-theme-border) !important;
+    color: var(--gct-theme-fg);
+  }
+
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] :is(
+    .purchase-module-page thead, .purchase-module-page th,
+    .purchase-order-card thead, .purchase-order-card th,
+    .requested-purchase-table thead, .requested-purchase-table th,
+    .restock-table thead, .restock-table th,
+    .records-table thead, .records-table thead th,
+    .po-items-header,
+    .po-modal-header, .requested-pr-modal-header, .restock-modal-header,
+    .schedule-modal-header, .po-detail-header, .po-head-review-header,
+    .requested-pr-section-header, .restock-section-header,
+    .po-form-section-header, .purchase-record-tab.is-active,
+    .requested-pr-record-tab.is-active, .po-record-tab.is-active
+  ) {
+    background-color: var(--gct-theme-surface-raised) !important;
+    border-color: var(--gct-theme-border) !important;
+    color: var(--gct-theme-fg) !important;
+  }
+
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] :is(
+    .purchase-module-page table, .purchase-module-page tbody tr,
+    .purchase-module-page tbody td, .purchase-order-card tbody tr,
+    .purchase-order-card tbody td, .requested-purchase-table tbody tr,
+    .requested-purchase-table tbody td, .restock-table tbody tr,
+    .restock-table tbody td, .records-table tbody tr, .records-table tbody td,
+    .po-items-table tbody td, .po-detail-table tbody td
+  ) {
+    background-color: var(--gct-theme-surface) !important;
+    border-color: var(--gct-theme-border);
+    color: var(--gct-theme-fg);
+  }
+
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] :is(
+    .purchase-module-page tbody tr:hover td, .purchase-order-card tbody tr:hover td,
+    .requested-purchase-table tbody tr:hover td, .restock-table tbody tr:hover td,
+    .records-table tbody tr:hover td
+  ) {
+    background-color: var(--gct-theme-hover) !important;
+  }
+
+  /* Typography: do not recolor semantic badges and status indicators. */
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] :is(
+    .purchase-module-page .section-header h2, .po-section-header h2,
+    .purchase-dashboard-card h2, .dashboard-card-header h2,
+    .purchase-spend-details .stat-value, .dashboard-mini-card strong,
+    .purchase-status-info h3, .status-name-desc strong,
+    .requested-pr-modal-header h2, .restock-modal-header h2,
+    .po-modal-header h2, .po-status-modal h2, .po-detail-dialog h2,
+    .po-head-review-dialog h2, .purchase-module-page td strong,
+    .purchase-order-card td strong, .records-table td strong,
+    .requested-purchase-card .section-header h2,
+    .restock-card .section-header h2, .purchase-order-card .section-header h2
+  ) {
+    color: var(--gct-theme-fg) !important;
+  }
+
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] :is(
+    .purchase-module-page .section-header p, .po-section-header p,
+    .dashboard-card-header p, .purchase-spend-details .stat-label,
+    .purchase-spend-details .stat-subtext, .dashboard-mini-card p,
+    .purchase-status-info p, .status-name-desc small,
+    .requested-pr-modal-header p, .restock-modal-header p,
+    .po-status-modal p, .po-detail-dialog p, .po-action-hint,
+    .purchase-module-page .table-footer p, .purchase-module-page .section-count,
+    .purchase-dashboard-page .dashboard-empty-state p
+  ) {
+    color: var(--gct-theme-muted) !important;
+  }
+
+  /* Input and filter controls, including modal fields. */
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] :is(
+    .main input:not([type="checkbox"]):not([type="radio"]):not([type="color"]),
+    .main select, .main textarea,
+    [role="dialog"] input:not([type="checkbox"]):not([type="radio"]):not([type="color"]),
+    [role="dialog"] select, [role="dialog"] textarea,
+    .po-form input, .po-form select, .po-form textarea,
+    .requested-pr-form-grid input, .restock-form-grid input,
+    .schedule-form-grid input, .po-toolbar select, .po-toolbar .search-box input
+  ) {
+    background: var(--gct-theme-input) !important;
+    border-color: var(--gct-theme-border) !important;
+    color: var(--gct-theme-fg) !important;
+  }
+
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] :is(input, textarea)::placeholder {
+    color: var(--gct-theme-placeholder);
+    opacity: 1;
+  }
+
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] :is(
+    .requested-pr-close-btn, .restock-close-btn, .modal-close-btn,
+    .po-close-btn, .po-modal-actions .secondary-btn,
+    .po-status-modal-actions .secondary-btn,
+    .po-status-choice, .po-head-crop-dialog footer button,
+    .purchase-record-tab, .requested-pr-record-tab, .po-record-tab
+  ) {
+    background: var(--gct-theme-surface-raised) !important;
+    border-color: var(--gct-theme-border) !important;
+    color: var(--gct-theme-fg) !important;
+  }
+
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] :is(
+    .po-modal-actions, .requested-pr-footer, .restock-modal-footer,
+    .schedule-modal-actions, .po-status-modal-actions,
+    .po-head-review-footer, .po-detail-footer
+  ) {
+    background: var(--gct-theme-surface) !important;
+    border-color: var(--gct-theme-border) !important;
+    color: var(--gct-theme-fg);
+  }
+
+  /* Selected option colors and call-to-action yellow remain meaningful. */
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] .po-status-choice.is-selected {
+    background: #28496b !important;
+    border-color: #8cb6ff !important;
+  }
+
+  /* Keep signatures white, so saved pen strokes retain their contrast. */
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] :is(
+    .po-head-signature-pad, .po-head-signature-pad canvas,
+    .po-head-crop-canvas, .po-signature-pad, .po-signature-pad canvas
+  ) {
+    background: #fff;
+  }
+
+  /* Head review has inline page CSS with !important light surfaces.
+     Scope these to the dialog to win without changing its dimensions or print. */
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] #poHeadReviewModal :is(
+    .po-head-review-header, .po-head-review-content, .po-head-review-meta,
+    .po-head-review-meta > div, .po-head-review-section,
+    .po-head-review-summary, .po-head-review-fields,
+    .po-head-review-footer, .po-jo-review-facts > div,
+    .po-jo-review-signature
+  ) {
+    background: var(--gct-theme-surface) !important;
+    border-color: var(--gct-theme-border) !important;
+    color: var(--gct-theme-fg) !important;
+  }
+
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] #poHeadReviewModal :is(
+    .po-head-review-header, .po-head-review-table-wrap th,
+    .po-head-review-heading-icon
+  ) {
+    background: var(--gct-theme-surface-raised) !important;
+    border-color: var(--gct-theme-border) !important;
+  }
+
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] #poHeadReviewModal :is(
+    .po-head-review-header h2, .po-head-review-meta strong,
+    .po-head-review-section h3, .po-head-review-summary > strong,
+    .po-head-review-fields label, .po-jo-review-facts strong,
+    .po-jo-review-signature strong, .po-head-review-table-wrap td
+  ) {
+    color: var(--gct-theme-fg) !important;
+  }
+
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] #poHeadReviewModal :is(
+    .po-head-review-header p, .po-head-review-meta span,
+    .po-head-review-fields > small, .po-head-review-fields label small,
+    .po-jo-review-facts span, .po-jo-review-signature p
+  ) {
+    color: var(--gct-theme-muted) !important;
+  }
+
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] #poHeadReviewModal .po-head-review-table-wrap :is(th, td) {
+    border-color: var(--gct-theme-border) !important;
+  }
+
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] #poHeadReviewModal :is(
+    .po-head-review-meta > div::after, .po-jo-review-facts > div::after
+  ) {
+    background: var(--gct-theme-border) !important;
+  }
+
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] #poHeadReviewModal .po-head-review-x {
+    background: var(--gct-theme-surface-raised) !important;
+    border-color: var(--gct-theme-border) !important;
+    color: var(--gct-theme-fg) !important;
+  }
+
+  /* Purchase Order details modal: cards, facts and signature previews. */
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] #poDetailOverlay :is(
+    .po-detail-header, .po-detail-footer, .po-detail-body,
+    .po-detail-card, .po-detail-facts > div, .po-detail-signature-card,
+    .po-detail-table-scroll
+  ) {
+    background: var(--gct-theme-surface) !important;
+    border-color: var(--gct-theme-border) !important;
+    color: var(--gct-theme-fg);
+  }
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] #poDetailOverlay .po-detail-body {
+    background: var(--gct-theme-canvas) !important;
+  }
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] #poDetailOverlay :is(
+    .po-detail-card h3, .po-detail-header h2, .po-detail-signature-card h4,
+    .po-detail-facts strong, .po-detail-signature-card > strong
+  ) {
+    color: var(--gct-theme-fg) !important;
+  }
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] #poDetailOverlay :is(
+    .po-detail-header p, .po-detail-facts small, .po-detail-signature-card small
+  ) {
+    color: var(--gct-theme-muted) !important;
+  }
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] #poDetailOverlay :is(
+    .po-detail-table-scroll th, .po-detail-header button, .po-detail-footer button
+  ) {
+    background: var(--gct-theme-surface-raised) !important;
+    border-color: var(--gct-theme-border) !important;
+    color: var(--gct-theme-fg) !important;
+  }
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] #poDetailOverlay .po-detail-table-scroll td {
+    border-color: var(--gct-theme-border) !important;
+    color: var(--gct-theme-fg);
+  }
+  /* The Purchase Items table uses regular <td> elements populated by JS.
+     Shared table styles can force a pale row even inside this dark modal. */
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] #poDetailOverlay .po-detail-table-scroll table,
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] #poDetailOverlay #poDetailItems tr,
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] #poDetailOverlay #poDetailItems td {
+    background: var(--gct-theme-surface) !important;
+    background-color: var(--gct-theme-surface) !important;
+    border-color: var(--gct-theme-border) !important;
+    color: var(--gct-theme-fg) !important;
+  }
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] #poDetailOverlay #poDetailItems tr:nth-child(even),
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] #poDetailOverlay #poDetailItems tr:nth-child(even) td {
+    background: var(--gct-theme-surface-raised) !important;
+    background-color: var(--gct-theme-surface-raised) !important;
+  }
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] #poDetailOverlay #poDetailItems tr:hover,
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] #poDetailOverlay #poDetailItems tr:hover td {
+    background: var(--gct-theme-hover) !important;
+    background-color: var(--gct-theme-hover) !important;
+  }
+
+  /* The modal facts strong-color rule also affected the pale status chip.
+     Match text and background as a pair, preserving meaning across statuses. */
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] #poDetailOverlay .po-detail-facts #poDetailStatus {
+    background: #fff1d6 !important;
+    border-color: #f2cb79 !important;
+    color: #7f4b00 !important;
+    border-radius: 6px !important;
+  }
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] #poDetailOverlay .po-detail-facts #poDetailStatus[data-status-tone="success"] {
+    background: #e5f8ec !important;
+    border-color: #a1d9b5 !important;
+    color: #17643a !important;
+  }
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] #poDetailOverlay .po-detail-facts #poDetailStatus[data-status-tone="danger"] {
+    background: #ffe9e8 !important;
+    border-color: #f2b7b5 !important;
+    color: #a42b2b !important;
+  }
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] #poDetailOverlay .po-detail-total {
+    color: #9dc4fa !important;
+  }
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] #poDetailOverlay #poDetailReceiptProgress {
+    color: var(--gct-theme-muted) !important;
+  }
+  /* Signature missing-state messages need dark ink on the intentionally white canvas. */
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] #poDetailOverlay .po-detail-signature-image p {
+    color: #50637d !important;
+  }
+
+  /* Signatures are intentionally rendered on white for their saved ink. */
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] #poDetailOverlay .po-detail-signature-image {
+    background: #fff !important;
+  }
+
+  /* Floating Purchase Order parts disclosure is attached to the body. */
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] :is(
+    .po-items-floating-popover, .requested-pr-more-panel,
+    .restock-more-panel, .purchase-pr-floating-popup
+  ) {
+    background: var(--gct-theme-surface) !important;
+    border-color: var(--gct-theme-border) !important;
+    color: var(--gct-theme-fg) !important;
+  }
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] :is(
+    .po-items-floating-popover, .requested-pr-more-panel,
+    .restock-more-panel, .purchase-pr-floating-popup
+  ) :is(strong, span, small) {
+    color: var(--gct-theme-fg);
+  }
+
+  /* Shared Purchase Requisition Details dialog (outside .main). */
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] :is(
+    .shared-pr-details-dialog, .shared-pr-details-header,
+    .shared-pr-details-section, .shared-pr-summary,
+    .shared-pr-head-person, .shared-pr-head-signature,
+    .shared-pr-extra-details, .shared-pr-readonly-note,
+    .shared-pr-details-footer
+  ) {
+    background: var(--gct-theme-surface) !important;
+    border-color: var(--gct-theme-border) !important;
+    color: var(--gct-theme-fg);
+  }
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] :is(
+    .shared-pr-details-scrollable, .shared-pr-details-section-header,
+    .shared-pr-parts-head, .shared-pr-extra-details > summary,
+    .shared-pr-details-title-icon, .shared-pr-details-section-icon
+  ) {
+    background: var(--gct-theme-surface-raised) !important;
+    border-color: var(--gct-theme-border) !important;
+    color: var(--gct-theme-fg) !important;
+  }
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] :is(
+    .shared-pr-details-title-copy h2, .shared-pr-details-section-header h3,
+    .shared-pr-summary strong, .shared-pr-head-person strong,
+    .shared-pr-extra-grid strong, .shared-pr-parts-row span
+  ) {
+    color: var(--gct-theme-fg) !important;
+  }
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] :is(
+    .shared-pr-details-title-copy p, .shared-pr-details-section-header p,
+    .shared-pr-summary span, .shared-pr-head-content small,
+    .shared-pr-extra-grid span, .shared-pr-parts-row,
+    .shared-pr-head-person span, .shared-pr-head-signature span
+  ) {
+    color: var(--gct-theme-muted) !important;
+  }
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] :is(
+    .shared-pr-details-close, .shared-pr-close-button
+  ) {
+    background: var(--gct-theme-surface-raised) !important;
+    border-color: var(--gct-theme-border) !important;
+    color: var(--gct-theme-fg) !important;
+  }
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] .shared-pr-head-signature img {
+    background: #fff;
+  }
+
+  /* Dashboard: the records-page component has a more specific white !important
+     card rule than the generic Purchase dark surface selector. */
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"]
+  .purchase-dashboard-main.purchase-module-page.records-page .purchase-dashboard-card {
+    background: var(--gct-theme-surface) !important;
+    border-color: var(--gct-theme-border) !important;
+    color: var(--gct-theme-fg) !important;
+  }
+
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] .purchase-dashboard-page :is(
+    .purchase-chart-card, .purchase-fulfillment-card, .supplier-card,
+    .sources-card, .recent-request-card, .recent-order-card,
+    .quick-actions-card, .dashboard-empty-state, .supplier-row,
+    .source-card, .purchase-quick-item, .recent-purchase-item
+  ) {
+    background: var(--gct-theme-surface) !important;
+    border-color: var(--gct-theme-border) !important;
+    color: var(--gct-theme-fg) !important;
+  }
+
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] .purchase-dashboard-page :is(
+    .supplier-row:hover, .purchase-quick-item:hover,
+    .recent-order-item:hover, .recent-purchase-item:hover
+  ) {
+    background: var(--gct-theme-hover) !important;
+  }
+
+  /* Card headings sit inside padded cards, not in separate filled
+     rectangles. Keep the typography while allowing the parent card surface
+     to show continuously across the header and content. */
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] .purchase-dashboard-page .dashboard-card-header {
+    background: transparent !important;
+    border-color: transparent !important;
+  }
+
+  /* Text elements that have literal light-theme colors or !important values. */
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] .purchase-dashboard-page :is(
+    .supplier-meta strong, .supplier-spend strong, .source-val,
+    .fulfillment-count, .fulfillment-chart-center strong, .status-name-desc strong,
+    .purchase-quick-item h3, .recent-order-heading h3,
+    .recent-order-heading strong, .recent-purchase-heading h3,
+    .dashboard-empty-state h3, .purchase-dashboard-part-preview
+  ) {
+    color: var(--gct-theme-fg) !important;
+  }
+
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] .purchase-dashboard-page :is(
+    .supplier-meta small, .source-label, .source-details small,
+    .fulfillment-chart-center span, .status-name-desc small,
+    .fulfillment-status-right small,
+    .purchase-quick-item p, .recent-order-details > p,
+    .recent-order-footer > span:first-child, .recent-purchase-meta span,
+    .dashboard-empty-state p, .purchase-dashboard-part-name small
+  ) {
+    color: var(--gct-theme-muted) !important;
+  }
+
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] .purchase-dashboard-page :is(
+    .supplier-progress-bar, .chart-kpi-pill
+  ) {
+    background: var(--gct-theme-surface-raised) !important;
+    border-color: var(--gct-theme-border) !important;
+  }
+
+  /* Empty states use the shared component's title/icon selectors. */
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] :is(
+    .dashboard-empty-state, .gct-empty-content,
+    .gct-empty-content .gct-empty-title
+  ) {
+    color: var(--gct-theme-fg) !important;
+  }
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] .gct-empty-content .gct-empty-title {
+    background: transparent !important;
+    border: 0 !important;
+  }
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] .dashboard-empty-icon {
+    background: var(--gct-theme-surface-raised) !important;
+  }
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] :is(
+    .gct-empty-content .gct-empty-icon, .dashboard-empty-icon
+  ) {
+    color: var(--gct-theme-accent) !important;
+  }
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] :is(
+    .gct-empty-content .gct-empty-description, .dashboard-empty-state p
+  ) {
+    color: var(--gct-theme-muted) !important;
+  }
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] :is(
+    tr.gct-empty-table-row, tr.gct-empty-table-row > td.gct-empty-cell,
+    tr.gct-search-empty-row, tr.gct-search-empty-row > td
+  ) {
+    background: var(--gct-theme-surface) !important;
+    border-color: var(--gct-theme-border) !important;
+  }
+
+  /* Purchase record rows still declare background #fff !important
+     under the more-specific records-page selector. */
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"]
+  .purchase-module-page.records-page .records-table tbody tr,
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"]
+  .purchase-module-page.records-page .records-table tbody tr:nth-child(even) {
+    background: var(--gct-theme-surface) !important;
+  }
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"]
+  .purchase-module-page.records-page .records-table tbody tr:hover {
+    background: var(--gct-theme-hover) !important;
+  }
+
+  /* Purchase Requisition tabs: the shared button theme must not make both
+     Active and History appear selected at the same time. */
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"]
+  .purchase-maintenance-requests-page .requested-pr-record-tabs {
+    background: var(--gct-theme-surface) !important;
+    border-color: var(--gct-theme-border) !important;
+  }
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"]
+  .purchase-maintenance-requests-page .requested-pr-record-tab:not(.is-active) {
+    background: transparent !important;
+    border-color: transparent !important;
+    color: var(--gct-theme-muted) !important;
+    box-shadow: none !important;
+  }
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"]
+  .purchase-maintenance-requests-page .requested-pr-record-tab:not(.is-active):is(:hover,:focus-visible) {
+    background: var(--gct-theme-hover) !important;
+    color: var(--gct-theme-fg) !important;
+  }
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"]
+  .purchase-maintenance-requests-page .requested-pr-record-tab.is-active {
+    background: #294c76 !important;
+    border-color: #5179a8 !important;
+    color: #f0f6ff !important;
+    box-shadow: inset 0 0 0 1px rgba(151, 193, 255, .2) !important;
+  }
+
+  /* Use the same surface for the records table and its empty cell. Do not
+     recolor status badges or change the table columns and actions. */
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"]
+  .purchase-maintenance-requests-page .requested-purchase-table {
+    background: var(--gct-theme-surface) !important;
+    border-color: var(--gct-theme-border) !important;
+  }
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"]
+  .purchase-maintenance-requests-page .requested-purchase-table thead th {
+    background: var(--gct-theme-surface-raised) !important;
+    border-color: var(--gct-theme-border) !important;
+    color: var(--gct-theme-fg) !important;
+  }
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"]
+  .purchase-maintenance-requests-page .requested-purchase-table tbody tr.gct-empty-table-row,
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"]
+  .purchase-maintenance-requests-page .requested-purchase-table tbody tr.gct-empty-table-row > td.gct-empty-cell {
+    background: var(--gct-theme-surface) !important;
+    border-color: var(--gct-theme-border) !important;
+  }
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"]
+  .purchase-maintenance-requests-page .requested-purchase-table .gct-empty-content .gct-empty-title {
+    color: var(--gct-theme-fg) !important;
+  }
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"]
+  .purchase-maintenance-requests-page .requested-purchase-table .gct-empty-content .gct-empty-description {
+    color: var(--gct-theme-muted) !important;
+  }
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"]
+  .purchase-maintenance-requests-page .requested-purchase-table .gct-empty-content .gct-empty-icon {
+    color: #9dc4fa !important;
+  }
+
+  /* One clear selected state for Inventory Restock, Purchase Orders and the
+     standalone Purchase History archive. Inactive tabs stay unfilled. */
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] :is(
+    .inventory-restock-page .restock-record-tabs,
+    .purchase-orders-page .po-record-tabs,
+    .purchase-history-page .purchase-history-record-tabs
+  ) {
+    background: var(--gct-theme-surface) !important;
+    border-color: var(--gct-theme-border) !important;
+  }
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] :is(
+    .inventory-restock-page .restock-record-tab:not(.is-active),
+    .purchase-orders-page .po-record-tab:not(.is-active),
+    .purchase-history-page .purchase-history-record-tab:not(.is-active)
+  ) {
+    background: transparent !important;
+    border-color: transparent !important;
+    color: var(--gct-theme-muted) !important;
+    box-shadow: none !important;
+  }
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] :is(
+    .inventory-restock-page .restock-record-tab:not(.is-active):is(:hover,:focus-visible),
+    .purchase-orders-page .po-record-tab:not(.is-active):is(:hover,:focus-visible),
+    .purchase-history-page .purchase-history-record-tab:not(.is-active):is(:hover,:focus-visible)
+  ) {
+    background: var(--gct-theme-hover) !important;
+    color: var(--gct-theme-fg) !important;
+  }
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] :is(
+    .inventory-restock-page .restock-record-tab.is-active,
+    .purchase-orders-page .po-record-tab.is-active,
+    .purchase-history-page .purchase-history-record-tab.is-active
+  ) {
+    background: #294c76 !important;
+    border-color: #5179a8 !important;
+    color: #f0f6ff !important;
+    box-shadow: inset 0 0 0 1px rgba(151,193,255,.2) !important;
+  }
+
+  /* Readable identifiers and totals within the dark PO records table.
+     Status badge colors remain semantic; only its geometry is standardized. */
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"]
+  main.purchase-orders-page .purchase-order-card .records-table :is(
+    .po-number-cell strong, .po-reference, .po-amount,
+    .po-date strong, .po-receipt-compact > strong
+  ) {
+    color: var(--gct-theme-fg) !important;
+  }
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"]
+  main.purchase-orders-page .purchase-order-card .records-table .po-date small {
+    color: var(--gct-theme-muted) !important;
+  }
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"]
+  main.purchase-orders-page .purchase-order-card td.po-status-cell > [data-ui-component="status-badge"].po-status-box {
+    border-radius: 7px !important;
+    min-width: 96px !important;
+    height: 30px !important;
+    min-height: 30px !important;
+  }
+
+  /* Match PO ID and PR ID badges: both use the same dark identity
+     surface, border and readable foreground, including multi-line IDs. */
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"]
+  main.purchase-orders-page .purchase-order-card .records-table tbody td:nth-child(1) .po-number-cell strong,
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"]
+  main.purchase-orders-page .purchase-order-card .records-table tbody td:nth-child(2) .po-reference {
+    background: var(--gct-theme-surface-raised) !important;
+    border: 1px solid var(--gct-theme-border) !important;
+    color: var(--gct-theme-fg) !important;
+    border-radius: 5px !important;
+  }
+
+  /* Local-only sample PO rows are visibly labeled without white preview panels. */
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"]
+  main.purchase-orders-page .purchase-order-card .po-demo-preview-banner {
+    background: var(--gct-theme-surface-raised) !important;
+    border-color: var(--gct-theme-border) !important;
+    color: var(--gct-theme-fg) !important;
+  }
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"]
+  main.purchase-orders-page .po-demo-preview-banner a {
+    color: #a8ceff !important;
+  }
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"]
+  main.purchase-orders-page :is(.po-demo-preview-only, .po-demo-preview-count) {
+    color: var(--gct-theme-muted) !important;
+    border-color: var(--gct-theme-border) !important;
+  }
+
+  /* Make sample-only modal warning readable in Purchasing Dark Mode. */
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"]
+  #poDetailOverlay .po-detail-demo-notice {
+    background: var(--gct-theme-surface-raised) !important;
+    border-color: #6287b5 !important;
+    color: #c5dcff !important;
+  }
+
+  /* Empty records must blend into the table, not appear as a pale block. */
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] :is(
+    .inventory-restock-page .restock-table,
+    .purchase-orders-page .purchase-order-card > .records-table-wrap .records-table,
+    .purchase-history-page .purchase-history-reference-table,
+    .inventory-restock-page .restock-table tbody tr.gct-empty-table-row > td.gct-empty-cell,
+    .purchase-orders-page .purchase-order-card > .records-table-wrap tr.gct-empty-table-row > td.gct-empty-cell,
+    .purchase-history-page .purchase-history-reference-table tr.gct-empty-table-row > td.gct-empty-cell
+  ) {
+    background: var(--gct-theme-surface) !important;
+    border-color: var(--gct-theme-border) !important;
+  }
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] :is(
+    .inventory-restock-page .restock-table thead th,
+    .purchase-orders-page .purchase-order-card > .records-table-wrap thead th,
+    .purchase-history-page .purchase-history-reference-table thead th
+  ) {
+    background: var(--gct-theme-surface-raised) !important;
+    color: var(--gct-theme-fg) !important;
+    border-color: var(--gct-theme-border) !important;
+  }
+
+  /* Restore the dark records table scrollport; existing CSS forces white
+     with !important even when the table rows already use dark colors. */
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"]
+  .purchase-module-page.records-page .records-table-wrap {
+    background: var(--gct-theme-surface) !important;
+    scrollbar-color: var(--gct-theme-border) transparent;
+  }
+
+  /* One canonical segmented-control design for every Purchasing record view.
+     Match Maintenance Requests: outlined navy shell, one blue active pill,
+     transparent inactive tab. Leave server-side record filtering unchanged. */
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] main.purchase-module-page :is(
+    .requested-pr-record-tabs,
+    .restock-record-tabs,
+    .po-record-tabs,
+    .purchase-history-record-tabs
+  ) {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    flex-wrap: nowrap !important;
+    gap: 4px !important;
+    width: max-content !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    padding: 4px !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    border: 1px solid #35465e !important;
+    border-radius: 11px !important;
+    background: #162235 !important;
+    box-shadow: none !important;
+  }
+
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] main.purchase-module-page :is(
+    .requested-pr-record-tab,
+    .restock-record-tab,
+    .po-record-tab,
+    .purchase-history-record-tab
+  ) {
+    display: inline-flex !important;
+    flex: 0 0 auto !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    min-width: 98px !important;
+    min-height: 35px !important;
+    height: 35px !important;
+    padding: 0 13px !important;
+    box-sizing: border-box !important;
+    border: 1px solid transparent !important;
+    border-radius: 8px !important;
+    background: transparent !important;
+    color: #b8c8dc !important;
+    box-shadow: none !important;
+    font-size: 11px !important;
+    font-weight: 750 !important;
+    line-height: 1.2 !important;
+    text-decoration: none !important;
+    white-space: nowrap !important;
+  }
+
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] main.purchase-module-page :is(
+    .requested-pr-record-tab.is-active,
+    .restock-record-tab.is-active,
+    .po-record-tab.is-active,
+    .purchase-history-record-tab.is-active
+  ) {
+    border-color: #5179a8 !important;
+    background: #294c76 !important;
+    color: #f0f6ff !important;
+    box-shadow: inset 0 0 0 1px rgba(151, 193, 255, .2) !important;
+  }
+
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] main.purchase-module-page :is(
+    .requested-pr-record-tab:not(.is-active):hover,
+    .restock-record-tab:not(.is-active):hover,
+    .po-record-tab:not(.is-active):hover,
+    .purchase-history-record-tab:not(.is-active):hover
+  ) {
+    background: #203047 !important;
+    color: #f0f6ff !important;
+  }
+
+  html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] main.purchase-module-page :is(
+    .requested-pr-record-tab,
+    .restock-record-tab,
+    .po-record-tab,
+    .purchase-history-record-tab
+  ):focus-visible {
+    outline: 2px solid #9dc4fa !important;
+    outline-offset: 2px !important;
+  }
+}

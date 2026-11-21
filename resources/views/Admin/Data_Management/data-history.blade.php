@@ -11,7 +11,6 @@
             <x-layout.topbar
                 title="GPS Processing History"
                 subtitle="Monitor GPS batch processing and review historical data transfers"
-                notification-count="6"
             />
 
             <section data-ajax-region="summary" class="stats-grid history-stats-grid">
@@ -24,9 +23,9 @@
                 />
 
                 <x-ui.summary-card
-                    label="Successful Batches"
+                    label="Completed Processing Activities"
                     :value="$stats['successful'] ?? 0"
-                    small="Completed GPS processing"
+                    small="Successful logged processing events"
                     icon="fa-circle-check"
                     color="green"
                 />
@@ -40,9 +39,9 @@
                 />
 
                 <x-ui.summary-card
-                    label="Failed Batches"
+                    label="Failed Processing Activities"
                     :value="$stats['failed'] ?? 0"
-                    small="Failed or correction-required GPS batches"
+                    small="Failed or correction-required processing events"
                     icon="fa-triangle-exclamation"
                     color="red"
                 />
@@ -52,7 +51,7 @@
                 <div class="section-header">
                     <div>
                         <h2>GPS Batch History</h2>
-                        <p>GPS processing is the primary workflow. Earlier Import and Export activities remain available here for historical auditing; Deleted indicates file state, not necessarily processing failure.</p>
+                        <p>View GPS processing results, file statuses, and previous import or export activities.</p>
                     </div>
 
                     <x-ui.id-badge :value="number_format($history->total()) . ' Records'" />
@@ -97,7 +96,7 @@
                                 @endphp
 
                                 <tr>
-                                    <td>
+                                    <td data-label="File">
                                         <div class="history-file-cell">
                                             <div class="history-file-icon {{ $typeClass }}">
                                                 @if($item->activity_type === 'Import')
@@ -120,45 +119,45 @@
                                         </div>
                                     </td>
 
-                                    <td>
+                                    <td data-label="Type">
                                         <span class="history-type {{ $typeClass }}">
                                             {{ $item->activity_type }}
                                         </span>
                                     </td>
 
-                                    <td>
+                                    <td data-label="Module">
                                         <span class="module-badge {{ $moduleClass }}">
                                             {{ $item->module ?: '—' }}
                                         </span>
                                     </td>
 
-                                    <td>
+                                    <td data-label="Data Source">
                                         <span class="source-badge">
                                             {{ $item->source ?: '—' }}
                                         </span>
                                     </td>
 
-                                    <td>{{ number_format($item->total_records) }}</td>
+                                    <td data-label="Records">{{ number_format($item->total_records) }}</td>
 
-                                    <td>
+                                    <td data-label="Status">
                                         <x-ui.status-badge :status="$item->status" class="history-status" />
                                     </td>
 
-                                    <td>
+                                    <td data-label="Processed By">
                                         <div class="processed-by">
                                             <i class="fa-solid fa-user"></i>
                                             <span>{{ $processorName }}</span>
                                         </div>
                                     </td>
 
-                                    <td>
+                                    <td data-label="Date & Time">
                                         <div class="date-time-cell">
                                             <span class="date-value">{{ $activityDate?->format('M d, Y') ?? '—' }}</span>
                                             <span class="time-value">{{ $activityDate?->format('g:i A') ?? '' }}</span>
                                         </div>
                                     </td>
 
-                                    <td>
+                                    <td data-label="Action">
                                         <div class="actions">
                                             <x-ui.action-button
                                                 type="view"
@@ -186,7 +185,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="9" style="text-align:center;padding:36px;color:var(--muted);">
+                                    <td colspan="9" data-label="History" style="text-align:center;padding:36px;color:var(--muted);">
                                         No Data Management activity has been recorded yet.
                                     </td>
                                 </tr>
@@ -218,8 +217,8 @@
                     </div>
 
                     <div>
-                        <h2>Data History Details</h2>
-                        <p>Recorded result of the selected Data Management activity.</p>
+                        <h2>GPS Processing Details</h2>
+                        <p>File information and processing results.</p>
                     </div>
                 </div>
 
@@ -242,7 +241,7 @@
                     <div class="history-detail-item"><span>Status</span><strong id="historyModalStatus">—</strong></div>
                     <div class="history-detail-item"><span>Processed By</span><strong id="historyModalUser">—</strong></div>
                     <div class="history-detail-item"><span>Date & Time</span><strong id="historyModalDateTime">—</strong></div>
-                    <div class="history-detail-item" style="grid-column:1 / -1;"><span>Error / Notes</span><strong id="historyModalError">—</strong></div>
+                    <div class="history-detail-item history-detail-item-wide"><span>Error / Notes</span><strong id="historyModalError">—</strong></div>
                 </div>
 
                 <div id="historyModalValidationContainer" style="display:none;margin-top:14px;">

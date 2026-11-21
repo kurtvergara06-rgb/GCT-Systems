@@ -1243,8 +1243,9 @@ textarea[readonly] {
 
 .success-modal-box,
 .delete-modal-box {
-  width: 430px;
-  max-width: 92vw;
+  box-sizing: border-box;
+  width: min(400px, calc(100vw - 40px));
+  max-width: 100%;
 
   background: #ffffff;
 
@@ -1332,10 +1333,11 @@ textarea[readonly] {
 ========================================================= */
 
 .modal-card.global-confirmation-box {
-  width: min(480px, calc(100vw - 32px));
-  max-width: 92vw;
+  box-sizing: border-box;
+  width: min(400px, calc(100vw - 40px));
+  max-width: 100%;
 
-  padding: 20px 24px;
+  padding: 20px 22px;
 
   background: #ffffff;
 
@@ -2395,4 +2397,75 @@ tr.empty-row > td.empty-row {
 ):not([data-ui-component="status-badge"]) .status-badge__label {
   font-size: inherit !important;
   line-height: inherit;
+}
+
+
+/* Shared system confirmations and feedback: dark appearance applies across
+   all departments, including overlays portaled directly beneath <body>. */
+.global-confirmation-icon.logout {
+  background: #e4efff;
+  color: #1756ad;
+}
+.global-confirmation-icon.logout i { color: inherit; }
+
+html[data-gct-theme="dark"] #globalConfirmationModal .global-confirmation-box,
+html[data-gct-theme="dark"] .feedback-modal-overlay .success-modal-box,
+html[data-gct-theme="dark"] .feedback-modal-overlay .modal-card {
+  background: #18263a !important;
+  border: 1px solid #3d526f !important;
+  color: #edf3fc !important;
+  box-shadow: 0 24px 70px rgba(0,0,0,.52) !important;
+}
+html[data-gct-theme="dark"] #globalConfirmationModal .global-confirmation-box :is(h2, p strong),
+html[data-gct-theme="dark"] .feedback-modal-overlay .modal-card :is(h2, strong) {
+  color: #f0f5ff !important;
+}
+html[data-gct-theme="dark"] #globalConfirmationModal .global-confirmation-box p,
+html[data-gct-theme="dark"] .feedback-modal-overlay .modal-card p {
+  color: #c0cfe3 !important;
+  opacity: 1 !important;
+}
+html[data-gct-theme="dark"] #globalConfirmationModal .global-confirmation-close {
+  background: #253951 !important;
+  border-color: #47617f !important;
+  color: #e3edfc !important;
+}
+html[data-gct-theme="dark"] #globalConfirmationModal .global-confirmation-close:hover {
+  background: #334a66 !important;
+  color: #fff !important;
+}
+html[data-gct-theme="dark"] #globalConfirmationModal .cancel-btn {
+  background: #2a3c54 !important;
+  border: 1px solid #4a607a !important;
+  color: #eef5ff !important;
+  opacity: 1 !important;
+}
+html[data-gct-theme="dark"] #globalConfirmationModal .cancel-btn:hover {
+  background: #384e6b !important;
+  color: #fff !important;
+}
+html[data-gct-theme="dark"] #globalConfirmationModal :is(.global-confirm-btn, .cancel-btn, .global-confirmation-close):focus-visible,
+html[data-gct-theme="dark"] .feedback-modal-overlay button:focus-visible {
+  outline: 2px solid #9bc7ff !important;
+  outline-offset: 3px;
+}
+html[data-gct-theme="dark"] #globalConfirmationModal .global-confirmation-icon.logout {
+  background: #25466a !important;
+  color: #b8d8ff !important;
+}
+html[data-gct-theme="dark"] #globalConfirmationModal .global-confirmation-icon.logout i {
+  color: inherit !important;
+}
+/* Notifications already use dark surfaces. Ensure their text/controls remain
+   readable when department-specific theme rules are applied. */
+html[data-gct-theme="dark"] .system-toast-notification {
+  background: #18293f !important;
+  border-color: #425775 !important;
+  color: #eef4ff !important;
+}
+html[data-gct-theme="dark"] .system-toast-notification :is(.system-toast-title, .system-toast-message) {
+  color: #edf3fc !important;
+}
+html[data-gct-theme="dark"] .system-toast-notification .system-toast-close {
+  color: #c7d7eb !important;
 }

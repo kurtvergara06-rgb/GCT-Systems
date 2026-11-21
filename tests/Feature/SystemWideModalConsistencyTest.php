@@ -6,6 +6,27 @@ use Tests\TestCase;
 
 class SystemWideModalConsistencyTest extends TestCase
 {
+    public function test_warehouse_maintenance_and_operation_fixed_light_surfaces_use_dark_theme_tokens(): void
+    {
+        $warehouse = file_get_contents(resource_path('css/Warehouse/incoming-deliveries.css'));
+        $warehouseDark = file_get_contents(resource_path('css/Warehouse/warehouse-dark-mode.css'));
+        $maintenance = file_get_contents(resource_path('css/Maintenance/job-order.css'));
+        $maintenanceDark = file_get_contents(resource_path('css/Maintenance/maintenance-dark-mode.css'));
+        $operation = file_get_contents(resource_path('css/Operation/Incidents/incidents.css'));
+        $operationDark = file_get_contents(resource_path('css/Operation/operation-dark-mode.css'));
+
+        $this->assertStringContainsString('var(--delivery-filter-bg, #ffffff) !important', $warehouse);
+        $this->assertStringContainsString('--delivery-filter-bg: var(--gct-theme-input);', $warehouseDark);
+        $this->assertStringContainsString('var(--jo-toolbar-select-bg, #ffffff) !important', $maintenance);
+        $this->assertStringContainsString('--jo-toolbar-select-bg: var(--gct-theme-input);', $maintenanceDark);
+        $this->assertStringContainsString('var(--jo-review-panel-bg,#fff)!important', $maintenance);
+        $this->assertStringContainsString('--jo-review-panel-bg: var(--gct-theme-surface);', $maintenanceDark);
+        $this->assertStringContainsString('var(--inc-table-heading-bg, #f1f5f9) !important', $operation);
+        $this->assertStringContainsString('var(--inc-expanded-row-bg, #f8fafc) !important', $operation);
+        $this->assertStringContainsString('--inc-table-heading-bg: var(--gct-theme-surface-raised);', $operationDark);
+        $this->assertStringContainsString('--inc-expanded-row-bg: var(--gct-theme-surface);', $operationDark);
+    }
+
     public function test_custom_module_modal_overlays_are_owned_by_shared_animation_system(): void
     {
         $animations = file_get_contents(

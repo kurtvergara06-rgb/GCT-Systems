@@ -44,6 +44,7 @@
                         />
                     </a>
 
+                    @if(auth()->user()?->hasSystemPermission('administration', 'full_control'))
                     <button
                         type="button"
                         class="delete-upload-btn"
@@ -54,6 +55,7 @@
                     >
                         <i class="fa-solid fa-trash"></i>
                     </button>
+                    @endif
                 </div>
             @empty
                 <p class="empty-batch-message">No data files uploaded yet.</p>
@@ -125,7 +127,7 @@
         </div>
 
         <div class="table-header-actions">
-            @if($selectedBatch?->status === 'In Review')
+            @if($selectedBatch?->status === 'In Review' && auth()->user()?->hasSystemPermission('administration', 'full_control'))
                 <form action="{{ route('batch-file-processing.confirm', $selectedBatch) }}"
                     method="POST" id="confirmBatchForm" class="clean-data-process-form"
                     data-confirm-form
@@ -173,6 +175,15 @@
         </div>
     </div>
 
+    @if($nlpEnabled && $selectedBatch)
+        <div class="gps-nlp-status" role="status">
+            <i class="fa-solid fa-brain" aria-hidden="true"></i>
+            <strong>Lightweight NLP Insights</strong>
+            <span>{{ number_format($nlpAnalyzedCount) }} / {{ number_format($selectedBatch->trip_records_count ?? 0) }} records analyzed</span>
+            <small>Advisory rule-based analysis only; source GPS values and validation remain unchanged.</small>
+        </div>
+    @endif
+
     @if($records->isNotEmpty())
     <div class="table-wrap structured-table-wrap">
         <table class="batch-records-table gps-full-records-table">
@@ -215,6 +226,18 @@
                                 <span class="gps-validation-flag" title="{{ implode(' ', $sourceWarnings) }}{{ $missingGrouping ? ' Grouping is missing.' : '' }}{{ $missingLocation ? ' Location is missing.' : '' }}{{ $missingMileage ? ' Mileage is missing.' : '' }}{{ $missingTime ? ' Duration is missing.' : '' }}">Needs Review</span>
                             @else
                                 <span class="gps-validation-ok" title="Required displayed values present; this does not certify all source calculations">Fields Present</span>
+                            @endif
+                            @if($nlpEnabled && $record->nlpEnrichment)
+                                @php
+                                    $suggestedSeverity = data_get($record->nlpEnrichment->severity_suggestion, 'label');
+                                    $anomalyFlag = (bool) data_get($record->nlpEnrichment->anomaly_suggestion, 'is_anomaly', false);
+                                    $signals = data_get($record->nlpEnrichment->anomaly_suggestion, 'signals', []);
+                                @endphp
+                                <div class="gps-nlp-row-insight" title="{{ $anomalyFlag ? implode(', ', is_array($signals) ? $signals : []) : 'No operational anomaly detected by advisory rules' }}">
+                                    <i class="fa-solid fa-brain" aria-hidden="true"></i>
+                                    NLP: {{ $anomalyFlag ? 'Review Suggested' : 'Analyzed' }}
+                                    @if($suggestedSeverity) · {{ $suggestedSeverity }} @endif
+                                </div>
                             @endif
                         </td>
                     </tr>

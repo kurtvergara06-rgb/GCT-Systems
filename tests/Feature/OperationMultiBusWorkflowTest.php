@@ -693,7 +693,7 @@ class OperationMultiBusWorkflowTest extends TestCase
         $this->assertStringContainsString("fleetMode = selectedBusOption?.dataset.purpose === 'Reserve'", $script);
     }
 
-    public function test_head_can_deploy_reserve_even_if_authorized_regular_pair_is_available(): void
+    public function test_head_cannot_deploy_reserve_while_an_eligible_regular_pair_is_available(): void
     {
         $trip = $this->createTripSchedule(1);
         $driver = $this->createDriver('REGULAR-FIRST');
@@ -706,18 +706,18 @@ class OperationMultiBusWorkflowTest extends TestCase
             route('driver-bus-assignment.availability', $trip)
         );
         $response->assertOk();
-        $this->assertContains($reserve->id, collect($response->json('buses'))->pluck('id')->all());
+        $this->assertNotContains($reserve->id, collect($response->json('buses'))->pluck('id')->all());
+        $this->assertContains($regular->id, collect($response->json('buses'))->pluck('id')->all());
         $this->assertContains($driver->driver_id, collect($response->json('drivers'))->pluck('id')->all());
 
         $this->actingAs($this->admin)->post(route('driver-bus-assignment.store'), [
             'trip_schedule_id' => $trip->id,
             'driver_attendance_id' => $attendance->id,
             'bus_id' => $reserve->id,
-        ])->assertSessionHasNoErrors();
+        ])->assertSessionHasErrors('bus_id');
 
-        $assignment = $trip->assignments()->where('bus_id', $reserve->id)->firstOrFail();
-        $this->assertDatabaseHas('auto_schedule_reserve_approvals', [
-            'trip_assignment_id' => $assignment->id,
+        $this->assertDatabaseMissing('trip_assignments', [
+            'trip_schedule_id' => $trip->id,
             'bus_id' => $reserve->id,
         ]);
     }

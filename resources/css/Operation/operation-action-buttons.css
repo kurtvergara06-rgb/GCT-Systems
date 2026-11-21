@@ -363,7 +363,8 @@ body:has(.sidebar[data-gct-shell="operation"]) :is(
   .ai-resolution-modal-overlay,
   .ddr-record-overlay.is-open,
   .inc-record-modal-backdrop,
-  .inc-report-modal-overlay
+  .inc-report-modal-overlay,
+  .inc-workflow-overlay
 ) {
   position: fixed;
   inset: 0;
@@ -381,7 +382,9 @@ body:has(.sidebar[data-gct-shell="operation"]) :is(
   .route-modal-overlay > .route-modal,
   .route-modal-overlay > .route-details-modal,
   .ddr-record-overlay > .ddr-record-dialog,
-  .inc-record-modal-backdrop > .inc-record-modal
+  .inc-record-modal-backdrop > .inc-record-modal,
+  .inc-workflow-overlay > .inc-workflow-dialog,
+  .trip-modal-overlay > .trip-modal
 ) {
   margin: auto;
   flex-shrink: 0;
@@ -399,7 +402,8 @@ body:has(.sidebar[data-gct-shell="operation"]) :is(
     .personnel-modal-overlay,
     .ai-resolution-modal-overlay,
     .ddr-record-overlay.is-open,
-    .inc-record-modal-backdrop
+    .inc-record-modal-backdrop,
+    .inc-workflow-overlay
   ) {
     align-items: flex-start;
   }

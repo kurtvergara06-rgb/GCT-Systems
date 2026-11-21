@@ -33,10 +33,12 @@ class PurchaseOrderController extends Controller
 
     public function index(Request $request)
     {
-        // Purchase Orders displays active records only. Completed records live in Purchase History.
-        $activeTab = 'active';
-        $query = PurchaseOrder::query()
-            ->whereIn('status', ['For Review', 'Revision Required', 'Ordered', 'For Pick-up', 'For Delivery']);
+        // Keep active procurement separate from fulfilled and rejected PO history.
+        $activeTab = $request->query('record_view') === 'history' ? 'history' : 'active';
+        $visibleStatuses = $activeTab === 'history'
+            ? ['Delivered', 'Picked Up', 'Rejected']
+            : ['For Review', 'Revision Required', 'Ordered', 'For Pick-up', 'For Delivery'];
+        $query = PurchaseOrder::query()->whereIn('status', $visibleStatuses);
 
 
         if ($request->filled('search')) {

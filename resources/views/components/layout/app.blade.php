@@ -5,13 +5,22 @@
 ])
 
 @php
-  // Scoped dark-mode components are enabled for Operation, Maintenance, and Account.
+  // Scoped dark-mode components are enabled for Operation, Maintenance, Warehouse, Purchase, Administration, and Account.
   $operationThemePage = collect($assets)->contains(
     fn ($asset) => is_string($asset) && str_starts_with($asset, 'resources/css/Operation/')
   );
   $maintenanceThemePage = collect($assets)->contains(
     fn ($asset) => is_string($asset) && str_starts_with($asset, 'resources/css/Maintenance/')
   );
+  $warehouseThemePage = collect($assets)->contains(
+    fn ($asset) => is_string($asset) && str_starts_with($asset, 'resources/css/Warehouse/')
+  );
+  $purchaseThemePage = collect($assets)->contains(
+    fn ($asset) => is_string($asset) && str_starts_with($asset, 'resources/css/Purchase/')
+  );
+  $adminThemePage = collect($assets)->contains(
+    fn ($asset) => is_string($asset) && str_starts_with($asset, 'resources/css/Admin/')
+  ) || request()->is('admin/*', 'analytics/*', 'batch-file-processing*');
   // Account pages share the saved appearance preference and already have
   // dark CSS. Resolve their theme before the first-paint loading cover too.
   $accountThemePage = collect($assets)->contains(
@@ -42,11 +51,14 @@
     'resources/css/Warehouse/warehouse-status.css',
     'resources/css/Main-styles/record-action-buttons.css',
     'resources/css/Main-styles/gct-scrollbar.css',
-  ], request()->is('admin/*', 'analytics/*', 'batch-file-processing*')
+  ], $adminThemePage
     ? ['resources/css/Admin/administration-standards.css']
     : [],
     $operationThemePage ? ['resources/css/Operation/operation-dark-mode.css'] : [],
-    $maintenanceThemePage ? ['resources/css/Maintenance/maintenance-dark-mode.css'] : []
+    $maintenanceThemePage ? ['resources/css/Maintenance/maintenance-dark-mode.css'] : [],
+    $warehouseThemePage ? ['resources/css/Warehouse/warehouse-dark-mode.css'] : [],
+    $purchaseThemePage ? ['resources/css/Purchase/purchase-dark-mode.css'] : [],
+    $adminThemePage ? ['resources/css/Admin/admin-dark-mode.css'] : []
   )));
 @endphp
 
@@ -75,6 +87,14 @@
   @endauth
 
   <title>{{ $title }}</title>
+  {{-- Standalone installation uses the same secure web session and online routes. --}}
+  <link rel="manifest" href="{{ asset('manifest.webmanifest') }}">
+  <meta name="theme-color" content="#062d61">
+  <link rel="icon" type="image/svg+xml" href="{{ asset('pwa-icon.svg') }}">
+  <link rel="apple-touch-icon" href="{{ asset('img/gct_logo.png') }}">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="FROMS">
 
   <meta name="gct-partial-navigation" content="{{ $partialNavigation ? 'enabled' : 'disabled' }}">
 
@@ -90,7 +110,7 @@
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
   >
 
-  @if(($operationThemePage || $maintenanceThemePage || $accountThemePage) && auth()->check())
+  @if(($operationThemePage || $maintenanceThemePage || $warehouseThemePage || $purchaseThemePage || $adminThemePage || $accountThemePage) && auth()->check())
     {{-- Resolve the saved browser theme before styles paint to avoid a light flash. --}}
     <script>
       (() => {
@@ -164,7 +184,7 @@
   @stack('styles')
 </head>
 
-<body @if($operationThemePage) data-gct-operation-page="1" @endif @if($maintenanceThemePage) data-gct-maintenance-page="1" @endif @if($performanceProfile) data-gct-performance-profile="1" @endif>
+<body @if($operationThemePage) data-gct-operation-page="1" @endif @if($maintenanceThemePage) data-gct-maintenance-page="1" @endif @if($warehouseThemePage) data-gct-warehouse-page="1" @endif @if($purchaseThemePage) data-gct-purchase-page="1" @endif @if($adminThemePage) data-gct-admin-page="1" @endif @if($performanceProfile) data-gct-performance-profile="1" @endif>
   <div id="gctBootLoader" role="status" aria-live="polite" aria-label="Loading page">
     <div class="gct-navigation-loader__content">
       <span class="gct-navigation-loader__spinner" aria-hidden="true"></span>

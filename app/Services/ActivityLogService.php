@@ -79,18 +79,6 @@ class ActivityLogService
             return null;
         }
 
-        if ($request->boolean('_permission_update')) {
-            return $this->record(
-                $user,
-                $request,
-                'Updated role permissions',
-                'Updated',
-                'Admin',
-                $request->input('role_key'),
-                'Updated access permissions for the selected system role.'
-            );
-        }
-
         $eventType = $this->inferEventType($routeName, $request->method());
         $activity = $this->humanizeRouteAction($routeName, $eventType);
         $module = $this->inferModule($request);

@@ -71,6 +71,16 @@ return [
     |
     */
 
+    // Genuine Inventory Model #4 forecasts are advisory and read-only.
+    // Lead days are intentionally zero until Warehouse confirms an actual
+    // replenishment period. No invented lead times or demo data in production.
+    'inventory_ml' => [
+        'enabled' => (bool) env('INVENTORY_ML_REORDER_ENABLED', true),
+        'replenishment_lead_days' => (int) env('INVENTORY_REPLENISHMENT_LEAD_DAYS', 0),
+        'safety_percent' => (int) env('INVENTORY_REORDER_SAFETY_PERCENT', 0),
+        'max_batch_parts' => (int) env('INVENTORY_ML_MAX_BATCH_PARTS', 100),
+    ],
+
     'delay' => [
         'demo_trip_prefixes' => explode(',', (string) env(
             'DELAY_DEMO_TRIP_PREFIXES',

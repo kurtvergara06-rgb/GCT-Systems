@@ -41,6 +41,7 @@ class AdminPasswordResetSecurityTest extends TestCase
 
         $this->assertTrue(Hash::check('NewPassword123!', $target->password));
         $this->assertTrue($target->must_change_password);
+        $this->assertNotNull($target->password_changed_at, 'Password reset must update the expiry reference timestamp.');
     }
 
     public function test_non_admin_user_cannot_reset_another_users_password(): void

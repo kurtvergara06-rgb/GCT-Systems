@@ -15,6 +15,7 @@
   @vite([
     'resources/css/Main-styles/theme.css',
     'resources/css/Login/login.css',
+    'resources/js/Login/legal-modal.js',
   ])
 
 </head>
@@ -112,6 +113,11 @@
               </div>
             </div>
             <p class="registration-notice">Company access requires email verification and administrator approval. Departments and roles are assigned by the administrator.</p>
+            <label class="auth-privacy-ack" for="regPrivacyAcknowledged">
+              <input id="regPrivacyAcknowledged" type="checkbox" name="privacy_acknowledged" value="1" required @checked(old('privacy_acknowledged'))>
+              <span>I acknowledge that I have read the <a data-legal-modal="Privacy Notice" href="{{ route('legal.privacy') }}">Privacy Notice</a> and <a data-legal-modal="Terms of Use" href="{{ route('legal.terms') }}">Terms of Use</a>.</span>
+            </label>
+            @error('privacy_acknowledged')<p class="registration-privacy-error" role="alert">{{ $message }}</p>@enderror
             <button class="login-btn" type="submit">Create Account <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
           </form>
           <div class="google-auth-separator"><span>or</span></div>

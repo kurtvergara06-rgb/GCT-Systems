@@ -53,7 +53,7 @@ class OperationDarkModeFoundationTest extends TestCase
         $this->assertStringContainsString("navClock?.checkpoint('assets ready')", $js);
         $this->assertStringContainsString("navClock?.checkpoint('page initialized')", $js);
         $this->assertStringContainsString('navClock?.finish(response.url || targetUrl)', $js);
-        $this->assertStringContainsString("if (link.closest('#appSidebar')) return false;", $js);
+        $this->assertStringContainsString("const isSidebarLink = Boolean(link.closest('#appSidebar'));", $js);
         $this->assertStringContainsString('cleanupAllInitializers();', $js);
         $this->assertStringContainsString('if (controller.signal.aborted || activeRequest !== controller) return;', $js);
     }
@@ -72,7 +72,7 @@ class OperationDarkModeFoundationTest extends TestCase
     public function test_shared_theme_defines_dark_tokens_for_operation_and_maintenance_pages(): void
     {
         $theme = file_get_contents(resource_path('css/Main-styles/theme.css'));
-        $this->assertStringContainsString('html[data-gct-theme="dark"] body:is([data-gct-operation-page="1"], [data-gct-maintenance-page="1"])', $theme);
+        $this->assertStringContainsString('html[data-gct-theme="dark"] body:is([data-gct-operation-page="1"], [data-gct-maintenance-page="1"], [data-gct-warehouse-page="1"], [data-gct-purchase-page="1"], [data-gct-admin-page="1"])', $theme);
 
         foreach (['--gct-theme-canvas', '--gct-theme-surface', '--gct-theme-fg', '--gct-theme-border', '--bg', '--card', '--text'] as $token) {
             $this->assertStringContainsString($token.':', $theme);
@@ -263,7 +263,7 @@ class OperationDarkModeFoundationTest extends TestCase
             strpos($layout, '@vite($viteAssets)'),
             strpos($layout, 'document.documentElement.dataset.gctTheme = theme')
         );
-        $this->assertStringContainsString("['gctOperationPage', 'gctMaintenancePage']", $navigation);
+        $this->assertStringContainsString("['gctOperationPage', 'gctMaintenancePage', 'gctWarehousePage', 'gctPurchasePage']", $navigation);
         $this->assertStringContainsString("nextDocument.body.dataset[scope] === '1'", $navigation);
         $this->assertStringContainsString('delete document.body.dataset[scope]', $navigation);
         $this->assertStringContainsString("theme: 'light'", $preferences);

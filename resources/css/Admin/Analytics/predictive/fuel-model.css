@@ -19,13 +19,13 @@
 .fuel-model-result__value-row strong,
 .fuel-model-result > strong {
     font-size: 12px;
-    color: #0f172a;
+    color: light-dark(#0f172a, var(--gct-theme-fg));
 }
 
 .fuel-model-result small,
 .fuel-model-result em {
     font-size: 9px;
-    color: #64748b;
+    color: light-dark(#64748b, var(--gct-theme-muted));
     font-style: normal;
 }
 
@@ -61,10 +61,10 @@
 
 .fuel-model-variance--normal {
     background: #e2e8f0;
-    color: #475569;
+    color: light-dark(#475569, var(--gct-theme-muted));
 }
 
 .fuel-model-result--loading strong,
 .fuel-model-result--unavailable strong {
-    color: #64748b;
+    color: light-dark(#64748b, var(--gct-theme-muted));
 }

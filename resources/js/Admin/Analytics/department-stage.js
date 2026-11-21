@@ -1,76 +1,50 @@
 import Chart from 'chart.js/auto';
 
+let charts = [];
 function initDepartmentAnalyticsCharts() {
+    charts.forEach(chart => chart.destroy());
+    charts = [];
     const element = document.getElementById('departmentAnalyticsChartData');
     if (!element) return;
-
     let data;
-    try {
-        data = JSON.parse(element.textContent || '{}');
-    } catch (error) {
-        console.error('Invalid department chart data', error);
-        return;
-    }
-
+    try { data = JSON.parse(element.textContent || '{}'); }
+    catch { return; }
+    const dark = document.documentElement.dataset.gctTheme === 'dark';
+    const muted = dark ? '#b1bfd2' : '#64748b';
+    const grid = dark ? '#344256' : '#e4eaf2';
+    const surface = dark ? '#162235' : '#ffffff';
     const activity = document.getElementById('departmentActivityChart');
     if (activity) {
-        Chart.getChart(activity)?.destroy();
-        new Chart(activity, {
-            type: 'bar',
-            data: {
-                labels: data.months || [],
-                datasets: [{
-                    label: 'Recorded Entries',
-                    data: data.monthly || [],
-                    backgroundColor: '#2563eb',
-                    borderRadius: 6,
-                    maxBarThickness: 38,
-                }],
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                    x: { grid: { display: false }, ticks: { color: '#64748b' } },
-                    y: { beginAtZero: true, ticks: { precision: 0, color: '#64748b' }, grid: { color: '#e8edf5' } },
-                },
-            },
-        });
+        charts.push(new Chart(activity, {
+            type:'bar',
+            data:{labels:data.months || [], datasets:[{label:'Verified Recorded Entries', data:data.monthly || [], backgroundColor:'#3b82f6', borderRadius:6, maxBarThickness:38}]},
+            options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{
+                x:{grid:{display:false}, ticks:{color:muted}},
+                y:{beginAtZero:true, ticks:{precision:0, color:muted}, grid:{color:grid}},
+            }},
+        }));
     }
-
     const sources = document.getElementById('departmentSourcesChart');
     if (sources) {
-        Chart.getChart(sources)?.destroy();
-        new Chart(sources, {
-            type: 'doughnut',
-            data: {
-                labels: data.sources || [],
-                datasets: [{
-                    data: data.counts || [],
-                    backgroundColor: ['#2563eb', '#16a34a', '#f59e0b', '#8b5cf6'],
-                    borderColor: '#ffffff',
-                    borderWidth: 2,
-                }],
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                cutout: '68%',
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: { usePointStyle: true, boxWidth: 9, font: { size: 11 }, color: '#475569' },
-                    },
-                },
-            },
-        });
+        const hasRecords = (data.counts || []).some(value => value > 0);
+        sources.hidden = !hasRecords;
+        if (hasRecords) charts.push(new Chart(sources, {
+            type:'doughnut',
+            data:{labels:data.sources || [], datasets:[{data:data.counts || [], backgroundColor:['#3b82f6','#22c55e','#f59e0b','#a78bfa'], borderColor:surface, borderWidth:2}]},
+            options:{responsive:true, maintainAspectRatio:false, cutout:'74%', plugins:{legend:{display:false}}},
+        }));
     }
+    (data.statuses || []).forEach((status, index) => {
+        const canvas = document.getElementById('departmentStatusChart' + index);
+        if (!canvas || !(status.counts || []).some(value => Number(value) > 0)) return;
+        charts.push(new Chart(canvas, {
+            type:'doughnut',
+            data:{labels:status.labels || [], datasets:[{data:status.counts || [], backgroundColor:['#3b82f6','#22c55e','#f59e0b','#a78bfa','#ef4444','#14b8a6','#f97316','#64748b'], borderColor:surface, borderWidth:2}]},
+            options:{responsive:true, maintainAspectRatio:false, cutout:'74%', plugins:{legend:{display:false}}},
+        }));
+    });
 }
-
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initDepartmentAnalyticsCharts, { once: true });
-} else {
-    initDepartmentAnalyticsCharts();
-}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initDepartmentAnalyticsCharts, {once:true});
+else initDepartmentAnalyticsCharts();
 document.addEventListener('gct:navigation-complete', initDepartmentAnalyticsCharts);
+new MutationObserver(initDepartmentAnalyticsCharts).observe(document.documentElement, {attributes:true, attributeFilter:['data-gct-theme']});

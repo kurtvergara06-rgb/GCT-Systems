@@ -37,15 +37,12 @@ class IsolatedRolePermissionsTest extends TestCase
                         $this->assertTrue((bool) ($capabilities['view'] ?? false));
                         $this->assertTrue((bool) ($capabilities['edit'] ?? false));
 
-                        if ($module === 'warehouse') {
-                            // Seeded warehouse roles start without approval; the administrator can grant it explicitly.
-                            $this->assertFalse((bool) ($capabilities['approve'] ?? false));
-                        } else {
-                            $this->assertSame(
-                                $roleType === 'head',
-                                (bool) ($capabilities['approve'] ?? false)
-                            );
-                        }
+                        // Heads retain separately revocable approval authority;
+                        // Staff never inherit it, including in Warehouse.
+                        $this->assertSame(
+                            $roleType === 'head',
+                            (bool) ($capabilities['approve'] ?? false)
+                        );
 
                         continue;
                     }
@@ -108,9 +105,7 @@ class IsolatedRolePermissionsTest extends TestCase
         $admin = $this->systemAdmin();
 
         $this->actingAs($admin)
-            ->post(route('admin.users.store'), [
-                '_permission_update' => '1',
-                'role_key' => 'warehouse_head',
+            ->put(route('admin.roles-permissions.update', ['rolePermission' => 'warehouse_head']), [
                 'permissions' => [
                     'warehouse' => [
                         'view' => '1',
@@ -119,7 +114,8 @@ class IsolatedRolePermissionsTest extends TestCase
                     ],
                     'analytics' => [
                         'view' => '1',
-                        'analyze' => '1',
+                        'diagnostic' => '1',
+                        'predictive' => '1',
                         'recommendations' => '1',
                     ],
                     'administration' => [
@@ -145,7 +141,8 @@ class IsolatedRolePermissionsTest extends TestCase
 
         // Analytics is explicitly shareable while operational modules remain isolated.
         $this->assertTrue((bool) data_get($role->permissions, 'analytics.view'));
-        $this->assertTrue((bool) data_get($role->permissions, 'analytics.analyze'));
+        $this->assertTrue((bool) data_get($role->permissions, 'analytics.diagnostic'));
+        $this->assertTrue((bool) data_get($role->permissions, 'analytics.predictive'));
         $this->assertTrue((bool) data_get($role->permissions, 'analytics.recommendations'));
 
         Event::assertDispatched(
@@ -156,6 +153,36 @@ class IsolatedRolePermissionsTest extends TestCase
                 && $event->action === 'permissions_updated'
                 && $event->record_id === 'warehouse_head'
         );
+    }
+
+    public function test_only_full_control_admin_can_update_roles_and_protected_role_is_forbidden(): void
+    {
+        $payload = ['permissions' => ['warehouse' => ['view' => '1']]];
+
+        $staff = User::factory()->create([
+            'department' => 'Admin', 'role' => 'staff', 'status' => 'Active',
+            'must_change_password' => false, 'onboarding_completed' => true,
+        ]);
+        $this->actingAs($staff)
+            ->put(route('admin.roles-permissions.update', ['rolePermission' => 'warehouse_head']), $payload)
+            ->assertForbidden();
+
+        $this->actingAs($this->systemAdmin())
+            ->put(route('admin.roles-permissions.update', ['rolePermission' => 'admin_head']), $payload)
+            ->assertForbidden();
+    }
+
+    public function test_permissions_can_no_longer_be_updated_through_account_creation(): void
+    {
+        $before = RolePermission::where('role_key', 'warehouse_head')->firstOrFail()->permissions;
+        $this->actingAs($this->systemAdmin())
+            ->post(route('admin.users.store'), [
+                '_permission_update' => '1',
+                'role_key' => 'warehouse_head',
+                'permissions' => ['warehouse' => ['approve' => '1']],
+            ])
+            ->assertSessionHasErrors(['name', 'email', 'password', 'department', 'role', 'status']);
+        $this->assertSame($before, RolePermission::where('role_key', 'warehouse_head')->firstOrFail()->permissions);
     }
 
     public function test_department_accounts_cannot_open_other_department_modules_by_url(): void
@@ -262,5 +289,85 @@ class IsolatedRolePermissionsTest extends TestCase
         $this->assertStringContainsString("registerInitializer(\n    'admin-role-permissions'", $source);
         $this->assertStringContainsString("'.permissions-page'", $source);
         $this->assertStringNotContainsString('DOMContentLoaded', $source);
+    }
+
+    public function test_department_descriptive_analytics_reuses_admin_route_with_scoped_content(): void
+    {
+        $head = User::factory()->create([
+            'department' => 'Maintenance',
+            'role' => 'head',
+            'status' => 'Active',
+            'must_change_password' => false,
+            'onboarding_completed' => true,
+        ]);
+        $role = RolePermission::where('role_key', 'maintenance_head')->firstOrFail();
+        $permissions = $role->permissions;
+        data_set($permissions, 'analytics.view', false);
+        $role->update(['permissions' => $permissions]);
+
+        $this->actingAs($head)->get(route('analytics.descriptive'))->assertForbidden();
+
+        data_set($permissions, 'analytics.view', true);
+        $role->update(['permissions' => $permissions]);
+
+        $this->actingAs($head)->get(route('analytics.descriptive'))
+            ->assertOk()
+            ->assertViewIs('Admin.Analytics.descriptive.layout')
+            ->assertViewHas('departmentScoped', true)
+            ->assertSee('Total Job Orders')->assertSee('Monthly Fuel Consumption')
+            ->assertDontSee('Operational and administrative summaries from recorded system activity');
+
+        $this->actingAs($head)->get(route('analytics.department.stage', ['stage' => 'descriptive']))
+            ->assertRedirect(route('analytics.descriptive', [
+                'from' => now()->startOfMonth()->subMonths(5)->toDateString(),
+                'to' => now()->toDateString(),
+            ]));
+
+        // View alone never grants Analyze or Recommendations access.
+        $this->actingAs($head)->get(route('analytics.stage', ['stage' => 'diagnostic']))
+            ->assertForbidden();
+    }
+
+    public function test_diagnostic_and_predictive_access_can_be_granted_independently(): void
+    {
+        $head = User::factory()->create([
+            'department' => 'Maintenance',
+            'role' => 'head',
+            'status' => 'Active',
+            'must_change_password' => false,
+            'onboarding_completed' => true,
+        ]);
+
+        $role = RolePermission::where('role_key', 'maintenance_head')->firstOrFail();
+        $permissions = $role->permissions;
+        data_set($permissions, 'analytics.view', true);
+        data_set($permissions, 'analytics.diagnostic', true);
+        data_set($permissions, 'analytics.predictive', false);
+        data_set($permissions, 'analytics.recommendations', false);
+        $role->update(['permissions' => $permissions]);
+
+        $this->actingAs($head);
+        $this->assertTrue($head->hasSystemPermission('analytics', 'diagnostic'));
+        $this->assertFalse($head->hasSystemPermission('analytics', 'predictive'));
+        $this->get(route('analytics.stage', ['stage' => 'diagnostic']))->assertOk();
+        $this->get(route('analytics.stage', ['stage' => 'predictive']))->assertForbidden();
+
+        data_set($permissions, 'analytics.diagnostic', false);
+        data_set($permissions, 'analytics.predictive', true);
+        $role->update(['permissions' => $permissions]);
+
+        $this->assertFalse($head->hasSystemPermission('analytics', 'diagnostic'));
+        $this->assertTrue($head->hasSystemPermission('analytics', 'predictive'));
+        $this->get(route('analytics.stage', ['stage' => 'diagnostic']))->assertForbidden();
+        $this->get(route('analytics.stage', ['stage' => 'predictive']))->assertOk();
+    }
+
+    public function test_system_admin_descriptive_analytics_still_uses_original_unrestricted_view(): void
+    {
+        $this->actingAs($this->systemAdmin())
+            ->get(route('analytics.descriptive'))
+            ->assertOk()
+            ->assertViewIs('Admin.Analytics.descriptive.layout')
+            ->assertSee('Operational and administrative summaries from recorded system activity');
     }
 }

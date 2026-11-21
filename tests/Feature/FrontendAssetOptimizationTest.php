@@ -59,22 +59,11 @@ class FrontendAssetOptimizationTest extends TestCase
 
     public function test_duplicate_toast_and_data_history_entries_are_removed(): void
     {
-        $notificationSettings = file_get_contents(
-            resource_path('views/Admin/Settings/notification-settings.blade.php')
-        );
         $dataHistory = file_get_contents(
             resource_path('views/Admin/Data_Management/data-history.blade.php')
         );
         $vite = file_get_contents(base_path('vite.config.js'));
 
-        $this->assertStringNotContainsString(
-            'resources/css/Main-styles/system-toast.css',
-            $notificationSettings
-        );
-        $this->assertStringNotContainsString(
-            'resources/js/Main-js/system-toast.js',
-            $notificationSettings
-        );
         $this->assertStringNotContainsString(
             'resources/js/Admin/Data_Management/data-history.js',
             $dataHistory
@@ -238,6 +227,22 @@ class FrontendAssetOptimizationTest extends TestCase
         $this->assertStringContainsString('.assignment-calendar-legend-grid', $css);
         $this->assertStringContainsString('.assignment-calendar-dot.is-missed', $css);
         $this->assertStringContainsString('resources/js/Operation/Scheduling_And_Dispatch/assignment-calendar.js', $vite);
+    }
+
+
+    public function test_global_confirmation_and_notifications_have_dark_mode_styles_and_logout_icon(): void
+    {
+        $css = file_get_contents(resource_path('css/Main-styles/main.css'));
+        $script = file_get_contents(resource_path('js/Main-js/confirmation-modal.js'));
+        $sidebar = file_get_contents(resource_path('views/components/layout/sidebar.blade.php'));
+
+        $this->assertStringContainsString('html[data-gct-theme="dark"] #globalConfirmationModal .global-confirmation-box', $css);
+        $this->assertStringContainsString('html[data-gct-theme="dark"] #globalConfirmationModal .cancel-btn', $css);
+        $this->assertStringContainsString('html[data-gct-theme="dark"] .feedback-modal-overlay .modal-card', $css);
+        $this->assertStringContainsString('html[data-gct-theme="dark"] .system-toast-notification', $css);
+        $this->assertStringContainsString("case 'logout':", $script);
+        $this->assertStringContainsString("icon: 'fa-right-from-bracket'", $script);
+        $this->assertStringContainsString('data-confirm-type="logout"', $sidebar);
     }
 
 }

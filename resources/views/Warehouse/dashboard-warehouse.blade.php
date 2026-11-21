@@ -269,6 +269,7 @@
             </div>
             <a href="{{ route('incoming-deliveries') }}" class="warehouse-panel-link">View All <i class="fa-solid fa-arrow-right"></i></a>
           </header>
+          @if($expectedDeliveries->isNotEmpty())
           <div class="warehouse-table-scroll">
             <table class="warehouse-dashboard-table">
               <thead>
@@ -281,7 +282,7 @@
                 </tr>
               </thead>
               <tbody>
-                @forelse($expectedDeliveries->take(5) as $delivery)
+                @foreach($expectedDeliveries->take(5) as $delivery)
                   @php
                     $deliveryItems = collect($delivery->items ?? []);
                     $deliveryQty = (int) $deliveryItems->sum(fn ($item) => (int) ($item['quantity'] ?? 0));
@@ -293,17 +294,17 @@
                     <td><x-ui.status-badge :status="$delivery->status" class="warehouse-status {{ $delivery->status === 'For Delivery' ? 'green' : 'yellow' }}" /></td>
                     <td>{{ $delivery->po_date?->format('M d, Y') ?? 'No date' }}</td>
                   </tr>
-                @empty
-                  <x-ui.empty-row
-                    colspan="5"
-                    icon="fa-truck-ramp-box"
-                    message="No Incoming Deliveries"
-                    description="No pending purchase orders are scheduled for warehouse delivery."
-                  />
-                @endforelse
+                @endforeach
               </tbody>
             </table>
           </div>
+          @else
+          <div class="warehouse-queue-empty" role="status">
+            <span class="warehouse-queue-empty-icon" aria-hidden="true"><i class="fa-solid fa-truck-ramp-box"></i></span>
+            <strong>No Incoming Deliveries</strong>
+            <p>No pending purchase orders are scheduled for warehouse delivery.</p>
+          </div>
+          @endif
         </article>
 
         <article class="warehouse-panel warehouse-queue-panel" data-ajax-region="dashboard-part-requests">
@@ -314,6 +315,7 @@
             </div>
             <a href="{{ route('part-requests') }}" class="warehouse-panel-link">View All <i class="fa-solid fa-arrow-right"></i></a>
           </header>
+          @if($activePartRequests->isNotEmpty())
           <div class="warehouse-table-scroll">
             <table class="warehouse-dashboard-table">
               <thead>
@@ -325,24 +327,24 @@
                 </tr>
               </thead>
               <tbody>
-                @forelse($activePartRequests->take(5) as $request)
+                @foreach($activePartRequests->take(5) as $request)
                   <tr>
                     <td><a href="{{ route('part-requests', ['search' => $request->pr_no]) }}" class="warehouse-reference">{{ $request->pr_no }}</a></td>
                     <td title="{{ $request->job_order_no ?? '—' }}">{{ $request->job_order_no ?? '—' }}</td>
                     <td><x-ui.status-badge :status="$request->status" class="warehouse-status" /></td>
                     <td>{{ $request->created_at?->format('M d') ?? '—' }}</td>
                   </tr>
-                @empty
-                  <x-ui.empty-row
-                    colspan="4"
-                    icon="fa-clipboard-list"
-                    message="No Active Part Requests"
-                    description="No maintenance requisitions are currently awaiting fulfillment."
-                  />
-                @endforelse
+                @endforeach
               </tbody>
             </table>
           </div>
+          @else
+          <div class="warehouse-queue-empty" role="status">
+            <span class="warehouse-queue-empty-icon" aria-hidden="true"><i class="fa-solid fa-clipboard-list"></i></span>
+            <strong>No Active Part Requests</strong>
+            <p>No maintenance requisitions are currently awaiting fulfillment.</p>
+          </div>
+          @endif
         </article>
 
         <article class="warehouse-panel warehouse-audit-panel" data-ajax-region="recent-stock-movements">

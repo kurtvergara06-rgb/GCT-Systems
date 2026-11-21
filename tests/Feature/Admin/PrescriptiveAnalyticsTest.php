@@ -43,7 +43,7 @@ class PrescriptiveAnalyticsTest extends TestCase
         $response->assertRedirect(route('login'));
     }
 
-    public function test_operations_prescriptive_view_renders_demo_simulation_when_no_records(): void
+    public function test_operations_prescriptive_view_uses_empty_live_records_instead_of_demo(): void
     {
         $admin = $this->createAdmin();
 
@@ -62,16 +62,19 @@ class PrescriptiveAnalyticsTest extends TestCase
             ->assertSeeText('Active Driver Candidates')
             ->assertSeeText('Active Bus Candidates')
             ->assertSeeText('Scheduling Conflicts')
-            ->assertSeeText('Recommended Departure & Trip Schedules')
+            ->assertSeeText('Pending Trip Assignment Recommendations')
             ->assertDontSeeText('Thesis Objective 6.4 Decision Support Mandate');
 
         $opsData = $response->viewData('operationsPrescriptive');
-        $this->assertTrue($opsData->is_demo);
-        $this->assertGreaterThan(0, $opsData->trips_needing_assignment);
+        $this->assertFalse($opsData->is_demo);
+        $this->assertSame(0, $opsData->trips_needing_assignment);
     }
 
     public function test_operations_prescriptive_view_renders_live_records(): void
     {
+        // Prescriptive recommendations deliberately exclude trips that have already departed.
+        // Freeze the clock before the fixture's 07:30 departure within the requested month.
+        $this->travelTo(now(config('app.business_timezone', 'Asia/Manila'))->startOfMonth()->setTime(6, 0));
         $admin = $this->createAdmin();
 
         $bus = Bus::create([
@@ -99,7 +102,7 @@ class PrescriptiveAnalyticsTest extends TestCase
         $trip = TripSchedule::create([
             'trip_code' => 'T-LIVE-2026',
             'shuttle_route_id' => $route->id,
-            'trip_date' => now()->toDateString(),
+            'trip_date' => now(config('app.business_timezone', 'Asia/Manila'))->addDay()->toDateString(),
             'departure_time' => '07:30:00',
             'estimated_arrival_time' => '08:15:00',
             'shift' => 'Morning',
@@ -111,6 +114,9 @@ class PrescriptiveAnalyticsTest extends TestCase
             'status' => 'Scheduled',
         ]);
 
+        $this->assertFalse($trip->fresh()->hasDeparted(), 'Live fixture should still be before departure.');
+        $this->assertFalse($trip->fresh()->hasOperationalHistory(), 'Unassigned fixture must have no operational history.');
+
         $response = $this->actingAs($admin)->get(route('analytics.stage', [
             'stage' => 'prescriptive',
             'domain' => 'fleet-trip',
@@ -119,19 +125,26 @@ class PrescriptiveAnalyticsTest extends TestCase
 
         $response->assertOk()
             ->assertViewIs('Admin.Analytics.prescriptive.layout')
-            ->assertViewHas('activePrescriptiveView', 'operations')
-            ->assertSeeText('T-LIVE-2026')
-            ->assertDontSeeText('Live Database Records');
+            ->assertViewHas('activePrescriptiveView', 'operations');
 
+        $this->assertDatabaseHas('trip_schedules', ['id' => $trip->id, 'trip_code' => 'T-LIVE-2026']);
         $opsData = $response->viewData('operationsPrescriptive');
         $this->assertFalse($opsData->is_demo);
+        $this->assertGreaterThanOrEqual(1, $opsData->real_count, 'Current-month query must include the saved live trip.');
+        $this->assertContains(
+            'T-LIVE-2026',
+            $opsData->schedule_recommendations->pluck('trip_code')->all(),
+            'Saved future trip must qualify for the recommendation table.'
+        );
+        $response->assertSeeText('T-LIVE-2026')
+            ->assertDontSeeText('Live Database Records');
         $this->assertGreaterThanOrEqual(1, $opsData->trips_needing_assignment);
         $this->assertSame('Requires review', $opsData->driver_recommendations->first()->eligibility);
         $this->assertSame('Needs review', $opsData->schedule_recommendations->first()->headway_gap);
         $response->assertDontSeeText('15m+ verified');
     }
 
-    public function test_restocking_prescriptive_view_renders_demo_simulation_when_no_records(): void
+    public function test_restocking_empty_inventory_does_not_invent_demo_records(): void
     {
         $admin = $this->createAdmin();
 
@@ -154,8 +167,10 @@ class PrescriptiveAnalyticsTest extends TestCase
             ->assertSeeText('Strategic Restocking Playbooks');
 
         $restockData = $response->viewData('restockingPrescriptive');
-        $this->assertTrue($restockData->is_demo);
-        $this->assertGreaterThan(0, $restockData->recommended_restock_qty);
+        $this->assertFalse($restockData->is_demo);
+        $this->assertSame(0, $restockData->recommended_restock_qty);
+        $this->assertCount(0, $restockData->restock_items);
+        $response->assertSeeText('No inventory records available');
     }
 
     public function test_restocking_prescriptive_view_renders_live_records(): void
@@ -224,4 +239,21 @@ class PrescriptiveAnalyticsTest extends TestCase
             ->assertDontSeeText('Urgent Brake System Restock');
         $this->assertFalse($response->viewData('restockingPrescriptive')->is_demo);
     }
+    public function test_maintenance_attention_does_not_invent_failure_predictions(): void
+    {
+        $admin = $this->createAdmin();
+        $response = $this->actingAs($admin)->get(route('analytics.stage', [
+            'stage' => 'predictive',
+            'domain' => 'bus-health',
+        ]));
+        $response->assertOk()
+            ->assertSeeText('Maintenance Attention by Recorded Evidence')
+            ->assertSeeText('Bus Maintenance Attention')
+            ->assertDontSeeText('GCT-108')
+            ->assertDontSeeText('Predicted Component at Risk');
+        $prediction = $response->viewData('predictive');
+        $this->assertSame(0, $prediction->bus_health->horizons['immediate']->count);
+        $this->assertSame(0, $prediction->bus_health->horizons['high']->count);
+    }
+
 }

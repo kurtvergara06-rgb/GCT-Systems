@@ -113,3 +113,47 @@
   font-weight: 800;
   border-radius: 8px;
 }
+
+
+/* Warehouse modal overlay contract.
+ * Reuse this shared rule instead of repeating fixed positioning, backdrop,
+ * padding and centering in individual Warehouse page stylesheets.
+ * Visibility remains owned by each existing modal controller.
+ */
+body[data-gct-warehouse-page="1"] .warehouse-view-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--modal-backdrop-z-index, 99999);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: clamp(12px, 2.5vh, 24px);
+  overflow: auto;
+  overscroll-behavior: contain;
+  background: var(--modal-backdrop-bg, rgba(15, 23, 42, .42));
+  backdrop-filter: var(--modal-backdrop-blur, blur(5px));
+  -webkit-backdrop-filter: var(--modal-backdrop-blur, blur(5px));
+}
+body[data-gct-warehouse-page="1"] .warehouse-view-overlay:is(.show, .active) {
+  display: flex;
+}
+/* Align Warehouse dialogs in the viewport even when their content exceeds
+ * available height. Retain each modal's own width and internal scroll areas.
+ */
+body[data-gct-warehouse-page="1"] :is(
+  .warehouse-view-overlay .warehouse-edit-style-modal,
+  #warehouseRestockPrModal .warehouse-restock-pr-dialog,
+  #warehouseRestockViewModal .restock-view-modal,
+  #addModal .inventory-add-dialog,
+  #editModal .inventory-edit-dialog,
+  #viewModal .modal-box,
+  #movementHistoryModal .modal-box,
+  #warehouseItemRequestDetails .ir-modal,
+  #warehouseIrSlipModal .ir-modal,
+  #incomingReceiptModal .incoming-receipt-dialog
+) {
+  margin: auto;
+  max-width: calc(100vw - 24px);
+  max-height: calc(100dvh - 24px);
+}

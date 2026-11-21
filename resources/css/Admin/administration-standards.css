@@ -36,3 +36,212 @@
     font: inherit;
     line-height: inherit;
 }
+
+
+/*
+ * Shared Admin summary-card presentation.
+ * The pages use <x-ui.summary-card>; only page-specific layout remains in
+ * their stylesheets. This loads after Admin page CSS on every Admin route.
+ * Scoped to the existing Admin summary regions to avoid changing other modules.
+ */
+:is(
+    .activity-logs-page .activity-stats-grid,
+    .data-history-page .history-stats-grid,
+    .notifications-page .notification-stats-grid
+) {
+    gap: 16px;
+    margin-bottom: 20px;
+}
+:is(
+    .activity-logs-page .activity-stats-grid,
+    .data-history-page .history-stats-grid,
+    .notifications-page .notification-stats-grid
+) :is(.stat-card, .stat-card-link) {
+    min-height: 112px;
+    padding: 18px 20px;
+    border: 1px solid light-dark(#dce5f2, var(--gct-theme-border));
+    border-radius: 16px;
+    background: light-dark(#ffffff, var(--gct-theme-surface));
+    box-shadow: 0 4px 16px rgba(6, 31, 61, 0.07);
+    display: grid;
+    grid-template-columns: 48px minmax(0, 1fr);
+    align-items: center;
+    gap: 14px;
+    transition: box-shadow .18s ease;
+}
+:is(
+    .activity-logs-page .activity-stats-grid,
+    .data-history-page .history-stats-grid,
+    .notifications-page .notification-stats-grid
+) .stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    font-size: 18px;
+}
+:is(
+    .activity-logs-page .activity-stats-grid,
+    .data-history-page .history-stats-grid,
+    .notifications-page .notification-stats-grid
+) :is(.stat-card, .stat-card-link) p {
+    margin: 0;
+    color: light-dark(#64748b, var(--gct-theme-muted));
+    font-size: 12px;
+    font-weight: 600;
+}
+:is(
+    .activity-logs-page .activity-stats-grid,
+    .data-history-page .history-stats-grid,
+    .notifications-page .notification-stats-grid
+) :is(.stat-card, .stat-card-link) h2 {
+    margin: 3px 0 2px;
+    color: light-dark(#061f3d, var(--gct-theme-fg));
+    font-size: 25px;
+    font-weight: 800;
+    line-height: 1;
+}
+:is(
+    .activity-logs-page .activity-stats-grid,
+    .data-history-page .history-stats-grid,
+    .notifications-page .notification-stats-grid
+) :is(.stat-card, .stat-card-link) small {
+    color: light-dark(#64748b, var(--gct-theme-muted));
+    font-size: 11px;
+}
+
+
+/* All Admin pages use the same <x-layout.topbar> typography and spacing. */
+:is(.activity-logs-page, .data-history-page, .notifications-page) .topbar {
+    margin-bottom: 20px;
+}
+:is(.activity-logs-page, .data-history-page, .notifications-page) .topbar h1 {
+    color: light-dark(#061f3d, var(--gct-theme-fg));
+    letter-spacing: -.02em;
+}
+:is(.activity-logs-page, .data-history-page, .notifications-page) .topbar p {
+    color: light-dark(#64748b, var(--gct-theme-muted));
+}
+
+
+/*
+ * Admin overlay positioning: the common styles live here instead of being
+ * reimplemented by each account/activity/GPS/import screen.
+ * Preserve each component's own display/visibility toggles and event handling.
+ */
+@media screen {
+  body[data-gct-admin-page="1"] :is(
+    .admin-modal-overlay,
+    .activity-modal-overlay,
+    .history-modal-overlay,
+    .records-modal-overlay,
+    .batch-feedback-overlay,
+    .batch-delete-modal-overlay,
+    .edit-trip-modal-overlay,
+    .generic-batch-review-overlay,
+    .modal-overlay,
+    .confirm-modal-overlay,
+    .confirmation-modal-overlay
+  ) {
+    position: fixed;
+    inset: 0;
+    box-sizing: border-box;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(12px, 3vh, 24px);
+    max-width: none;
+    max-height: none;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  body[data-gct-admin-page="1"] :is(
+    .admin-modal-overlay,
+    .activity-modal-overlay,
+    .history-modal-overlay,
+    .records-modal-overlay,
+    .batch-feedback-overlay,
+    .batch-delete-modal-overlay,
+    .edit-trip-modal-overlay,
+    .generic-batch-review-overlay,
+    .modal-overlay,
+    .confirm-modal-overlay,
+    .confirmation-modal-overlay
+  ) > :is(
+    .admin-user-modal,
+    .activity-modal,
+    .history-modal,
+    .records-modal,
+    .batch-feedback-modal,
+    .batch-delete-modal,
+    .edit-trip-modal,
+    .generic-batch-review-modal,
+    .modal,
+    .confirm-modal,
+    .system-confirm-modal
+  ) {
+    box-sizing: border-box;
+    flex: 0 1 auto;
+    min-width: 0;
+    /* Respect each dialog's own width (confirmation, detail, and batch). */
+    max-width: 100%;
+    max-height: calc(100dvh - clamp(24px, 6vh, 48px));
+    margin: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  /* Keep wider GPS review panels wide; their records scroll inside. */
+  body[data-gct-admin-page="1"] :is(.records-modal-overlay, .generic-batch-review-overlay)
+    > :is(.records-modal, .generic-batch-review-modal) {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  body[data-gct-admin-page="1"] :is(.records-modal, .generic-batch-review-modal)
+    :is(.records-modal-body, .records-modal-table-wrap, .generic-review-modal-table-wrap) {
+    min-height: 0;
+    max-width: 100%;
+    overflow: auto;
+  }
+
+  body[data-gct-admin-page="1"] :is(.activity-modal, .history-modal) {
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  body[data-gct-admin-page="1"] :is(.activity-modal-body, .history-modal-body) {
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  /* Native HTML dialogs remain centered when shown by showModal(). */
+  body[data-gct-admin-page="1"] dialog.admin-ml-dialog:modal {
+    position: fixed;
+    inset: 0;
+    margin: auto;
+    max-width: calc(100vw - 24px);
+    max-height: calc(100dvh - 24px);
+    overflow-y: auto;
+  }
+
+  /*
+   * Shared Search / Filter / Sort dropdowns stay below their triggers.
+   * Contain tall popovers and avoid clipping at narrow viewports.
+   */
+  body[data-gct-admin-page="1"] .gct-table-toolbar,
+  body[data-gct-admin-page="1"] .gct-table-tool {
+    overflow: visible;
+  }
+  body[data-gct-admin-page="1"] .gct-table-tool-popover:not([hidden]) {
+    /* Native popover placement is computed by the shared toolbar runtime. */
+    box-sizing: border-box;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+}
+
+/* Admin table popovers use the shared viewport-aware positioning runtime at every breakpoint. */

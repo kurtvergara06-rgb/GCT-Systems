@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\Operation\AutoSchedulingController;
 use App\Http\Controllers\Operation\BusAvailabilityController;
+use App\Http\Controllers\Operation\PersonnelController;
+use App\Http\Controllers\Operation\BatchAttendanceController;
 use App\Http\Controllers\Operation\BusController;
 use App\Http\Controllers\Operation\ClientMasterListController;
 use App\Http\Controllers\Operation\ClientTripTimeController;
@@ -66,6 +68,23 @@ Route::middleware('role:operation:head,operation:staff,admin:head')->group(funct
         });
 
     Route::redirect('/attendance', '/driver-attendance')->name('attendance');
+
+    // Restore the existing Driver and legacy Mechanic Master List URLs.
+    // Mechanic writes are additionally guarded by the controller's Maintenance
+    // ownership check; Operation can only inspect its legacy list.
+    Route::controller(PersonnelController::class)->prefix('operation/personnel')->group(function () {
+        Route::get('/drivers', 'drivers')->middleware('system.permission:operation,view')->name('operation.personnel.drivers');
+        Route::post('/drivers', 'storeDriver')->middleware('system.permission:operation,edit')->name('operation.personnel.drivers.store');
+        Route::put('/drivers/{driver}', 'updateDriver')->middleware('system.permission:operation,edit')->name('operation.personnel.drivers.update');
+        Route::patch('/drivers/{driver}/deactivate', 'deactivateDriver')->middleware('system.permission:operation,edit')->name('operation.personnel.drivers.deactivate');
+
+        Route::get('/mechanics', 'mechanics')->middleware('system.permission:operation,view')->name('operation.personnel.mechanics');
+        Route::post('/mechanics', 'storeMechanic')->middleware('system.permission:operation,edit')->name('operation.personnel.mechanics.store');
+        Route::put('/mechanics/{mechanic}', 'updateMechanic')->middleware('system.permission:operation,edit')->name('operation.personnel.mechanics.update');
+        Route::patch('/mechanics/{mechanic}/deactivate', 'deactivateMechanic')->middleware('system.permission:operation,edit')->name('operation.personnel.mechanics.deactivate');
+        Route::patch('/mechanics/{mechanic}/activate', 'activateMechanic')->middleware('system.permission:operation,edit')->name('operation.personnel.mechanics.activate');
+    });
+
 
     Route::get('/operation/routes', [RouteController::class, 'index'])->middleware('system.permission:operation,view')->name('operation.routes');
     Route::post('/operation/routes', [RouteController::class, 'store'])->middleware('system.permission:operation,edit')->name('operation.routes.store');
@@ -212,7 +231,46 @@ Route::middleware('role:operation:head,operation:staff,admin:head')->group(funct
     });
 });
 
-Route::middleware(['role:operation:head,operation:staff,maintenance:head,maintenance:staff,maintenance:admin,maintenance:maintenance head,maintenance:maintenance staff,maintenance:maintenance admin,admin:head,admin:admin,admin:system admin'])
+
+/*
+ * Batch attendance: one UI endpoint for driver and mechanic rosters. The
+ * controller validates the requested type and enforces that department's
+ * view/edit permission before fetching or changing any records.
+ */
+Route::middleware('role:operation:head,operation:staff,maintenance:head,maintenance:staff,maintenance:admin,maintenance:maintenance head,maintenance:maintenance staff,maintenance:maintenance admin,admin:head,admin:admin,admin:system admin')
+    ->controller(BatchAttendanceController::class)
+    ->prefix('operation/attendance/batch')
+    ->group(function () {
+        Route::get('/{type}', 'roster')->whereIn('type', ['driver', 'mechanic'])->name('operation.attendance.batch.roster');
+        Route::post('/{type}', 'store')->whereIn('type', ['driver', 'mechanic'])->name('operation.attendance.batch.store');
+    });
+
+/*
+ * Mechanic master records and qualifications are Maintenance-owned. Keep
+ * their original named routes for the Maintenance navigation and modals.
+ */
+Route::middleware('role:maintenance:head,maintenance:staff,maintenance:admin,maintenance:maintenance head,maintenance:maintenance staff,maintenance:maintenance admin,admin:head,admin:admin,admin:system admin')
+    ->controller(BatchAttendanceController::class)
+    ->prefix('maintenance/attendance/batch')
+    ->group(function () {
+        Route::get('/mechanic', 'roster')->defaults('type', 'mechanic')->name('maintenance.attendance.batch.roster');
+        Route::post('/mechanic', 'store')->defaults('type', 'mechanic')->name('maintenance.attendance.batch.store');
+    });
+
+Route::middleware('role:maintenance:head,maintenance:staff,maintenance:admin,maintenance:maintenance head,maintenance:maintenance staff,maintenance:maintenance admin,admin:head,admin:admin,admin:system admin')
+    ->controller(PersonnelController::class)
+    ->prefix('maintenance/personnel/mechanics')
+    ->group(function () {
+        Route::get('/', 'mechanics')->middleware('system.permission:maintenance,view')->name('maintenance.personnel.mechanics');
+        Route::post('/', 'storeMechanic')->middleware('system.permission:maintenance,edit')->name('maintenance.personnel.mechanics.store');
+        Route::put('/{mechanic}', 'updateMechanic')->middleware('system.permission:maintenance,edit')->name('maintenance.personnel.mechanics.update');
+        Route::patch('/{mechanic}/deactivate', 'deactivateMechanic')->middleware('system.permission:maintenance,edit')->name('maintenance.personnel.mechanics.deactivate');
+        Route::patch('/{mechanic}/activate', 'activateMechanic')->middleware('system.permission:maintenance,edit')->name('maintenance.personnel.mechanics.activate');
+        Route::post('/specializations', 'storeMechanicSpecialization')->middleware('system.permission:maintenance,edit')->name('maintenance.personnel.mechanics.specializations.store');
+        Route::delete('/specializations/{specialization}', 'deleteMechanicSpecialization')->middleware('system.permission:maintenance,edit')->name('maintenance.personnel.mechanics.specializations.destroy');
+    });
+
+Route::middleware(['role:maintenance:head,maintenance:staff,maintenance:admin,maintenance:maintenance head,maintenance:maintenance staff,maintenance:maintenance admin,admin:head,admin:admin,admin:system admin'])
     ->controller(MechanicAttendanceController::class)
     ->prefix('mechanic-attendance')
     ->group(function () {
@@ -224,5 +282,5 @@ Route::middleware(['role:operation:head,operation:staff,maintenance:head,mainten
     });
 
 Route::redirect('/available-mechanics', '/mechanic-attendance')
-    ->middleware(['role:operation:head,operation:staff,admin:head', 'system.permission:operation,view'])
+    ->middleware(['role:maintenance:head,maintenance:staff,maintenance:admin,maintenance:maintenance head,maintenance:maintenance staff,maintenance:maintenance admin,admin:head,admin:admin,admin:system admin', 'system.permission:maintenance,view'])
     ->name('available-mechanics');

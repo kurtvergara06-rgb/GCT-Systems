@@ -70,7 +70,7 @@
     padding: 10px 12px;
     border: 1px solid #e0e8f3;
     border-radius: 10px;
-    background: #f8fbff;
+    background: light-dark(#f8fbff, var(--gct-theme-surface));
 }
 
 .generic-meta-item span {
@@ -122,7 +122,7 @@
     overflow: auto;
     border: 1px solid #dce6f3;
     border-radius: 11px;
-    background: #fff;
+    background: light-dark(#fff, var(--gct-theme-surface));
 }
 
 .generic-review-modal-table-wrap {
@@ -167,7 +167,7 @@
     border: 1px solid #d8e2ef;
     border-radius: 8px;
     outline: none;
-    background: #fff;
+    background: light-dark(#fff, var(--gct-theme-surface));
     padding: 8px 9px;
     color: #1d3557;
     font: inherit;

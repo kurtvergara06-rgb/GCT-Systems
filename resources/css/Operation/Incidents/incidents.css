@@ -606,7 +606,7 @@
     position: sticky;
     top: 0;
     z-index: 10;
-    background-color: #f1f5f9 !important;
+    background-color: var(--inc-table-heading-bg, #f1f5f9) !important;
 
     padding: 13px 14px;
 
@@ -3071,14 +3071,14 @@
 
 .inc-expanded-row > td {
     padding: 0 16px 20px !important;
-    background: #f8fafc !important;
-    border-bottom: 1.5px solid #cbd5e1 !important;
+    background: var(--inc-expanded-row-bg, #f8fafc) !important;
+    border-bottom: 1.5px solid var(--inc-expanded-row-border, #cbd5e1) !important;
     text-align: left !important;
 }
 
 .inc-expanded-content {
-    background: #ffffff;
-    border: 1.5px solid #cbd5e1;
+    background: var(--inc-expanded-content-bg, #ffffff);
+    border: 1.5px solid var(--inc-expanded-row-border, #cbd5e1);
     border-radius: 14px;
     padding: 24px 28px;
     box-shadow: 0 4px 16px rgba(6, 31, 61, 0.05);

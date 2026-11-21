@@ -40,13 +40,16 @@ export default defineConfig({
                 // ======================================================
 
                 'resources/css/Login/login.css',
+                'resources/css/Login/legal.css',
                 'resources/js/Login/login.js',
+                'resources/js/Login/legal-modal.js',
 
                 // ======================================================
                 // ADMIN — DASHBOARD
                 // ======================================================
 
                 'resources/css/Admin/administration-standards.css',
+                'resources/css/Admin/admin-dark-mode.css',
                 'resources/css/Admin/admin-dashboard.css',
                 'resources/js/Admin/admin-dashboard.js',
 
@@ -86,9 +89,7 @@ export default defineConfig({
                 // ======================================================
 
                 'resources/css/Admin/Settings/general-settings.css',
-                'resources/css/Admin/Settings/notification-settings.css',
                 'resources/css/Admin/Settings/security-settings.css',
-                'resources/js/Admin/Settings/notification-settings.js',
 
                 // ======================================================
                 // ADMIN — ANALYTICS
@@ -103,6 +104,8 @@ export default defineConfig({
                 'resources/css/Admin/Analytics/model-status-stage.css',
                 'resources/css/Admin/Analytics/department-stage.css',
                 'resources/js/Admin/Analytics/department-stage.js',
+                'resources/css/Admin/Analytics/maintenance.css',
+                'resources/js/Admin/Analytics/maintenance.js',
                 'resources/css/Admin/Analytics/descriptive/descriptive-rebuild.css',
                 'resources/css/Admin/Analytics/descriptive/all.css',
                 'resources/css/Admin/Analytics/descriptive/fleet-trip.css',
@@ -251,6 +254,7 @@ export default defineConfig({
                 'resources/css/Purchase/purchase-history.css',
                 'resources/css/Purchase/purchase-orders.css',
                 'resources/css/Purchase/purchase-module-ui.css',
+                'resources/css/Purchase/purchase-dark-mode.css',
 
                 'resources/css/Purchase/Requested_Purchase/maintenance-requests.css',
                 'resources/css/Purchase/Requested_Purchase/inventory-restock.css',
@@ -265,6 +269,7 @@ export default defineConfig({
 
                 'resources/css/Warehouse/dashboard-warehouse.css',
                 'resources/css/Warehouse/warehouse-status.css',
+                'resources/css/Warehouse/warehouse-dark-mode.css',
                 'resources/css/Warehouse/inventory.css',
                 'resources/css/Warehouse/part-requests.css',
                 'resources/css/Warehouse/part-requests-cleanup.css',

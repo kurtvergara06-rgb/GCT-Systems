@@ -146,6 +146,16 @@ def inventory_readiness() -> InventoryReadiness:
         )
 
     genuine = source == "genuine"
+    if genuine and not (_state or {}).get("genuine_gate_passed", False):
+        return InventoryReadiness(
+            ml_ready=False,
+            source=source,
+            reason="Genuine inventory artifact predates the verified readiness gate; retraining required.",
+            sample_count=sample_count,
+            message="INVENTORY_ML_NOT_READY",
+            model_path=_paths["model"],
+            data_source=source,
+        )
     return InventoryReadiness(
         ml_ready=True,
         source=source,

@@ -4,8 +4,9 @@ Chart.defaults.font.family = 'Poppins, Inter, Arial, Helvetica, sans-serif';
 
 const data = window.predictiveChartData || {};
 
-const AXIS_GRID = '#e8edf5';
-const AXIS_TEXT = '#64748b';
+const isDarkAnalyticsTheme = document.documentElement.dataset.gctTheme === 'dark';
+const AXIS_GRID = isDarkAnalyticsTheme ? '#35465e' : '#e8edf5';
+const AXIS_TEXT = isDarkAnalyticsTheme ? '#b1bfd2' : '#64748b';
 
 const legend = (position = 'bottom') => ({
     position,
@@ -384,26 +385,31 @@ document.addEventListener('DOMContentLoaded', () => {
                         {
                             label: 'Recorded',
                             data: actual,
+                            order: 1,
                             borderColor: '#2563eb',
                             backgroundColor: '#2563eb',
                             tension: 0.4,
                             pointRadius: 4,
                             borderWidth: 2.5,
                             fill: true,
-                            spanGaps: false,
+                            // Connect only observed points; missing dates remain null in the dataset.
+                            spanGaps: true,
                             backgroundColor: (context) => createGradient(context.chart.ctx, context.chart.height, 'rgba(37, 99, 235, .18)'),
                         },
                         {
                             label: 'Forecast',
                             data: forecast,
+                            // Draw dashed estimate over the solid recorded line if values coincide.
+                            order: 0,
                             hidden: !hasNumericValues(forecast),
                             borderColor: '#16a34a',
                             backgroundColor: '#16a34a',
-                            borderDash: [6, 4],
+                            borderDash: [8, 6],
                             tension: 0.4,
-                            pointRadius: 3,
-                            borderWidth: 2,
-                            spanGaps: false,
+                            pointRadius: 0,
+                            pointHoverRadius: 5,
+                            borderWidth: 2.5,
+                            spanGaps: true,
                         },
                     ],
                 },

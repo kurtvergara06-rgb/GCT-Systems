@@ -87,8 +87,8 @@
     overflow-y: auto;
     overflow-x: auto;
     overscroll-behavior: contain;
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
+    background: light-dark(#ffffff, var(--gct-theme-surface));
+    border: 1px solid light-dark(#e2e8f0, var(--gct-theme-border));
     border-radius: 10px;
     scrollbar-gutter: stable;
     scrollbar-width: thin;
@@ -111,9 +111,9 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.4px;
-    color: #475569;
-    background: #f8fafc;
-    border-bottom: 1px solid #e2e8f0;
+    color: light-dark(#475569, var(--gct-theme-muted));
+    background: light-dark(#f8fafc, var(--gct-theme-surface));
+    border-bottom: 1px solid light-dark(#e2e8f0, var(--gct-theme-border));
     box-shadow: 0 1px 0 #e2e8f0;
     text-align: left;
 }
@@ -121,14 +121,14 @@
 .predictive-fuel-page .predictive-table td {
     padding: 11px 14px;
     font-size: 12px;
-    color: #334155;
+    color: light-dark(#334155, var(--gct-theme-fg));
     border-bottom: 1px solid #f1f5f9;
     vertical-align: middle;
 }
 
 .predictive-fuel-page .fuel-data-val {
     font-size: 12px;
-    color: #0f172a;
+    color: light-dark(#0f172a, var(--gct-theme-fg));
     font-weight: 600;
 }
 
@@ -160,7 +160,7 @@
 }
 
 .predictive-fuel-page .eff-val--normal {
-    color: #0f172a;
+    color: light-dark(#0f172a, var(--gct-theme-fg));
 }
 
 .predictive-fuel-page .eff-diff {
@@ -177,7 +177,7 @@
 }
 
 .predictive-fuel-page .eff-diff--normal {
-    color: #64748b;
+    color: light-dark(#64748b, var(--gct-theme-muted));
 }
 
 .predictive-fuel-page .eff-track {
@@ -215,7 +215,7 @@
 
 .predictive-fuel-page .idle-time {
     font-size: 11px;
-    color: #475569;
+    color: light-dark(#475569, var(--gct-theme-muted));
     display: inline-flex;
     align-items: center;
     gap: 4px;
@@ -265,12 +265,12 @@
 
 .predictive-fuel-page .fuel-reason-text {
     font-size: 11px;
-    color: #64748b;
+    color: light-dark(#64748b, var(--gct-theme-muted));
     line-height: 1.35;
 }
 
 .predictive-fuel-page .predictive-table tbody tr:hover {
-    background: #f8fbff;
+    background: light-dark(#f8fbff, var(--gct-theme-surface));
 }
 
 .predictive-fuel-page .issue-row {
@@ -366,7 +366,7 @@
 }
 
 .predictive-fuel-page .fuel-forecast-summary span {
-    color: #64748b;
+    color: light-dark(#64748b, var(--gct-theme-muted));
     font-size: 9px;
     line-height: 1.2;
 }
@@ -449,7 +449,7 @@
     position: absolute;
     width: 110px;
     height: 110px;
-    background: #ffffff;
+    background: light-dark(#ffffff, var(--gct-theme-surface));
     border-radius: 50%;
 }
 
@@ -462,11 +462,11 @@
 .risk-circle span {
     font-size: 26px;
     font-weight: 700;
-    color: #1e293b;
+    color: light-dark(#1e293b, var(--gct-theme-fg));
 }
 
 .risk-circle small {
-    color: #64748b;
+    color: light-dark(#64748b, var(--gct-theme-muted));
     font-size: 11px;
 }
 
@@ -503,7 +503,7 @@
     min-height: 165px;
     padding: 18px;
     text-align: center;
-    color: #64748b;
+    color: light-dark(#64748b, var(--gct-theme-muted));
     font-size: 11px;
 }
 .predictive-fuel-page .fuel-review-empty i {
@@ -512,6 +512,71 @@
 }
 .predictive-fuel-page .fuel-review-empty strong {
     font-size: 12px;
-    color: #1e293b;
+    color: light-dark(#1e293b, var(--gct-theme-fg));
 }
 .predictive-fuel-page .fuel-review-empty span { line-height: 1.5; }
+
+
+/* Evidence-aware fuel empty states and estimate labeling. */
+.predictive-fuel-page .fuel-data-empty {
+    min-height: 250px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    text-align: center;
+    border: 1px dashed light-dark(#d4e0ef, #47607d);
+    border-radius: 12px;
+    background: light-dark(#f8fbff, #1e2e43);
+}
+.predictive-fuel-page .fuel-data-empty--compact {
+    min-height: 190px;
+}
+.predictive-fuel-page .fuel-data-empty__icon {
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
+    background: light-dark(#e9f1ff, #294568);
+    color: light-dark(#2563eb, #b3d0ff);
+    font-size: 19px;
+}
+.predictive-fuel-page .fuel-data-empty strong {
+    font-size: 13px;
+    color: light-dark(#172b4b, #edf3fc);
+}
+.predictive-fuel-page .fuel-data-empty p {
+    max-width: 360px;
+    margin: 0;
+    color: light-dark(#64748b, #b1bfd2);
+    line-height: 1.55;
+    font-size: 11px;
+}
+.predictive-fuel-page .fuel-table-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 7px;
+    padding: 23px 12px;
+    text-align: center;
+    color: light-dark(#64748b, #b1bfd2);
+}
+.predictive-fuel-page .fuel-table-empty i { font-size: 20px; color: light-dark(#2563eb, #a6c8ff); }
+.predictive-fuel-page .fuel-table-empty strong { color: light-dark(#0f172a, #edf3fc); }
+.predictive-fuel-page .fuel-table-empty span { font-size: 11px; line-height: 1.5; }
+.predictive-fuel-page .fuel-estimate-caption {
+    margin: 0 0 10px;
+    color: light-dark(#64748b, #b1bfd2);
+    font-size: 11px;
+    line-height: 1.5;
+}
+html[data-gct-theme="dark"] .predictive-fuel-page .fuel-forecast-summary > div {
+    background: #203249;
+    border-color: #425978;
+}
+html[data-gct-theme="dark"] .predictive-fuel-page .fuel-forecast-summary strong {
+    color: #edf3fc;
+}

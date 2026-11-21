@@ -431,6 +431,7 @@ class TripAssignmentController extends Controller
         $tripClient = mb_strtolower(trim((string) ($tripSchedule->client_name ?? '')));
 
         $canSelectReserve = auth()->user()?->canApproveReadyTripChanges() ?? false;
+        $regularPairAvailable = $this->hasAvailableRegularPair($tripSchedule, $ignoreAssignmentId);
 
         $buses = Bus::query()
             ->with('operationClients:id,name')
@@ -442,13 +443,13 @@ class TripAssignmentController extends Controller
                 fn ($query) => $query->whereNotIn('id', $busyBusIds)
             )
             ->get()
-            ->filter(function (Bus $bus) use ($tripClient): bool {
+            ->filter(function (Bus $bus) use ($tripClient, $regularPairAvailable): bool {
                 $allocations = $bus->operationClients
                     ->pluck('name')
                     ->map(fn ($name) => mb_strtolower(trim((string) $name)));
 
                 if ($bus->fleet_purpose === 'Reserve') {
-                    return true;
+                    return ! $regularPairAvailable;
                 }
 
                 return $tripClient === ''
@@ -467,13 +468,11 @@ class TripAssignmentController extends Controller
                 'purpose' => $bus->fleet_purpose,
             ]);
 
-        // Reserve buses are shared standby assets: they are not tied to
-        // permanent driver authorization or specific clients. The Head may
-        // choose one even when a Regular pair exists, while all safety and
-        // scheduling checks continue to run at confirmation.
         $reserveNotice = ! $canSelectReserve
             ? 'Reserve deployment requires Operations Head authorization.'
-            : 'No active, conflict-free Reserve bus is available for this trip.';
+            : ($regularPairAvailable
+                ? 'An eligible Regular driver/bus pair is available. Reserve deployment is not permitted.'
+                : 'Reserve buses may be used when no eligible Regular driver/bus pair remains.');
 
         return response()->json([
             'reserve_notice' => $reserveNotice,
@@ -1013,9 +1012,8 @@ class TripAssignmentController extends Controller
     }
 
     /**
-     * Shared Reserve fleet can be used by any eligible driver. Only the
-     * Operations Head may authorize deployment. Driver eligibility, bus
-     * maintenance, trip overlaps and duplicate slots are validated elsewhere.
+     * Reserve buses are Head-authorized fallbacks, not a substitute for an
+     * eligible Regular driver/bus pair. Other assignment safeguards still run.
      */
     private function assertReserveAssignmentAllowed(TripSchedule $trip, ?int $ignoreAssignmentId = null): void
     {
@@ -1024,6 +1022,52 @@ class TripAssignmentController extends Controller
                 'bus_id' => 'Only the Operations Head can deploy a Reserve bus.',
             ]);
         }
+        if ($this->hasAvailableRegularPair($trip, $ignoreAssignmentId)) {
+            throw ValidationException::withMessages([
+                'bus_id' => 'Reserve deployment is not allowed while an eligible Regular driver and bus pair is available.',
+            ]);
+        }
+    }
+
+    /**
+     * Return true only for a usable Regular pairing: correct client,
+     * authorized active driver/license, no blocking JO, and no overlapping
+     * trip or duplicate resource on this trip.
+     */
+    private function hasAvailableRegularPair(TripSchedule $trip, ?int $ignoreAssignmentId = null): bool
+    {
+        $busy = $this->conflictingAssignmentsForTrip($trip, $ignoreAssignmentId);
+        $sameTrip = $trip->assignments()
+            ->when($ignoreAssignmentId, fn ($query) => $query->whereKeyNot($ignoreAssignmentId))
+            ->get();
+        $busyDriverIds = $busy->concat($sameTrip)->pluck('driver_id')->filter()->unique()->all();
+        $busyBusIds = $busy->concat($sameTrip)->pluck('bus_id')->filter()->unique()->all();
+        $tripClient = mb_strtolower(trim((string) $trip->client_name));
+
+        $buses = Bus::query()->with(['operationClients:id,name', 'authorizedDrivers'])
+            ->where('status', 'Active')
+            ->where('fleet_purpose', 'Regular')
+            ->whereNotIn('bus_no', JobOrder::query()->blocksDispatch()->select('bus_no'))
+            ->when($busyBusIds !== [], fn ($query) => $query->whereNotIn('id', $busyBusIds))
+            ->get();
+
+        foreach ($buses as $bus) {
+            $allocations = $bus->operationClients->pluck('name')
+                ->map(fn ($name) => mb_strtolower(trim((string) $name)));
+            $compatible = $tripClient === ''
+                ? $allocations->isEmpty()
+                : $allocations->contains($tripClient);
+            if (! $compatible) continue;
+
+            if ($bus->authorizedDrivers->contains(function (Driver $driver) use ($busyDriverIds, $trip): bool {
+                return $driver->employment_status === 'Active'
+                    && ! in_array($driver->driver_id, $busyDriverIds, true)
+                    && (! $driver->license_expiration
+                        || $driver->license_expiration->toDateString() >= $trip->trip_date->toDateString());
+            })) return true;
+        }
+
+        return false;
     }
 
     private function recordReserveApproval(TripSchedule $trip, TripAssignment $assignment, Bus $bus): void

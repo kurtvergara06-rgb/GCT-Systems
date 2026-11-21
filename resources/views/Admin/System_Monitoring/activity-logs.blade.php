@@ -1,10 +1,7 @@
 <x-layout.app
     title="FROMS - System Activity"
     :assets="[
-        'resources/css/Main-styles/main.css',
-        'resources/css/Main-styles/sidebar.css',
         'resources/css/Admin/System_Monitoring/activity-logs.css',
-        'resources/js/Main-js/sidebar.js',
         'resources/js/Admin/System_Monitoring/activity-logs.js',
     ]"
 >
@@ -15,7 +12,6 @@
             <x-layout.topbar
                 title="System Activity"
                 subtitle="Track administrative activity, user actions, and notification-related system events."
-                notification-count="6"
             />
 
             <x-ui.ajax-region name="summary" class="stats-grid activity-stats-grid">
@@ -56,36 +52,26 @@
                     autocomplete="off"
                 >
                     <x-slot:filters>
-                    <div class="filter-group">
-                        <select id="activityModuleFilter" name="module" aria-label="Filter by module" autocomplete="off">
+                        <x-ui.table-toolbar-field label="Module" name="module" default="all" id="activityModuleFilter" autocomplete="off">
                             <option value="all">All Modules</option>
                             @foreach(($modules ?? collect()) as $module)
-                                <option value="{{ $module }}" @selected(request('module') === $module)>
-                                    {{ $module }}
-                                </option>
+                                <option value="{{ $module }}" @selected(request('module') === $module)>{{ $module }}</option>
                             @endforeach
-                        </select>
-                    </div>
+                        </x-ui.table-toolbar-field>
 
-                    <div class="filter-group">
-                        <select id="activityEventFilter" name="event" aria-label="Filter by event type" autocomplete="off">
+                        <x-ui.table-toolbar-field label="Event Type" name="event" default="all" id="activityEventFilter" autocomplete="off">
                             <option value="all">All Events</option>
                             @foreach(($events ?? collect()) as $event)
-                                <option value="{{ $event }}" @selected(request('event') === $event)>
-                                    {{ $event }}
-                                </option>
+                                <option value="{{ $event }}" @selected(request('event') === $event)>{{ $event }}</option>
                             @endforeach
-                        </select>
-                    </div>
+                        </x-ui.table-toolbar-field>
 
-                    <div class="filter-group">
-                        <select id="activityDateFilter" name="date" aria-label="Filter by date range" autocomplete="off">
+                        <x-ui.table-toolbar-field label="Date Range" name="date" default="all" id="activityDateFilter" autocomplete="off">
                             <option value="all" @selected(request('date', 'all') === 'all')>All Time</option>
                             <option value="today" @selected(request('date') === 'today')>Today</option>
                             <option value="week" @selected(request('date') === 'week')>This Week</option>
                             <option value="month" @selected(request('date') === 'month')>This Month</option>
-                        </select>
-                    </div>
+                        </x-ui.table-toolbar-field>
                     </x-slot:filters>
                 </x-ui.table-toolbar>
 
@@ -215,43 +201,64 @@
         <div class="activity-modal" role="dialog" aria-modal="true" aria-labelledby="activityDetailsTitle" aria-describedby="activityDetailsDescription">
             <div class="activity-modal-header">
                 <div class="modal-heading">
-                    <div class="modal-icon"><i class="fa-solid fa-clock-rotate-left"></i></div>
+                    <div class="modal-icon"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i></div>
                     <div>
                         <h2 id="activityDetailsTitle">Activity Details</h2>
-                        <p id="activityDetailsDescription">Recorded system activity and security information.</p>
+                        <p id="activityDetailsDescription">System activity and audit information</p>
                     </div>
                 </div>
                 <button type="button" id="closeActivityModal" class="modal-close-btn" data-icon-only aria-label="Close activity details">
-                    <i class="fa-solid fa-xmark"></i>
+                    <i class="fa-solid fa-xmark" aria-hidden="true"></i>
                 </button>
             </div>
 
             <div class="activity-modal-body">
-                <div class="activity-modal-section-heading"><i class="fa-solid fa-clipboard-list"></i><span>Activity Information</span></div>
-                <div class="modal-info-grid">
-                    <div class="modal-info-item"><span>User</span><strong id="modalUser">—</strong></div>
-                    <div class="modal-info-item"><span>Role</span><strong id="modalRole">—</strong></div>
-                    <div class="modal-info-item"><span>Module</span><strong id="modalModule">—</strong></div>
-                    <div class="modal-info-item"><span>Event Type</span><strong id="modalType">—</strong></div>
-                    <div class="modal-info-item"><span>Reference</span><strong id="modalReference">—</strong></div>
-                    <div class="modal-info-item"><span>Date & Time</span><strong id="modalDateTime">—</strong></div>
+                <div class="activity-actor-row">
+                    <div class="activity-actor-avatar"><i class="fa-solid fa-user" aria-hidden="true"></i></div>
+                    <div class="activity-actor-identity">
+                        <strong id="modalUser">—</strong>
+                        <span id="modalRole">—</span>
+                    </div>
+                    <div class="activity-actor-date" id="modalDateTime">—</div>
                 </div>
 
-                <div class="activity-modal-section-heading activity-modal-section-heading--spaced"><i class="fa-solid fa-file-lines"></i><span>Recorded Action</span></div>
-                <div class="modal-detail-block"><span>Activity</span><strong id="modalActivity">—</strong></div>
-                <div class="modal-detail-block"><span>Details</span><p id="modalDetails">—</p></div>
+                <section class="activity-action-card" aria-label="Recorded action">
+                    <div class="activity-action-top">
+                        <span class="activity-action-kicker">RECORDED ACTION</span>
+                        <span class="activity-event-chip" id="modalType">—</span>
+                    </div>
+                    <h3 id="modalActivity">—</h3>
+                    <div class="activity-action-meta">
+                        <span class="activity-module-chip" id="modalModule">—</span>
+                        <span>Reference: <strong id="modalReference">—</strong></span>
+                    </div>
+                </section>
 
-                <div class="activity-modal-section-heading activity-modal-section-heading--spaced"><i class="fa-solid fa-shield-halved"></i><span>Security & Device</span></div>
-                <div class="security-info-grid">
-                    <div class="security-info-item">
-                        <div class="security-icon"><i class="fa-solid fa-network-wired"></i></div>
-                        <div><span>IP Address</span><strong id="modalIp">—</strong></div>
+                <section class="activity-audit-section" aria-labelledby="activityChangesHeading">
+                    <div class="activity-modal-section-heading" id="activityChangesHeading"><i class="fa-solid fa-clipboard-check" aria-hidden="true"></i><span>Changes Recorded</span></div>
+                    <div id="modalChanges" class="activity-change-list" hidden></div>
+                    <div id="modalDetailsFallback" class="activity-detail-fallback"><p id="modalDetails">—</p></div>
+                </section>
+
+                <section class="activity-audit-section" aria-labelledby="activitySecurityHeading">
+                    <div class="activity-modal-section-heading" id="activitySecurityHeading"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i><span>Security Information</span></div>
+                    <div class="security-info-grid">
+                        <div class="security-info-item">
+                            <div class="security-icon"><i class="fa-solid fa-network-wired" aria-hidden="true"></i></div>
+                            <div><span>IP Address</span><strong id="modalIp">—</strong></div>
+                        </div>
+                        <div class="security-info-item">
+                            <div class="security-icon"><i class="fa-solid fa-laptop" aria-hidden="true"></i></div>
+                            <div>
+                                <span>Device / Browser</span>
+                                <details class="activity-device-details">
+                                    <summary>View device details <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
+                                    <strong id="modalDevice">—</strong>
+                                </details>
+                            </div>
+                        </div>
                     </div>
-                    <div class="security-info-item">
-                        <div class="security-icon"><i class="fa-solid fa-laptop"></i></div>
-                        <div><span>Device / Browser</span><strong id="modalDevice">—</strong></div>
-                    </div>
-                </div>
+                </section>
             </div>
 
             <div class="activity-modal-footer">

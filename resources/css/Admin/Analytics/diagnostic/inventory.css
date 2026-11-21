@@ -9,7 +9,7 @@
     padding: 10px;
     border: 1px solid var(--diag-border);
     border-radius: 13px;
-    background: #fff;
+    background: light-dark(#fff, var(--gct-theme-surface));
     box-shadow: var(--diag-shadow);
     margin-bottom: 14px;
 }
@@ -43,14 +43,14 @@
 .diagnostic-domain-inventory .inv-scope-strip .diag-scope-title strong {
     display: block;
     font-size: 11px;
-    color: #1e293b;
+    color: light-dark(#1e293b, var(--gct-theme-fg));
     font-weight: 700;
 }
 
 .diagnostic-domain-inventory .inv-scope-strip .diag-scope-title span {
     display: block;
     margin-top: 2px;
-    color: #64748b;
+    color: light-dark(#64748b, var(--gct-theme-muted));
     font-size: 9.5px;
     line-height: 1.35;
 }
@@ -105,10 +105,10 @@
     margin-top: 14px;
     padding: 9px 12px;
     border-radius: 9px;
-    background: #f8fafc;
-    border: 1px solid #edf2f7;
+    background: light-dark(#f8fafc, var(--gct-theme-surface));
+    border: 1px solid light-dark(#edf2f7, var(--gct-theme-border));
     font-size: 10px;
-    color: #475569;
+    color: light-dark(#475569, var(--gct-theme-muted));
     display: flex;
     align-items: center;
     gap: 9px;
@@ -116,7 +116,7 @@
 }
 
 .diagnostic-domain-inventory .inv-card-footer-note i {
-    color: #64748b;
+    color: light-dark(#64748b, var(--gct-theme-muted));
     font-size: 11px;
     flex-shrink: 0;
 }
@@ -150,14 +150,14 @@
 
 .diagnostic-domain-inventory .inv-cat-name strong {
     font-size: 11px;
-    color: #1e293b;
+    color: light-dark(#1e293b, var(--gct-theme-fg));
     display: block;
     line-height: 1.25;
 }
 
 .diagnostic-domain-inventory .inv-cat-name small {
     font-size: 9px;
-    color: #64748b;
+    color: light-dark(#64748b, var(--gct-theme-muted));
     display: block;
     margin-top: 2px;
 }
@@ -216,7 +216,7 @@
 .diagnostic-domain-inventory .inv-cat-total {
     font-size: 11px;
     font-weight: 800;
-    color: #1e293b;
+    color: light-dark(#1e293b, var(--gct-theme-fg));
     margin-left: 2px;
 }
 
@@ -280,14 +280,14 @@
 
 .diagnostic-domain-inventory .inv-urgency-stat small {
     font-size: 9.5px;
-    color: #64748b;
+    color: light-dark(#64748b, var(--gct-theme-muted));
 }
 
 .diagnostic-domain-inventory .inv-deficit-banner {
     padding: 10px 12px;
     border-radius: 9px;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
+    background: light-dark(#f8fafc, var(--gct-theme-surface));
+    border: 1px solid light-dark(#e2e8f0, var(--gct-theme-border));
     display: flex;
     flex-direction: column;
     gap: 5px;
@@ -299,7 +299,7 @@
     align-items: center;
     font-size: 10.5px;
     font-weight: 700;
-    color: #334155;
+    color: light-dark(#334155, var(--gct-theme-fg));
 }
 
 .diagnostic-domain-inventory .inv-deficit-head strong {
@@ -322,7 +322,7 @@
 
 .diagnostic-domain-inventory .inv-deficit-banner small {
     font-size: 9px;
-    color: #64748b;
+    color: light-dark(#64748b, var(--gct-theme-muted));
     line-height: 1.35;
 }
 
@@ -352,7 +352,7 @@
     gap: 12px;
     align-items: center;
     padding: 10px 12px;
-    border: 1px solid #e7edf5;
+    border: 1px solid light-dark(#e7edf5, var(--gct-theme-border));
     border-radius: 10px;
     background: #fbfdff;
     transition: background 0.15s ease, border-color 0.15s ease;
@@ -365,12 +365,12 @@
 
 .diagnostic-domain-inventory .inv-item-info strong {
     font-size: 12px;
-    color: #1e293b;
+    color: light-dark(#1e293b, var(--gct-theme-fg));
 }
 
 .diagnostic-domain-inventory .inv-item-info small {
     display: block;
-    color: #64748b;
+    color: light-dark(#64748b, var(--gct-theme-muted));
     font-size: 10px;
     margin-top: 2px;
 }
@@ -385,10 +385,10 @@
     font-size: 9.5px;
     font-weight: 600;
     padding: 1px 6px;
-    background: #f1f5f9;
-    border: 1px solid #e2e8f0;
+    background: light-dark(#f1f5f9, var(--gct-theme-surface));
+    border: 1px solid light-dark(#e2e8f0, var(--gct-theme-border));
     border-radius: 4px;
-    color: #475569;
+    color: light-dark(#475569, var(--gct-theme-muted));
     font-family: monospace;
 }
 
@@ -401,7 +401,7 @@
 
 .diagnostic-domain-inventory .inv-item-gap .gap-label {
     font-size: 9px;
-    color: #94a3b8;
+    color: light-dark(#94a3b8, var(--gct-theme-placeholder));
     text-transform: uppercase;
     font-weight: 700;
 }
@@ -511,7 +511,7 @@
     margin: 2px 0 0;
     font-size: 11px;
     line-height: 1.5;
-    color: #334155;
+    color: light-dark(#334155, var(--gct-theme-fg));
 }
 
 /* Breakdown Table Polish */
@@ -571,16 +571,16 @@
     text-transform: uppercase;
     letter-spacing: .03em;
     color: #52657f;
-    background: #f8fafc;
+    background: light-dark(#f8fafc, var(--gct-theme-surface));
     padding: 11px 12px;
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 1px solid light-dark(#e2e8f0, var(--gct-theme-border));
 }
 
 .diagnostic-domain-inventory .inv-table td {
     padding: 11px 12px;
     font-size: 11px;
-    color: #334155;
-    border-bottom: 1px solid #edf2f7;
+    color: light-dark(#334155, var(--gct-theme-fg));
+    border-bottom: 1px solid light-dark(#edf2f7, var(--gct-theme-border));
     vertical-align: middle;
 }
 

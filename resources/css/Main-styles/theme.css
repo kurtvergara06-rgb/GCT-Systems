@@ -761,11 +761,16 @@ button.action-btn.delete[aria-disabled="true"] i { color: inherit !important; }
   --gct-ui-border: #dce5f2;
 }
 
+/* Admin color functions follow the in-app theme, independent of the OS theme.
+   These inherited values keep existing light-dark() modal styles deterministic. */
+body[data-gct-admin-page="1"] { color-scheme: light; }
+html[data-gct-theme="dark"] body[data-gct-admin-page="1"] { color-scheme: dark; }
+
 /*
- * Semantic dark palette. Deliberately gated by the Operation page marker
- * until other departments are migrated. Light Mode keeps its original tokens.
+ * Semantic dark palette scoped to department pages (Operation, Maintenance,
+ * Warehouse, Purchase, and Administration). Light Mode stays unchanged.
  */
-html[data-gct-theme="dark"] body:is([data-gct-operation-page="1"], [data-gct-maintenance-page="1"]) {
+html[data-gct-theme="dark"] body:is([data-gct-operation-page="1"], [data-gct-maintenance-page="1"], [data-gct-warehouse-page="1"], [data-gct-purchase-page="1"], [data-gct-admin-page="1"]) {
   --gct-theme-canvas: #0b1220;
   --gct-theme-surface: #162235;
   --gct-theme-surface-raised: #203047;

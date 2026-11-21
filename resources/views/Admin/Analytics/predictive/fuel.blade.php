@@ -7,8 +7,10 @@
     $highShare = round(($distribution->high / $totalRecords) * 100, 1);
     $fuelTrendLabels = collect($fuelPredict->trend_labels ?? [])->values();
     $fuelTrendForecast = collect($fuelPredict->trend_forecast ?? [])->values();
-    $fuelObservationCount = collect($fuelPredict->trend_actual ?? [])->filter(fn ($v) => $v !== null)->count();
-    $canDisplayFuelProjection = $fuelTrendForecast->contains(fn ($v) => $v !== null);
+    $fuelObservationCount = collect($fuelPredict->trend_actual ?? [])->filter(fn ($v) => is_numeric($v) && (float) $v > 0)->count();
+    $fuelEfficiencyCount = collect($fuelPredict->efficiency_actual ?? [])->filter(fn ($v) => is_numeric($v) && (float) $v > 0)->count();
+    $fuelBusRecordCount = collect($fuelPredict->rows ?? [])->count();
+    $canDisplayFuelProjection = $fuelObservationCount >= 4 && $fuelTrendForecast->contains(fn ($v) => is_numeric($v));
     $activeFuelFactors = collect($fuelPredict->factors ?? [])->filter(fn ($factor) => (string) ($factor->level ?? 'Low') !== 'Low')->values();
     $peakForecast = $fuelTrendForecast
         ->filter(fn ($value) => is_numeric($value))
@@ -62,12 +64,22 @@
 
         <x-analytics.card class="predictive-card" title="Fuel Efficiency Trend" description="Measured efficiency on recorded fuel-report days. Missing days are not interpreted as 0 km/L.">
             <div class="chart-header-badges">
-                <span class="telemetry-badge telemetry-badge--green"><i class="fa-solid fa-gauge-high"></i> Baseline: {{ number_format($fleetAvgEfficiency, 2) }} km/L</span>
+                @if($fuelEfficiencyCount > 0 && $fleetAvgEfficiency > 0)
+                    <span class="telemetry-badge telemetry-badge--green"><i class="fa-solid fa-gauge-high"></i> Baseline: {{ number_format($fleetAvgEfficiency, 2) }} km/L</span>
+                @endif
                 <span class="telemetry-badge"><i class="fa-solid fa-circle-info"></i> Historical measurements only</span>
             </div>
-            <div class="chart-container large-chart">
-                <canvas id="efficiencyChart" role="img" aria-label="Fuel efficiency trend chart"></canvas>
-            </div>
+            @if($fuelEfficiencyCount > 0)
+                <div class="chart-container large-chart">
+                    <canvas id="efficiencyChart" role="img" aria-label="Fuel efficiency trend chart"></canvas>
+                </div>
+            @else
+                <div class="fuel-data-empty" role="status">
+                    <span class="fuel-data-empty__icon"><i class="fa-solid fa-gauge-high" aria-hidden="true"></i></span>
+                    <strong>No valid fuel-efficiency measurements</strong>
+                    <p>Efficiency requires both recorded fuel consumption and distance traveled. Missing measurements are not shown as 0 km/L.</p>
+                </div>
+            @endif
         </x-analytics.card>
 
     </section>
@@ -153,7 +165,13 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8">No fuel records are available for the selected period.</td>
+                            <td colspan="8">
+                                <div class="fuel-table-empty" role="status">
+                                    <i class="fa-solid fa-table-list" aria-hidden="true"></i>
+                                    <strong>No bus-level fuel records found</strong>
+                                    <span>Fuel consumption may appear in the trend, but no individual bus records match these filters.</span>
+                                </div>
+                            </td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -166,6 +184,7 @@
 
         {{-- FUEL RISK DISTRIBUTION --}}
         <x-analytics.card class="predictive-card" title="Fuel Review Status" description="Recorded buses classified by their fuel review standing, not predicted risk.">
+            @if($fuelBusRecordCount > 0 && (int) ($distribution->total ?? 0) > 0)
             <div class="risk-content">
                 <div class="donut-wrapper">
                     <canvas id="fuelRiskDonut"></canvas>
@@ -200,7 +219,14 @@
                     </div>
                 </div>
             </div>
-            @if($consumptionFactor)
+            @else
+                <div class="fuel-data-empty fuel-data-empty--compact" role="status">
+                    <span class="fuel-data-empty__icon"><i class="fa-solid fa-clipboard-check" aria-hidden="true"></i></span>
+                    <strong>No buses available for fuel review</strong>
+                    <p>Review categories appear when the selected period contains bus-level fuel records.</p>
+                </div>
+            @endif
+            @if($consumptionFactor && $fuelBusRecordCount > 0)
                 <div class="fuel-insight" role="note">
                     <span class="fuel-insight__icon" aria-hidden="true"><i class="fa-solid fa-lightbulb"></i></span>
                     <div>
@@ -225,9 +251,9 @@
                     </div>
                 @empty
                     <div class="fuel-review-empty" role="status">
-                        <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
-                        <strong>No fuel-review indicators detected</strong>
-                        <span>None of the recorded units crossed the current fuel or idle-review thresholds.</span>
+                        <i class="fa-solid {{ $fuelBusRecordCount > 0 ? 'fa-circle-check' : 'fa-clipboard-list' }}" aria-hidden="true"></i>
+                        <strong>{{ $fuelBusRecordCount > 0 ? 'No fuel-review indicators detected' : 'No fuel-review findings available' }}</strong>
+                        <span>{{ $fuelBusRecordCount > 0 ? 'No recorded buses crossed the current fuel or idle-review thresholds.' : 'Findings will appear when matching bus-level fuel reports are available.' }}</span>
                     </div>
                 @endforelse
             </div>
@@ -236,6 +262,7 @@
         {{-- FUEL DEMAND FORECAST --}}
         <x-analytics.card class="predictive-card" title="Fuel Demand Outlook" description="Projected volumes appear only when sufficient valid historical reports exist.">
             @if($canDisplayFuelProjection && $peakForecastLabel !== null && is_numeric($peakForecastValue))
+                <p class="fuel-estimate-caption">Historical trend estimate based on {{ $fuelObservationCount }} recorded fuel-report days, not a trained ML forecast.</p>
                 <div class="fuel-forecast-summary" aria-label="Fuel forecast summary">
                     <div>
                         <span><i class="fa-regular fa-calendar"></i> Peak Projected Day</span>
@@ -257,10 +284,6 @@
         </x-analytics.card>
 
     </section>
-
-    <p class="predictive-footer">
-        <i class="fa-solid fa-circle-info"></i> Fuel trends use actual reports. Missing observations remain blank; estimates require sufficient recorded history and are not ML forecasts.
-    </p>
 
 </div>
 

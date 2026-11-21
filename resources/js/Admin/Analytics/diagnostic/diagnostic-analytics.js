@@ -45,10 +45,21 @@ function initDiagnosticAnalytics() {
     }
 }
 
+function diagnosticChartPalette() {
+    const dark = document.documentElement.dataset.gctTheme === 'dark';
+    return {
+        text: dark ? '#d3e0f1' : '#334155',
+        muted: dark ? '#b1bfd2' : '#64748b',
+        grid: dark ? '#35465e' : '#e7edf5',
+        surface: dark ? '#162235' : '#ffffff',
+    };
+}
+
 /* =========================================================================
    THESIS OBJECTIVE 6.2.1 — INCIDENT & REPLACEMENT ANALYSIS CHARTS
    ========================================================================= */
 function initIncidentDiagnosticCharts(data) {
+    const chartPalette = diagnosticChartPalette();
     // 1. Incidents & Replacement Trend Chart
     const trendCanvas = document.getElementById('diagnosticIncidentTrendChart');
     if (trendCanvas && data.trendLabels && data.trendLabels.length > 0) {
@@ -90,7 +101,7 @@ function initIncidentDiagnosticCharts(data) {
                             usePointStyle: true,
                             pointStyle: 'circle',
                             font: { size: 11, weight: '600' },
-                            color: '#334155',
+                            color: chartPalette.text,
                             padding: 14,
                         },
                     },
@@ -103,12 +114,12 @@ function initIncidentDiagnosticCharts(data) {
                 scales: {
                     x: {
                         grid: { display: false },
-                        ticks: { font: { size: 10, weight: '500' }, color: '#64748b' },
+                        ticks: { font: { size: 10, weight: '500' }, color: chartPalette.muted },
                     },
                     y: {
                         beginAtZero: true,
-                        grid: { color: '#f1f5f9' },
-                        ticks: { font: { size: 10 }, color: '#64748b', precision: 0 },
+                        grid: { color: chartPalette.grid },
+                        ticks: { font: { size: 10 }, color: chartPalette.muted, precision: 0 },
                     },
                 },
             },
@@ -128,7 +139,7 @@ function initIncidentDiagnosticCharts(data) {
                         data: data.causeValues,
                         backgroundColor: data.causeColors || ['#ef4444', '#f59e0b', '#3b82f6', '#8b5cf6', '#10b981', '#64748b'],
                         borderWidth: 3,
-                        borderColor: '#ffffff',
+                        borderColor: chartPalette.surface,
                     },
                 ],
             },
@@ -189,12 +200,12 @@ function initIncidentDiagnosticCharts(data) {
                 scales: {
                     x: {
                         beginAtZero: true,
-                        grid: { color: '#f1f5f9' },
+                        grid: { color: chartPalette.grid },
                         ticks: { precision: 0, font: { size: 10 } },
                     },
                     y: {
                         grid: { display: false },
-                        ticks: { font: { size: 11, weight: '600' }, color: '#334155' },
+                        ticks: { font: { size: 11, weight: '600' }, color: chartPalette.text },
                     },
                 },
             },
@@ -206,6 +217,7 @@ function initIncidentDiagnosticCharts(data) {
    THESIS OBJECTIVE 6.2.2 — FUEL & CONSUMPTION ANALYSIS CHARTS
    ========================================================================= */
 function initFuelDiagnosticCharts(data) {
+    const chartPalette = diagnosticChartPalette();
     // 1. Dual-Axis Fuel Consumption (L) & Efficiency (km/L) Trend Chart
     const fuelTrendCanvas = document.getElementById('diagnosticFuelTrendChart');
     if (fuelTrendCanvas && data.fuelTrendLabels && data.fuelTrendLabels.length > 0) {
@@ -254,7 +266,7 @@ function initFuelDiagnosticCharts(data) {
                             usePointStyle: true,
                             pointStyle: 'circle',
                             font: { size: 11, weight: '600' },
-                            color: '#334155',
+                            color: chartPalette.text,
                             padding: 14,
                         },
                     },
@@ -267,15 +279,15 @@ function initFuelDiagnosticCharts(data) {
                 scales: {
                     x: {
                         grid: { display: false },
-                        ticks: { font: { size: 10, weight: '500' }, color: '#64748b' },
+                        ticks: { font: { size: 10, weight: '500' }, color: chartPalette.muted },
                     },
                     yLiters: {
                         type: 'linear',
                         position: 'left',
                         beginAtZero: true,
-                        grid: { color: '#f1f5f9' },
-                        title: { display: true, text: 'Liters (L)', font: { size: 10, weight: '600' }, color: '#64748b' },
-                        ticks: { font: { size: 10 }, color: '#64748b' },
+                        grid: { color: chartPalette.grid },
+                        title: { display: true, text: 'Liters (L)', font: { size: 10, weight: '600' }, color: chartPalette.muted },
+                        ticks: { font: { size: 10 }, color: chartPalette.muted },
                     },
                     yEfficiency: {
                         type: 'linear',
@@ -303,7 +315,7 @@ function initFuelDiagnosticCharts(data) {
                         data: data.efficiencyValues,
                         backgroundColor: data.efficiencyColors || ['#10b981', '#3b82f6', '#ef4444'],
                         borderWidth: 3,
-                        borderColor: '#ffffff',
+                        borderColor: chartPalette.surface,
                     },
                 ],
             },

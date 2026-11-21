@@ -688,3 +688,16 @@ html[data-gct-theme="dark"] .batch-attendance-mechanic .batch-footer-actions .se
   color: #1d4ed8;
   border-color: #bfdbfe;
 }
+
+/* Mechanic daily attendance: use compact status boxes rather than oval pills. */
+.batch-attendance-mechanic .batch-attendance-table .batch-availability-badge {
+  box-sizing: border-box;
+  min-width: 104px;
+  min-height: 32px;
+  padding: 6px 12px;
+  border-radius: 7px;
+  border: 1px solid currentColor;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}

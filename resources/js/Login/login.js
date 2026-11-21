@@ -52,11 +52,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const formGroup = input.closest('.form-group');
     const inputBox = input.closest('.input-box');
-    const clientError = formGroup?.querySelector('[data-client-error]');
+    const clientError = formGroup?.querySelectorAll('.field-error');
 
     inputBox?.classList.remove('input-error');
     input.removeAttribute('aria-invalid');
-    clientError?.remove();
+    clientError?.forEach((element) => element.remove());
   };
 
   const setFieldError = (input, message) => {
@@ -79,7 +79,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const error = document.createElement('span');
     error.className = 'field-error';
     error.dataset.clientError = 'true';
-    error.innerHTML = `<i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i><span>${message}</span>`;
+    error.setAttribute('role', 'alert');
+    const icon = document.createElement('i');
+    icon.className = 'fa-solid fa-circle-exclamation';
+    icon.setAttribute('aria-hidden', 'true');
+    const text = document.createElement('span');
+    text.textContent = message;
+    error.append(icon, text);
     formGroup.appendChild(error);
   };
 
@@ -147,5 +153,56 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
       loginButton.disabled = true;
     }, 20);
+  });
+});
+
+/* Install UI is optional: login must remain usable if installation is unsupported. */
+let fromsInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', (event) => {
+  event.preventDefault();
+  fromsInstallPrompt = event;
+});
+window.addEventListener('appinstalled', () => {
+  fromsInstallPrompt = null;
+  document.getElementById('pwaInstallButton')?.setAttribute('hidden', '');
+});
+document.addEventListener('DOMContentLoaded', () => {
+  const button = document.getElementById('pwaInstallButton');
+  const dialog = document.getElementById('pwaInstallHelp');
+  const instructions = document.getElementById('pwaInstallInstructions');
+  if (!button || !dialog || !instructions) return;
+
+  const installed = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  if (installed) {
+    button.hidden = true;
+    return;
+  }
+
+  if ('serviceWorker' in navigator && window.isSecureContext) {
+    navigator.serviceWorker.register('/sw.js').catch(() => {
+      // A failed registration must not interrupt authentication.
+    });
+  }
+
+  dialog.querySelectorAll('[data-pwa-install-close]').forEach((close) => {
+    close.addEventListener('click', () => dialog.close());
+  });
+
+  button.addEventListener('click', async () => {
+    if (fromsInstallPrompt) {
+      const prompt = fromsInstallPrompt;
+      fromsInstallPrompt = null;
+      await prompt.prompt();
+      const choice = await prompt.userChoice;
+      if (choice?.outcome === 'accepted') button.hidden = true;
+      return;
+    }
+    const ios = /iPhone|iPad|iPod/.test(navigator.userAgent);
+    instructions.textContent = ios
+      ? 'In Safari, tap Share, then Add to Home Screen. Confirm Add to install FROMS.'
+      : !window.isSecureContext
+        ? 'App installation requires HTTPS or localhost. Open the HTTPS production site on your device to install FROMS.'
+        : 'Open your browser menu and select Install app or Add to Home screen, if available.';
+    dialog.showModal();
   });
 });

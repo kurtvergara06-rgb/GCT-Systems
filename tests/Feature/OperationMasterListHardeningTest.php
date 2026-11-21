@@ -152,10 +152,17 @@ class OperationMasterListHardeningTest extends TestCase
             'status' => 'Present',
         ]);
 
-        $this->actingAs($user)
-            ->from(route('operation.personnel.mechanics'))
+        $maintenance = User::factory()->create([
+            'department' => 'Maintenance',
+            'role' => 'head',
+            'status' => 'Active',
+            'must_change_password' => false,
+            'onboarding_completed' => true,
+        ]);
+        $this->actingAs($maintenance)
+            ->from(route('maintenance.personnel.mechanics'))
             ->put(
-                route('operation.personnel.mechanics.update', $mechanic),
+                route('maintenance.personnel.mechanics.update', $mechanic),
                 $this->mechanicPayload('M-CHANGED', $mechanic->mechanic_name)
             )
             ->assertSessionHasErrors('mechanic_id');
@@ -218,9 +225,16 @@ class OperationMasterListHardeningTest extends TestCase
             )
             ->assertSessionHasErrors('driver_name');
 
-        $this->actingAs($user)
+        $maintenance = User::factory()->create([
+            'department' => 'Maintenance',
+            'role' => 'head',
+            'status' => 'Active',
+            'must_change_password' => false,
+            'onboarding_completed' => true,
+        ]);
+        $this->actingAs($maintenance)
             ->post(
-                route('operation.personnel.mechanics.store'),
+                route('maintenance.personnel.mechanics.store'),
                 $this->mechanicPayload('M-002', 'Mechanic One')
             )
             ->assertSessionHasErrors('mechanic_name');
@@ -306,9 +320,16 @@ class OperationMasterListHardeningTest extends TestCase
         $bus = $this->bus();
         $this->jobOrder($bus, $mechanic->mechanic_name);
 
-        $this->actingAs($user)
-            ->from(route('operation.personnel.mechanics'))
-            ->patch(route('operation.personnel.mechanics.deactivate', $mechanic))
+        $maintenance = User::factory()->create([
+            'department' => 'Maintenance',
+            'role' => 'head',
+            'status' => 'Active',
+            'must_change_password' => false,
+            'onboarding_completed' => true,
+        ]);
+        $this->actingAs($maintenance)
+            ->from(route('maintenance.personnel.mechanics'))
+            ->patch(route('maintenance.personnel.mechanics.deactivate', $mechanic))
             ->assertSessionHasErrors('employment_status');
 
         $this->assertSame('Active', $mechanic->fresh()->employment_status);
@@ -675,8 +696,15 @@ class OperationMasterListHardeningTest extends TestCase
             $this->driverPayload('D-REALTIME', 'Realtime Driver')
         )->assertSessionHasNoErrors();
 
-        $this->actingAs($user)->post(
-            route('operation.personnel.mechanics.store'),
+        $maintenance = User::factory()->create([
+            'department' => 'Maintenance',
+            'role' => 'head',
+            'status' => 'Active',
+            'must_change_password' => false,
+            'onboarding_completed' => true,
+        ]);
+        $this->actingAs($maintenance)->post(
+            route('maintenance.personnel.mechanics.store'),
             $this->mechanicPayload('M-REALTIME', 'Realtime Mechanic')
         )->assertSessionHasNoErrors();
 
@@ -1020,6 +1048,19 @@ class OperationMasterListHardeningTest extends TestCase
             'employment_status' => 'Active',
         ];
     }
+
+
+    public function test_operation_bus_reference_uses_shared_badge_and_modal_centering_covers_trip_and_workflow(): void
+    {
+        $busList = file_get_contents(resource_path('views/Operation/Shuttle_Bus_Management/bus-master-list.blade.php'));
+        $sharedCss = file_get_contents(resource_path('css/Operation/operation-action-buttons.css'));
+
+        $this->assertStringContainsString('<x-ui.id-badge', $busList);
+        $this->assertStringContainsString('class="bus-id-text"', $busList);
+        $this->assertStringContainsString('.trip-modal-overlay > .trip-modal', $sharedCss);
+        $this->assertStringContainsString('.inc-workflow-overlay > .inc-workflow-dialog', $sharedCss);
+    }
+
 
     private function busPayload(string $busNo, string $status = 'Active'): array
     {

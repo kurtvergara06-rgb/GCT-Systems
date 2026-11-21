@@ -7,6 +7,9 @@
 html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] {
   color-scheme: dark;
   --jo-text: var(--gct-theme-fg);
+  --jo-toolbar-select-bg: var(--gct-theme-input);
+  --jo-review-panel-bg: var(--gct-theme-surface);
+  --jo-review-panel-border: var(--gct-theme-border);
   --jo-muted: var(--gct-theme-muted);
   --jo-overdue-estimate-color: #fda4af;
   --jo-table-head: var(--gct-theme-surface-raised);

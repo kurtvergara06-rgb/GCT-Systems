@@ -16,8 +16,67 @@
     --ss-red: #dc2626;
     --ss-purple: #7c3aed;
 
-    --ss-shadow:
-        0 4px 16px rgba(6, 31, 61, 0.07);
+    --ss-shadow: 0 4px 16px rgba(6, 31, 61, 0.07);
+    --ss-card: #ffffff;
+    --ss-row: #f8fafc;
+    --ss-row-border: #e2e8f0;
+    --ss-divider: #e7edf5;
+    --ss-soft-blue: #f8fbff;
+    --ss-active: #eef4ff;
+    --ss-icon-bg: #f1f5f9;
+    --ss-advice-bg: #fffdf7;
+    --ss-warning-bg: #fffdf6;
+    --ss-critical-bg: #fff8f8;
+    --ss-placeholder: #94a3b8;
+    --ss-label: #334155;
+    --ss-field-border: #d6e0ed;
+    --ss-save-bg: rgba(255, 255, 255, 0.96);
+    --ss-status-bg: #f2fff6;
+    --ss-status-border: #bbebcb;
+    --ss-status-fg: #166534;
+    --ss-active-border: #bfd4ff;
+    --ss-blue-icon-bg: #eaf2ff;
+    --ss-green-icon-bg: #dcfce7;
+    --ss-red-icon-bg: #fee2e2;
+    --ss-purple-icon-bg: #ede9fe;
+    --ss-active-icon-bg: #dce9ff;
+    --ss-yellow-icon-bg: #fff3cd;
+}
+
+/* Keep this page's palette independent of the browser's color-scheme.
+   Light Mode cards remain white; Dark Mode retains dark surfaces. */
+html[data-gct-theme="dark"] .security-settings-page {
+    --ss-blue: #9bbfff;
+    --ss-blue-dark: #bfd4ff;
+    --ss-navy: #edf3fc;
+    --ss-text: #edf3fc;
+    --ss-muted: #b5c6db;
+    --ss-border: #394e69;
+    --ss-card: #162235;
+    --ss-row: #203047;
+    --ss-row-border: #394e69;
+    --ss-divider: #394e69;
+    --ss-soft-blue: #203047;
+    --ss-active: #273f60;
+    --ss-icon-bg: #233958;
+    --ss-advice-bg: #2c2a25;
+    --ss-warning-bg: #332d20;
+    --ss-critical-bg: #35252b;
+    --ss-placeholder: #9cb0c9;
+    --ss-label: #edf3fc;
+    --ss-field-border: #526783;
+    --ss-save-bg: rgba(22, 34, 53, 0.97);
+    --ss-status-bg: #173328;
+    --ss-status-border: #356a4a;
+    --ss-status-fg: #a6efbe;
+    --ss-active-border: #526783;
+    --ss-blue-icon-bg: #253c62;
+    --ss-green-icon-bg: #1b4034;
+    --ss-red-icon-bg: #482b35;
+    --ss-purple-icon-bg: #342d57;
+    --ss-active-icon-bg: #294878;
+    --ss-yellow-icon-bg: #4c3b23;
+    --ss-shadow: 0 4px 16px rgba(0, 0, 0, 0.16);
 }
 
 
@@ -45,16 +104,10 @@
 
     padding: 20px;
 
-    border: 1px solid #c9dafc;
+    border: 1px solid var(--ss-border);
     border-radius: 15px;
 
-    background:
-        linear-gradient(
-            120deg,
-            #ffffff 0%,
-            #f7faff 58%,
-            #eef4ff 100%
-        );
+    background: var(--ss-card);
 
     box-shadow: var(--ss-shadow);
 }
@@ -78,9 +131,9 @@
 
     border-radius: 14px;
 
-    background: #eaf2ff;
+    background: var(--ss-blue-icon-bg);
 
-    color: var(--ss-blue);
+    color: #0b40b5;
 
     font-size: 21px;
 }
@@ -134,10 +187,10 @@
 
     padding: 11px 13px;
 
-    border: 1px solid #bbebcb;
+    border: 1px solid var(--ss-status-border);
     border-radius: 11px;
 
-    background: #f2fff6;
+    background: var(--ss-status-bg);
 }
 
 .security-state-icon {
@@ -152,7 +205,7 @@
 
     border-radius: 10px;
 
-    background: #dcfce7;
+    background: var(--ss-green-icon-bg);
 
     color: var(--ss-green);
 
@@ -172,7 +225,7 @@
 
     margin-top: 1px;
 
-    color: #166534;
+    color: var(--ss-status-fg);
 
     font-size: 14px;
     font-weight: 800;
@@ -223,7 +276,7 @@
     border: 1px solid var(--ss-border);
     border-radius: 11px;
 
-    background: #ffffff;
+    background: var(--ss-card);
 
     box-shadow: var(--ss-shadow);
 }
@@ -238,7 +291,7 @@
 
     border-radius: 10px;
 
-    background: #f1f5f9;
+    background: var(--ss-icon-bg);
 
     color: var(--ss-blue);
 
@@ -313,7 +366,7 @@
     border: 1px solid var(--ss-border);
     border-radius: 14px;
 
-    background: #ffffff;
+    background: var(--ss-card);
 
     box-shadow: var(--ss-shadow);
 }
@@ -321,7 +374,7 @@
 .security-menu-heading {
     padding: 4px 5px 12px;
 
-    border-bottom: 1px solid #e7edf5;
+    border-bottom: 1px solid var(--ss-divider);
 }
 
 .security-menu-heading span {
@@ -386,13 +439,13 @@
 .security-menu-item:hover {
     border-color: #d6e2f4;
 
-    background: #f8fbff;
+    background: var(--ss-soft-blue);
 }
 
 .security-menu-item.active {
-    border-color: #bfd4ff;
+    border-color: var(--ss-active-border);
 
-    background: #eef4ff;
+    background: var(--ss-active);
 }
 
 .menu-icon {
@@ -405,7 +458,7 @@
 
     border-radius: 9px;
 
-    background: #f1f5f9;
+    background: var(--ss-icon-bg);
 
     color: var(--ss-muted);
 
@@ -413,7 +466,7 @@
 }
 
 .security-menu-item.active .menu-icon {
-    background: #dce9ff;
+    background: var(--ss-active-icon-bg);
 
     color: var(--ss-blue);
 }
@@ -437,7 +490,7 @@
 }
 
 .security-menu-item > i {
-    color: #94a3b8;
+    color: var(--ss-placeholder);
 
     font-size: 9px;
 }
@@ -463,7 +516,7 @@
     border: 1px solid #f2dbad;
     border-radius: 9px;
 
-    background: #fffdf7;
+    background: var(--ss-advice-bg);
 }
 
 .security-advice-icon {
@@ -476,7 +529,7 @@
 
     border-radius: 8px;
 
-    background: #fff3cd;
+    background: var(--ss-yellow-icon-bg);
 
     color: #9a6700;
 
@@ -513,7 +566,7 @@
     border: 1px solid var(--ss-border);
     border-radius: 15px;
 
-    background: #ffffff;
+    background: var(--ss-card);
 
     box-shadow: var(--ss-shadow);
 }
@@ -537,7 +590,7 @@
     margin-bottom: 17px;
     padding-bottom: 14px;
 
-    border-bottom: 1px solid #e7edf5;
+    border-bottom: 1px solid var(--ss-divider);
 }
 
 .security-panel-icon {
@@ -564,12 +617,12 @@
 }
 
 .security-panel-icon.red {
-    background: #fee2e2;
+    background: var(--ss-red-icon-bg);
     color: var(--ss-red);
 }
 
 .security-panel-icon.purple {
-    background: #ede9fe;
+    background: var(--ss-purple-icon-bg);
     color: var(--ss-purple);
 }
 
@@ -628,7 +681,7 @@
 .security-field label {
     margin-bottom: 6px;
 
-    color: #334155;
+    color: var(--ss-label);
 
     font-size: 12px;
     font-weight: 700;
@@ -640,10 +693,10 @@
 
     padding: 0 11px;
 
-    border: 1px solid #d6e0ed;
+    border: 1px solid var(--ss-field-border);
     border-radius: 9px;
 
-    background: #ffffff;
+    background: var(--ss-card);
 
     color: var(--ss-text);
 
@@ -690,10 +743,10 @@
 
     padding: 11px 12px;
 
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--ss-row-border);
     border-radius: 9px;
 
-    background: #f8fafc;
+    background: var(--ss-row);
 }
 
 .security-rule-row strong {
@@ -740,10 +793,10 @@
 
     padding: 12px;
 
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--ss-row-border);
     border-radius: 10px;
 
-    background: #f8fafc;
+    background: var(--ss-row);
 }
 
 .session-control-icon {
@@ -787,10 +840,10 @@
 
     padding: 0 10px;
 
-    border: 1px solid #d6e0ed;
+    border: 1px solid var(--ss-field-border);
     border-radius: 8px;
 
-    background: #ffffff;
+    background: var(--ss-card);
 
     color: var(--ss-text);
 
@@ -826,10 +879,10 @@
 
     padding: 14px;
 
-    border: 1px solid #dbe4ef;
+    border: 1px solid var(--ss-row-border);
     border-radius: 11px;
 
-    background: #f8fafc;
+    background: var(--ss-row);
 
     text-align: center;
 }
@@ -837,13 +890,13 @@
 .lockout-step.warning {
     border-color: #f2d79c;
 
-    background: #fffdf6;
+    background: var(--ss-warning-bg);
 }
 
 .lockout-step.critical {
     border-color: #fecaca;
 
-    background: #fff8f8;
+    background: var(--ss-critical-bg);
 }
 
 .lockout-step-number {
@@ -897,7 +950,7 @@
 }
 
 .lockout-arrow {
-    color: #94a3b8;
+    color: var(--ss-placeholder);
 
     text-align: center;
 
@@ -932,10 +985,10 @@
 
     padding: 11px;
 
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--ss-row-border);
     border-radius: 10px;
 
-    background: #f8fafc;
+    background: var(--ss-row);
 }
 
 .monitoring-rule-icon {
@@ -991,10 +1044,10 @@
 
     padding: 12px 13px;
 
-    border: 1px solid #d5e1f5;
+    border: 1px solid var(--ss-border);
     border-radius: 10px;
 
-    background: #f8fbff;
+    background: var(--ss-soft-blue);
 }
 
 .activity-link-box > div {
@@ -1016,7 +1069,7 @@
 
     background: #eaf2ff;
 
-    color: var(--ss-blue);
+    color: #0b40b5;
 
     font-size: 13px;
 }
@@ -1044,10 +1097,10 @@
 
     padding: 0 11px;
 
-    border: 1px solid #bfd4ff;
+    border: 1px solid var(--ss-active-border);
     border-radius: 8px;
 
-    background: #ffffff;
+    background: var(--ss-card);
 
     color: var(--ss-blue);
 
@@ -1153,7 +1206,7 @@
     border: 1px solid #bfd4ff;
     border-radius: 12px;
 
-    background: rgba(255, 255, 255, 0.96);
+    background: var(--ss-save-bg);
 
     box-shadow:
         0 8px 26px rgba(6, 31, 61, 0.12);
@@ -1209,15 +1262,15 @@
 }
 
 .reset-button {
-    border: 1px solid #d7e0eb;
+    border: 1px solid var(--ss-border);
 
-    background: #ffffff;
+    background: var(--ss-card);
 
-    color: #475569;
+    color: var(--ss-muted);
 }
 
 .reset-button:hover {
-    background: #f8fafc;
+    background: var(--ss-row);
 }
 
 .save-button {
@@ -1336,3 +1389,7 @@
     }
 
 }
+/* Form feedback stays within the existing Security Settings card layout. */
+.security-policy-message { padding:12px 14px; border:1px solid var(--ss-border); border-radius:10px; background:var(--ss-card); color:var(--ss-text); font-size:12px; }
+.security-policy-error { border-color:#dc2626; }
+.security-settings-page :is(select, button):disabled { opacity:.65; cursor:not-allowed; }

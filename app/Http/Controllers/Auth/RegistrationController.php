@@ -31,13 +31,15 @@ class RegistrationController extends Controller
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['required', 'confirmed', Password::min(8)],
+            'password' => ['required', 'confirmed', ...array_slice(\App\Services\SecurityPolicy::passwordRules(), 2)],
+            'privacy_acknowledged' => ['accepted'],
         ]);
 
         $user = DB::transaction(fn () => User::create([
             'name' => trim($data['name']),
             'email' => strtolower(trim($data['email'])),
             'password' => Hash::make($data['password']),
+            'password_changed_at' => now(),
             'department' => 'Unassigned',
             'role' => 'unassigned',
             'status' => 'Pending',

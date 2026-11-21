@@ -3,6 +3,7 @@
 namespace App\Models\Warehouse;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -24,6 +25,20 @@ class InventoryIssuance extends Model
         'issued_at' => 'datetime',
         'handover_confirmed_at' => 'datetime',
     ];
+
+    /**
+     * Only genuine, confirmed SWIS handovers count toward IR fulfillment.
+     * Older/demo ledger rows without signed evidence remain preserved, but
+     * must never masquerade as confirmed physical handovers.
+     */
+    public function scopeConfirmedSigned(Builder $query): Builder
+    {
+        return $query->whereNotNull('signed_slip_path')
+            ->where('signed_slip_path', '!=', '')
+            ->whereNotNull('handover_confirmed_at')
+            ->whereNotNull('received_by')
+            ->where('received_by', '!=', '');
+    }
 
     public function issuer(): BelongsTo
     {

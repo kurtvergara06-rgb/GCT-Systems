@@ -429,25 +429,7 @@
    MODAL OVERLAY
 ===================================================== */
 
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: var(--modal-backdrop-z-index, 99999);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  box-sizing: border-box;
-  background: var(--modal-backdrop-bg, rgba(15, 23, 42, 0.42));
-  backdrop-filter: var(--modal-backdrop-blur, blur(5px));
-  -webkit-backdrop-filter: var(--modal-backdrop-blur, blur(5px));
-  overscroll-behavior: contain;
-}
-
-.modal-overlay.show,
-.modal-overlay.active {
-  display: flex;
-}
+/* Shared Purchasing modal overlay rules: purchase-module-ui.css */
 
 /* =====================================================
    PURCHASE ORDER MODAL
@@ -1392,13 +1374,24 @@ main.purchase-orders-page .purchase-order-card .po-items-more-trigger{
   color:#17529d !important;
   transform:none !important;
 }
-main.purchase-orders-page .purchase-order-card .po-status-cell .po-status-box{
-  border-radius:5px !important;
-  min-height:28px !important;
-  padding:6px 10px !important;
-  background:#edf5ff !important;
-  border:1px solid #bdd6fb !important;
-  color:#15549e !important;
+/* Status badge stays semantic, but is a compact rectangular control.
+   Target the rendered badge itself: shared status rules use a pill radius. */
+main.purchase-orders-page .purchase-order-card td.po-status-cell > [data-ui-component="status-badge"].po-status-box {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  width: max-content !important;
+  max-width: 100% !important;
+  min-width: 96px !important;
+  height: 30px !important;
+  min-height: 30px !important;
+  padding: 5px 10px !important;
+  border-radius: 7px !important;
+  box-sizing: border-box !important;
+  line-height: 1.2 !important;
+  white-space: nowrap !important;
+  box-shadow: none !important;
 }
 main.purchase-orders-page .purchase-order-card .record-actions .po-review-action{
   min-width:88px !important;
@@ -1551,6 +1544,23 @@ main.purchase-orders-page .purchase-order-card .records-table tbody td:last-chil
 .po-detail-fact-copy small{margin:0}
 
 
+/* Place PO record navigation on the left and Search/Filter/Sort on the right. */
+main.purchase-orders-page .purchase-order-card .po-record-controls {
+  justify-content: space-between !important;
+  align-items: center !important;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+main.purchase-orders-page .purchase-order-card .po-record-controls > .po-record-tabs {
+  margin-right: auto !important;
+}
+@media (max-width: 760px) {
+  main.purchase-orders-page .purchase-order-card .po-record-controls > .po-record-tabs,
+  main.purchase-orders-page .purchase-order-card .po-record-controls > .po-record-actions {
+    margin: 0 !important;
+  }
+}
+
 /* Purchase Orders: visible Active / History navigation. */
 main.purchase-orders-page .po-record-tabs{
   display:flex;align-items:center;gap:8px;margin:14px 16px 6px;
@@ -1611,3 +1621,102 @@ main.purchase-orders-page .purchase-order-card .records-table tbody td:nth-child
 .po-receipt-compact .po-receipt-track { flex:1; min-width:25px; height:5px; }
 .po-receipt-progress .po-receipt-bottom { justify-content:flex-start; }
 .po-receipt-progress .po-receipt-left { font-size:9px; font-weight:600; white-space:nowrap; }
+
+/* PO ID and PR ID share one identity-badge palette in Light Mode.
+   Dark Mode overrides both together in purchase-dark-mode.css. */
+main.purchase-orders-page .purchase-order-card .records-table tbody td:nth-child(1) .po-number-cell strong,
+main.purchase-orders-page .purchase-order-card .records-table tbody td:nth-child(2) .po-reference {
+  background: #eaf3ff !important;
+  border: 1px solid #bfd6f5 !important;
+  color: #173e73 !important;
+  border-radius: 5px !important;
+  font-weight: 800 !important;
+}
+main.purchase-orders-page .purchase-order-card .records-table tbody td:nth-child(4) .po-request-type {
+  max-width: 100%;
+  white-space: nowrap !important;
+}
+
+/* Compact Purchase Orders records: keep nine columns in the desktop card,
+   and wrap full PO / PR identifiers rather than truncating references. */
+main.purchase-orders-page .purchase-order-card > .records-table-wrap {
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow-x: hidden !important;
+}
+main.purchase-orders-page .purchase-order-card > .records-table-wrap > .records-table {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  table-layout: fixed !important;
+}
+main.purchase-orders-page .purchase-order-card .records-table :is(th, td) {
+  min-width: 0 !important;
+  padding-left: 7px !important;
+  padding-right: 7px !important;
+}
+main.purchase-orders-page .purchase-order-card .records-table :is(th, td):nth-child(1) { width: 14% !important; }
+main.purchase-orders-page .purchase-order-card .records-table :is(th, td):nth-child(2) { width: 15% !important; }
+main.purchase-orders-page .purchase-order-card .records-table :is(th, td):nth-child(3) { width: 10% !important; }
+main.purchase-orders-page .purchase-order-card .records-table :is(th, td):nth-child(4) { width: 14% !important; }
+main.purchase-orders-page .purchase-order-card .records-table :is(th, td):nth-child(5) { width: 8% !important; }
+main.purchase-orders-page .purchase-order-card .records-table :is(th, td):nth-child(6) { width: 10% !important; }
+main.purchase-orders-page .purchase-order-card .records-table :is(th, td):nth-child(7) { width: 12% !important; }
+main.purchase-orders-page .purchase-order-card .records-table :is(th, td):nth-child(8) { width: 10% !important; }
+main.purchase-orders-page .purchase-order-card .records-table :is(th, td):nth-child(9) { width: 7% !important; }
+/* Full PO / PR references wrap inside compact cells instead of getting cut
+   off. Keep both identifier badges intrinsic-width and let rows grow as needed. */
+main.purchase-orders-page .purchase-order-card .records-table tbody td:nth-child(1) .po-number-cell,
+main.purchase-orders-page .purchase-order-card .records-table tbody td:nth-child(2) {
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow: visible !important;
+}
+main.purchase-orders-page .purchase-order-card .records-table tbody td:nth-child(1) .po-number-cell strong,
+main.purchase-orders-page .purchase-order-card .records-table tbody td:nth-child(2) .po-reference {
+  display: inline-block !important;
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  height: auto !important;
+  line-height: 1.45 !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+  word-break: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  vertical-align: middle !important;
+}
+main.purchase-orders-page .purchase-order-card .records-table tbody td:nth-child(4) .po-request-type {
+  display: inline-flex !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  padding: 5px 6px !important;
+  gap: 4px !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  font-size: 10px !important;
+}
+main.purchase-orders-page .purchase-order-card .records-table tbody td:nth-child(5) .po-receipt-progress {
+  width: 100% !important;
+  min-width: 0 !important;
+}
+main.purchase-orders-page .purchase-order-card .records-table tbody td:nth-child(5) .po-receipt-track {
+  min-width: 0 !important;
+}
+main.purchase-orders-page .purchase-order-card .records-table tbody td:nth-child(9) .record-actions {
+  min-width: 0 !important;
+  justify-content: center !important;
+}
+main.purchase-orders-page .purchase-order-card .records-table tbody td:nth-child(9) .record-actions > .po-labeled-view {
+  flex: 0 1 100% !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  padding: 0 5px !important;
+  gap: 4px !important;
+}
+
+

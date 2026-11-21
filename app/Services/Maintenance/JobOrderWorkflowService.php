@@ -46,8 +46,15 @@ class JobOrderWorkflowService
             ->filter();
         // Legacy name-only assignments cannot identify namesakes reliably.
         // Exclude a name only if it belongs to one distinct master mechanic.
+        $legacyNames = $legacyNames->map(fn ($name) => trim((string) $name))
+            ->filter()->unique()->values();
+        $nameCounts = $legacyNames->isEmpty() ? collect() : Mechanic::query()
+            ->whereIn('mechanic_name', $legacyNames)
+            ->selectRaw('mechanic_name, COUNT(*) AS matches')
+            ->groupBy('mechanic_name')
+            ->pluck('matches', 'mechanic_name');
         $busyLegacyNames = $legacyNames->filter(fn ($name) =>
-            Mechanic::query()->where('mechanic_name', $name)->count() === 1
+            (int) $nameCounts->get($name, 0) === 1
         );
 
         // Use the same attendance-by-mechanic-ID basis as the Mechanic

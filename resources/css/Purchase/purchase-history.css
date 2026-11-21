@@ -261,3 +261,61 @@
     min-width: 940px;
   }
 }
+
+
+/* Purchase History archive links back to the active requisition records. */
+.purchase-history-page .purchase-history-record-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.purchase-history-page .purchase-history-record-controls > .records-toolbar {
+  margin-left: auto !important;
+  width: auto !important;
+}
+.purchase-history-page .purchase-history-record-tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex: 0 0 auto;
+  padding: 4px;
+  border: 1px solid #d6e1ef;
+  border-radius: 10px;
+  background: #f3f6fb;
+}
+.purchase-history-page .purchase-history-record-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 34px;
+  padding: 7px 13px;
+  border-radius: 7px;
+  color: #5a6b82;
+  font-size: 11px;
+  font-weight: 750;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.purchase-history-page .purchase-history-record-tab.is-active {
+  background: #fff;
+  color: #12396d;
+  box-shadow: 0 1px 5px rgba(20,48,91,.12);
+}
+.purchase-history-page .purchase-history-record-tab:hover:not(.is-active) {
+  background: #e8eff9;
+  color: #174779;
+}
+@media (max-width: 900px) {
+  .purchase-history-page .purchase-history-record-controls {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .purchase-history-page .purchase-history-record-controls > .records-toolbar {
+    margin-left: 0 !important;
+    align-self: flex-end;
+  }
+}

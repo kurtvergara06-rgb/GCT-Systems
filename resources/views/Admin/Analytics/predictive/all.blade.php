@@ -65,7 +65,7 @@
     </section>
 
     <section class="predictive-main-grid">
-        <x-analytics.card class="prediction-chart-card" title="Prediction Overview" description="Recorded volume compared with records currently carrying risk signals.">
+        <x-analytics.card class="prediction-chart-card" title="Recorded Signal Overview" description="Actual record volume and observed flags; not an ML prediction chart.">
             <x-slot:headerActions>
                 <span class="ft-telemetry-badge" style="font-size: 9.5px;">
                     <i class="fa-solid fa-chart-simple"></i>
@@ -99,7 +99,7 @@
             </div>
         </x-analytics.card>
 
-        <x-analytics.card class="risk-card" title="Top Risk Predictions" description="Highest-volume operational signals.">
+        <x-analytics.card class="risk-card" title="Recorded Attention Signals" description="Highest-volume observed operational and rule-based signals; not predicted probabilities.">
             <div class="risk-list">
                 @forelse($issues as $issue)
                     <div class="risk-item">

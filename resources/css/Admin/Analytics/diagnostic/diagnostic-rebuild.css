@@ -5,7 +5,7 @@
 
 .diagnostic-rebuild {
     padding: 0 0 56px;
-    background: #f8fafc;
+    background: light-dark(#f8fafc, var(--gct-theme-surface));
     min-height: calc(100vh - 64px);
 }
 
@@ -44,17 +44,18 @@
 
 .diagnostic-stats-grid .stat-card,
 .diagnostic-stats-grid .stat-card-link {
-    min-height: 104px;
-    padding: 16px 18px;
-    border: 1px solid #e2e8f0;
+    min-width: 0;
+    min-height: 116px;
+    padding: 15px 16px;
+    border: 1px solid light-dark(#dce5f2, var(--gct-theme-border));
     border-radius: 14px;
-    background: #ffffff;
+    background: light-dark(#ffffff, var(--gct-theme-surface));
     box-shadow: 0 4px 16px rgba(12, 35, 68, 0.05);
     color: inherit;
     text-decoration: none;
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 12px;
     overflow: hidden;
     transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
@@ -92,28 +93,31 @@
     margin: 0;
     font-size: 11px;
     font-weight: 700;
-    color: #64748b;
+    color: light-dark(#64748b, var(--gct-theme-muted));
     text-transform: uppercase;
     letter-spacing: 0.04em;
 }
 
 .diagnostic-stats-grid .stat-card-content h2 {
-    margin: 3px 0 2px;
-    font-size: 22px;
+    margin: 5px 0 4px;
+    font-size: clamp(19px, 1.6vw, 25px);
     font-weight: 800;
-    color: #0f172a;
-    line-height: 1.1;
+    color: light-dark(#0f172a, var(--gct-theme-fg));
+    line-height: 1.2;
     letter-spacing: -0.02em;
+    overflow-wrap: anywhere;
 }
 
 .diagnostic-stats-grid .stat-card-content small {
-    display: block;
-    font-size: 11px;
-    color: #64748b;
+    display: -webkit-box;
+    font-size: 10.5px;
+    line-height: 1.45;
+    color: light-dark(#64748b, var(--gct-theme-muted));
     font-weight: 500;
-    white-space: nowrap;
     overflow: hidden;
-    text-overflow: ellipsis;
+    overflow-wrap: anywhere;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
 }
 
 /* =========================================================================
@@ -131,8 +135,8 @@
 }
 
 .diagnostic-dashboard-card {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
+    background: light-dark(#ffffff, var(--gct-theme-surface));
+    border: 1px solid light-dark(#e2e8f0, var(--gct-theme-border));
     border-radius: 14px;
     padding: 20px 22px;
     box-shadow: 0 4px 16px rgba(12, 35, 68, 0.04);
@@ -166,7 +170,7 @@
 
 .dashboard-card-header h2 {
     margin: 0;
-    color: #0f172a;
+    color: light-dark(#0f172a, var(--gct-theme-fg));
     font-size: 17px;
     font-weight: 800;
     display: flex;
@@ -181,16 +185,16 @@
 
 .dashboard-card-header p {
     margin: 3px 0 0;
-    color: #64748b;
+    color: light-dark(#64748b, var(--gct-theme-muted));
     font-size: 11.5px;
 }
 
 .dashboard-view-link {
     min-height: 30px;
     padding: 0 11px;
-    border: 1px solid #e2e8f0;
+    border: 1px solid light-dark(#e2e8f0, var(--gct-theme-border));
     border-radius: 8px;
-    background: #ffffff;
+    background: light-dark(#ffffff, var(--gct-theme-surface));
     color: #2563eb;
     display: inline-flex;
     align-items: center;
@@ -240,6 +244,78 @@
     height: 220px;
 }
 
+/* Purposeful empty states for incident diagnostics. Keep the cards compact
+   and make it clear that an empty selection is not a reliability claim. */
+.diagnostic-rebuild .diagnostic-empty-state {
+    min-height: 215px;
+    padding: 22px 20px;
+    border: 1px dashed light-dark(#d2deed, #455a74);
+    border-radius: 12px;
+    background: light-dark(#f8fbff, #1b2b40);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    text-align: center;
+}
+.diagnostic-rebuild .diagnostic-empty-state-wide {
+    min-height: 215px;
+    margin-top: 3px;
+}
+.diagnostic-rebuild .diagnostic-empty-icon {
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: light-dark(#eaf2ff, #294361);
+    color: light-dark(#2563eb, #a6c8ff);
+    font-size: 18px;
+    margin-bottom: 4px;
+}
+.diagnostic-rebuild .diagnostic-empty-eyebrow {
+    color: light-dark(#5276a4, #a5c4e9);
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: .11em;
+}
+.diagnostic-rebuild .diagnostic-empty-state h3 {
+    color: light-dark(#142d50, #edf3fc);
+    margin: 0;
+    font-size: 15px;
+    font-weight: 800;
+    line-height: 1.35;
+}
+.diagnostic-rebuild .diagnostic-empty-state p {
+    max-width: 440px;
+    margin: 0;
+    color: light-dark(#64748b, #b1bfd2);
+    font-size: 11.5px;
+    line-height: 1.6;
+}
+.diagnostic-rebuild .diagnostic-empty-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    margin-top: 6px;
+    padding: 7px 11px;
+    background: light-dark(#eff6ff, #263e5d);
+    border: 1px solid light-dark(#c7dcfb, #4e6e97);
+    border-radius: 8px;
+    color: light-dark(#1d4ed8, #c4dcff);
+    text-decoration: none;
+    font-size: 11px;
+    font-weight: 700;
+}
+.diagnostic-rebuild .diagnostic-empty-link:hover {
+    background: light-dark(#e2efff, #305175);
+}
+@media (max-width: 600px) {
+    .diagnostic-rebuild .diagnostic-empty-state { padding: 20px 12px; }
+}
+
 /* =========================================================================
    FLEET HEALTH & DONUT VISUAL WRAP
    ========================================================================= */
@@ -274,14 +350,14 @@
 .fleet-health-chart-center strong {
     font-size: 20px;
     font-weight: 800;
-    color: #0f172a;
+    color: light-dark(#0f172a, var(--gct-theme-fg));
     line-height: 1;
 }
 
 .fleet-health-chart-center span {
     font-size: 10px;
     font-weight: 700;
-    color: #64748b;
+    color: light-dark(#64748b, var(--gct-theme-muted));
     text-transform: uppercase;
     letter-spacing: 0.04em;
     margin-top: 3px;
@@ -292,7 +368,12 @@
     flex-direction: column;
     gap: 8px;
     max-height: 230px;
+    min-height: 0;
     overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 7px;
+    scrollbar-width: thin;
+    scrollbar-color: light-dark(#a8bbd1, #536d89) transparent;
 }
 
 .fleet-health-row {
@@ -301,14 +382,14 @@
     justify-content: space-between;
     padding: 8px 12px;
     border-radius: 9px;
-    background: #f8fafc;
-    border: 1px solid #edf2f7;
+    background: light-dark(#f8fafc, var(--gct-theme-surface));
+    border: 1px solid light-dark(#edf2f7, var(--gct-theme-border));
     transition: all 0.15s ease;
 }
 
 .fleet-health-row:hover {
-    background: #f1f5f9;
-    border-color: #cbd5e1;
+    background: light-dark(#f1f5f9, var(--gct-theme-surface));
+    border-color: light-dark(#cbd5e1, var(--gct-theme-border));
 }
 
 .fleet-health-left {
@@ -329,14 +410,14 @@
     display: block;
     font-size: 12px;
     font-weight: 700;
-    color: #0f172a;
+    color: light-dark(#0f172a, #edf3fc);
     line-height: 1.2;
 }
 
 .status-name-desc small {
     display: block;
     font-size: 10.5px;
-    color: #64748b;
+    color: light-dark(#64748b, #b1bfd2);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -352,13 +433,43 @@
 .fleet-count {
     font-size: 15px;
     font-weight: 800;
-    color: #0f172a;
+    color: light-dark(#0f172a, var(--gct-theme-fg));
 }
 
 .fleet-health-right small {
     font-size: 10.5px;
     font-weight: 600;
-    color: #64748b;
+    color: light-dark(#64748b, var(--gct-theme-muted));
+}
+
+/* Subtle scrollbars retain full keyboard, wheel, and touch scrolling. */
+.diagnostic-rebuild .fleet-health-status-stack::-webkit-scrollbar,
+.diagnostic-rebuild .diagnostic-table-wrapper::-webkit-scrollbar { width: 7px; height: 7px; }
+.diagnostic-rebuild .fleet-health-status-stack::-webkit-scrollbar-track,
+.diagnostic-rebuild .diagnostic-table-wrapper::-webkit-scrollbar-track { background: transparent; }
+.diagnostic-rebuild .fleet-health-status-stack::-webkit-scrollbar-thumb,
+.diagnostic-rebuild .diagnostic-table-wrapper::-webkit-scrollbar-thumb {
+    background: light-dark(#a8bbd1, #536d89);
+    border-radius: 999px;
+}
+.diagnostic-rebuild .fleet-health-status-stack::-webkit-scrollbar-thumb:hover,
+.diagnostic-rebuild .diagnostic-table-wrapper::-webkit-scrollbar-thumb:hover {
+    background: light-dark(#7893b1, #829bb7);
+}
+
+/* Root-cause list colors must not fall back to black on navy cards. */
+html[data-gct-theme="dark"] .diagnostic-rebuild .fleet-health-row {
+    background: #1b2a40;
+    border-color: #35465e;
+}
+html[data-gct-theme="dark"] .diagnostic-rebuild .fleet-health-row:hover {
+    background: #253850;
+}
+html[data-gct-theme="dark"] .diagnostic-rebuild .status-name-desc strong {
+    color: #edf3fc;
+}
+html[data-gct-theme="dark"] .diagnostic-rebuild .status-name-desc small {
+    color: #b1bfd2;
 }
 
 /* =========================================================================
@@ -367,6 +478,9 @@
 .diagnostic-table-wrapper {
     overflow-x: auto;
     width: 100%;
+    max-width: 100%;
+    scrollbar-width: thin;
+    scrollbar-color: light-dark(#a8bbd1, #536d89) transparent;
 }
 
 .diagnostic-table {
@@ -377,25 +491,25 @@
 }
 
 .diagnostic-table th {
-    background: #f8fafc;
-    color: #64748b;
+    background: light-dark(#f8fafc, var(--gct-theme-surface));
+    color: light-dark(#64748b, var(--gct-theme-muted));
     font-weight: 700;
     text-transform: uppercase;
     font-size: 10.5px;
     letter-spacing: 0.04em;
     padding: 11px 14px;
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 1px solid light-dark(#e2e8f0, var(--gct-theme-border));
 }
 
 .diagnostic-table td {
     padding: 12px 14px;
-    border-bottom: 1px solid #f1f5f9;
-    color: #1e293b;
+    border-bottom: 1px solid light-dark(#f1f5f9, var(--gct-theme-border));
+    color: light-dark(#1e293b, var(--gct-theme-fg));
     vertical-align: middle;
 }
 
 .diagnostic-table tr:hover td {
-    background: #f8fbff;
+    background: light-dark(#f8fbff, var(--gct-theme-surface));
 }
 
 .code-pill {
@@ -558,8 +672,8 @@
     align-items: center;
     gap: 12px;
     padding: 10px 14px;
-    background: #f8fafc;
-    border: 1px solid #edf2f7;
+    background: light-dark(#f8fafc, var(--gct-theme-surface));
+    border: 1px solid light-dark(#edf2f7, var(--gct-theme-border));
     border-radius: 10px;
 }
 
@@ -572,13 +686,13 @@
     display: block;
     font-size: 14px;
     font-weight: 800;
-    color: #0f172a;
+    color: light-dark(#0f172a, var(--gct-theme-fg));
 }
 
 .diagnostic-tile small {
     display: block;
     font-size: 11px;
-    color: #64748b;
+    color: light-dark(#64748b, var(--gct-theme-muted));
 }
 
 /* Historical Baseline Callout */

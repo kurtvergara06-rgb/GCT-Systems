@@ -1502,3 +1502,38 @@ html[data-gct-theme="dark"] #appSidebar .brand-icon {
   background: #a97918;
   box-shadow: 0 8px 20px rgba(0, 0, 0, .25);
 }
+
+
+/* Account menu follows the user's appearance preference in every module.
+   The sidebar shell stays navy in Light Mode, but its popup is a light card.
+   Scope these rules after the shared compact-menu styles to avoid overrides. */
+html:not([data-gct-theme="dark"]) #appSidebar .sidebar-profile-menu {
+  background: #ffffff;
+  border-color: #dce5f2;
+  color: #142b47;
+  box-shadow: 0 20px 46px rgba(12, 35, 68, .20);
+  color-scheme: light;
+}
+html:not([data-gct-theme="dark"]) #appSidebar .profile-menu-header h4 { color: #142b47; }
+html:not([data-gct-theme="dark"]) #appSidebar .profile-menu-header p { color: #52647d; }
+html:not([data-gct-theme="dark"]) #appSidebar .profile-menu-department { color: #64748b; }
+html:not([data-gct-theme="dark"]) #appSidebar .profile-menu-divider { background: #e2e8f0; }
+html:not([data-gct-theme="dark"]) #appSidebar .profile-menu-item { color: #1a3555; }
+html:not([data-gct-theme="dark"]) #appSidebar .profile-menu-item i { color: #49627f; }
+html:not([data-gct-theme="dark"]) #appSidebar .profile-menu-item:is(:hover, :focus-visible) {
+  background: #eef4fc;
+  color: #0b40b5;
+}
+html:not([data-gct-theme="dark"]) #appSidebar .profile-menu-item:is(:hover, :focus-visible) i { color: inherit; }
+html:not([data-gct-theme="dark"]) #appSidebar .profile-menu-item.logout { color: #b42332; }
+html:not([data-gct-theme="dark"]) #appSidebar .profile-menu-item.logout i { color: inherit; }
+html:not([data-gct-theme="dark"]) #appSidebar .profile-menu-item.logout:is(:hover, :focus-visible) {
+  background: #fff0f0;
+  color: #a51927;
+}
+html[data-gct-theme="dark"] #appSidebar .sidebar-profile-menu {
+  background: #142840;
+  border-color: #344a63;
+  color: #f8fafc;
+  color-scheme: dark;
+}

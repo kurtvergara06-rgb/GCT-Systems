@@ -24,6 +24,9 @@ class InventoryThresholdCalculator
             ->where('lines.inventory_item_id', $item->getKey())
             ->whereNotNull('issues.handover_confirmed_at')
             ->whereNotNull('issues.signed_slip_path')
+            ->where('issues.signed_slip_path', '!=', '')
+            ->whereNotNull('issues.received_by')
+            ->where('issues.received_by', '!=', '')
             ->where('issues.issued_at', '>=', $start)
             ->where('issues.issued_at', '<', $endExclusive)
             ->sum('lines.quantity');

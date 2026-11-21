@@ -8,11 +8,15 @@ window.GCTPartialNavigation.registerInitializer('warehouse-incoming-receipts', '
   const allButton = document.getElementById('incomingReceiveAll');
   const partialButton = document.getElementById('incomingReceivePartial');
   const submitButton = document.getElementById('incomingReceiptSubmit');
+  const modeStatus = document.getElementById('incomingReceiptModeStatus');
   let receiptMode = null;
   const selectMode = (mode) => {
     receiptMode = mode;
     allButton?.setAttribute('aria-pressed', String(mode === 'all'));
     partialButton?.setAttribute('aria-pressed', String(mode === 'partial'));
+    if (modeStatus) modeStatus.textContent = mode === 'all'
+      ? 'Selected: Receive All'
+      : mode === 'partial' ? 'Selected: Partial Receipt' : 'Selected: None. Choose a receiving method to continue.';
     if (submitButton) submitButton.disabled = true;
     linesContainer.querySelectorAll('input[type="number"]').forEach((input) => {
       input.readOnly = mode !== 'partial';
@@ -32,6 +36,7 @@ window.GCTPartialNavigation.registerInitializer('warehouse-incoming-receipts', '
     receiptMode = null;
     allButton?.setAttribute('aria-pressed', 'false');
     partialButton?.setAttribute('aria-pressed', 'false');
+    if (modeStatus) modeStatus.textContent = 'Selected: None. Choose a receiving method to continue.';
     if (submitButton) submitButton.disabled = true;
     linesContainer.replaceChildren();
     window.GCTModalBackdrop?.sync?.();

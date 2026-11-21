@@ -58,6 +58,8 @@
           </div>
         </div>
 
+
+
         <nav class="restock-record-tabs" aria-label="Inventory restock record views">
           <a href="{{ route('inventory-restock', ['record_view' => 'active']) }}" class="restock-record-tab {{ $recordView === 'active' ? 'is-active' : '' }}" @if($recordView === 'active') aria-current="page" @endif>
             <i class="fa-solid fa-list-check" aria-hidden="true"></i> Active
@@ -150,7 +152,7 @@
 
                 <tr>
                   <td>
-                    <strong class="restock-no">{{ $restockRequest->display_pr_no }}</strong>
+                    <x-ui.id-badge :value="$restockRequest->display_pr_no" size="small" tone="neutral" class="restock-no purchase-record-id" />
                   </td>
                   <td><span class="source-badge"><i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i> Auto Restock</span></td>
                   <td>
@@ -210,16 +212,14 @@
                   </td>
                 </tr>
               @empty
-                <x-ui.empty-row
-                  colspan="7"
-                  message="No active inventory restock requests found."
-                />
+                  <x-ui.empty-row colspan="7" message="No active inventory restock requests found." />
               @endforelse
             </tbody>
           </table>
         </div>
 
-        <x-ui.table-footer :items="$restockRequests" />
+          <x-ui.table-footer :items="$restockRequests" />
+
       </section>
     </main>
   </div>

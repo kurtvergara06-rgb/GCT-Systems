@@ -40,6 +40,7 @@ class ProcessGpsPdfBatch implements ShouldQueue
                 'failed_records' => $result['failed'] ?? 0,
                 'error_message' => $result['first_error'] ?? null,
             ]);
+            EnrichGpsNlpChunk::enqueueIfEnabled($batch->id);
         } catch (\Throwable $e) {
             report($e);
             $batch->update([

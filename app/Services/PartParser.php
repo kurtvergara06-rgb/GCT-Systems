@@ -162,6 +162,31 @@ class PartParser
     }
 
     /**
+     * Bare legacy part names parse as one unit for compatibility, but that
+     * default is not sufficient evidence to authorize physical issuance.
+     * Explicitly quantified JO parts have a reliable fulfillment denominator.
+     */
+    public function hasExplicitQuantities(?string $text): bool
+    {
+        if (! filled($text)) {
+            return false;
+        }
+
+        $parts = array_filter(array_map('trim', explode(',', (string) $text)));
+        if ($parts === []) {
+            return false;
+        }
+
+        foreach ($parts as $part) {
+            if (! preg_match('/(?:-\\s*qty:\\s*[1-9]\\d*|\\([1-9]\\d*\\s*[^)]*\\)\\s*$|\\s+[1-9]\\d*\\s*(?:liter|liters|litre|litres|ltr|ltrs|pcs|pc|piece|pieces|set|sets|bottle|bottles|box|boxes|pack|packs|pair|pairs|gallon|gallons|kg|meter|meters)\\s*$)/i', $part)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
      * Split a quantity/unit string into normalized parts.
      *
      * @param  string  $value

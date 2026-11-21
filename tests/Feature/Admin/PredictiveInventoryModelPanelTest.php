@@ -32,7 +32,7 @@ class PredictiveInventoryModelPanelTest extends TestCase
             ->assertSee('hidden class="inventory-ml-results"', false)
             ->assertSee('DEMO-PART-001')
             ->assertSee('Brake Pad Set')
-            ->assertSee('DEMO MODEL READY', false)
+            ->assertSee('genuine inventory prediction model', false)
             ->assertSee('inventory-predictions', false)
             ->assertSee('const escapeHtml', false)
             ->assertSee('recommendedAction = escapeHtml', false);

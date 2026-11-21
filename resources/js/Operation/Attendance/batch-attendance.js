@@ -251,7 +251,7 @@ function initBatchAttendancePage() {
                     data-shift="${escapeHtml(row.shift)}"
                     data-assigned-job="${escapeHtml(row.assigned_job || '')}"
                 >
-                    <td class="select-col"><input type="checkbox" data-row-select ${isRecorded ? 'disabled title="Already recorded for this date"' : (['Present', 'Late'].includes(normalizedStatus) ? 'checked' : '')}></td>
+                    <td class="select-col"><input type="checkbox" data-row-select ${isRecorded ? 'disabled title="Already recorded for this date"' : ''}></td>
                     <td>
                         <div class="batch-person-cell">
                             <span class="batch-avatar">${escapeHtml(initials(row.name))}</span>
@@ -286,7 +286,7 @@ function initBatchAttendancePage() {
                     </td>
                     <td>
                         <div class="batch-status-group" role="group" aria-label="Attendance status">
-                            ${type === 'driver' ? renderStatusButton('Unmarked', normalizedStatus) : ''}
+                            ${renderStatusButton('Unmarked', normalizedStatus)}
                             ${renderStatusButton('Present', normalizedStatus)}
                             ${type === 'mechanic' ? renderStatusButton('Late', normalizedStatus) : ''}
                             ${renderStatusButton('Absent', normalizedStatus)}
@@ -327,12 +327,17 @@ function initBatchAttendancePage() {
         statusButtons.forEach((statusButton) => {
             statusButton.addEventListener('click', () => {
                 setSelectedStatus(row, statusButton.dataset.statusValue);
-                if (type === 'driver') row.querySelector('[data-row-select]').checked = statusButton.dataset.statusValue !== 'Unmarked';
+                if (statusButton.dataset.statusValue !== 'Unmarked') row.querySelector('[data-row-select]').checked = true;
                 applyStatusRules(row);
                 detectLate(row);
                 updateAvailability(row);
                 updateSummary();
             });
+        });
+
+        row.querySelector('[data-row-select]').addEventListener('change', () => {
+            updateAvailability(row);
+            updateSummary();
         });
 
         timeIn.addEventListener('change', () => {
@@ -361,7 +366,7 @@ function initBatchAttendancePage() {
                 return;
             }
             setSelectedStatus(row, 'Present');
-            if (type === 'driver') row.querySelector('[data-row-select]').checked = true;
+            row.querySelector('[data-row-select]').checked = true;
             applyStatusRules(row, false);
             detectLate(row);
             updateAvailability(row);
@@ -379,7 +384,7 @@ function initBatchAttendancePage() {
             row.querySelector('[data-row-select]').checked = false;
             row.querySelector('[data-time-in]').value = '';
             row.querySelector('[data-time-out]').value = '';
-            setSelectedStatus(row, type === 'driver' ? 'Unmarked' : 'Present');
+            setSelectedStatus(row, 'Unmarked');
             applyStatusRules(row, false);
             updateAvailability(row);
         });
@@ -502,7 +507,7 @@ function initBatchAttendancePage() {
         const badge = row.querySelector('[data-availability]');
         if (!badge) return;
 
-        const availability = computeAvailability(selectedStatus(row), row.dataset.assignedJob || '');
+        const availability = computeAvailability(row.querySelector('[data-row-select]').checked ? selectedStatus(row) : 'Unmarked', row.dataset.assignedJob || '');
         badge.textContent = availability;
         badge.className = `batch-availability-badge ${availabilityClass(availability)}`;
     }
@@ -524,7 +529,7 @@ function initBatchAttendancePage() {
         if (!modal || !saveButton) return;
 
         const pendingRows = [...modal.querySelectorAll('[data-batch-row]')]
-             .filter((row) => (attendanceMode === 'out' ? row.querySelector('[data-row-select]').checked : row.dataset.recorded !== 'true') && (type !== 'driver' || (selectedStatus(row) !== 'Unmarked' && row.querySelector('[data-row-select]').checked)));
+             .filter((row) => row.dataset.recorded !== 'true' && row.querySelector('[data-row-select]').checked);
         const rows = pendingRows.map((row) => ({
             person_id: row.dataset.personId,
             name: row.dataset.name,
@@ -537,6 +542,10 @@ function initBatchAttendancePage() {
 
         if (!rows.length) {
             toast('There are no attendance rows to save.', 'warning');
+            return;
+        }
+        if (rows.some(row => row.status === 'Unmarked')) {
+            toast('Choose an attendance status for each checked person.', 'warning');
             return;
         }
 
@@ -590,7 +599,7 @@ function initBatchAttendancePage() {
     }
 
     function selectedStatus(row) {
-        return row.querySelector('[data-status-btn].is-active')?.dataset.statusValue || (type === 'driver' ? 'Unmarked' : 'Present');
+        return row.querySelector('[data-status-btn].is-active')?.dataset.statusValue || 'Unmarked';
     }
 
     function setSelectedStatus(row, status) {
@@ -600,7 +609,7 @@ function initBatchAttendancePage() {
     }
 
     function normalizeStatus(status) {
-        return ['Present', 'Absent', 'On Leave', ...(type === 'driver' ? ['Unmarked'] : [])].includes(status) ? status : (type === 'driver' ? 'Unmarked' : 'Present');
+        return ['Unmarked', 'Present', 'Late', 'Absent', 'On Leave'].includes(status) ? status : 'Unmarked';
     }
 
     function statusThemeClass(value) {
@@ -637,7 +646,7 @@ function initBatchAttendancePage() {
 
         rows.forEach((row) => {
             if (row.dataset.recorded === 'true') return;
-            const status = selectedStatus(row);
+            const status = row.querySelector('[data-row-select]').checked ? selectedStatus(row) : 'Unmarked';
             counts[status] = (counts[status] || 0) + 1;
 
             if (status !== 'Unmarked' && !['Absent', 'On Leave'].includes(status) && !row.querySelector('[data-time-in]').value) {
@@ -646,7 +655,7 @@ function initBatchAttendancePage() {
         });
 
         summary.innerHTML = [
-            ...(type === 'driver' ? [['Unmarked', 'unmarked', '#94a3b8']] : []),
+            ['Unmarked', 'unmarked', '#94a3b8'],
             ['Present', 'present', '#2fb45e'],
             ['Late', 'late', '#ff9518'],
             ['Absent', 'absent', '#ef3d3d'],

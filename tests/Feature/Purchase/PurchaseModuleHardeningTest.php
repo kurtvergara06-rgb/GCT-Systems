@@ -261,6 +261,93 @@ class PurchaseModuleHardeningTest extends TestCase
 
     }
 
+    public function test_purchase_history_sidebar_shows_completed_orders_not_requisition_archive(): void
+    {
+        $user = $this->purchaseUser('head');
+        $delivered = $this->order('Delivered', now()->toDateTimeString());
+
+        $response = $this->actingAs($user)
+            ->get(route('purchase-orders', ['record_view' => 'history']));
+
+        $response->assertOk()
+            ->assertSee('Completed Purchase Orders')
+            ->assertSee($delivered->po_no)
+            ->assertSee('Purchase History')
+            ->assertDontSee('Requisition Archive');
+    }
+
+    public function test_requisition_archive_remains_separately_accessible(): void
+    {
+        $user = $this->purchaseUser('head');
+        $completedRequest = $this->maintenanceRequest('PR-ARCHIVE-ONE', 'Delivered');
+
+        $this->actingAs($user)
+            ->get(route('maintenance-requests', ['view' => 'history']))
+            ->assertOk()
+            ->assertSee('Requisition Archive')
+            ->assertSee('Completed Requisition Records')
+            ->assertSee($completedRequest->pr_no)
+            ->assertDontSee('aria-label="Requisition record views"', false);
+    }
+
+    public function test_removed_purchase_preview_parameter_does_not_create_demo_records(): void
+    {
+        $user = $this->purchaseUser('head');
+
+        foreach (['maintenance-requests', 'inventory-restock', 'purchase-orders'] as $routeName) {
+            $this->actingAs($user)
+                ->get(route($routeName, ['demo_preview' => 1]))
+                ->assertOk()
+                ->assertDontSee('Layout preview only')
+                ->assertDontSee('Show demo rows')
+                ->assertDontSee('DEMO26-');
+        }
+
+        $this->assertSame(0, MaintenanceRequest::count());
+        $this->assertSame(0, PurchaseOrder::count());
+    }
+
+    public function test_purchase_lists_render_shared_record_id_badges(): void
+    {
+        $user = $this->purchaseUser('head');
+        $this->maintenanceRequest('PR-SHARED-ID-01', 'For Purchase');
+        $this->request('RST-SHARED-ID-01', 'For Purchase');
+        $this->order('Ordered');
+
+        foreach (['maintenance-requests', 'inventory-restock', 'purchase-orders'] as $routeName) {
+            $this->actingAs($user)
+                ->get(route($routeName))
+                ->assertOk()
+                ->assertSee('system-id-badge', false)
+                ->assertSee('purchase-record-id', false);
+        }
+    }
+
+    public function test_purchase_order_tabs_separate_active_and_completed_records(): void
+    {
+        $user = $this->purchaseUser('head');
+        $active = $this->order('Ordered');
+        $complete = $this->order('Delivered', now()->toDateTimeString());
+        $rejected = $this->order('Rejected');
+
+        $this->actingAs($user)
+            ->get(route('purchase-orders', ['record_view' => 'active']))
+            ->assertOk()
+            ->assertSee($active->po_no)
+            ->assertDontSee($complete->po_no)
+            ->assertDontSee($rejected->po_no)
+            ->assertDontSee('aria-label="Purchase Order record views"', false);
+
+        $this->actingAs($user)
+            ->get(route('purchase-orders', ['record_view' => 'history']))
+            ->assertOk()
+            ->assertDontSee($active->po_no)
+            ->assertSee($complete->po_no)
+            ->assertSee($rejected->po_no)
+            ->assertSee('value="history"', false)
+            ->assertDontSee('aria-label="Purchase Order record views"', false);
+    }
+
     public function test_parts_requests_record_tabs_group_active_and_history_statuses(): void
     {
         $user = $this->purchaseUser('head');

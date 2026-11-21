@@ -13,6 +13,10 @@
     @endif
   </div>
 
+  @isset($toolbar)
+    <div class="topbar-toolbar">{{ $toolbar }}</div>
+  @endisset
+
   <div
     class="top-actions"
     id="topbarActions"

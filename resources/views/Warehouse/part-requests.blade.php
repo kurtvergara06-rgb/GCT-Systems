@@ -16,9 +16,11 @@
     $warehouseUser = auth()->user();
     $warehouseDepartment = strtolower(trim((string) $warehouseUser?->department));
     $warehouseRole = strtolower(trim((string) $warehouseUser?->role));
-    $canApproveWarehouse = ($warehouseDepartment === 'warehouse' && in_array($warehouseRole, ['head', 'warehouse head'], true))
+    $canApproveWarehouse = (
+        ($warehouseDepartment === 'warehouse' && in_array($warehouseRole, ['head', 'warehouse head'], true))
         || ($warehouseDepartment === 'admin' && $warehouseRole === 'head')
-        || $warehouseRole === 'system admin';
+        || $warehouseRole === 'system admin'
+    ) && (auth()->user()?->hasSystemPermission('warehouse', 'approve') ?? false);
     $currentView = $currentView ?? 'pr';
     $isJo = $currentView === 'jo';
     $isHistory = $currentView === 'history';
@@ -46,7 +48,7 @@
             <h2>{{ $isJo ? 'Job Order Requests' : 'Purchase Request Records' }}</h2>
             <p>Track Maintenance requests and Warehouse restocking purchases in one queue.</p>
           </div>
-        @if($canEditWarehouse && !$isJo && !$isHistory)
+        @if($canEditWarehouse && $canApproveWarehouse && !$isJo && !$isHistory)
         <div class="inventory-header-actions warehouse-pr-header-actions">
           <button type="button" class="primary-btn" data-open-restock-pr aria-haspopup="dialog">
             <i class="fa-solid fa-plus" aria-hidden="true"></i> Create PR
@@ -57,7 +59,7 @@
 
         </div>
 
-        @if($canEditWarehouse && !$isJo && !$isHistory)
+        @if($canEditWarehouse && $canApproveWarehouse && !$isJo && !$isHistory)
           <div class="modal-overlay warehouse-restock-pr-overlay" id="warehouseRestockPrModal" aria-hidden="true">
             <div class="modal-box warehouse-restock-pr-dialog" role="dialog" aria-modal="true" aria-labelledby="warehouseRestockPrTitle">
               <div class="modal-header">
@@ -141,10 +143,6 @@
               </form>
             </div>
           </div>
-        @endif
-
-        @if($isHistory)
-          <p class="warehouse-history-note">Completed and closed Warehouse requisitions are kept here for reference and audit history.</p>
         @endif
 
         <div class="warehouse-list-controls">
@@ -352,7 +350,7 @@
       <div class="warehouse-edit-footer">
         <button type="button" class="warehouse-cancel-btn" data-send-missing-close>Cancel</button>
         <button type="button" id="sendMissingRevision" class="warehouse-cancel-btn"><i class="fa-solid fa-rotate-left"></i> Return for Revision</button>
-        <button type="button" id="sendMissingConfirm" class="confirm-issue-btn warehouse-send-purchase-yellow"><i class="fa-solid fa-cart-shopping"></i> Send to Purchase</button>
+        <button type="button" id="sendMissingConfirm" class="confirm-issue-btn warehouse-send-purchase-primary"><i class="fa-solid fa-cart-shopping"></i> Send to Purchase</button>
       </div>
     </div>
   </div>

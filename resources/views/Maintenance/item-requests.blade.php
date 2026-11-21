@@ -79,7 +79,7 @@
                 @endphp
                 <tr class="ir-pending-record">
                     <td>
-                        <div class="ir-split-jo"><strong class="ir-number maintenance-ir-id-badge">{{ $jo->job_order_no }}</strong></div>
+                        <div class="ir-split-jo"><x-ui.id-badge :value="$jo->job_order_no" size="small" tone="neutral" class="ir-number maintenance-ir-id-badge" /></div>
                     </td>
                     <td><div class="ir-submitted-time"><strong>{{ $submissionDate?->timezone(config('app.business_timezone', 'Asia/Manila'))->format('M d, Y') ?? '—' }}</strong><small>{{ $submissionDate?->timezone(config('app.business_timezone', 'Asia/Manila'))->format('h:i A') ?? 'Unknown time' }}</small><small>{{ $latestSubmissionAudit ? ($latestSubmissionAudit->action === 'resubmitted' ? 'Resubmitted' : 'Submitted') : 'Created date (fallback)' }}</small></div></td>
                     <td>
@@ -160,7 +160,7 @@
                         <tr class="ir-lifecycle-record">
                             <td>
                                 <div class="ir-split-jo">
-                                    <strong class="ir-number maintenance-ir-id-badge">IR-{{ $ir->created_at?->format('Y') ?? '0000' }}-{{ str_pad((string) $ir->id, 4, '0', STR_PAD_LEFT) }}</strong>
+                                    <x-ui.id-badge :value="'IR-' . ($ir->created_at?->format('Y') ?? '0000') . '-' . str_pad((string) $ir->id, 4, '0', STR_PAD_LEFT)" size="small" tone="neutral" class="ir-number maintenance-ir-id-badge" />
                                     <small class="ir-lifecycle-jo">{{ $ir->jobOrder?->job_order_no ?? 'JO unavailable' }}</small>
                                 </div>
                             </td>

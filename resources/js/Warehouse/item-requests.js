@@ -89,6 +89,8 @@ window.GCTPartialNavigation?.registerInitializer?.('warehouse-ir-details', '.war
     tbody.appendChild(loading);
     message.textContent = '';
     timestamp.textContent = '';
+    const handoverHistory = document.getElementById('warehouse-ir-handover-history');
+    if (handoverHistory) handoverHistory.textContent = 'Checking signed handover history...';
     const coverageLoading = document.getElementById('warehouse-ir-jo-coverage-rows');
     if (coverageLoading) { coverageLoading.replaceChildren(); const row = document.createElement('tr'); appendCell(row, 'Checking linked Job Order...', 'warehouse-ir-stock-empty').colSpan = 4; coverageLoading.appendChild(row); }
     button.disabled = true;
@@ -128,7 +130,11 @@ window.GCTPartialNavigation?.registerInitializer?.('warehouse-ir-details', '.war
       if (coverage) {
         coverage.replaceChildren();
         const issuedByPart = new Map(irParts.map(part => [key(part), Number(part.already_issued || 0)]));
-        if (joParts.length) {
+        if (data.quantity_review_required) {
+          const row = document.createElement('tr');
+          appendCell(row, 'JO quantity review required: the approved parts description does not contain explicit quantities.', 'warehouse-ir-stock-empty').colSpan = 4;
+          coverage.appendChild(row);
+        } else if (joParts.length) {
           joParts.forEach(part => {
             const total = Number(part.quantity || 0);
             const issued = Math.min(total, issuedByPart.get(key(part)) || 0);
@@ -152,7 +158,6 @@ window.GCTPartialNavigation?.registerInitializer?.('warehouse-ir-details', '.war
         appendCell(tr, 'No requested parts are recorded.', 'warehouse-ir-stock-empty').colSpan = 7;
         tbody.appendChild(tr);
       }
-      const handoverHistory = document.getElementById('warehouse-ir-handover-history');
       if (handoverHistory) {
         handoverHistory.replaceChildren();
         const batches = Array.isArray(data.handover_history) ? data.handover_history : [];
@@ -206,6 +211,11 @@ window.GCTPartialNavigation?.registerInitializer?.('warehouse-ir-details', '.war
       appendCell(tr, 'Stock verification unavailable. Try Recheck Stock.', 'warehouse-ir-stock-empty').colSpan = 7;
       tbody.appendChild(tr);
       message.textContent = error.message;
+      if (handoverHistory) {
+        handoverHistory.textContent = 'Signed SWIS history could not be verified. Try Recheck Stock.';
+      }
+      const progressMessage = document.getElementById('warehouse-ir-fulfillment-message');
+      if (progressMessage) progressMessage.textContent = '';
       const coverage = document.getElementById('warehouse-ir-jo-coverage-rows');
       if (coverage) { coverage.replaceChildren(); const row = document.createElement('tr'); appendCell(row, 'JO coverage could not be verified.', 'warehouse-ir-stock-empty').colSpan = 4; coverage.appendChild(row); }
     } finally {
@@ -325,7 +335,8 @@ window.GCTPartialNavigation?.registerInitializer?.('warehouse-ir-details', '.war
       set('ir-slip-total-parts', String(data.parts?.length ?? 0));
       if (!data.parts?.length) throw Error('This request has no recorded parts.');
       const policyAllowsPartial = data.release_policy === 'issue_available_only';
-      const canPrepare = data.status === 'sufficient' || (policyAllowsPartial && data.status === 'partial');
+      const canPrepare = !data.quantity_review_required &&
+        (data.status === 'sufficient' || (policyAllowsPartial && data.status === 'partial'));
       if (canPrepare && form && lines) {
         (data.parts || []).forEach((part, index) => {
           const cap = Math.min(Number(part.quantity) || 0, Number(part.available) || 0);
@@ -343,14 +354,18 @@ window.GCTPartialNavigation?.registerInitializer?.('warehouse-ir-details', '.war
         updateIssueButton();
       } else {
         const notice = document.createElement('p');
-        notice.textContent = data.status === 'none'
-          ? 'No allocatable stock remains. Issuance is blocked.'
-          : 'The Head selected Wait Until Complete. No partial handover is permitted.';
+        notice.textContent = data.quantity_review_required
+          ? 'Maintenance Head must confirm exact JO part quantities before SWIS issuance.'
+          : data.status === 'none'
+            ? 'No allocatable stock remains. Issuance is blocked.'
+            : 'The Head selected Wait Until Complete. No partial handover is permitted.';
         if (lines) lines.appendChild(notice);
       }
-      msg.querySelector('span').textContent = canPrepare
-        ? 'Review issued quantities and sign the physical handover slip. Inventory is deducted only after confirmation.'
-        : 'Issuance is blocked by current stock availability or the Maintenance Head release decision.';
+      msg.querySelector('span').textContent = data.quantity_review_required
+        ? 'The approved Job Order has no confirmed part quantities. Reconcile it before issuance.'
+        : canPrepare
+          ? 'Review issued quantities and sign the physical handover slip. Inventory is deducted only after confirmation.'
+          : 'Issuance is blocked by current stock availability or the Maintenance Head release decision.';
       printButton.disabled = false;
     } catch (error) {
       if (sequence !== slipSequence) return;

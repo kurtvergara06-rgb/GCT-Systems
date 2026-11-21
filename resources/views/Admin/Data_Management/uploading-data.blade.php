@@ -11,7 +11,6 @@
             <x-layout.topbar
                 title="Import / Export"
                 subtitle="Move already-structured records into FROMS or generate downloadable files from existing system data"
-                notification-count="6"
             />
 
             <section data-ajax-region="summary" class="stats-grid import-export-stats">

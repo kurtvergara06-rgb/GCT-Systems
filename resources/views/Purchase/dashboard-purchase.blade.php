@@ -55,7 +55,7 @@
       ====================================================== --}}
       <x-layout.topbar
         title="Purchase Dashboard"
-        subtitle="Monitor purchase requests, purchase orders, financial spending, and scheduled procurement"
+        subtitle="Monitor purchase requests, committed PO values, and supplier fulfillment"
         notification-count="6"
       />
 
@@ -101,9 +101,9 @@
             <i class="fa-solid fa-peso-sign"></i>
           </div>
           <div class="purchase-spend-details">
-            <span class="stat-label">Total Spend</span>
+            <span class="stat-label">Committed PO Value</span>
             <strong class="stat-value">₱{{ number_format($totalSpend, 2) }}</strong>
-            <small class="stat-subtext">Avg ₱{{ number_format($avgOrderValue, 0) }} / order</small>
+            <small class="stat-subtext">Avg ₱{{ number_format($avgOrderValue, 0) }} / committed order (not paid invoices)</small>
           </div>
         </div>
 
@@ -119,8 +119,8 @@
           <div class="dashboard-card-header">
             <div>
               <span class="dashboard-eyebrow">FINANCIAL ANALYTICS</span>
-              <h2>Procurement Spend & PO Volume</h2>
-              <p>Expenditure tracking and purchase order issuance over time</p>
+              <h2>Committed PO Value & Volume</h2>
+              <p>Ordered purchase value, not confirmed supplier payments, over time</p>
             </div>
 
             <div class="chart-header-actions">
@@ -145,15 +145,15 @@
             <canvas
               id="purchaseSpendTrendChart"
               role="img"
-              aria-label="Procurement spend and order volume trend"
+              aria-label="Committed purchase order value and volume trend"
               data-monthly="{{ json_encode($spendTrendMonthly) }}"
               data-weekly="{{ json_encode($spendTrendWeekly) }}"
             ></canvas>
 
             <div id="purchaseSpendEmpty" class="purchase-chart-empty" style="display: none;">
               <i class="fa-solid fa-chart-simple"></i>
-              <strong>No procurement spend recorded</strong>
-              <span>Spending trend will appear as purchase orders are placed.</span>
+              <strong>No committed Purchase Orders recorded</strong>
+              <span>Commitment trends appear after purchase orders are approved.</span>
             </div>
           </div>
         </div>
@@ -282,7 +282,7 @@
           <div class="dashboard-card-header">
             <div>
               <span class="dashboard-eyebrow">SUPPLIER ALLOCATION</span>
-              <h2>Top Suppliers by Spend</h2>
+              <h2>Top Suppliers by Committed PO Value</h2>
               <p>Vendor distribution and order value concentration</p>
             </div>
             <a href="{{ route('purchase-orders') }}" class="dashboard-view-link">

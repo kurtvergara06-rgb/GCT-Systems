@@ -46,7 +46,7 @@ class ItemRequestPartialIssuanceTest extends TestCase
         ])->assertRedirect()->assertSessionHasNoErrors();
 
         $ir = ItemRequest::where('job_order_id', $jo->id)->firstOrFail();
-        $this->assertSame(6, (int) collect($ir->requested_parts)->sum('quantity'));
+        $this->assertSame(10, (int) collect($ir->requested_parts)->sum('quantity')); // Full JO requirement, not only stocked units.
         $this->assertDatabaseMissing('purchase_requests', ['job_order_no' => $jo->job_order_no]);
 
         // IR issuance and shortage procurement are deliberately submitted as
@@ -158,4 +158,121 @@ class ItemRequestPartialIssuanceTest extends TestCase
         $this->assertSame(2, InventoryIssuance::where('reference_no', $ref)
             ->orWhere('reference_no', 'like', $ref.'-B%')->count());
     }
+    public function test_bare_legacy_jo_quantity_is_flagged_and_cannot_deduct_inventory(): void
+    {
+        Storage::fake('local');
+        $staff = User::factory()->create([
+            'department' => 'Warehouse', 'role' => 'staff', 'status' => 'Active',
+        ]);
+        $stock = InventoryItem::create([
+            'item_code' => 'LEGACY-BRAKE', 'parts_name' => 'Brake Pad',
+            'item_name' => 'Brake Pad', 'category' => 'Brakes',
+            'on_hand' => 3, 'quantity_available' => 3,
+            'unit' => 'pcs', 'unit_of_measurement' => 'pcs', 'reorder_level' => 1,
+        ]);
+        $jo = JobOrder::create([
+            'job_order_no' => 'JO-LEGACY-BRAKE', 'bus_no' => 'BUS-LEGACY-02',
+            'problem_issue' => 'Brake repair', 'maintenance_type' => 'Corrective',
+            'assigned_mechanic' => 'Test Mechanic',
+            'part_needed' => 'Brake Pad', // Legacy text has no approved quantity.
+            'review_status' => 'Approved',
+            'parts_issue_strategy' => 'issue_available_only',
+            'part_status' => 'Partial', 'status' => 'On Hold',
+        ]);
+        JobOrderPartReservation::create([
+            'job_order_id' => $jo->id, 'inventory_item_id' => $stock->id, 'quantity' => 1,
+        ]);
+        $ir = ItemRequest::create([
+            'job_order_id' => $jo->id, 'requested_by' => $staff->id,
+            'status' => 'Partially Issued',
+            'requested_parts' => [[
+                'name' => 'Brake Pad', 'quantity' => 4, 'unit' => 'pcs',
+                'inventory_item_id' => $stock->id,
+            ]],
+        ]);
+
+        $this->actingAs($staff)->get(route('warehouse.item-requests', ['view' => 'active']))
+            ->assertOk()->assertSee('Quantity review required')
+            ->assertSee('JO requirement not confirmed');
+
+        $this->actingAs($staff)->post(route('warehouse.item-requests.issue', $ir), [
+            'received_by' => 'Test Mechanic',
+            'signed_slip' => UploadedFile::fake()->create('unsigned-attempt.pdf', 100, 'application/pdf'),
+            'handover_confirmed' => '1',
+            'issued_quantities' => [1],
+        ])->assertSessionHasErrors('issue');
+
+        $this->assertSame(3, (int) $stock->fresh()->quantity_available);
+        $this->assertSame(0, InventoryIssuance::query()->confirmedSigned()->count());
+        $this->assertSame(4, (int) collect($ir->fresh()->requested_parts)->sum('quantity'));
+    }
+
+    public function test_legacy_issued_request_with_no_signed_handover_stays_active_and_can_prepare(): void
+    {
+        Storage::fake('local');
+        $staff = User::factory()->create([
+            'department' => 'Warehouse', 'role' => 'staff', 'status' => 'Active',
+        ]);
+        $stock = InventoryItem::create([
+            'item_code' => 'LEGACY-IR-FILTER',
+            'parts_name' => 'Oil Filter',
+            'item_name' => 'Oil Filter',
+            'category' => 'Filters',
+            'on_hand' => 2,
+            'quantity_available' => 2,
+            'unit' => 'pcs',
+            'unit_of_measurement' => 'pcs',
+            'reorder_level' => 1,
+        ]);
+        $jo = JobOrder::create([
+            'job_order_no' => 'LEGACY-JO-001',
+            'bus_no' => 'BUS-LEGACY',
+            'problem_issue' => 'Replace filter',
+            'maintenance_type' => 'Corrective',
+            'assigned_mechanic' => 'Mechanic Test',
+            'part_needed' => 'Oil Filter - Qty: 1 pcs',
+            'review_status' => 'Approved',
+            'parts_issue_strategy' => 'issue_available_only',
+            'inventory_snapshot' => ['shortages' => [], 'status' => 'sufficient'],
+            'part_status' => 'Issued', // Stale legacy/demo status, no signed SWIS.
+            'status' => 'On Hold',
+        ]);
+        JobOrderPartReservation::create([
+            'job_order_id' => $jo->id, 'inventory_item_id' => $stock->id, 'quantity' => 1,
+        ]);
+        $ir = ItemRequest::create([
+            'job_order_id' => $jo->id,
+            'requested_by' => $staff->id,
+            'status' => 'Issued',
+            'requested_parts' => [['name' => 'Oil Filter', 'quantity' => 1, 'unit' => 'pcs']],
+        ]);
+        $reference = 'IR-'.($ir->created_at?->format('Y') ?? '0000').'-'.str_pad((string) $ir->id, 4, '0', STR_PAD_LEFT);
+
+        $this->actingAs($staff)->get(route('warehouse.item-requests', ['view' => 'active']))
+            ->assertOk()
+            ->assertSee($reference)
+            ->assertSee('Prepare Issuance Slip')
+            ->assertSee('0 / 1 issued');
+        $this->actingAs($staff)->get(route('warehouse.item-requests', ['view' => 'history']))
+            ->assertOk()
+            ->assertDontSee($reference)
+            ->assertDontSee('data-ir-prepare');
+
+        $this->actingAs($staff)->post(route('warehouse.item-requests.issue', $ir), [
+            'received_by' => 'Mechanic Test',
+            'signed_slip' => UploadedFile::fake()->create('signed.pdf', 100, 'application/pdf'),
+            'handover_confirmed' => '1',
+            'issued_quantities' => [1],
+        ])->assertRedirect()->assertSessionHasNoErrors();
+        $this->assertSame(1, InventoryIssuance::query()->confirmedSigned()->count());
+
+        $this->actingAs($staff)->get(route('warehouse.item-requests', ['view' => 'history']))
+            ->assertOk()
+            ->assertSee($reference)
+            ->assertDontSee('data-ir-prepare');
+        $this->actingAs($staff)->get(route('warehouse.item-requests', ['view' => 'active']))
+            ->assertOk()
+            ->assertDontSee($reference);
+    }
+
 }

@@ -190,7 +190,7 @@ input {
   min-height: 0;
   display: grid;
   place-items: center;
-  padding: clamp(28px, 5vh, 56px) clamp(32px, 6vw, 100px);
+  padding: clamp(16px, 2.5vh, 32px) clamp(32px, 6vw, 100px);
   background: #ffffff;
 }
 
@@ -203,7 +203,7 @@ input {
 }
 
 .login-heading {
-  margin-bottom: 38px;
+  margin-bottom: 24px;
 }
 
 .login-heading h2 {
@@ -216,7 +216,7 @@ input {
 }
 
 .login-heading p {
-  margin: 12px 0 0;
+  margin: 8px 0 0;
   color: var(--gct-muted);
   font-size: 15px;
   line-height: 1.5;
@@ -251,6 +251,7 @@ input {
 }
 
 .form-group {
+  position: relative;
   margin-bottom: 22px;
 }
 
@@ -336,15 +337,32 @@ input {
 }
 
 .field-error {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
   display: flex;
+  align-items: flex-start;
   gap: 6px;
-  margin-top: 7px;
+  margin-top: 4px;
   color: var(--gct-danger);
-  font-size: 12px;
+  font-size: 11px;
+  line-height: 1.3;
+  pointer-events: none;
+  animation: login-field-message-in .25s ease-out both;
+}
+.field-error > i { flex: 0 0 auto; margin-top: 2px; }
+.field-error > span { min-width: 0; overflow-wrap: anywhere; }
+@keyframes login-field-message-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .field-error { animation: none; }
 }
 
 .login-options {
-  margin: 4px 0 27px;
+  margin: 2px 0 18px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -426,7 +444,7 @@ input {
 .login-btn[aria-busy="true"] .btn-spinner { display: inline-flex; }
 
 .trust-divider {
-  margin-top: 54px;
+  margin-top: 24px;
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
@@ -450,7 +468,7 @@ input {
 }
 
 .login-footer {
-  margin-top: 74px;
+  margin-top: 24px;
   color: #8590a1;
   font-size: 11px;
   text-align: center;
@@ -544,8 +562,38 @@ input {
   .gct-form-panel { padding-inline: 32px; }
 }
 
-@media (min-width: 701px) and (max-height: 700px) {
-  .brand-copy { margin-top: 40px; }
+/* Prefer a complete, non-scrolling sign-in form on ordinary laptop heights.
+   On exceptionally short screens, preserve access instead of clipping controls. */
+@media (min-width: 701px) and (max-height: 780px) {
+  .gct-form-panel { padding-block: 12px; }
+  .login-heading { margin-bottom: 14px; }
+  .login-heading h2 { font-size: clamp(28px, 2.7vw, 38px); }
+  .login-heading p { margin-top: 6px; line-height: 1.35; }
+  .form-group { margin-bottom: 16px; }
+  .input-box { min-height: 46px; }
+  .gct-login-page .input-box input,
+  .gct-login-page .input-box input:focus,
+  .gct-login-page .input-box input:focus-visible { height: 44px; }
+  .login-options { margin-bottom: 12px; }
+  .login-btn { min-height: 46px; }
+  .google-auth-separator { margin-block: 9px 7px; }
+  .google-auth-button { min-height: 43px; }
+  .trust-divider { margin-top: 15px; }
+  .login-footer { margin-top: 14px; }
+  .brand-copy { margin-top: 24px; }
+}
+
+@media (min-width: 701px) and (max-height: 580px) {
+  html:has(.gct-login-page--signin),
+  body:has(.gct-login-page--signin) { height: auto; overflow-y: auto; }
+  .gct-login-page--signin { min-height: 580px; height: auto; overflow: visible; }
+  .gct-login-page--signin .gct-form-panel { min-height: 580px; }
+}
+
+@media (max-width: 700px) {
+  html:has(.gct-login-page--signin),
+  body:has(.gct-login-page--signin) { height: auto; overflow-y: auto; }
+  .gct-login-page--signin { height: auto; min-height: 100dvh; }
 }
 
 @media (max-width: 700px) {
@@ -561,12 +609,12 @@ input {
   .brand-services { margin-top: 12px; font-size: 11px; }
   .brand-services b { padding-inline: 3px; }
   .brand-footer { display: none; }
-  .gct-form-panel { height: auto; min-height: calc(100vh - 218px); display: block; padding: 40px 22px 28px; }
-  .login-heading { margin-bottom: 30px; }
+  .gct-form-panel { height: auto; min-height: calc(100dvh - 218px); display: block; padding: 24px 22px 24px; }
+  .login-heading { margin-bottom: 22px; }
   .login-heading h2 { font-size: 33px; }
   .login-heading p { font-size: 14px; }
-  .trust-divider { margin-top: 42px; }
-  .login-footer { margin-top: 48px; }
+  .trust-divider { margin-top: 24px; }
+  .login-footer { margin-top: 24px; }
 }
 
 @media (max-width: 390px) {
@@ -586,13 +634,116 @@ input {
 }
 
 /* Login/registration switch and employee-registration guidance. */
-.auth-switch { margin: 16px 0 0; text-align: center; font-size: 13px; color: #64748b; }
+.auth-switch { margin: 11px 0 0; text-align: center; font-size: 13px; color: #64748b; }
 .auth-switch a { color: #07549a; font-weight: 700; text-decoration: underline; }
+.auth-switch--install { display:flex; align-items:center; justify-content:center; gap:18px; flex-wrap:wrap; }
+.pwa-install-link { display:inline-flex; align-items:center; gap:6px; padding:2px 0; border:0; background:transparent; color:#07549a; font-size:12px; font-weight:700; cursor:pointer; text-decoration:underline; text-underline-offset:3px; }
+.pwa-install-link:hover { color:#063f77; }
+.pwa-install-link:focus-visible { outline:2px solid #07549a; outline-offset:3px; border-radius:2px; }
+.pwa-install-link[hidden] { display:none; }
+.pwa-install-dialog { width:min(380px,calc(100vw - 32px)); max-width:380px; padding:24px; border:1px solid #dce5f2; border-radius:14px; background:#fff; color:#10214b; box-shadow:0 24px 70px rgba(3,27,64,.25); }
+.pwa-install-dialog::backdrop { background:rgba(3,27,64,.55); }
+.pwa-install-dialog-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.pwa-install-dialog-heading h2 { margin:0; font-size:21px; font-weight:800; }
+.pwa-install-dialog-close { display:grid; place-items:center; width:32px; height:32px; border:0; border-radius:6px; background:#f1f5fa; color:#10214b; cursor:pointer; }
+.pwa-install-dialog p { margin:16px 0 20px; font-size:14px; line-height:1.6; color:#52647d; }
+.pwa-install-dialog-done { min-height:40px; width:100%; border:0; border-radius:7px; background:#07549a; color:#fff; font-weight:700; cursor:pointer; }
+.pwa-install-dialog :is(button):focus-visible { outline:3px solid #80ade8; outline-offset:2px; }
+
 .registration-notice { font-size: 12px; line-height: 1.5; color: #64748b; margin: 5px 0 16px; }
-@media (max-height: 780px) { body:has(.registration-notice) { overflow-y: auto; } body:has(.registration-notice) .gct-login-page { min-height: 100vh; height: auto; overflow: visible; } body:has(.registration-notice) .gct-form-panel { min-height: 100vh; height: auto; } }
+
+/* Legal information opens in a contained dialog; the underlying form never shifts. */
+.gct-legal-dialog {
+  position:fixed;inset:0;margin:auto;
+  width:min(850px,calc(100vw - 32px));max-width:850px;
+  height:min(85vh,820px);max-height:85dvh;
+  padding:0;border:1px solid #dce5f2;border-radius:16px;
+  background:#fff;color:#142b4b;
+  box-shadow:0 24px 80px rgba(4,25,52,.32);
+  overflow:hidden;
+}
+.gct-legal-dialog::backdrop {background:rgba(4,18,39,.64);backdrop-filter:blur(3px);}
+.gct-legal-dialog[open] {display:flex;flex-direction:column;}
+.gct-legal-dialog-header {
+  flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;
+  gap:12px;padding:20px clamp(20px,4vw,36px);border-bottom:1px solid #e3eaf3;
+}
+.gct-legal-dialog-label {font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#54708f;}
+.gct-legal-dialog-header h2 {margin:4px 0 0;font-size:clamp(19px,3vw,25px);line-height:1.3;color:#132b4c;}
+.gct-legal-dialog-close {
+  flex:0 0 36px;width:36px;height:36px;display:grid;place-items:center;
+  padding:0;border:1px solid #dbe4ef;border-radius:9px;
+  background:#f6f9fc;color:#31506e;cursor:pointer;
+}
+.gct-legal-dialog-close:hover {background:#e9f2fb;}
+.gct-legal-dialog :is(button,a):focus-visible {outline:3px solid #76a7e8;outline-offset:2px;}
+.gct-legal-dialog-body {
+  flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;
+  padding:clamp(20px,4vw,36px);
+  scrollbar-width:thin;
+}
+.gct-legal-dialog-body p {margin:0;color:#42556e;font-size:13px;line-height:1.8;}
+.gct-legal-dialog-body .legal-intro {font-size:14px;}
+.gct-legal-dialog-body h2 {margin:25px 0 8px;color:#152d4d;font-size:16px;line-height:1.35;}
+.gct-legal-dialog-body a {color:#07549a;text-underline-offset:3px;}
+@media(max-width:600px){
+  .gct-legal-dialog {height:min(88dvh,820px);max-height:88dvh;border-radius:12px;}
+  .gct-legal-dialog-header {padding:15px 18px;}
+}
+
+/* Legal links and registration acknowledgment: shared across both sign-up methods. */
+.auth-legal-links {display:flex;justify-content:center;align-items:center;gap:12px;flex-wrap:wrap;margin:12px 0 0;font-size:12px;color:#7d8ba0;}
+.auth-legal-links a,.auth-privacy-ack a {color:#07549a;text-underline-offset:2px;}
+.auth-privacy-ack,.google-register-card .auth-privacy-ack {
+  display:flex;align-items:flex-start;gap:10px;margin:12px 0 14px;
+  color:#42536b;font-size:12px;font-weight:400;line-height:1.55;cursor:pointer;
+}
+.auth-privacy-ack input,.google-register-card .auth-privacy-ack input {
+  appearance:auto;display:block;flex:0 0 16px;width:16px;height:16px;
+  min-height:16px;padding:0;margin:2px 0 0;accent-color:#07549a;
+}
+.auth-privacy-ack span {flex:1;min-width:0;}
+.registration-privacy-error {font-size:11px;color:#b42318;margin:-7px 0 12px;}
+.auth-privacy-ack a:focus-visible,.auth-legal-links a:focus-visible {
+  outline:2px solid #07549a;outline-offset:2px;border-radius:2px;
+}
+
+/* Registration has four fields and additional legal controls. Keep the entire
+   desktop form in view instead of forcing page scrolling at laptop heights. */
+@media (min-width: 701px) {
+  body:has(.registration-notice) .gct-form-panel { padding-block: 12px; }
+  body:has(.registration-notice) .login-heading { margin-bottom: 14px; }
+  body:has(.registration-notice) .login-heading h2 { font-size: clamp(29px, 2.65vw, 39px); }
+  body:has(.registration-notice) .login-heading p { margin-top: 6px; font-size: 13px; line-height: 1.35; }
+  body:has(.registration-notice) .form-group { margin-bottom: 12px; }
+  body:has(.registration-notice) .form-group > label { margin-bottom: 5px; font-size: 13px; }
+  body:has(.registration-notice) .input-box { min-height: 44px; }
+  body:has(.registration-notice) .input-box input { height: 42px; }
+  body:has(.registration-notice) .registration-notice { margin: 0 0 7px; font-size: 11px; line-height: 1.35; }
+  body:has(.registration-notice) .auth-privacy-ack { margin: 7px 0 9px; line-height: 1.4; }
+  body:has(.registration-notice) .login-btn { min-height: 44px; }
+  body:has(.registration-notice) .google-auth-separator { margin-block: 7px 6px; }
+  body:has(.registration-notice) .google-auth-button { min-height: 42px; }
+  body:has(.registration-notice) .auth-switch { margin-top: 8px; }
+  body:has(.registration-notice) .auth-legal-links { margin-top: 7px; }
+  body:has(.registration-notice) .trust-divider { margin-top: 12px; }
+  body:has(.registration-notice) .login-footer { margin-top: 10px; }
+}
+
+/* A shorter viewport cannot safely fit four inputs plus legal controls.
+   Allow scrolling only there instead of clipping required actions. */
+@media (min-width: 701px) and (max-height: 690px) {
+  body:has(.registration-notice) { height: auto; overflow-y: auto; }
+  body:has(.registration-notice) .gct-login-page { min-height: 690px; height: auto; overflow: visible; }
+  body:has(.registration-notice) .gct-form-panel { min-height: 690px; height: auto; }
+}
+@media (max-width: 700px) {
+  body:has(.registration-notice) { height: auto; overflow-y: auto; }
+  body:has(.registration-notice) .gct-login-page { height: auto; overflow: visible; }
+}
 
 /* Google identity option; shared by sign-in and registration pages. */
-.google-auth-separator { display: flex; align-items: center; gap: 14px; margin: 18px 0 12px; color: #778399; font-size: 12px; text-transform: uppercase; }
+.google-auth-separator { display: flex; align-items: center; gap: 14px; margin: 12px 0 9px; color: #778399; font-size: 12px; text-transform: uppercase; }
 .google-auth-separator::before, .google-auth-separator::after { content: ""; flex: 1; height: 1px; background: #d7dce4; }
 .google-auth-button { width: 100%; min-height: 47px; border: 1px solid #cbd5e1; border-radius: 7px; background: #fff; color: #192b47; display: flex; align-items: center; justify-content: center; gap: 12px; text-decoration: none; font-weight: 600; font-size: 13px; transition: background-color .15s ease, border-color .15s ease; }
 .google-auth-button:hover { background: #f5f8fd; border-color: #8da8c9; }

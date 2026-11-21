@@ -49,7 +49,7 @@
             <div><strong>ML forecast:</strong> Next-week demand estimate only when a trained model is ready.</div>
             <div><strong>Stock status:</strong> Current on-hand quantity relative to its reorder point; not a time-to-stockout prediction.</div>
             <div><strong>Suggested quantity:</strong> Advisory replenishment amount; not an approved Purchase Order.</div>
-            <div><strong>Demo policy:</strong> Synthetic client-demo data may be shown in development, but production still requires genuine GCT stock history.</div>
+            <div><strong>Model eligibility:</strong> Forecasts require verified historical GCT inventory records and an eligible production model.</div>
         </div>
     </x-analytics.card>
 </section>
@@ -112,7 +112,7 @@
 
             section.querySelector('#inventory-model4-grid').hidden = !ready;
             if (ready) {
-                setStatus(production ? 'PRODUCTION MODEL READY' : 'DEMO MODEL READY', dataset);
+                setStatus(production ? 'PRODUCTION MODEL READY' : 'NON-PRODUCTION MODEL', dataset);
             } else {
                 setStatus('MODEL NOT READY', 'Stock-level monitoring remains available. ' + (data.message || dataset));
             }

@@ -1,4 +1,5 @@
 @php
+    if (! isset($maintenanceAnalytics)) {
     $prescriptiveUrl = route('analytics.stage', ['stage' => 'prescriptive'], false);
     $activeDomain = in_array(request('domain'), ['inventory', 'restocking'], true) ? 'inventory' : 'fleet-trip';
     $isRestocking = $activeDomain === 'inventory';
@@ -19,7 +20,7 @@
         'last-12-months' => 'Last 12 Months',
     ];
 
-    $currentFilters = request()->only(['period', 'bus', 'demo']);
+    $currentFilters = request()->only(['period', 'bus', 'preview']);
     $normalizedSelectedBus = strtoupper(trim((string) $selectedBus));
 
     if (! $isRestocking) {
@@ -47,11 +48,27 @@
             'priorityColors' => collect($restockingData->priority_distribution ?? [])->pluck('color')->toArray(),
         ];
     }
+    }
+    if (isset($maintenanceAnalytics)) {
+        $departmentScoped = true;
+        $pageTitle = $title = ucfirst($stage).' Analytics';
+        $pageSubtitle = $subtitle = match ($stage) {
+            'descriptive' => 'Maintenance performance overview',
+            'diagnostic' => 'Maintenance and fuel issue investigation',
+            'predictive' => 'Estimates based on verified historical maintenance and fuel records',
+            default => 'Recommendations for Maintenance Head review',
+        };
+        $pageAssets = [
+            'resources/css/Admin/Analytics/design-system.css',
+            'resources/css/Admin/Analytics/maintenance.css',
+            'resources/js/Admin/Analytics/maintenance.js',
+        ];
+    }
 @endphp
 
 <x-layout.app
     title="FROMS - {{ $title }}"
-    :assets="[
+    :assets="isset($maintenanceAnalytics) ? $pageAssets : [
         'resources/css/Admin/Analytics/prescriptive/prescriptive-rebuild.css',
         'resources/css/Admin/Analytics/model-status-stage.css',
         'resources/css/Admin/Analytics/design-system.css',
@@ -60,12 +77,22 @@
     :partial-navigation="false"
 >
     <div class="app">
-        <x-layout.sidebar department="Admin" />
-        <main class="main analytics-stage-page prescriptive-rebuild">
+        <x-layout.sidebar :department="isset($maintenanceAnalytics) ? auth()->user()->department : 'Admin'" />
+        <main class="main analytics-stage-page {{ isset($maintenanceAnalytics) ? 'department-analytics-page' : '' }} prescriptive-rebuild">
             <x-layout.topbar
                 :title="$title"
                 :subtitle="$subtitle"
-            />
+            >
+                @if(isset($maintenanceAnalytics))
+                    <x-slot:toolbar>
+                        @include('Admin.Analytics.maintenance.filters')
+                    </x-slot:toolbar>
+                @endif
+            </x-layout.topbar>
+            @if(isset($maintenanceAnalytics))
+                @include('Admin.Analytics.maintenance.content')
+            @else
+
 
             <!-- Hidden JSON payload consumed by Chart.js script -->
             <script type="application/json" id="prescriptiveAnalyticsData">
@@ -108,7 +135,7 @@
                     <x-ui.summary-card
                         label="Active Driver Candidates"
                         value="{{ $operationsData->eligible_drivers_count }}"
-                        small="Attendance and rest require review"
+                        small="Availability requires review"
                         icon="fa-user-check"
                         color="green"
                         href="{{ route('driver-attendance') }}"
@@ -157,7 +184,7 @@
                                 <h3><i class="fa-solid fa-chart-column"></i> Resource &amp; Dispatch Signals</h3>
                                 <p class="dashboard-eyebrow">Independent counts; categories may overlap and do not imply dispatch clearance</p>
                             </div>
-                            <span class="dashboard-badge">Dispatch Status</span>
+                            <span class="dashboard-badge dispatch-status-label">Dispatch Status</span>
                         </div>
                         <div class="prescriptive-chart-wrap">
                             <canvas id="prescriptiveReadinessDonutChart"></canvas>
@@ -196,14 +223,14 @@
                 <section class="prescriptive-dashboard-card" style="margin-bottom: 18px;">
                     <div class="dashboard-card-header">
                         <div>
-                            <h3><i class="fa-solid fa-calendar-check"></i> Recommended Departure &amp; Trip Schedules</h3>
-                            <p class="dashboard-eyebrow">Recorded departure times and candidate resources; final timing and assignments require Operations approval</p>
+                            <h3><i class="fa-solid fa-calendar-check"></i> Pending Trip Assignment Recommendations</h3>
+                            <p class="dashboard-eyebrow">Upcoming open assignment slots and compatible regular pairs for Operations review</p>
                         </div>
-                        <span class="dashboard-badge">{{ collect($operationsData->schedule_recommendations)->count() }} Trips</span>
+                        <span class="dashboard-badge">{{ collect($operationsData->schedule_recommendations)->count() }} Slots</span>
                     </div>
 
-                    <div class="prescriptive-table-container">
-                        <table class="prescriptive-table">
+                    <div class="prescriptive-table-container schedule-recommendations-wrap">
+                        <table class="prescriptive-table schedule-recommendations-table">
                             <thead>
                                 <tr>
                                     <th>Trip Code</th>
@@ -221,44 +248,44 @@
                             <tbody>
                                 @forelse($operationsData->schedule_recommendations as $rec)
                                     <tr>
-                                        <td>
+                                        <td data-label="Trip Code">
                                             <span class="code-pill">
                                                 <i class="fa-solid fa-hashtag"></i> {{ $rec->trip_code }}
                                             </span>
                                         </td>
-                                        <td>
-                                            <strong style="color:#0f172a;">{{ $rec->route_name }}</strong>
-                                            <br><small style="color:#64748b;">{{ $rec->route_code }}</small>
+                                        <td data-label="Route & Corridor">
+                                            <strong class="prescriptive-main-value">{{ $rec->route_name }}</strong>
+                                            <br><small class="prescriptive-muted-value">{{ $rec->route_code }}</small>
                                         </td>
-                                        <td>
+                                        <td data-label="Trip Date">
                                             <span class="dashboard-badge">{{ $rec->trip_date }}</span>
                                         </td>
-                                        <td>
-                                            <strong style="color:#1d4ed8; font-size:13px;">{{ $rec->suggested_departure }}</strong>
+                                        <td data-label="Recorded Departure">
+                                            <strong class="prescriptive-departure-value">{{ $rec->suggested_departure }}</strong>
                                             <br><span class="headway-pill"><i class="fa-solid fa-arrows-left-right"></i> {{ $rec->headway_gap }}</span>
                                         </td>
-                                        <td>
+                                        <td data-label="Est. Arrival">
                                             <strong>{{ $rec->estimated_arrival }}</strong>
                                         </td>
-                                        <td>
-                                            <span style="font-weight:600; color:#475569;">{{ $rec->historical_duration }}</span>
+                                        <td data-label="Duration">
+                                            <span class="prescriptive-duration-value">{{ $rec->historical_duration }}</span>
                                         </td>
-                                        <td>
+                                        <td data-label="Recommended Unit">
                                             <span class="bus-chip">
                                                 <i class="fa-solid fa-bus"></i> {{ $rec->recommended_bus }}
                                             </span>
                                         </td>
-                                        <td>
+                                        <td data-label="Recommended Driver">
                                             <span class="driver-chip">
                                                 <i class="fa-solid fa-id-card"></i> {{ $rec->recommended_driver }}
                                             </span>
                                         </td>
-                                        <td style="max-width: 320px;">
-                                            <small style="color:#334155; line-height:1.45; display:block;">
+                                        <td data-label="Review Required" style="max-width: 320px;">
+                                            <small class="prescriptive-review-note">
                                                 <i class="fa-solid fa-circle-info" style="color:#2563eb;"></i> {{ $rec->reason }}
                                             </small>
                                         </td>
-                                        <td>
+                                        <td data-label="Status">
                                             <span class="badge-status optimal">
                                                 {{ $rec->status }}
                                             </span>
@@ -284,7 +311,7 @@
                         <div class="dashboard-card-header">
                             <div>
                                 <h3><i class="fa-solid fa-id-card"></i> Active Driver Candidates</h3>
-                                <p class="dashboard-eyebrow">Employment status is active; attendance, rest, and authorization remain unverified here</p>
+                                <p class="dashboard-eyebrow">Active driver master records and their authorized buses. Availability depends on the trip.</p>
                             </div>
                             <span class="dashboard-badge">{{ collect($operationsData->driver_recommendations)->count() }} Candidates</span>
                         </div>
@@ -293,10 +320,9 @@
                             <table class="prescriptive-table candidate-table candidate-table--drivers">
                                 <thead>
                                     <tr>
-                                        <th>Driver &amp; Authorization</th>
-                                        <th>Attendance</th>
-                                        <th>Duty Hours</th>
-                                        <th>Clearance &amp; Rationale</th>
+                                        <th>Driver</th>
+                                        <th>Authorized Buses</th>
+                                        <th>Assignment Review</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -304,22 +330,20 @@
                                         <tr>
                                             <td>
                                                 <strong style="color:#0f172a; font-size:12.5px;">{{ $driver->driver_name }}</strong>
-                                                <br><small style="color:#64748b;"><i class="fa-solid fa-id-card"></i> {{ $driver->bus_authorization }}</small>
+                                                
                                             </td>
                                             <td>
-                                                <span class="badge-status warning">{{ $driver->attendance_status }}</span>
+                                                <small class="candidate-rationale">{{ $driver->bus_authorization }}</small>
                                             </td>
-                                            <td>
-                                                <span class="code-pill">{{ $driver->duty_hours }}</span>
-                                            </td>
+                                            
                                             <td>
                                                 <span class="badge-status warning"><i class="fa-solid fa-circle-info"></i> {{ $driver->eligibility }}</span>
-                                                <small style="color:#475569; display:block; line-height:1.35; margin-top:3px;">{{ $driver->reason }}</small>
+                                                
                                             </td>
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="4" style="text-align:center; padding:24px; color:#64748b;">
+                                            <td colspan="3" style="text-align:center; padding:24px; color:#64748b;">
                                                 No active drivers found for candidate review.
                                             </td>
                                         </tr>
@@ -334,19 +358,18 @@
                         <div class="dashboard-card-header">
                             <div>
                                 <h3><i class="fa-solid fa-bus-simple"></i> Active Bus Candidates</h3>
-                                <p class="dashboard-eyebrow">Active units without open Job Orders; PMS and pre-trip checks remain separate</p>
+                                <p class="dashboard-eyebrow">Active regular buses without dispatch-blocking Job Orders. Availability depends on the trip.</p>
                             </div>
                             <span class="dashboard-badge">{{ collect($operationsData->bus_recommendations)->count() }} Candidates</span>
                         </div>
 
-                        <div class="prescriptive-table-container scrollable-body">
+                        <div class="prescriptive-table-container scrollable-body candidate-table-wrap">
                             <table class="prescriptive-table candidate-table candidate-table--buses">
                                 <thead>
                                     <tr>
                                         <th>Bus / Plate</th>
-                                        <th>Status &amp; PMS</th>
-                                        <th>Capacity</th>
-                                        <th>Clearance Rationale</th>
+                                        <th>Fleet Purpose</th>
+                                        <th>Maintenance Status</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -354,18 +377,15 @@
                                         <tr>
                                             <td>
                                                 <span class="bus-chip"><i class="fa-solid fa-bus"></i> {{ $bus->bus_no }}</span>
-                                                <br><small style="color:#64748b;">{{ $bus->plate_no }}</small>
+                                                <br><small class="candidate-muted">{{ $bus->plate_no }}</small>
                                             </td>
                                             <td>
-                                                <span class="badge-status optimal">{{ $bus->status }}</span>
-                                                <br><small style="font-weight:700; color:#15803d;"><i class="fa-solid fa-gauge-high"></i> {{ $bus->pms_headroom }}</small>
+                                                <span class="dashboard-badge">{{ $bus->fleet_purpose ?? 'Regular' }}</span>
                                             </td>
                                             <td>
-                                                <span class="dashboard-badge">{{ $bus->capacity > 0 ? $bus->capacity . ' Seats' : 'Not recorded' }}</span>
+                                                <span class="badge-status optimal">{{ $bus->status }}</span><small class="candidate-rationale">No dispatch-blocking JO</small>
                                             </td>
-                                            <td>
-                                                <small style="color:#475569; display:block; line-height:1.35;">{{ $bus->reason }}</small>
-                                            </td>
+                                            
                                         </tr>
                                     @empty
                                         <tr>
@@ -384,7 +404,7 @@
                 <div class="prescriptive-safeguard-card">
                     <h4><i class="fa-solid fa-user-shield"></i> Operations Scheduling Safeguards &amp; Review Requirements</h4>
                     <p>
-                        These checks support Operations review. Confirm attendance, duty hours, route spacing, and bus clearance before approving assignments:
+                        These checks support Operations review. Confirm driver availability, bus authorization, route spacing, and bus clearance before approving assignments:
                     </p>
                     <div class="prescriptive-safeguard-grid">
                         <div class="safeguard-pill-item">
@@ -397,8 +417,8 @@
                         <div class="safeguard-pill-item">
                             <i class="fa-solid fa-business-time"></i>
                             <div>
-                                <strong>Driver Duty &amp; Rest Verification</strong>
-                                <small>Requires confirmation of driver attendance, duty hours, and rest eligibility before assignment.</small>
+                                <strong>Driver Assignment Review</strong>
+                                <small>Confirm driver availability, bus authorization, and assignment conflicts. Attendance is recorded after trip completion.</small>
                             </div>
                         </div>
                         <div class="safeguard-pill-item">
@@ -498,11 +518,27 @@
                             </div>
                             <span class="dashboard-badge">Risk Breakdown</span>
                         </div>
-                        <div class="fleet-health-visual-wrap">
-                            <canvas id="prescriptivePriorityDonutChart"></canvas>
-                            <div class="fleet-health-chart-center">
-                                <span class="chart-center-metric">{{ $restockingData->out_of_stock_count + $restockingData->low_stock_count }}</span>
-                                <span class="chart-center-sub">Action Items</span>
+                        @php
+                            $priorityRows = collect($restockingData->priority_distribution);
+                            $priorityTotal = $priorityRows->sum('count');
+                        @endphp
+                        <div class="restock-priority-layout">
+                            <div class="restock-priority-ring">
+                                <canvas id="prescriptivePriorityDonutChart" role="img" aria-label="Inventory priority distribution"></canvas>
+                                <div class="fleet-health-chart-center">
+                                    <span class="chart-center-metric">{{ number_format($priorityTotal) }}</span>
+                                    <span class="chart-center-sub">Total Items</span>
+                                </div>
+                            </div>
+                            <div class="restock-priority-legend">
+                                @foreach($priorityRows as $priority)
+                                    <div class="restock-priority-row">
+                                        <span class="restock-priority-dot" style="background-color: {{ $priority->color }}"></span>
+                                        <span class="restock-priority-label">{{ $priority->label }}</span>
+                                        <strong>{{ number_format($priority->count) }}</strong>
+                                        <small>{{ $priorityTotal > 0 ? number_format($priority->count / $priorityTotal * 100, 0) : 0 }}%</small>
+                                    </div>
+                                @endforeach
                             </div>
                         </div>
                     </article>
@@ -510,7 +546,15 @@
                 @else
                     <section class="prescriptive-dashboard-card analytics-stage-empty" role="status">
                         <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
-                        <div><h3>No restocking threshold gaps</h3><p>Recorded items are above their configured reorder points. No replenishment chart is inferred for this selection.</p></div>
+                        <div>
+                            @if(($restockingData->inventory_items_count ?? 0) === 0)
+                                <h3>No inventory records available</h3>
+                                <p>Enter genuine inventory and stock thresholds before generating restocking recommendations. No demonstration quantities are shown automatically.</p>
+                            @else
+                                <h3>No restocking threshold gaps</h3>
+                                <p>No recorded replenishment threshold gap is currently available. No replenishment forecast is inferred.</p>
+                            @endif
+                        </div>
                     </section>
                 @endif
 
@@ -524,8 +568,8 @@
                         <span class="dashboard-badge">{{ collect($restockingData->restock_items)->count() }} Parts</span>
                     </div>
 
-                    <div class="prescriptive-table-container">
-                        <table class="prescriptive-table">
+                    <div class="prescriptive-table-container restock-table-wrap">
+                        <table class="prescriptive-table restock-table">
                             <thead>
                                 <tr>
                                     <th>Part Code</th>
@@ -542,52 +586,52 @@
                             <tbody>
                                 @forelse($restockingData->restock_items as $item)
                                     <tr>
-                                        <td>
+                                        <td data-label="Part Code">
                                             <span class="code-pill">
                                                 <i class="fa-solid fa-barcode"></i> {{ $item->part_code }}
                                             </span>
                                         </td>
-                                        <td>
-                                            <strong style="color:#0f172a;">{{ $item->part_name }}</strong>
-                                            <br><small style="color:#64748b;">{{ $item->category }}</small>
+                                        <td data-label="Part Name & Category">
+                                            <strong class="restock-value">{{ $item->part_name }}</strong>
+                                            <br><small class="restock-muted">{{ $item->category }}</small>
                                         </td>
-                                        <td>
+                                        <td data-label="Available After Reservations">
                                             @if($item->available_stock <= 0)
                                                 <span class="stock-depleted-badge"><i class="fa-solid fa-triangle-exclamation"></i> 0 pcs</span>
                                             @else
-                                                <strong style="font-size:13px; color:#0f172a;">
+                                                <strong class="restock-value">
                                                     {{ $item->available_stock }} pcs
                                                 </strong>
                                             @endif
                                         </td>
-                                        <td>
-                                            <span style="font-weight:600; color:#475569;">{{ $item->monthly_demand !== null ? $item->monthly_demand . ' units' : 'Not measured' }}</span>
+                                        <td data-label="Monthly Demand">
+                                            <span class="restock-muted">{{ $item->monthly_demand !== null ? $item->monthly_demand . ' units' : 'Not measured' }}</span>
                                         </td>
-                                        <td>
+                                        <td data-label="Incoming Supply">
                                             @if($item->incoming_supply === null)
-                                                <span style="color:#64748b; font-size:11px;">Not verified</span>
+                                                <span class="restock-muted">Not verified</span>
                                             @elseif($item->incoming_supply > 0)
-                                                <span class="dashboard-badge" style="background:#eff6ff; color:#1d4ed8;">
+                                                <span class="dashboard-badge restock-incoming">
                                                     <i class="fa-solid fa-truck"></i> +{{ $item->incoming_supply }} in transit
                                                 </span>
                                             @else
-                                                <span style="color:#94a3b8; font-size:11px;">0 coded pending</span>
+                                                <span class="restock-muted">0 coded pending</span>
                                             @endif
                                         </td>
-                                        <td>
+                                        <td data-label="Suggested Qty">
                                             <span class="restock-qty-pill">+{{ $item->suggested_qty }}</span>
                                         </td>
-                                        <td>
+                                        <td data-label="Priority">
                                             <span class="badge-priority {{ $item->priority_badge }}">
                                                 {{ $item->priority }}
                                             </span>
                                         </td>
-                                        <td>
-                                            <small style="font-weight:700; color: {{ $item->priority === 'Critical' ? '#dc2626' : ($item->priority === 'High' ? '#ea580c' : '#2563eb') }};">
+                                        <td data-label="Recorded Stock State">
+                                            <small class="restock-state {{ $item->priority_badge }}">
                                                 {{ $item->shortage_risk }}
                                             </small>
                                         </td>
-                                        <td style="max-width: 320px;">
+                                        <td data-label="Suggested Action & Rationale">
                                             <div class="action-cell-card">
                                                 <i class="fa-solid fa-arrow-right-long"></i>
                                                 <span>{{ $item->suggested_action }}</span>
@@ -667,6 +711,7 @@
                 </div>
             @endif
 
+            @endif
         </main>
     </div>
 </x-layout.app>

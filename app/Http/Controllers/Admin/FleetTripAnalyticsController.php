@@ -674,7 +674,7 @@ class FleetTripAnalyticsController extends Controller
 
         return (object) [
             'available' => true,
-            'source' => $usingStatisticalFallback ? 'statistical' : 'python',
+            'source' => $usingStatisticalFallback ? 'statistical-laravel' : 'statistical-python',
             'model' => $response['model'] ?? 'historical-statistical-v1',
             'historical_records' => (int) ($response['historical_records'] ?? $historicalRecords->count()),
             'target_count' => (int) ($response['target_count'] ?? $targets->count()),
@@ -685,7 +685,7 @@ class FleetTripAnalyticsController extends Controller
             'message' => $predictions->isNotEmpty()
                 ? ($usingStatisticalFallback
                     ? 'Laravel route-median statistical estimates (not ML).'
-                    : 'Python historical forecasting is live.')
+                    : 'Python historical statistical forecasting is available (not an ML delay probability).')
                 : ($targets->isEmpty()
                     ? 'No upcoming Scheduled or Ready trips with active routes in the next seven days.'
                     : ($eligibilityMessage !== ''

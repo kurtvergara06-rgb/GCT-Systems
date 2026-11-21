@@ -23,7 +23,7 @@
     padding: 16px 18px;
     border: 1px solid var(--inventory-line);
     border-radius: 14px;
-    background: #fff;
+    background: light-dark(#fff, var(--gct-theme-surface));
     box-shadow: var(--inventory-shadow);
     transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
 }
@@ -76,7 +76,7 @@
     padding: 18px 20px;
     border: 1px solid var(--inventory-line);
     border-radius: 14px;
-    background: #fff;
+    background: light-dark(#fff, var(--gct-theme-surface));
     box-shadow: var(--inventory-shadow);
 }
 
@@ -231,7 +231,7 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    color: #475569;
+    color: light-dark(#475569, var(--gct-theme-muted));
     font-size: 11.5px;
     font-weight: 600;
 }
@@ -253,7 +253,7 @@
 }
 
 .descriptive-domain-inventory .inventory-legend-row strong small {
-    color: #64748b;
+    color: light-dark(#64748b, var(--gct-theme-muted));
     font-weight: 600;
     margin-left: 2px;
 }
@@ -276,7 +276,7 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    color: #475569;
+    color: light-dark(#475569, var(--gct-theme-muted));
     font-size: 11.5px;
     font-weight: 700;
 }
@@ -330,7 +330,7 @@
 .descriptive-domain-inventory .compliance-status.safe { color: #16a34a; }
 
 .descriptive-domain-inventory .compliance-footer small {
-    color: #64748b;
+    color: light-dark(#64748b, var(--gct-theme-muted));
     font-size: 10.5px;
 }
 
@@ -401,7 +401,7 @@
 .descriptive-domain-inventory .inventory-restock-row small {
     display: block;
     margin-top: 2px;
-    color: #64748b;
+    color: light-dark(#64748b, var(--gct-theme-muted));
     font-size: 10.5px;
 }
 
@@ -451,9 +451,9 @@
 }
 
 .descriptive-domain-inventory .inventory-action-btn.secondary {
-    background: #f1f5f9;
-    color: #334155;
-    border: 1px solid #e2e8f0;
+    background: light-dark(#f1f5f9, var(--gct-theme-surface));
+    color: light-dark(#334155, var(--gct-theme-fg));
+    border: 1px solid light-dark(#e2e8f0, var(--gct-theme-border));
 }
 
 .descriptive-domain-inventory .inventory-action-btn.secondary:hover {
@@ -493,7 +493,7 @@
 }
 
 .descriptive-domain-inventory .inventory-category-row:hover {
-    border-color: #cbd5e1;
+    border-color: light-dark(#cbd5e1, var(--gct-theme-border));
 }
 
 .descriptive-domain-inventory .category-info-col {
@@ -532,7 +532,7 @@
 .descriptive-domain-inventory .category-titles small {
     display: block;
     margin-top: 1px;
-    color: #64748b;
+    color: light-dark(#64748b, var(--gct-theme-muted));
     font-size: 10px;
     white-space: nowrap;
     overflow: hidden;
@@ -642,8 +642,8 @@
 
 .descriptive-domain-inventory .inventory-atrisk-table th {
     padding: 10px 14px;
-    background: #f8fafc;
-    color: #475569;
+    background: light-dark(#f8fafc, var(--gct-theme-surface));
+    color: light-dark(#475569, var(--gct-theme-muted));
     font-size: 10.5px;
     font-weight: 800;
     text-transform: uppercase;
@@ -656,7 +656,7 @@
 .descriptive-domain-inventory .inventory-atrisk-table td {
     padding: 12px 14px;
     border-bottom: 1px solid var(--inventory-line-soft);
-    color: #334155;
+    color: light-dark(#334155, var(--gct-theme-fg));
     vertical-align: middle;
 }
 
@@ -665,7 +665,7 @@
 }
 
 .descriptive-domain-inventory .inventory-atrisk-table tbody tr:hover {
-    background: #f8fbff;
+    background: light-dark(#f8fbff, var(--gct-theme-surface));
 }
 
 .descriptive-domain-inventory .inventory-atrisk-table tr.row-critical {
@@ -683,9 +683,9 @@
     display: inline-block;
     margin-top: 2px;
     padding: 1px 6px;
-    background: #f1f5f9;
+    background: light-dark(#f1f5f9, var(--gct-theme-surface));
     border-radius: 5px;
-    color: #475569;
+    color: light-dark(#475569, var(--gct-theme-muted));
     font-size: 10.5px;
     font-family: monospace;
 }
@@ -721,7 +721,7 @@
 }
 
 .descriptive-domain-inventory .stock-ratio-cell strong small {
-    color: #64748b;
+    color: light-dark(#64748b, var(--gct-theme-muted));
     font-weight: 600;
 }
 
@@ -762,7 +762,7 @@
 }
 
 .descriptive-domain-inventory .shortfall-zero {
-    color: #94a3b8;
+    color: light-dark(#94a3b8, var(--gct-theme-placeholder));
     font-weight: 700;
 }
 
@@ -808,7 +808,7 @@
 }
 
 .descriptive-domain-inventory .supplier-text {
-    color: #475569;
+    color: light-dark(#475569, var(--gct-theme-muted));
     font-size: 11.5px;
     white-space: nowrap;
 }
@@ -831,7 +831,7 @@
 }
 
 .descriptive-domain-inventory .inventory-empty-state p {
-    color: #64748b;
+    color: light-dark(#64748b, var(--gct-theme-muted));
     font-size: 12px;
     margin-top: 4px;
 }

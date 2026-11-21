@@ -6,6 +6,7 @@ use App\Services\PartParser;
 use App\Models\Maintenance\JobOrderPartReservation;
 use App\Models\Maintenance\JobOrder;
 use App\Models\Maintenance\ItemRequest;
+use App\Models\Warehouse\InventoryIssuance;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Collection;
 
@@ -75,8 +76,36 @@ class PurchaseRequestPartsService
                 }
             }
         }
+        // Count actual signed handovers separately from what an IR requested.
+        // A persistent IR may list all JO parts while only a portion is
+        // physically allocated; treating that full request as stock coverage
+        // would hide legitimate shortages from Purchase.
+        $signedIssued = collect();
+        if ($jobOrder) {
+            $relatedIrs = ItemRequest::query()
+                ->where('job_order_id', $jobOrder->id)
+                ->get(['id', 'created_at']);
+            if ($relatedIrs->isNotEmpty()) {
+                $refs = $relatedIrs->map(fn ($ir) =>
+                    'IR-'.($ir->created_at?->format('Y') ?? '0000').'-'.str_pad((string) $ir->id, 4, '0', STR_PAD_LEFT));
+                $signedIssued = InventoryIssuance::query()->confirmedSigned()
+                    ->where(function ($query) use ($refs) {
+                        foreach ($refs as $ref) {
+                            $query->orWhere('reference_no', $ref)
+                                ->orWhere('reference_no', 'like', $ref.'-B%');
+                        }
+                    })->with('items')->get()
+                    ->flatMap(fn ($batch) => $batch->items)
+                    ->groupBy(fn ($line) => ! empty($line->inventory_item_id)
+                        ? 'id:'.(int) $line->inventory_item_id
+                        : mb_strtolower(preg_replace('/[^a-z0-9]+/i', '', (string) $line->item_name)).'|'
+                            .$this->partParser->normalizeUnit((string) $line->unit))
+                    ->map(fn ($lines) => $lines->sum(fn ($line) => (int) $line->quantity));
+            }
+        }
+
         // Load JO reservations once instead of querying once for each part.
-        // Keep the exact existing coverage calculation and fallback semantics.
+        // Reservation plus signed-issued is the operational fulfillment total.
         $jobReservations = collect();
         if ($jobOrder) {
             $jobReservations = $jobOrderReservations !== null
@@ -107,9 +136,17 @@ class PurchaseRequestPartsService
             // committed amount is covered, but must never be counted twice.
             $irCovered = (int) $irQuantities->get($key, 0);
             $reservedCovered = max(0, (int) ($reserved ?? 0));
+            $signedCovered = (int) $signedIssued->get($key, 0);
+            $physicalCoverage = $reservedCovered + $signedCovered;
+            $required = (int) $parts->sum('quantity');
+            // The entire JO may be recorded on one persistent IR; that is
+            // demand, not evidence that the shortage was already covered.
+            // Keep legacy split IR commitments (smaller than JO demand).
+            $legacyIrCoverage = $irCovered < $required ? $irCovered : 0;
             $covered = isset($jobOrder->inventory_snapshot['shortages'])
-                ? max($irCovered, $reservedCovered)
-                : ($irQuantities->isNotEmpty() ? $irCovered : (int) ($reserved ?? $part['available']));
+                ? max($legacyIrCoverage, $physicalCoverage)
+                : max($legacyIrCoverage, $physicalCoverage,
+                    $irQuantities->isEmpty() ? (int) ($reserved ?? $part['available']) : 0);
             $shortage = max(0, $parts->sum('quantity') - $covered);
             if ($shortage < 1) {
                 continue;

@@ -22,10 +22,15 @@ Route::middleware(['auth', 'system.permission:analytics,view'])
     ->whereIn('stage', ['descriptive', 'diagnostic', 'predictive', 'prescriptive'])
     ->name('analytics.department.stage');
 
-Route::middleware(['auth', 'role:admin:head'])->prefix('analytics')->group(function (): void {
-    Route::get('/descriptive', [DescriptiveAnalyticsController::class, 'index'])
-        ->name('analytics.descriptive');
+// Shared URL; the controller enforces separate Admin and department data paths.
+Route::middleware('auth')->get('/analytics/descriptive', [DescriptiveAnalyticsController::class, 'index'])
+    ->name('analytics.descriptive');
 
+Route::middleware('auth')->get('/analytics/{stage}', [AnalyticsStageController::class, 'show'])
+        ->whereIn('stage', ['diagnostic', 'predictive', 'prescriptive'])
+        ->name('analytics.stage');
+
+Route::middleware(['auth', 'role:admin:head'])->prefix('analytics')->group(function (): void {
     Route::redirect('/fleet-trip', '/analytics/descriptive?domain=fleet-trip')
         ->name('analytics.fleet-trip');
 
@@ -50,7 +55,5 @@ Route::middleware(['auth', 'role:admin:head'])->prefix('analytics')->group(funct
     Route::post('/inventory-predictions', [InventoryPredictionController::class, 'index'])
         ->name('analytics.inventory-predictions');
 
-    Route::get('/{stage}', [AnalyticsStageController::class, 'show'])
-        ->whereIn('stage', ['diagnostic', 'predictive', 'prescriptive'])
-        ->name('analytics.stage');
+
 });

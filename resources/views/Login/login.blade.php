@@ -6,6 +6,10 @@
   <meta name="csrf-token" content="{{ csrf_token() }}">
 
   <title>GCT Transport Services | Sign In</title>
+  <link rel="manifest" href="{{ asset('manifest.webmanifest') }}">
+  <meta name="theme-color" content="#062d61">
+  <link rel="icon" type="image/svg+xml" href="{{ asset('pwa-icon.svg') }}">
+  <link rel="apple-touch-icon" href="{{ asset('img/gct_logo.png') }}">
 
   <link
     rel="stylesheet"
@@ -15,13 +19,65 @@
   @vite([
     'resources/css/Main-styles/theme.css',
     'resources/css/Login/login.css',
+    'resources/js/Login/legal-modal.js',
     'resources/js/Login/login.js',
   ])
+
+  {{-- Keep the sign-in entrance in the login document itself.
+       A stale Vite build must not silently remove the entrance animation. --}}
+  <style id="gct-login-entrance-v4">
+    @keyframes gct-login-entrance-brand-v4 {
+      from { opacity: 0; transform: translateX(-65px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    @keyframes gct-login-entrance-card-v4 {
+      from { opacity: 0; transform: translateY(90px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .gct-login-page--signin .brand-header {
+        animation: gct-login-entrance-brand-v4 2.5s ease-out 0.15s both;
+      }
+      .gct-login-page--signin .brand-copy {
+        animation: gct-login-entrance-brand-v4 2.7s ease-out 0.35s both;
+      }
+      .gct-login-page--signin .login-card {
+        animation: gct-login-entrance-card-v4 3s ease-out 0.45s both;
+      }
+      .gct-login-page--signin .login-footer {
+        animation: gct-login-entrance-card-v4 2.5s ease-out 0.8s both;
+      }
+    }
+
+    /* Reduced-motion users receive a brief opacity-only entrance.
+       The stronger slide animations remain opt-in via OS motion preferences. */
+    @keyframes gct-login-entrance-fade-v4 {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .gct-login-page--signin .brand-header,
+      .gct-login-page--signin .brand-copy,
+      .gct-login-page--signin .login-card,
+      .gct-login-page--signin .login-footer {
+        animation-name: gct-login-entrance-fade-v4 !important;
+        animation-duration: 350ms !important;
+        animation-delay: 0ms !important;
+        animation-timing-function: ease-out !important;
+        animation-iteration-count: 1 !important;
+        animation-fill-mode: both !important;
+        transform: none;
+      }
+    }
+  </style>
 
 </head>
 
 <body>
-  <main class="gct-login-page">
+  <main class="gct-login-page gct-login-page--signin">
     <section
       class="gct-brand-panel"
       aria-label="GCT Transport Services information"
@@ -59,28 +115,8 @@
             <p>Sign in to continue to the GCT fleet operations platform.</p>
           </div>
 
-          @if ($errors->any())
-            <div class="login-alert" role="alert">
-              <i class="fa-solid fa-circle-exclamation"></i>
-              <div>
-                <strong>Unable to sign in</strong>
-                <span>{{ $errors->first() }}</span>
-              </div>
-            </div>
-          @endif
-
           @if (session('status'))
-            <div class="login-alert login-alert-success" role="status">
-              <i class="fa-solid fa-circle-check"></i>
-              <span>{{ session('status') }}</span>
-            </div>
-          @endif
-
-          @if (session('error'))
-            <div class="login-alert" role="alert">
-              <i class="fa-solid fa-circle-exclamation"></i>
-              <span>{{ session('error') }}</span>
-            </div>
+            <p class="login-alert login-alert-success" role="status"><i class="fa-solid fa-circle-check" aria-hidden="true"></i><span>{{ session('status') }}</span></p>
           @endif
 
           @if(session('login_lockout_seconds'))
@@ -108,9 +144,9 @@
                   aria-invalid="{{ $errors->has('email') ? 'true' : 'false' }}"
                 >
               </div>
-              @error('email')
-                <span class="field-error">{{ $message }}</span>
-              @enderror
+              @if ($errors->has('email') || session('error') || ($errors->any() && !$errors->has('password')))
+                <span class="field-error" id="loginEmailError" role="alert"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i><span>{{ $errors->has('email') ? $errors->first('email') : (session('error') ?: $errors->first()) }}</span></span>
+              @endif
             </div>
 
             <div class="form-group">
@@ -136,9 +172,9 @@
                   <i class="fa-regular fa-eye" id="passwordIcon" aria-hidden="true"></i>
                 </button>
               </div>
-              @error('password')
-                <span class="field-error">{{ $message }}</span>
-              @enderror
+              @if ($errors->has('password'))
+                <span class="field-error" id="loginPasswordError" role="alert"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i><span>{{ $errors->first('password') }}</span></span>
+              @endif
             </div>
 
             <div class="login-options">
@@ -178,7 +214,12 @@
             </svg>
             Continue with Google
           </a>
-          <p class="auth-switch">New employee? <a href="{{ route('register') }}">Sign Up</a></p>
+          <div class="auth-switch auth-switch--install">
+            <span>New employee? <a href="{{ route('register') }}">Sign Up</a></span>
+            <button class="pwa-install-link" type="button" id="pwaInstallButton" aria-haspopup="dialog" aria-controls="pwaInstallHelp"><i class="fa-solid fa-download" aria-hidden="true"></i> Install App</button>
+          </div>
+
+          <nav class="auth-legal-links" aria-label="Legal information"><a data-legal-modal="Privacy Notice" href="{{ route('legal.privacy') }}">Privacy Notice</a><span aria-hidden="true">·</span><a data-legal-modal="Terms of Use" href="{{ route('legal.terms') }}">Terms of Use</a></nav>
 
           <div class="trust-divider" aria-hidden="true">
             <span></span>
@@ -240,6 +281,15 @@
       </div>
     </div>
   @endif
+
+  <dialog id="pwaInstallHelp" class="pwa-install-dialog" aria-labelledby="pwaInstallTitle">
+    <div class="pwa-install-dialog-heading">
+      <h2 id="pwaInstallTitle">Install FROMS</h2>
+      <button type="button" class="pwa-install-dialog-close" data-pwa-install-close aria-label="Close installation instructions"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+    </div>
+    <p id="pwaInstallInstructions">Use your browser's installation option to add FROMS to your device.</p>
+    <button type="button" class="pwa-install-dialog-done" data-pwa-install-close>Got it</button>
+  </dialog>
 
   <script>
     window.addEventListener('pageshow', (event) => {

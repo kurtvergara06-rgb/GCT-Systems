@@ -19,6 +19,8 @@ from inventory.training_data import (  # noqa: E402
     build_bus_metadata,
     build_encoders,
     build_part_metadata,
+    check_readiness_thresholds,
+    validate_dataset,
 )
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
@@ -37,6 +39,24 @@ def main() -> int:
 
     df = pd.read_csv(csv_path)
     df["date"] = pd.to_datetime(df["date"], errors="coerce")
+
+    # Do not let a manually supplied genuine feature CSV bypass the raw
+    # ledger provenance/readiness gate enforced by prepare_training_data.
+    if source == "genuine":
+        raw_path = training_data_paths()["csv"]
+        if not raw_path.exists():
+            print("MODEL NOT READY: Genuine raw inventory ledger panel is missing.")
+            return 1
+        raw = pd.read_csv(raw_path)
+        valid, errors, _ = validate_dataset(raw)
+        gate_ok, gate_errors = check_readiness_thresholds(raw)
+        if not valid or not gate_ok or len(raw) != len(df):
+            print("MODEL NOT READY: Genuine inventory data did not pass training verification.")
+            for issue in errors + gate_errors:
+                print(f"  - {issue}")
+            if len(raw) != len(df):
+                print("  - Raw and feature row counts differ.")
+            return 1
 
     # Client-demo rows are synthetic by policy. Save the trained artifact with
     # a development/sample provenance marker so production can never accept it
@@ -57,7 +77,7 @@ def main() -> int:
         )
     else:
         save_inventory_model(result, paths)
-    save_state(result, paths)
+    save_state(result, paths, genuine_gate_passed=(source == "genuine"))
 
     if source == "genuine":
         source_label = "GENUINE GCT INVENTORY LEDGER"

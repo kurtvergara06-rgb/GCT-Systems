@@ -10,6 +10,11 @@
     'showBus' => true,
     'dateLabel' => null,
     'periodLabel' => 'Period',
+    'tabLinks' => [],
+    'tabsLabel' => null,
+    'dateRange' => false,
+    'fromDate' => null,
+    'toDate' => null,
 ])
 
 @php
@@ -18,9 +23,9 @@
 @endphp
 
 <div class="analytics-stage-controls">
-    <nav class="analytics-stage-controls__tabs" aria-label="{{ ucfirst($filterKey === 'view' ? 'descriptive summary' : 'analytics domain') }} views">
+    <nav class="analytics-stage-controls__tabs" aria-label="{{ $tabsLabel ?? (ucfirst($filterKey === 'view' ? 'descriptive summary' : 'analytics domain') . ' views') }}">
         @foreach($tabs as $key => $tab)
-            <a href="{{ $url . '?' . http_build_query(array_merge($currentFilters, [$filterKey => $key])) }}"
+            <a href="{{ $tabLinks[$key] ?? ($url . '?' . http_build_query(array_merge($currentFilters, [$filterKey => $key]))) }}"
                class="{{ $active === $key ? 'is-current' : '' }}"
                @if($active === $key) aria-current="page" @endif>
                 <i class="fa-solid {{ $tab[1] }}" aria-hidden="true"></i>
@@ -30,11 +35,25 @@
     </nav>
 
     <form method="GET" action="{{ $url }}" class="analytics-stage-controls__filters">
-        <input type="hidden" name="{{ $filterKey }}" value="{{ $active }}">
-        @if(request()->has('demo'))
+        @unless($dateRange)
+            <input type="hidden" name="{{ $filterKey }}" value="{{ $active }}">
+        @endunless
+        @if(! $dateRange && request()->has('demo'))
             <input type="hidden" name="demo" value="{{ request('demo') }}">
         @endif
 
+        @if($dateRange)
+            <label class="analytics-stage-controls__field">
+                <span><i class="fa-regular fa-calendar" aria-hidden="true"></i> From</span>
+                <input type="date" name="from" value="{{ $fromDate }}" required>
+            </label>
+            <label class="analytics-stage-controls__field">
+                <span><i class="fa-regular fa-calendar" aria-hidden="true"></i> To</span>
+                <input type="date" name="to" value="{{ $toDate }}" required>
+            </label>
+            <button type="submit" class="analytics-stage-controls__apply">Apply dates</button>
+            <a href="{{ $url }}" class="analytics-stage-controls__reset">Reset</a>
+        @else
         <label class="analytics-stage-controls__field">
             <span><i class="fa-regular fa-calendar" aria-hidden="true"></i> {{ $periodLabel }}</span>
             <select name="period" onchange="this.form.requestSubmit()">
@@ -59,6 +78,7 @@
 
         @if($dateLabel)
             <span class="analytics-stage-controls__date"><i class="fa-regular fa-clock" aria-hidden="true"></i> {{ $dateLabel }}</span>
+        @endif
         @endif
     </form>
 </div>

@@ -331,3 +331,42 @@ html[data-gct-theme="dark"] body[data-gct-maintenance-page="1"] :is(#prModal,#ed
   font-weight: 800;
   white-space: nowrap;
 }
+
+
+/* Consistent centered request-modal geometry.
+   Keep existing visibility rules, input handling and approval workflows intact. */
+body[data-gct-maintenance-page="1"] :is(
+  #itemRequestModal,
+  #viewItemRequestModal,
+  #prModal,
+  #editPrModal
+) {
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(12px, 2.5vh, 24px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+body[data-gct-maintenance-page="1"] :is(
+  #itemRequestModal .ir-review-document-modal,
+  #viewItemRequestModal .ir-review-document-modal,
+  #prModal > .ui-form-modal,
+  #editPrModal > .ui-form-modal
+) {
+  box-sizing: border-box;
+  position: relative;
+  margin: auto;
+  min-width: 0;
+  max-width: calc(100vw - 24px);
+  max-height: calc(100dvh - 24px);
+}
+@media (max-height: 560px) {
+  body[data-gct-maintenance-page="1"] :is(
+    #itemRequestModal,
+    #viewItemRequestModal,
+    #prModal,
+    #editPrModal
+  ) { align-items: flex-start; }
+}

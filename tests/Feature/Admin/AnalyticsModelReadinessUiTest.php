@@ -131,7 +131,7 @@ class AnalyticsModelReadinessUiTest extends TestCase
             ->assertViewIs('Admin.Analytics.prescriptive.layout')
             ->assertViewHas('operationsPrescriptive')
             ->assertSeeText('Operations Scheduling')
-            ->assertSeeText('Recommended Departure & Trip Schedules')
+            ->assertSeeText('Pending Trip Assignment Recommendations')
             ->assertDontSeeText('Demonstration mode:')
             ->assertDontSeeText('Live model readiness is shown separately below')
             ->assertDontSeeText('Production ML Readiness');

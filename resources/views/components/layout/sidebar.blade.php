@@ -94,8 +94,8 @@
     }
 
     if ($componentDepartment === 'purchase') {
-        $isPurchaseHistory = request()->routeIs('maintenance-requests')
-            && request()->query('view') === 'history';
+        $isPurchaseHistory = request()->routeIs('purchase-orders')
+            && request()->query('record_view') === 'history';
 
         $items = [
             ['label' => 'Dashboard', 'route' => 'dashboard-purchase', 'icon' => 'fa-table-cells-large'],
@@ -107,15 +107,20 @@
                         'label' => 'Maintenance Requests',
                         'route' => 'maintenance-requests',
                         'icon' => 'fa-screwdriver-wrench',
-                        'active' => request()->routeIs('maintenance-requests') && ! $isPurchaseHistory,
+                        'active' => request()->routeIs('maintenance-requests'),
                     ],
                     ['label' => 'Inventory Restock', 'route' => 'inventory-restock', 'icon' => 'fa-boxes-stacked'],
                 ],
             ],
-            ['label' => 'Purchase Orders', 'route' => 'purchase-orders', 'icon' => 'fa-file-invoice'],
+            [
+                'label' => 'Purchase Orders',
+                'route' => 'purchase-orders',
+                'icon' => 'fa-file-invoice',
+                'active' => request()->routeIs('purchase-orders') && ! $isPurchaseHistory,
+            ],
             [
                 'label' => 'Purchase History',
-                'url' => route('maintenance-requests', [], false) . '?view=history',
+                'url' => route('purchase-orders', [], false) . '?record_view=history',
                 'icon' => 'fa-clock-rotate-left',
                 'active' => $isPurchaseHistory,
             ],
@@ -305,12 +310,6 @@
                         'active_routes' => ['admin.settings.general', 'admin.settings.general.*'],
                     ],
                     [
-                        'label' => 'Notification Settings',
-                        'route' => 'admin.settings.notifications',
-                        'icon' => 'fa-bell',
-                        'active_routes' => ['admin.settings.notifications', 'admin.settings.notifications.*'],
-                    ],
-                    [
                         'label' => 'Security Settings',
                         'route' => 'admin.settings.security',
                         'icon' => 'fa-shield-halved',
@@ -326,27 +325,29 @@
         && $authUser->hasSystemPermission('analytics', 'view')) {
         $analyticsChildren = [
             ['label' => 'Descriptive Analytics',
-                'url' => route('analytics.department.stage', ['stage' => 'descriptive'], false),
+                'url' => route('analytics.descriptive', [], false),
                 'icon' => 'fa-chart-column',
-                'active' => request()->routeIs('analytics.department.stage') && request()->route('stage') === 'descriptive'],
+                'active' => request()->routeIs('analytics.descriptive') || (request()->routeIs('analytics.stage') && request()->route('stage') === 'descriptive')],
         ];
-        if ($authUser->hasSystemPermission('analytics', 'analyze')) {
+        if ($authUser->hasSystemPermission('analytics', 'diagnostic')) {
             $analyticsChildren[] = ['label' => 'Diagnostic Analytics',
-                'url' => route('analytics.department.stage', ['stage' => 'diagnostic'], false),
+                'url' => route('analytics.stage', ['stage' => 'diagnostic'], false),
                 'icon' => 'fa-magnifying-glass',
-                'active' => request()->routeIs('analytics.department.stage') && request()->route('stage') === 'diagnostic'];
+                'active' => request()->routeIs('analytics.stage') && request()->route('stage') === 'diagnostic'];
+        }
+        if ($authUser->hasSystemPermission('analytics', 'predictive')) {
             $analyticsChildren[] = ['label' => 'Predictive Analytics',
-                'url' => route('analytics.department.stage', ['stage' => 'predictive'], false),
+                'url' => route('analytics.stage', ['stage' => 'predictive'], false),
                 'icon' => 'fa-chart-line',
-                'active' => request()->routeIs('analytics.department.stage') && request()->route('stage') === 'predictive'];
+                'active' => request()->routeIs('analytics.stage') && request()->route('stage') === 'predictive'];
         }
         if ($authUser->hasSystemPermission('analytics', 'recommendations')) {
             $analyticsChildren[] = ['label' => 'Prescriptive Analytics',
-                'url' => route('analytics.department.stage', ['stage' => 'prescriptive'], false),
+                'url' => route('analytics.stage', ['stage' => 'prescriptive'], false),
                 'icon' => 'fa-lightbulb',
-                'active' => request()->routeIs('analytics.department.stage') && request()->route('stage') === 'prescriptive'];
+                'active' => request()->routeIs('analytics.stage') && request()->route('stage') === 'prescriptive'];
         }
-        $items[] = ['label' => 'Analytics', 'icon' => 'fa-chart-line', 'children' => $analyticsChildren];
+        $items[] = ['label' => $normalizedDepartment === 'maintenance' ? 'Maintenance Analytics' : 'Analytics', 'icon' => 'fa-chart-line', 'children' => $analyticsChildren];
     }
 
     if ($authUser) {
@@ -438,6 +439,7 @@
                                 <a
                                     href="{{ $child['url'] }}"
                                     class="submenu-item {{ $childActive ? 'active' : '' }}"
+                                    @if($childActive) aria-current="page" @endif
                                     title="{{ $child['label'] ?? 'Submenu' }}"
                                 >
                                     <i class="fa-solid {{ $child['icon'] ?? 'fa-circle' }}"></i>
@@ -447,6 +449,7 @@
                                 <a
                                     href="{{ route($child['route'], [], false) }}"
                                     class="submenu-item {{ $childActive ? 'active' : '' }}"
+                                    @if($childActive) aria-current="page" @endif
                                     title="{{ $child['label'] ?? 'Submenu' }}"
                                 >
                                     <i class="fa-solid {{ $child['icon'] ?? 'fa-circle' }}"></i>

@@ -13,7 +13,7 @@ class OperationMechanicAttendanceUiTest extends TestCase
     public function test_mechanic_attendance_uses_daily_attendance_as_the_primary_ui(): void
     {
         $user = User::factory()->create([
-            'department' => 'Operation',
+            'department' => 'Maintenance',
             'role' => 'head',
             'status' => 'Active',
             'must_change_password' => false,

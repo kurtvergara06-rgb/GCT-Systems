@@ -14,7 +14,8 @@
     $isMaintenanceUser = strtolower(trim((string) auth()->user()?->department)) === 'maintenance';
     $attendanceDepartment = strtolower(trim((string) auth()->user()?->department));
     $attendancePermissionModule = in_array($attendanceDepartment, ['operation', 'operations'], true) ? 'operation' : 'maintenance';
-    $canEditMechanicAttendance = auth()->user()?->hasSystemPermission($attendancePermissionModule, 'edit') ?? false;
+    $canEditMechanicAttendance = in_array($attendanceDepartment, ['maintenance', 'admin'], true)
+        && (auth()->user()?->hasSystemPermission('maintenance', 'edit') ?? false);
     $voidDepartment = strtolower(trim((string) auth()->user()?->department));
     $canVoidMechanicAttendance = in_array($voidDepartment, ['maintenance', 'admin'], true)
         && strtolower(trim((string) auth()->user()?->role)) === 'head'

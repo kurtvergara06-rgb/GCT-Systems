@@ -123,3 +123,50 @@ MODEL NOT READY
 ```
 
 There is no silent fallback to generated inventory demand.
+
+
+## Warehouse Reorder Point integration (2026-11)
+
+Inventory Model #4 predicts **next-week fleet-wide demand per part**; it does
+not directly predict a reorder point. The Laravel
+`InventoryReorderPointService` converts an eligible forecast into a proposed
+replenishment threshold:
+
+```text
+ceil(predicted_weekly_demand * confirmed_lead_days / 7
+     * (1 + safety_margin_percent / 100))
+```
+
+The ML result **cannot lower** a threshold already supported by signed
+issuances or an existing recorded reorder value. It is read-only: it does not
+change physical stock, JO reservations, issuance slips or purchasing approvals.
+
+Production readiness now uses the genuine ledger minimums listed above by
+default (`INVENTORY_MIN_ROWS=260`, `INVENTORY_MIN_PARTS=20`,
+`INVENTORY_MIN_WEEKS=13`, `INVENTORY_MIN_STOCK_OUT_EVENTS=500`).
+When training a genuine model, the raw genuine panel must also pass validation,
+and the newly created model state records `genuine_gate_passed=true`.
+Older genuine artifacts without this marker report **MODEL NOT READY** and
+must be retrained on verified data. Development/sample artifacts cannot be
+used for Laravel reorder decisions.
+
+The Laravel integration uses `GET /inventory/status` and
+`POST /inventory/predict/batch` (up to 100 parts). The batch endpoint
+only accepts a ready genuine model. Forecasts and status checks are cached
+briefly, and API timeouts or unknown parts fall back to verified rules.
+
+Configure on the **Laravel** service after confirming actual supplier
+replenishment lead time and model accuracy:
+
+```text
+INVENTORY_ML_REORDER_ENABLED=true
+INVENTORY_REPLENISHMENT_LEAD_DAYS=<confirmed number of days>
+INVENTORY_REORDER_SAFETY_PERCENT=0
+INVENTORY_ML_MAX_BATCH_PARTS=100
+```
+
+`INVENTORY_REPLENISHMENT_LEAD_DAYS` defaults to **0** to avoid assuming
+supplier lead time. Until it is set to a validated value, Laravel keeps the
+existing 3-complete-month signed-issuance calculation, then an existing stored
+threshold, then Pending if neither has evidence. A Pending item can still be
+In Stock based on available quantity; no threshold is fabricated.

@@ -1,3 +1,44 @@
+
+/* Purchasing shared modal overlay, replacing per-page identical declarations.
+   Keep specialized modal body/signature/form styling in their respective files. */
+body[data-gct-purchase-page="1"] :is(.modal-overlay, .restock-view-overlay, .requested-pr-view-overlay) {
+  position: fixed;
+  inset: 0;
+  z-index: var(--modal-backdrop-z-index, 99999);
+  display: none;
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(12px, 2.5vh, 24px);
+  background: var(--modal-backdrop-bg, rgba(15, 23, 42, .42));
+  backdrop-filter: var(--modal-backdrop-blur, blur(5px));
+  -webkit-backdrop-filter: var(--modal-backdrop-blur, blur(5px));
+  overscroll-behavior: contain;
+  overflow-y: auto;
+}
+body[data-gct-purchase-page="1"] :is(.modal-overlay, .restock-view-overlay, .requested-pr-view-overlay):is(.show, .active) {
+  display: flex;
+}
+body[data-gct-purchase-page="1"] :is(
+  #poModal .po-modal-box,
+  #poDetailOverlay .po-detail-dialog,
+  #poStatusModal .po-status-modal,
+  #poHeadReviewModal .po-head-review-dialog,
+  #restockViewModal .restock-view-modal,
+  .requested-pr-view-overlay .requested-pr-style-modal,
+  .shared-pr-details-overlay .shared-pr-details-dialog
+) {
+  position: relative;
+  margin: auto;
+  max-height: calc(100dvh - 24px);
+  max-width: calc(100vw - 24px);
+}
+@media (max-width: 640px) {
+  body[data-gct-purchase-page="1"] :is(.modal-overlay, .restock-view-overlay, .requested-pr-view-overlay) {
+    padding: 12px;
+  }
+}
+
 /* =========================================================
    PURCHASE MODULE — SHARED UI CONSISTENCY
    Aligns Purchase with the established Warehouse/Maintenance
@@ -1789,15 +1830,24 @@
   .purchase-orders-page .po-record-actions {width:100%;margin-left:0;justify-content:space-between;}
 }
 
-/* PO record controls: tabs and Search/Filter/Sort share one compact row. */
-@media(min-width:721px){
-  .purchase-orders-page .purchase-order-card{display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:14px;align-items:center}
-  .purchase-orders-page .purchase-order-card>.po-section-header{grid-column:1/-1}
-  .purchase-orders-page .purchase-order-card>.po-record-tabs{grid-column:1;grid-row:2;margin:0;align-self:center}
-  .purchase-orders-page .purchase-order-card>.po-record-controls{grid-column:2;grid-row:2;margin:0;min-width:0;justify-content:flex-end}
-  .purchase-orders-page .purchase-order-card>.po-record-controls .po-record-actions{margin:0}
-  .purchase-orders-page .purchase-order-card>.records-table-wrap,
-  .purchase-orders-page .purchase-order-card>.table-footer{grid-column:1/-1}
+/* PO tabs and toolbar now live in the same .po-record-controls element.
+   The old two-column card grid expected tabs as a separate card child and
+   offset the entire controls row differently between Active and History. */
+@media (min-width: 721px) {
+  .purchase-orders-page .purchase-order-card.records-card {
+    display: block;
+  }
+  .purchase-orders-page .purchase-order-card > .po-record-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    min-width: 0;
+  }
+  .purchase-orders-page .purchase-order-card > .po-record-controls > .po-record-tabs {
+    margin-left: 0 !important;
+    margin-right: auto !important;
+  }
 }
 
 /* Purchase Orders tabs: neutral dark text in both selected and unselected states. */
@@ -1811,3 +1861,143 @@
 .purchase-orders-page .po-record-tabs{display:inline-grid!important;grid-template-columns:repeat(2,minmax(104px,1fr));align-items:stretch;gap:4px;min-width:0;width:max-content;overflow:visible}
 .purchase-orders-page .po-record-tabs .po-record-tab{box-sizing:border-box;display:inline-flex!important;align-items:center;justify-content:center;gap:7px;width:100%;min-width:0;height:34px;min-height:34px;padding:0 12px!important;line-height:1.2;overflow:visible;white-space:nowrap;text-overflow:clip}
 .purchase-orders-page .po-record-tabs .po-record-tab i{flex:0 0 auto}
+
+/* Shared Active / History segmented controls on Purchase record pages.
+   The scoped dark theme overrides only palette values, not the geometry. */
+main.purchase-module-page.records-page :is(
+  .requested-pr-record-tabs,
+  .restock-record-tabs,
+  .po-record-tabs,
+  .purchase-history-record-tabs
+) {
+  display: inline-flex !important;
+  align-items: center !important;
+  flex-wrap: nowrap !important;
+  gap: 4px !important;
+  width: max-content !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  padding: 4px !important;
+  border: 1px solid #d6e1ef !important;
+  border-radius: 11px !important;
+  background: #f3f6fb !important;
+}
+main.purchase-module-page.records-page :is(
+  .requested-pr-record-tab,
+  .restock-record-tab,
+  .po-record-tab,
+  .purchase-history-record-tab
+) {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex: 0 0 auto !important;
+  gap: 8px !important;
+  min-width: 98px !important;
+  height: 35px !important;
+  min-height: 35px !important;
+  padding: 0 13px !important;
+  box-sizing: border-box !important;
+  border: 1px solid transparent !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+  color: #526681 !important;
+  box-shadow: none !important;
+  font-size: 11px !important;
+  font-weight: 750 !important;
+  line-height: 1.2 !important;
+  text-decoration: none !important;
+  white-space: nowrap !important;
+}
+main.purchase-module-page.records-page :is(
+  .requested-pr-record-tab.is-active,
+  .restock-record-tab.is-active,
+  .po-record-tab.is-active,
+  .purchase-history-record-tab.is-active
+) {
+  border-color: #cbdcf2 !important;
+  background: #ffffff !important;
+  color: #1555a4 !important;
+  box-shadow: 0 1px 5px rgba(20, 48, 91, .12) !important;
+}
+main.purchase-module-page.records-page :is(
+  .requested-pr-record-tab:not(.is-active):hover,
+  .restock-record-tab:not(.is-active):hover,
+  .po-record-tab:not(.is-active):hover,
+  .purchase-history-record-tab:not(.is-active):hover
+) {
+  background: #e8eff9 !important;
+  color: #174779 !important;
+}
+
+
+
+/* Shared component-backed Purchasing IDs.
+   All four record lists render <x-ui.id-badge> rather than custom ID markup. */
+html body main.purchase-module-page.records-page .records-table .system-id-badge.purchase-record-id {
+  box-sizing: border-box !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  width: max-content !important;
+  max-width: 100% !important;
+  min-height: 27px !important;
+  height: auto !important;
+  padding: 5px 9px !important;
+  border: 1px solid #cfdbeb !important;
+  border-radius: 6px !important;
+  background: #f4f7fc !important;
+  color: #193654 !important;
+  box-shadow: none !important;
+  font: inherit !important;
+  font-size: 11px !important;
+  font-weight: 750 !important;
+  line-height: 1.3 !important;
+  letter-spacing: 0 !important;
+  white-space: nowrap !important;
+  overflow: visible !important;
+  opacity: 1 !important;
+}
+html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] main.purchase-module-page.records-page .records-table .system-id-badge.purchase-record-id {
+  background: #253850 !important;
+  border-color: #3d536d !important;
+  color: #edf4ff !important;
+}
+
+/* Record reference containers remain layout-only; badge styling comes from <x-ui.id-badge>. */
+html body main.purchase-module-page.records-page .records-table .requested-pr-reference {
+  display: inline-flex !important;
+  max-width: 100%;
+  background: transparent !important;
+  border: 0 !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+}
+html body main.purchase-module-page.records-page .records-table td .po-number-cell,
+html body main.purchase-module-page.records-page .records-table td .requested-pr-reference {
+  overflow: visible;
+}
+/* Compact purchasing status pills, consistent with Maintenance Requests.
+   Do not constrain the label width or clip different status names. */
+html body main.inventory-restock-page.records-page .restock-table td.restock-status-cell > .badge[data-ui-component="status-badge"] {
+  box-sizing: border-box !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: max-content !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  height: 29px !important;
+  min-height: 29px !important;
+  padding: 4px 9px !important;
+  gap: 6px !important;
+  border-radius: 6px !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  white-space: nowrap !important;
+}
+html body main.inventory-restock-page.records-page .restock-table td.restock-status-cell > .badge[data-ui-component="status-badge"] .status-badge__label {
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  white-space: nowrap !important;
+}

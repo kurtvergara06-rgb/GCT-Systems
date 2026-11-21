@@ -62,12 +62,21 @@ class PurchaseDashboardController extends Controller
         // -----------------------------------------------------------------
         // Financial & Fulfillment Metrics
         // -----------------------------------------------------------------
-        $totalSpend = (float) PurchaseOrder::sum('net_amount');
-        $totalOrdersCount = (int) PurchaseOrder::count();
+        // Include only ordered/fulfilled POs. Draft, review, revision and
+        // rejected orders are proposals, not financial commitments.
+        $committedStatuses = ['Ordered', 'For Pick-up', 'For Delivery', 'Delivered', 'Picked Up'];
+        $committedOrders = PurchaseOrder::query()->whereIn('status', $committedStatuses);
+        $totalSpend = (float) (clone $committedOrders)->sum('net_amount');
+        $totalOrdersCount = (int) (clone $committedOrders)->count();
         $avgOrderValue = $totalOrdersCount > 0 ? (float) ($totalSpend / $totalOrdersCount) : 0.0;
 
         $totalPipeline = $forPurchase + $ordered + $forPickup + $forDelivery + $deliveredOrders;
-        $fulfillmentRate = $totalPipeline > 0 ? (int) round(($deliveredOrders / $totalPipeline) * 100) : 0;
+        // PRs awaiting conversion are not POs. Fulfillment uses only actual
+        // active/fulfilled orders, excluding unapproved and rejected records.
+        $fulfillableOrders = $activePurchaseOrders + $deliveredOrders;
+        $fulfillmentRate = $fulfillableOrders > 0
+            ? (int) round(($deliveredOrders / $fulfillableOrders) * 100)
+            : 0;
 
         // -----------------------------------------------------------------
         // Monthly Spend Trend (Last 6 Months)
@@ -83,6 +92,7 @@ class PurchaseDashboardController extends Controller
         });
 
         $monthlyPoData = PurchaseOrder::query()
+            ->whereIn('status', $committedStatuses)
             ->selectRaw("DATE_FORMAT(COALESCE(po_date, created_at), '%Y-%m') as ym, COUNT(*) as order_count, SUM(net_amount) as total_spend")
             ->whereRaw("COALESCE(po_date, created_at) >= ?", [$baseMonth->copy()->subMonths(5)->toDateTimeString()])
             ->groupBy('ym')
@@ -114,6 +124,7 @@ class PurchaseDashboardController extends Controller
         });
 
         $allRecentOrders = PurchaseOrder::query()
+            ->whereIn('status', $committedStatuses)
             ->select('id', 'po_no', 'po_date', 'created_at', 'net_amount')
             ->get();
 
@@ -150,6 +161,7 @@ class PurchaseDashboardController extends Controller
         // Top Suppliers & Procurement Sources
         // -----------------------------------------------------------------
         $topSuppliers = PurchaseOrder::query()
+            ->whereIn('status', $committedStatuses)
             ->selectRaw('supplier_name, COUNT(*) as orders_count, SUM(net_amount) as total_spend')
             ->whereNotNull('supplier_name')
             ->where('supplier_name', '!=', '')

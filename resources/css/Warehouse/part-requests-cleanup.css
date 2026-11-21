@@ -582,7 +582,7 @@
   min-height: 36px;
   padding: 8px 14px;
   border-radius: 9px;
-  color: #5a6678;
+  color: #26364c;
   font-size: 12px;
   font-weight: 700;
   text-decoration: none;
@@ -599,12 +599,6 @@
   background: #ffffff;
   color: #102a56;
   box-shadow: 0 2px 8px rgba(16, 42, 86, .09);
-}
-
-.warehouse-history-note {
-  margin: 4px 0 12px;
-  color: #7b8798;
-  font-size: 11px;
 }
 
 @media (max-width: 760px) {
@@ -1079,7 +1073,7 @@ body > .warehouse-pr-stock-popover .warehouse-pr-stock-ok{font-size:10px;font-we
   box-sizing:border-box;
 }
 .warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) tbody td{
-  padding:13px 12px;vertical-align:middle;
+  padding:10px 12px;vertical-align:middle;
 }
 .warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) td.item-col{
   text-align:left;white-space:normal;
@@ -1111,15 +1105,14 @@ body > .warehouse-pr-parts-popup:not(.warehouse-pr-stock-popover)>div>strong {
   flex:none;font-size:11px;font-weight:850;color:#15395f;
 }
 
-/* Keep PR QTY / ON HAND headings and values on the same alignment axis. */
-.warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) thead th:nth-child(3),
-.warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) thead th:nth-child(4),
-.warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) tbody td:nth-child(3),
-.warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) tbody td:nth-child(4) {
-  text-align:left;
+/* Match PR quantity and the two status columns to their respective headings. */
+.warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) :is(th, td):nth-child(3) {
+  text-align: left;
 }
-.warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) tbody td:nth-child(4) {
-  white-space:nowrap;
+.warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) :is(th, td):nth-child(4),
+.warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) :is(th, td):nth-child(5),
+.warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) :is(th, td):nth-child(6) {
+  text-align: center;
 }
 .warehouse-part-main .warehouse-part-card .warehouse-pr-onhand-compact {
   display:inline-flex;
@@ -1175,9 +1168,17 @@ body > .warehouse-pr-parts-popup:not(.warehouse-pr-stock-popover)>div>strong {
 
 /* PR read-only modal matches approved Warehouse IR view modal. */
 :is(#viewPrModal, #warehouseSendMissingModal) .warehouse-pr-reference-view {
-  width:min(1080px,calc(100vw - 32px));
-  max-width:1080px;max-height:calc(100dvh - 34px);
-  display:flex;flex-direction:column;overflow:hidden;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  width: min(940px, calc(100vw - 32px));
+  max-width: 940px;
+  max-height: calc(100dvh - 34px);
+  min-height: 0;
+  margin: auto;
+  overflow: hidden;
+  border-radius: 16px;
+  box-shadow: 0 22px 68px rgba(14,33,66,.24);
 }
 :is(#viewPrModal, #warehouseSendMissingModal) .warehouse-edit-header {display:flex;align-items:center;gap:12px;flex:none;min-height:76px;padding:14px 20px;}
 :is(#viewPrModal, #warehouseSendMissingModal) .warehouse-modal-title-copy {flex:1;min-width:0;}
@@ -1191,7 +1192,7 @@ body > .warehouse-pr-parts-popup:not(.warehouse-pr-stock-popover)>div>strong {
   border-color:#b7e5c8;background:#ecfdf3;color:#18713a;
 }
 :is(#viewPrModal, #warehouseSendMissingModal) .warehouse-modal-scrollable {
-  flex:1 1 auto;min-height:0;overflow-y:auto;
+  flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;
   padding:14px 18px;display:flex;flex-direction:column;gap:12px;
 }
 :is(#viewPrModal, #warehouseSendMissingModal) .warehouse-pr-reference-strip {
@@ -1302,7 +1303,15 @@ body > .warehouse-pr-parts-popup:not(.warehouse-pr-stock-popover)>div>strong {
 #warehouseSendMissingModal .warehouse-pr-reference-section {padding:12px;}
 #viewPrModal .warehouse-modal-scrollable,
 #warehouseSendMissingModal .warehouse-modal-scrollable {gap:10px;padding:12px 16px;}
-#warehouseSendMissingModal .warehouse-send-missing-view {width:min(1080px,calc(100vw - 32px));max-width:1080px;max-height:calc(100dvh - 34px);display:flex;flex-direction:column;overflow:hidden;}
+/* Keep fixed controls visible and scroll full-height sections instead of shrinking them. */
+
+#warehouseSendMissingModal .warehouse-modal-scrollable > * {
+  flex: 0 0 auto;
+}
+#warehouseSendMissingModal .warehouse-edit-header,
+#warehouseSendMissingModal .warehouse-edit-footer {
+  flex: 0 0 auto;
+}
 #warehouseSendMissingModal .warehouse-send-missing-meta {grid-template-columns:repeat(3,minmax(0,1fr));}
 /* Only the confirmation content differs; both modal shells inherit View PR rules. */
 #warehouseSendMissingModal .warehouse-pr-reference-strip .warehouse-summary-item:last-child {border-right:0;}
@@ -1314,21 +1323,37 @@ body > .warehouse-pr-parts-popup:not(.warehouse-pr-stock-popover)>div>strong {
  #warehouseSendMissingModal .warehouse-send-missing-meta .warehouse-summary-item:last-child{border-bottom:0;}
 }
 
-#warehouseSendMissingModal .warehouse-edit-footer {gap:10px;}
 #warehouseSendMissingModal .confirm-issue-btn:disabled {opacity:.55;cursor:not-allowed;}
 
 
 
-/* Purchase confirmation uses warning/yellow action, not issuance green. */
-#warehouseSendMissingModal .warehouse-send-purchase-yellow {
-  background:#f4b927 !important;border:1px solid #dea51b !important;
-  color:#563900 !important;box-shadow:none !important;
+/* Purchase submission: yellow primary action with dark-blue foreground. */
+#warehouseSendMissingModal .warehouse-send-purchase-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  gap: 7px;
+  box-sizing: border-box;
+  width: auto;
+  min-width: 0;
+  height: 42px;
+  min-height: 42px;
+  padding: 0 16px;
+  border-radius: 9px;
+  font-size: 12px;
+  line-height: 1;
+  white-space: nowrap;
+  background: #ffbf19 !important;
+  border: 1px solid #e1aa13 !important;
+  color: #102a56 !important;
+  box-shadow: none !important;
 }
-#warehouseSendMissingModal .warehouse-send-purchase-yellow:hover:not(:disabled) {
-  background:#e8aa13 !important;border-color:#ce9311 !important;
+#warehouseSendMissingModal .warehouse-send-purchase-primary:hover:not(:disabled) {
+  background:#f1af05 !important;border-color:#cb9300 !important;
 }
-#warehouseSendMissingModal .warehouse-send-purchase-yellow:focus-visible {
-  outline:2px solid #b57d04;outline-offset:2px;
+#warehouseSendMissingModal .warehouse-send-purchase-primary:focus-visible {
+  outline:2px solid #93c5fd;outline-offset:2px;
 }
 
 
@@ -1375,12 +1400,7 @@ body > .warehouse-pr-parts-popup:not(.warehouse-pr-stock-popover)>div>strong {
 
 
 /* Consistent Warehouse PR review and send-missing modal presentation. */
-#viewPrModal .warehouse-pr-reference-view,
-#warehouseSendMissingModal .warehouse-send-missing-view {
-  width:min(940px,calc(100vw - 32px));max-width:940px;
-  border-radius:16px;overflow:hidden;
-  box-shadow:0 22px 68px rgba(14,33,66,.24);
-}
+
 #viewPrModal .warehouse-edit-header,
 #warehouseSendMissingModal .warehouse-edit-header {
   display:flex;align-items:center;gap:14px;padding:17px 22px;
@@ -1520,10 +1540,10 @@ body > .warehouse-pr-parts-popup:not(.warehouse-pr-stock-popover)>div>strong {
   line-height:1.1;white-space:nowrap;cursor:pointer;
 }
 .warehouse-part-main .warehouse-actions .warehouse-pr-review-action {
-  background:#fff4d6;color:#8a5600;border:1px solid #f0c662;
+  background:#dbeafe;color:#174ea6;border:1px solid #93c5fd;
 }
 .warehouse-part-main .warehouse-actions .warehouse-pr-review-action:hover {
-  background:#ffebad;border-color:#e9b640;
+  background:#bfdbfe;border-color:#60a5fa;
 }
 .warehouse-part-main .warehouse-actions .open-view-pr-modal {
   width:auto;max-width:none;background:#ecf3ff;color:#1551a8;border:1px solid #bdd5ff;
@@ -1551,9 +1571,9 @@ body > .warehouse-pr-parts-popup:not(.warehouse-pr-stock-popover)>div>strong {
 /* Warehouse PR list: six clean columns after moving stock details to Review modal. */
 .warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table){width:100%;table-layout:fixed}
 .warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) th:nth-child(1),
-.warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) td:nth-child(1){width:16%}
+.warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) td:nth-child(1){width:18%}
 .warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) th:nth-child(2),
-.warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) td:nth-child(2){width:25%}
+.warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) td:nth-child(2){width:24%}
 .warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) th:nth-child(3),
 .warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) td:nth-child(3){width:12%}
 .warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) th:nth-child(4),
@@ -1561,7 +1581,7 @@ body > .warehouse-pr-parts-popup:not(.warehouse-pr-stock-popover)>div>strong {
 .warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) th:nth-child(5),
 .warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) td:nth-child(5){width:17%}
 .warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) th:nth-child(6),
-.warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) td:nth-child(6){width:13%}
+.warehouse-part-main .warehouse-part-card .warehouse-part-table-clean:not(.warehouse-jo-table) td:nth-child(6){width:12%}
 
 /* Warehouse PR status badges match the compact Incoming Deliveries status pill. */
 .warehouse-part-main .warehouse-part-table-clean tbody td.status-col .warehouse-ir-process-status,
@@ -1656,4 +1676,226 @@ body > .warehouse-pr-parts-popup:not(.warehouse-pr-stock-popover)>div>strong {
   margin: 0 !important;
   transform: none !important;
   line-height: 1 !important;
+}
+
+
+/* Warehouse PR: dark-mode contrast for record navigation and table values.
+   Keep the status badges' semantic colors and all existing workflows intact. */
+html[data-gct-theme="dark"] .warehouse-part-main .warehouse-part-card .warehouse-record-tabs {
+  background: #1b2a40;
+  border-color: #344761;
+}
+html[data-gct-theme="dark"] .warehouse-part-main .warehouse-part-card .warehouse-record-tab {
+  background: transparent;
+  color: #cbd5e1;
+}
+html[data-gct-theme="dark"] .warehouse-part-main .warehouse-part-card .warehouse-record-tab:hover {
+  background: #263b57;
+  color: #f8fafc;
+}
+html[data-gct-theme="dark"] .warehouse-part-main .warehouse-part-card .warehouse-record-tab.is-active,
+html[data-gct-theme="dark"] .warehouse-part-main .warehouse-part-card .warehouse-record-tab.is-active:hover {
+  background: #304563;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .18);
+}
+html[data-gct-theme="dark"] .warehouse-part-main .warehouse-part-card .warehouse-part-table-clean tbody td {
+  color: #e2e8f0;
+}
+html[data-gct-theme="dark"] .warehouse-part-main .warehouse-part-card .warehouse-pr-item-name,
+html[data-gct-theme="dark"] .warehouse-part-main .warehouse-part-card .qty-needed-badge,
+html[data-gct-theme="dark"] .warehouse-part-main .warehouse-part-card .item-name-text {
+  color: #f1f5f9;
+}
+html[data-gct-theme="dark"] .warehouse-part-main .warehouse-part-card .warehouse-pr-review-action {
+  background: #dbeafe;
+  border-color: #93c5fd;
+  color: #174ea6;
+}
+html[data-gct-theme="dark"] .warehouse-part-main .warehouse-part-card .warehouse-pr-review-action:hover:not(:disabled) {
+  background: #bfdbfe;
+  border-color: #60a5fa;
+  color: #123b81;
+}
+
+
+/* Send Missing Parts review: compact, readable hierarchy for light and dark themes.
+   Scope layout to this dialog and reuse the existing shared modal components. */
+#warehouseSendMissingModal .warehouse-edit-header {
+  min-height: 70px;
+  padding: 14px 20px;
+}
+#warehouseSendMissingModal .warehouse-modal-title-copy h2 {
+  font-size: 18px;
+  line-height: 1.3;
+}
+#warehouseSendMissingModal .warehouse-modal-title-copy p {
+  font-size: 11px;
+  line-height: 1.5;
+}
+#warehouseSendMissingModal .warehouse-modal-scrollable {
+  gap: 14px;
+  padding: 18px 20px 22px;
+}
+#warehouseSendMissingModal .warehouse-pr-reference-strip {
+  padding: 8px;
+  gap: 8px;
+}
+#warehouseSendMissingModal .warehouse-pr-reference-strip .warehouse-summary-item {
+  padding: 10px 13px;
+  border: 1px solid #e1e9f5;
+  border-radius: 8px;
+}
+#warehouseSendMissingModal .warehouse-pr-reference-section {
+  padding: 0;
+  border-radius: 12px;
+}
+#warehouseSendMissingModal .warehouse-pr-reference-section .warehouse-modal-section-header {
+  padding: 15px 16px 12px;
+  border-bottom: 1px solid #dae5f4;
+}
+#warehouseSendMissingModal .warehouse-pr-reference-section .warehouse-modal-section-header h3 {
+  font-size: 13px;
+}
+#warehouseSendMissingModal .warehouse-pr-reference-section .warehouse-modal-section-header p {
+  font-size: 11px;
+  line-height: 1.4;
+}
+#warehouseSendMissingModal .warehouse-pr-reference-section .warehouse-modal-section-body {
+  padding: 14px 16px 16px;
+}
+#warehouseSendMissingModal .warehouse-pr-head-content {
+  gap: 12px;
+}
+#warehouseSendMissingModal .warehouse-pr-head-person,
+#warehouseSendMissingModal .warehouse-pr-head-signature {
+  min-height: 128px;
+  padding: 15px;
+}
+#warehouseSendMissingModal .warehouse-pr-head-signature img {
+  max-height: 105px;
+  border-radius: 6px;
+}
+#warehouseSendMissingModal .warehouse-pr-view-table th,
+#warehouseSendMissingModal .warehouse-pr-view-table td {
+  padding: 12px 14px;
+}
+#warehouseSendMissingModal .warehouse-edit-footer {
+  gap: 9px;
+  padding: 12px 20px;
+}
+@media(max-width:600px) {
+  #warehouseSendMissingModal .warehouse-edit-header {padding: 12px 14px;}
+  #warehouseSendMissingModal .warehouse-modal-scrollable {padding: 12px 14px 16px;}
+  #warehouseSendMissingModal .warehouse-pr-reference-section .warehouse-modal-section-body {padding: 12px;}
+  #warehouseSendMissingModal .warehouse-edit-footer {padding: 12px 14px;flex-wrap: wrap;}
+}
+
+/* Send Missing Parts: keep revision notes visible and usable at every viewport. */
+#warehouseSendMissingModal #sendMissingRevisionRemarks {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 88px;
+  margin-top: 8px;
+  padding: 11px 12px;
+  resize: vertical;
+  border: 1px solid #cad8eb;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #173452;
+  font: 500 12px/1.5 var(--gct-font-family, Poppins, sans-serif);
+}
+#warehouseSendMissingModal label[for="sendMissingRevisionRemarks"] {
+  display: block;
+  width: fit-content;
+  margin: 12px 0 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #294b70;
+  font-size: 12px;
+  font-weight: 750;
+}
+#warehouseSendMissingModal #sendMissingRevisionRemarks::placeholder {
+  color: #71839b;
+}
+#warehouseSendMissingModal #sendMissingRevisionRemarks:focus-visible {
+  outline: 2px solid #60a5fa;
+  outline-offset: 1px;
+}
+
+/* Dark theme: the review/forwarding modal should match the Warehouse surface,
+   while the saved signature image stays on white for legibility. */
+html[data-gct-theme="dark"] #warehouseSendMissingModal .warehouse-send-missing-view,
+html[data-gct-theme="dark"] #warehouseSendMissingModal .warehouse-edit-header,
+html[data-gct-theme="dark"] #warehouseSendMissingModal .warehouse-edit-footer {
+  background: #162235;
+  border-color: #344761;
+  color: #f1f5f9;
+}
+html[data-gct-theme="dark"] #warehouseSendMissingModal .warehouse-modal-scrollable {
+  background: #162235;
+}
+html[data-gct-theme="dark"] #warehouseSendMissingModal .warehouse-pr-reference-strip,
+html[data-gct-theme="dark"] #warehouseSendMissingModal .warehouse-pr-reference-section {
+  background: #1b2a40;
+  border-color: #344761;
+}
+html[data-gct-theme="dark"] #warehouseSendMissingModal .warehouse-summary-item,
+html[data-gct-theme="dark"] #warehouseSendMissingModal .warehouse-pr-head-person,
+html[data-gct-theme="dark"] #warehouseSendMissingModal .warehouse-pr-head-signature {
+  background: #203149;
+  border-color: #38516d;
+}
+html[data-gct-theme="dark"] #warehouseSendMissingModal .warehouse-modal-section-header {
+  background: transparent;
+  border-color: #344761;
+}
+html[data-gct-theme="dark"] #warehouseSendMissingModal .warehouse-modal-title-copy h2,
+html[data-gct-theme="dark"] #warehouseSendMissingModal .warehouse-modal-section-header h3,
+html[data-gct-theme="dark"] #warehouseSendMissingModal .warehouse-summary-item strong,
+html[data-gct-theme="dark"] #warehouseSendMissingModal .warehouse-pr-head-person strong {
+  color: #f1f5f9;
+}
+html[data-gct-theme="dark"] #warehouseSendMissingModal .warehouse-modal-title-copy p,
+html[data-gct-theme="dark"] #warehouseSendMissingModal .warehouse-modal-section-header p,
+html[data-gct-theme="dark"] #warehouseSendMissingModal .warehouse-summary-item span,
+html[data-gct-theme="dark"] #warehouseSendMissingModal .warehouse-pr-head-content :is(span, small) {
+  color: #bfcee2;
+}
+html[data-gct-theme="dark"] #warehouseSendMissingModal .warehouse-pr-view-table-wrap {
+  background: #1b2a40;
+  border-color: #40536e;
+}
+html[data-gct-theme="dark"] #warehouseSendMissingModal .warehouse-pr-view-table th {
+  background: #263850;
+  color: #d7e4f5;
+}
+html[data-gct-theme="dark"] #warehouseSendMissingModal .warehouse-pr-view-table tbody tr,
+html[data-gct-theme="dark"] #warehouseSendMissingModal .warehouse-pr-view-table tbody td {
+  background: #1b2a40;
+  border-color: #40536e;
+  color: #f1f5f9;
+}
+html[data-gct-theme="dark"] #warehouseSendMissingModal .warehouse-pr-reference-info:not(label) {
+  background: #223954;
+  border-color: #42648b;
+  color: #d1e4ff;
+}
+html[data-gct-theme="dark"] #warehouseSendMissingModal label[for="sendMissingRevisionRemarks"] {
+  color: #e2e8f0;
+}
+html[data-gct-theme="dark"] #warehouseSendMissingModal #sendMissingRevisionRemarks {
+  background: #101d2e;
+  border-color: #40536e;
+  color: #f1f5f9;
+}
+html[data-gct-theme="dark"] #warehouseSendMissingModal #sendMissingRevisionRemarks::placeholder {
+  color: #a7b8cc;
+}
+html[data-gct-theme="dark"] #warehouseSendMissingModal .warehouse-edit-footer .warehouse-cancel-btn {
+  background: #263850;
+  border-color: #526987;
+  color: #e2e8f0;
 }

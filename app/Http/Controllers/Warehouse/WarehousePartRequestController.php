@@ -926,9 +926,10 @@ class WarehousePartRequestController extends Controller
             || $role === 'system admin';
 
         abort_unless(
-            $isSystemAdmin || ($department === 'warehouse' && in_array($role, ['head', 'warehouse head'], true)),
+            ($isSystemAdmin || ($department === 'warehouse' && in_array($role, ['head', 'warehouse head'], true)))
+                && ($user?->hasSystemPermission('warehouse', 'approve') ?? false),
             403,
-            'Only the Warehouse Head may authorize Purchase Requests for Purchasing.'
+            'Warehouse approval permission and authorized Head role are required.'
         );
     }
 }

@@ -9,9 +9,12 @@ use App\Http\Controllers\Purchase\PurchaseDashboardController;
 use App\Mail\Transport\BrevoTransport;
 use App\Models\Maintenance\JobOrder;
 use App\Services\AdminDashboardService;
+use App\Services\AiModelStatusService;
 use App\Services\RolePermissionService;
 use Illuminate\Http\Client\Factory as HttpFactory;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\ValidationException;
@@ -37,6 +40,39 @@ class AppServiceProvider extends ServiceProvider
 
         View::composer('Admin.admin-dashboard', function ($view): void {
             $view->with(app(AdminDashboardService::class)->data());
+
+            // Cache one bounded status snapshot for all five model groups.
+            // Missing/unreachable endpoints remain "Service Unavailable".
+            try {
+                // Store only plain arrays: PHP cached objects can deserialize as
+                // __PHP_Incomplete_Class under the configured cache driver.
+                // A new key also invalidates the existing object-based snapshot.
+                $snapshot = Cache::remember(
+                    'admin-dashboard:ai-model-health:v2',
+                    now()->addSeconds(120),
+                    fn (): array => json_decode(
+                        json_encode(app(AiModelStatusService::class)->all(), JSON_THROW_ON_ERROR),
+                        true,
+                        512,
+                        JSON_THROW_ON_ERROR
+                    )
+                );
+                // Keep the view's existing object access contract, but never
+                // cache object instances or nested stdClass objects themselves.
+                $modelStatuses = json_decode(
+                    json_encode($snapshot, JSON_THROW_ON_ERROR),
+                    false,
+                    512,
+                    JSON_THROW_ON_ERROR
+                );
+            } catch (\Throwable $exception) {
+                Log::warning('Admin ML model health could not be retrieved.', [
+                    'error' => $exception->getMessage(),
+                ]);
+                $modelStatuses = [];
+            }
+
+            $view->with('mlModelStatuses', $modelStatuses);
         });
 
         View::composer('Admin.User_Management.permissions', function ($view): void {

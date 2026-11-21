@@ -51,7 +51,7 @@
               aria-selected="{{ !$isHistory ? 'true' : 'false' }}"
             >
               <i class="fa-solid fa-list-check"></i>
-              <span>Active</span><span class="gct-record-tab-count">{{ $activeCount }}</span>
+              <span>Active</span>
             </a>
             <a
               href="{{ route('incoming-deliveries', ['view' => 'history']) }}"
@@ -61,7 +61,7 @@
               aria-selected="{{ $isHistory ? 'true' : 'false' }}"
             >
               <i class="fa-solid fa-clock-rotate-left"></i>
-              <span>History</span><span class="gct-record-tab-count">{{ $historyCount }}</span>
+              <span>History</span>
             </a>
           </nav>
           <div class="incoming-delivery-toolbar">
@@ -211,13 +211,22 @@
             <div><small>Purchase Order</small><strong id="incomingReceiptPo">—</strong></div>
             <div><small>Supplier</small><strong id="incomingReceiptSupplier">—</strong></div>
           </div>
-          <div class="incoming-receipt-mode" role="group" aria-label="Receiving method">
-            <button type="button" id="incomingReceiveAll" class="incoming-receipt-mode-button" aria-pressed="false">
-              <i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i><span><strong>Receive All</strong><small>Fill all outstanding PO quantities</small></span>
-            </button>
-            <button type="button" id="incomingReceivePartial" class="incoming-receipt-mode-button" aria-pressed="false">
-              <i class="fa-solid fa-box-open" aria-hidden="true"></i><span><strong>Partial Receipt</strong><small>Enter only the items that arrived</small></span>
-            </button>
+          <div class="incoming-receipt-method">
+            <h3 id="incomingReceiptModeTitle">Receiving Method <span aria-hidden="true">*</span></h3>
+            <p id="incomingReceiptModeHelp">Select how you want to record the delivered items.</p>
+            <div class="incoming-receipt-mode" role="group" aria-labelledby="incomingReceiptModeTitle" aria-describedby="incomingReceiptModeHelp">
+              <button type="button" id="incomingReceiveAll" class="incoming-receipt-mode-button" aria-pressed="false">
+                <i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i>
+                <span class="incoming-receipt-mode-copy"><strong>Receive All</strong><small>Receive all outstanding PO quantities</small></span>
+                <span class="incoming-receipt-mode-indicator" aria-hidden="true"></span>
+              </button>
+              <button type="button" id="incomingReceivePartial" class="incoming-receipt-mode-button" aria-pressed="false">
+                <i class="fa-solid fa-box-open" aria-hidden="true"></i>
+                <span class="incoming-receipt-mode-copy"><strong>Partial Receipt</strong><small>Receive only the items that arrived</small></span>
+                <span class="incoming-receipt-mode-indicator" aria-hidden="true"></span>
+              </button>
+            </div>
+            <p class="incoming-receipt-selected-state" role="status" aria-live="polite" id="incomingReceiptModeStatus">Selected: None. Choose a receiving method to continue.</p>
           </div>
           <div class="incoming-receipt-table-wrap">
             <table class="incoming-receipt-items"><thead><tr><th>Item / Part</th><th>Ordered</th><th>Previously Received</th><th>Outstanding</th><th>Receive Now</th></tr></thead>

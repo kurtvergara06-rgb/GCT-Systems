@@ -37,14 +37,14 @@
     $predictedDelaysCount = (int) ($fleetStats['predictedDelays'] ?? 0);
     $highIdleRiskCount = (int) ($fleetStats['highIdleRisk'] ?? 0);
     $utilizationPct = (float) ($fleetStats['utilization'] ?? 0);
-    $completionForecastPct = (float) ($fleetStats['completionForecast'] ?? 0);
+    $completionForecastPct = $fleetStats['completionForecast'] ?? null;
 
     // Baseline display values based on genuine metrics
     $displayTripsAtRisk = $tripsAtRiskCount;
     $displayPredictedDelays = $predictedDelaysCount;
     $displayUtilization = $utilizationPct > 0 ? number_format($utilizationPct, 1) . '%' : '0.0%';
     $displayHighIdleRisk = $highIdleRiskCount;
-    $displayCompletionForecast = $tripCount > 0 && $completionForecastPct > 0 ? number_format($completionForecastPct, 1) . '%' : '—';
+    $displayCompletionForecast = $tripCount > 0 && $completionForecastPct !== null ? number_format((float) $completionForecastPct, 1) . '%' : '—';
 
     $periodTextMap = [
         'this-week' => 'This Week',
@@ -132,24 +132,6 @@
             'change' => $activeBuses . ' of ' . $totalBuses . ' buses active',
             'change_type' => 'positive',
         ],
-        [
-            'label' => 'High-Idle Records',
-            'value' => $tripCount > 0 ? (string) $displayHighIdleRisk : '—',
-            'description' => 'GPS records with elevated idle indicators; not a count of distinct buses.',
-            'icon' => 'fa-clock',
-            'variant' => 'yellow',
-            'change' => $tripCount === 0 ? null : ($displayHighIdleRisk > 0 ? $displayHighIdleRisk . ' elevated units' : 'No high-idle risk flagged'),
-            'change_type' => $displayHighIdleRisk > 0 ? 'warning' : 'positive',
-        ],
-        [
-            'label' => 'Unflagged GPS Share',
-            'value' => $displayCompletionForecast,
-            'description' => 'Share of GPS records not flagged for review; not a trip completion prediction.',
-            'icon' => 'fa-circle-check',
-            'variant' => 'purple',
-            'change' => $tripCount > 0 ? $growthChangeText : null,
-            'change_type' => $growthChangeType,
-        ],
     ];
 
     /*
@@ -221,7 +203,6 @@
                 <i class="fa-solid {{ $pythonStatus['eta_ready'] ? 'fa-circle-check' : 'fa-circle-info' }}" aria-hidden="true"></i>
                 ETA ML {{ $pythonStatus['eta_ready'] ? 'Ready' : 'Not Ready' }}
             </span>
-            <small>Checked on page load</small>
         </div>
     </div>
 
@@ -348,8 +329,8 @@
                         <th>Bus</th>
                         <th>Route</th>
                         <th>Scheduled Date</th>
-                        <th>Predicted Risk</th>
-                        <th>Predicted Issue</th>
+                        <th>Route History Risk Indicator</th>
+                        <th>Recorded-Pattern Signal</th>
                         <th>Risk Level</th>
                         <th>Status</th>
                         <th>ML ETA</th>
@@ -546,14 +527,6 @@
         </x-analytics.card>
 
     </section>
-
-    {{-- =========================================================
-        FOOTER DISCLAIMER
-    ========================================================== --}}
-    <div class="predictive-footer">
-        <i class="fa-solid fa-circle-info"></i>
-        <span>GPS activity and fleet status are recorded data. Risk and ETA values are displayed only when their source is available; statistical fallbacks are labeled.</span>
-    </div>
 
 </div>
 

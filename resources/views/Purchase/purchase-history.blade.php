@@ -1,5 +1,5 @@
 <x-layout.app
-  title="FROMS - Purchase History"
+  title="FROMS - Requisition Archive"
   :assets="[
     'resources/css/Main-styles/main.css',
     'resources/css/Main-styles/sidebar.css',
@@ -14,16 +14,16 @@
 
     <main class="main purchase-history-page purchase-module-page records-page">
       <x-layout.topbar
-        title="Purchase History"
-        subtitle="Review completed maintenance and inventory restock procurement records"
+        title="Requisition Archive"
+        subtitle="Review completed maintenance and inventory restock requisitions"
         notification-count="6"
       />
 
       <section data-ajax-region="summary" class="stats-grid">
         <x-ui.summary-card
-          label="Total History"
+          label="Total Requests"
           value="{{ $totalHistory ?? 0 }}"
-          small="Completed procurement records"
+          small="Completed requisitions"
           icon="fa-clock-rotate-left"
           color="gray"
         />
@@ -54,14 +54,14 @@
         <div class="section-header purchase-record-header">
           <div>
             <span class="purchase-section-eyebrow">AUDIT ARCHIVE</span>
-            <h2>Completed Purchase Records</h2>
-            <p>Completed requests are kept here for reference and audit history.</p>
+            <h2>Completed Requisition Records</h2>
+            <p>Completed requisitions from Maintenance and Warehouse are retained for reference.</p>
           </div>
           <span class="purchase-section-count">{{ $historyRecords->total() }} records</span>
         </div>
 
-        <div class="purchase-list-controls purchase-list-controls--toolbar-only">
-          <x-ui.table-toolbar action="{{ route('maintenance-requests', [], false) }}" class="records-toolbar" data-server-filter="true" search-label="Search Purchase History" search-placeholder="Search request, JO, bus, item, source, or status..." :filter-count="(int) (request()->filled('source') && request('source') !== 'All Sources') + (int) (request()->filled('status') && request('status') !== 'All Statuses')" filter-title="Filter Purchase History" :sort-options="['updated_at' => 'Completed Date', 'pr_no' => 'Request Number', 'status' => 'Status']" default-sort="updated_at" default-direction="desc">
+        <div class="purchase-list-controls purchase-list-controls--toolbar-only purchase-history-record-controls">
+          <x-ui.table-toolbar action="{{ route('maintenance-requests', [], false) }}" class="records-toolbar" data-server-filter="true" search-label="Search Requisition Archive" search-placeholder="Search request, JO, bus, item, source, or status..." :filter-count="(int) (request()->filled('source') && request('source') !== 'All Sources') + (int) (request()->filled('status') && request('status') !== 'All Statuses')" filter-title="Filter Purchase History" :sort-options="['updated_at' => 'Completed Date', 'pr_no' => 'Request Number', 'status' => 'Status']" default-sort="updated_at" default-direction="desc">
             <x-slot:hidden><input type="hidden" name="view" value="history"></x-slot:hidden>
             <x-slot:filters>
               <x-ui.table-toolbar-field label="Source" name="source" default="All Sources">@foreach(['All Sources', 'Maintenance Request', 'Inventory Restock'] as $source)<option value="{{ $source }}" @selected(request('source', 'All Sources') === $source)>{{ $source }}</option>@endforeach</x-ui.table-toolbar-field>
@@ -98,7 +98,7 @@
                   $isRestock = $history->source_type === 'Auto Restock';
                 @endphp
                 <tr>
-                  <td><div class="requested-pr-reference"><strong>{{ $history->display_pr_no }}</strong></div></td>
+                  <td><div class="requested-pr-reference"><x-ui.id-badge :value="$history->display_pr_no" size="small" tone="neutral" class="purchase-record-id" /></div></td>
                   <td><span class="purchase-history-source">{{ $isRestock ? 'Inventory Restock' : 'Maintenance Request' }}</span></td>
                   <td class="requested-pr-bus"><strong>{{ ! $isRestock && $history->bus_no && $history->bus_no !== 'RESTOCK' ? $history->bus_no : '—' }}</strong></td>
                   <td>
@@ -156,7 +156,7 @@
                 </tr>
               @empty
                 <x-ui.empty-row colspan="8" icon="fa-clock-rotate-left"
-                  message="No Purchase History Found"
+                  message="No Completed Requisitions Found"
                   description="Completed purchase requests will appear here." />
               @endforelse
             </tbody>
@@ -172,7 +172,7 @@
     <div class="requested-pr-style-modal">
       <div class="requested-pr-modal-header">
         <div>
-          <h2>Purchase History Details</h2>
+          <h2>Requisition Archive Details</h2>
           <h3>Request Information</h3>
           <p>This is a read-only view of the completed procurement record.</p>
         </div>

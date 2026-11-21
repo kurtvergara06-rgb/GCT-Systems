@@ -99,6 +99,9 @@ class GoogleAuthController extends Controller
             }
             Auth::login($existing, true);
             $request->session()->regenerate();
+            if (! \App\Services\SecurityPolicy::current()['allow_multiple_sessions']) {
+                \App\Services\SecurityPolicy::revokeOtherSessions((int) $existing->id, $request->session()->getId());
+            }
             return redirect()->route('login');
         }
 
@@ -170,7 +173,8 @@ class GoogleAuthController extends Controller
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'password' => ['required', 'confirmed', Password::min(8)],
+            'password' => \App\Services\SecurityPolicy::passwordRules(),
+            'privacy_acknowledged' => ['accepted'],
         ]);
         $name = trim($validated['name']);
         if ($name === '') {
@@ -192,6 +196,7 @@ class GoogleAuthController extends Controller
                 'google_id' => $pending['google_id'],
                 'email_verified_at' => null,
                 'password' => $validated['password'],
+                'password_changed_at' => now(),
                 'department' => 'Unassigned',
                 'role' => 'unassigned',
                 'status' => 'Pending',
@@ -283,6 +288,9 @@ class GoogleAuthController extends Controller
         }
         Auth::login($user);
         $request->session()->regenerate();
+        if (! \App\Services\SecurityPolicy::current()['allow_multiple_sessions']) {
+            \App\Services\SecurityPolicy::revokeOtherSessions((int) $user->id, $request->session()->getId());
+        }
         return redirect()->route('login');
     }
 

@@ -69,6 +69,24 @@ class ModalInteractionPolicyTest extends TestCase
         );
     }
 
+    public function test_shared_confirmation_modals_use_compact_border_box_widths(): void
+    {
+        $css = file_get_contents(resource_path('css/Main-styles/main.css'));
+
+        $this->assertStringContainsString(
+            "width: min(400px, calc(100vw - 40px));",
+            $css
+        );
+        $this->assertMatchesRegularExpression(
+            '/\\.modal-card\\.global-confirmation-box\\s*\\{[^}]*box-sizing:\\s*border-box;/s',
+            $css
+        );
+        $this->assertMatchesRegularExpression(
+            '/\\.success-modal-box,\\s*\\.delete-modal-box\\s*\\{[^}]*box-sizing:\\s*border-box;/s',
+            $css
+        );
+    }
+
     public function test_pms_create_job_order_links_require_confirmation_first(): void
     {
         $pms = file_get_contents(

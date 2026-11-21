@@ -74,6 +74,11 @@ class InventoryController extends Controller
             ->groupBy('inventory_item_id')
             ->pluck('reserved', 'inventory_item_id');
 
+        // ML is used only with a genuine ready model and a configured
+        // replenishment lead time; otherwise signed-issuance rules remain.
+        $resolvedReorderPoints = app(\App\Services\Warehouse\InventoryReorderPointService::class)
+            ->resolveMany($inventoryItems->getCollection(), $calculatedThresholds->all());
+
         $categories = $inventoryScope()
             ->whereNotNull('category')
             ->where('category', '!=', '')
@@ -96,11 +101,21 @@ class InventoryController extends Controller
         $lowStockAlerts = 0;
         $criticalItems = 0;
         $itemsAtRisk = 0;
+        // Keep summary counts in sync with the same threshold resolution used
+        // by the table. For large inventories preserve the bounded SQL
+        // streaming calculation rather than issuing an unbounded ML batch.
+        $resolveSummaryWithMl = $totalItemsInStock <= max(1, (int) config('services.inventory_ml.max_batch_parts', 100));
+        $summaryItems = collect();
+        $summaryRules = [];
+        $summaryStock = [];
         [$periodStart, $periodEnd] = $calculator->completeMonthWindow();
         $signedUsage = DB::table('inventory_issuance_items as lines')
             ->join('inventory_issuances as issues', 'issues.id', '=', 'lines.inventory_issuance_id')
             ->whereNotNull('issues.handover_confirmed_at')
             ->whereNotNull('issues.signed_slip_path')
+            ->where('issues.signed_slip_path', '!=', '')
+            ->whereNotNull('issues.received_by')
+            ->where('issues.received_by', '!=', '')
             ->where('issues.issued_at', '>=', $periodStart)
             ->where('issues.issued_at', '<', $periodEnd)
             ->select('lines.inventory_item_id', DB::raw('SUM(lines.quantity) AS issued_units'))
@@ -109,8 +124,10 @@ class InventoryController extends Controller
         foreach ($inventoryScope()
             ->leftJoinSub($reservations, 'jo_reservations', 'inventory_items.id', '=', 'jo_reservations.inventory_item_id')
             ->leftJoinSub($signedUsage, 'signed_usage', 'inventory_items.id', '=', 'signed_usage.inventory_item_id')
-            ->select('inventory_items.quantity_available', 'inventory_items.reorder_level',
-                'inventory_items.created_at', 'jo_reservations.reserved', 'signed_usage.issued_units')
+            ->select('inventory_items.id', 'inventory_items.item_code', 'inventory_items.item_name',
+                'inventory_items.quantity_available', 'inventory_items.unit_of_measurement',
+                'inventory_items.reorder_level', 'inventory_items.created_at',
+                'jo_reservations.reserved', 'signed_usage.issued_units')
             ->cursor() as $stock) {
             $available = max(0, (int) $stock->quantity_available - max(0, (int) $stock->reserved));
             $issued = (int) $stock->issued_units;
@@ -119,7 +136,20 @@ class InventoryController extends Controller
                 $periodStart,
                 $issued
             );
-            $minimum = $completeHistory ? $calculator->roundedMonthlyUsage($issued) : (int) $stock->reorder_level;
+            $verified = $completeHistory ? $calculator->roundedMonthlyUsage($issued) : null;
+            $minimum = $verified ?? (int) $stock->reorder_level;
+
+            if ($resolveSummaryWithMl) {
+                $summaryItems->push($stock);
+                $summaryRules[$stock->id] = ['reorder_point' => $verified];
+                $summaryStock[$stock->id] = [
+                    'on_hand' => (int) $stock->quantity_available,
+                    'reserved' => (int) $stock->reserved,
+                    'fallback' => $minimum > 0 ? $minimum : null,
+                ];
+                continue;
+            }
+
             $status = $calculator->stockStatus((int) $stock->quantity_available, (int) $stock->reserved, $minimum > 0 ? $minimum : null);
             if ($status === 'Critical') {
                 $criticalItems++;
@@ -129,15 +159,36 @@ class InventoryController extends Controller
                 $itemsAtRisk++;
             }
         }
+
+        if ($resolveSummaryWithMl) {
+            $summaryResolved = app(\App\Services\Warehouse\InventoryReorderPointService::class)
+                ->resolveMany($summaryItems, $summaryRules);
+            foreach ($summaryStock as $id => $stock) {
+                $threshold = $summaryResolved[$id]['reorder_point'] ?? $stock['fallback'];
+                $status = $calculator->stockStatus($stock['on_hand'], $stock['reserved'], $threshold);
+                if ($status === 'Critical') {
+                    $criticalItems++;
+                    $itemsAtRisk++;
+                } elseif ($status === 'Low Stock') {
+                    $lowStockAlerts++;
+                    $itemsAtRisk++;
+                }
+            }
+        }
+
         $issueItems = InventoryItem::query()
             ->where('quantity_available', '>', 0)
             ->orderBy('item_name')
             ->get();
 
+        $inventoryMlStatus = app(\App\Services\Warehouse\InventoryMlStatusService::class)->summary();
+
         return view('Warehouse.inventory', compact(
             'inventoryItems',
             'reservedByItem',
             'calculatedThresholds',
+            'resolvedReorderPoints',
+            'inventoryMlStatus',
             'calculator',
             'categories',
             'suppliers',

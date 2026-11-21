@@ -40,14 +40,16 @@ const tooltipOptions = {
     bodyFont: { size: 12, family: 'Poppins, Inter, sans-serif' },
 };
 
-const axisText = '#475569';
-const axisGrid = '#f1f5f9';
+const chartAppearance = () => document.documentElement.dataset.gctTheme === 'dark'
+    ? { text: '#cbd5e1', grid: 'rgba(148, 163, 184, .26)' }
+    : { text: '#475569', grid: '#e2e8f0' };
 
 function initializeInventoryBar(statusData = null) {
     const canvas = document.getElementById('warehouseInventoryBar');
     if (!canvas) return;
 
     destroyChart(canvas);
+    const { text: axisText, grid: axisGrid } = chartAppearance();
 
     const labels = statusData
         ? ['Sufficient', 'Low Stock', 'Out of Stock']
@@ -211,6 +213,7 @@ function initializeMovementTrend() {
     const canvas = document.getElementById('warehouseMovementTrend');
     if (!canvas) return;
     destroyChart(canvas);
+    const { text: axisText, grid: axisGrid } = chartAppearance();
 
     const labels = readJson(canvas, 'labels');
     const series = {
@@ -262,7 +265,7 @@ function initializeMovementTrend() {
                 legend: {
                     position: 'top', align: 'end',
                     labels: { usePointStyle: true, pointStyle: 'circle', boxWidth: 7,
-                        boxHeight: 7, padding: 13, color: '#53667e',
+                        boxHeight: 7, padding: 13, color: axisText,
                         font: { size: 10, weight: '600', family: 'Poppins, Inter, sans-serif' } },
                 },
                 tooltip: {
@@ -276,16 +279,16 @@ function initializeMovementTrend() {
             scales: {
                 x: {
                     grid: { display: false }, border: { display: false },
-                    ticks: { color: '#697b91', autoSkip: grouping === 'daily',
+                    ticks: { color: axisText, autoSkip: grouping === 'daily',
                         maxTicksLimit: grouping === 'daily' ? 6 : 7, maxRotation: 0,
                         font: { size: grouping === 'weekly' ? 9 : 10, family: 'Poppins, Inter, sans-serif' } },
                 },
                 y: {
                     beginAtZero: true,
                     suggestedMax: hasActivity ? undefined : 5,
-                    grid: { color: '#edf2f7', drawTicks: false },
+                    grid: { color: axisGrid, drawTicks: false },
                     border: { display: false },
-                    ticks: { color: '#76859b', precision: 0, maxTicksLimit: 5,
+                    ticks: { color: axisText, precision: 0, maxTicksLimit: 5,
                         padding: 8, font: { size: 10, family: 'Poppins, Inter, sans-serif' } },
                 },
             },
@@ -336,4 +339,17 @@ document.addEventListener('ajax:content-updated', initializeWarehouseDashboard);
 
 window.addEventListener('gct:navigation-before', () => {
     destroyWarehouseDashboardCharts();
+});
+
+// Chart.js writes axis labels to canvas, so CSS alone cannot recolor them.
+// Refresh existing dashboard charts when System appearance changes in place.
+const warehouseThemeObserver = new MutationObserver((mutations) => {
+    if (mutations.some(({ attributeName }) => attributeName === 'data-gct-theme')
+        && document.querySelector('.warehouse-dashboard-page')) {
+        initializeWarehouseDashboard();
+    }
+});
+warehouseThemeObserver.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['data-gct-theme'],
 });

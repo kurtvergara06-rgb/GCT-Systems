@@ -96,7 +96,7 @@ class DescriptiveAnalyticsTest extends TestCase
             ->assertSeeText('Operational Summary')
             ->assertSeeText('Scheduled Trips')
             ->assertSeeText('Trip Assignments')
-            ->assertSeeText('Active Fleet Share')
+            ->assertSeeText('Active Fleet')
             ->assertSeeText('T-TEST-001')
             ->assertSeeText('INC-TEST-001');
     }

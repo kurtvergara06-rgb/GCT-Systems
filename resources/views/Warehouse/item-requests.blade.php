@@ -25,8 +25,8 @@
             </header>
             <div class="ir-toolbar">
                 <nav class="ir-tabs" aria-label="Item Request view">
-                    <a href="{{ route('warehouse.item-requests', ['view' => 'active']) }}" class="ir-active-tab {{ $view === 'active' ? 'is-active' : '' }}" data-allow-partial-navigation="true"><i class="fa-solid fa-list-check"></i> Active <span class="gct-record-tab-count">{{ $activeCount }}</span></a>
-                    <a href="{{ route('warehouse.item-requests', ['view' => 'history']) }}" class="ir-active-tab {{ $view === 'history' ? 'is-active' : '' }}" data-allow-partial-navigation="true"><i class="fa-solid fa-clock-rotate-left"></i> History <span class="gct-record-tab-count">{{ $historyCount }}</span></a>
+                    <a href="{{ route('warehouse.item-requests', ['view' => 'active']) }}" class="ir-active-tab {{ $view === 'active' ? 'is-active' : '' }}" data-allow-partial-navigation="true"><i class="fa-solid fa-list-check"></i> Active </a>
+                    <a href="{{ route('warehouse.item-requests', ['view' => 'history']) }}" class="ir-active-tab {{ $view === 'history' ? 'is-active' : '' }}" data-allow-partial-navigation="true"><i class="fa-solid fa-clock-rotate-left"></i> History </a>
                 </nav>
                 <div class="gct-table-toolbar-row">
                     <x-ui.table-toolbar action="{{ route('warehouse.item-requests') }}" data-server-filter="true"
@@ -39,7 +39,7 @@
                         <x-slot:filters>
                             <x-ui.table-toolbar-field label="Status" name="status" default="All Statuses">
                                 <option value="All Statuses">All Statuses</option>
-                                @foreach(($view === 'history' ? ['Issued', 'Completed', 'Cancelled', 'Rejected'] : ['Submitted', 'Partially Issued', 'Approved', 'Preparing', 'Partial', 'Pending']) as $status)
+                                @foreach(($view === 'history' ? ['Issued', 'Completed', 'Cancelled', 'Rejected'] : ['Submitted', 'Partially Issued', 'Issued', 'Approved', 'Preparing', 'Partial', 'Pending']) as $status)
                                     <option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>
                                 @endforeach
                             </x-ui.table-toolbar-field>
@@ -47,7 +47,7 @@
                     </x-ui.table-toolbar>
                 </div>
             </div>
-            <div class="ir-table-wrap gct-responsive-records gct-sticky-actions">
+            <div class="ir-table-wrap gct-responsive-records">
                 <table class="ir-table">
                     <thead><tr><th>IR ID</th><th>ITEM</th><th>QTY</th><th>FULFILLMENT</th><th>POLICY</th><th>STATUS</th><th>ACTIONS</th></tr></thead>
                     <tbody>
@@ -69,14 +69,20 @@
                         $waitForAllParts = $ir->jobOrder?->parts_issue_strategy !== 'issue_available_only';
                         $totalJoRequired = $joRequirements->sum(fn ($part) => (int) ($part['quantity'] ?? 0));
                         $totalIrRequested = collect($ir->requested_parts ?? [])->sum(fn ($part) => (int) ($part['quantity'] ?? 0));
-                        $resumingHandover = in_array($ir->status, ['Issued', 'Partially Issued'], true) && $fulfillmentByJob->get($ir->job_order_id, ['remaining' => 0])['remaining'] > 0;
+                        $quantityReviewRequired = (bool) $quantityReviewByJob->get($ir->job_order_id, true);
+                        $remainingSignedParts = $fulfillmentByJob->get($ir->job_order_id, ['remaining' => 0])['remaining'] > 0;
+                        $resumingHandover = in_array($ir->status, ['Issued', 'Partially Issued'], true) && $remainingSignedParts;
+                        $canPrepareIssuance = $view === 'active'
+                            && $ir->jobOrder?->review_status === 'Approved'
+                            && $ir->jobOrder?->status !== 'Completed'
+                            && (in_array($ir->status, ['Submitted', 'Partially Issued'], true) || ($ir->status === 'Issued' && in_array($ir->id, $incompleteIssuedIds, true)));
                         $issueBlockedByPolicy = $waitForAllParts
                             && ((!$resumingHandover && $totalIrRequested < $totalJoRequired) || ($stock['status'] ?? '') !== 'sufficient');
                     @endphp
                     <tr>
-                        <td class="warehouse-ir-reference"><div class="warehouse-ir-reference-stack"><span class="warehouse-ir-id-badge">IR-{{ $ir->created_at?->format('Y') ?? '0000' }}-{{ str_pad((string) $ir->id, 4, '0', STR_PAD_LEFT) }}</span>@if($ir->jobOrder?->job_order_no)<span class="warehouse-ir-jo-tag" title="Linked Job Order"><i class="fa-solid fa-wrench" aria-hidden="true"></i> {{ $ir->jobOrder->job_order_no }}</span>@endif</div></td>
+                        <td class="warehouse-ir-reference"><div class="warehouse-ir-reference-stack"><x-ui.id-badge :value="'IR-' . ($ir->created_at?->format('Y') ?? '0000') . '-' . str_pad((string) $ir->id, 4, '0', STR_PAD_LEFT)" size="small" tone="neutral" class="warehouse-ir-id-badge" />@if($ir->jobOrder?->job_order_no)<span class="warehouse-ir-jo-tag" title="Linked Job Order"><i class="fa-solid fa-wrench" aria-hidden="true"></i> {{ $ir->jobOrder->job_order_no }}</span>@endif</div></td>
                         <td>
-                            @php($parts = collect($ir->requested_parts ?? []))
+                            @php($parts = $quantityReviewRequired ? collect($ir->requested_parts ?? []) : $joRequirements)
                             @if($parts->isNotEmpty())
                                 <span class="ir-part-name warehouse-ir-item-label">{{ $parts->first()['name'] ?? '—' }}</span>
                                 @if($parts->count() > 1)
@@ -95,15 +101,19 @@
                             <?php
                                 $fulfillment = $fulfillmentByJob->get($ir->job_order_id, ['required' => 0, 'issued' => 0, 'remaining' => 0]);
                                 $waitingForJoParts = $ir->status === 'Issued' && $fulfillment['remaining'] > 0;
-                                $fulfillmentPercent = $fulfillment['required'] > 0
-                                    ? min(100, (int) round(100 * $fulfillment['issued'] / $fulfillment['required'])) : 0;
+                                $displayStatus = $quantityReviewRequired ? 'Quantity Review'
+                                    : ($waitingForJoParts ? 'Partially Issued'
+                                        : (in_array($ir->status, ['Issued', 'Partially Issued'], true) && $fulfillment['issued'] === 0
+                                            ? 'Awaiting Signed SWIS' : $ir->status));
                             ?>
-                            <div class="warehouse-ir-fulfillment" title="Cumulative physically issued parts for the linked Job Order">
-                                <strong>{{ $fulfillment['issued'] }} / {{ $fulfillment['required'] }} issued</strong>
-                                <span class="warehouse-ir-fulfillment-track {{ $fulfillmentPercent === 100 ? 'is-complete' : '' }}" role="progressbar" aria-valuenow="{{ $fulfillment['issued'] }}" aria-valuemin="0" aria-valuemax="{{ max(1, $fulfillment['required']) }}" aria-label="JO parts issued">
-                                    <span style="width:{{ $fulfillmentPercent }}%"></span>
-                                </span>
-                                <small>{{ $fulfillment['remaining'] }} remaining</small>
+                            <div class="warehouse-ir-fulfillment" title="{{ $quantityReviewRequired ? 'The Job Order lists parts without explicit approved quantities. Verify the JO requirement before issuing.' : 'Cumulative confirmed signed SWIS quantities for the linked Job Order' }}">
+                                @if($quantityReviewRequired)
+                                    <strong>Quantity review required</strong>
+                                    <small>JO requirement not confirmed</small>
+                                @else
+                                    <strong>{{ $fulfillment['issued'] }} / {{ $fulfillment['required'] }} issued</strong>
+                                    <small>{{ $fulfillment['remaining'] }} remaining</small>
+                                @endif
                             </div>
                         </td>
                         <td>
@@ -112,31 +122,31 @@
                             </span>
                         </td>
                         <td>
-                            <span class="warehouse-ir-process-status {{ $waitingForJoParts ? 'is-waiting' : ($ir->status === 'Issued' ? 'is-issued' : 'is-submitted') }}">
-                                <i class="fa-solid {{ $waitingForJoParts ? 'fa-clock' : ($ir->status === 'Issued' ? 'fa-circle-check' : 'fa-paper-plane') }}"></i>
-                                {{ $waitingForJoParts ? 'Partially Issued' : $ir->status }}
+                            <span class="warehouse-ir-process-status {{ $quantityReviewRequired || $waitingForJoParts ? 'is-waiting' : ($displayStatus === 'Issued' ? 'is-issued' : 'is-submitted') }}">
+                                <i class="fa-solid {{ $quantityReviewRequired || $waitingForJoParts ? 'fa-clock' : ($displayStatus === 'Issued' ? 'fa-circle-check' : 'fa-paper-plane') }}"></i>
+                                {{ $displayStatus }}
                             </span>
                         </td>
                         <td>
-                            <button type="button" class="warehouse-ir-labeled-view" style="display:inline-flex;align-items:center;justify-content:center;gap:8px;width:34px;min-width:34px;height:32px;padding:0;border:1px solid #bdd5ff;border-radius:8px;background:#eef5ff;color:#1761c5;font-size:12px;font-weight:700;cursor:pointer" title="View Item Request" aria-label="View Item Request" data-ir-view
+                            <div class="warehouse-ir-row-actions"><button type="button" class="warehouse-ir-labeled-view" title="View Item Request" aria-label="View Item Request" data-ir-view
                                 data-ir-number="IR-{{ $ir->created_at?->format('Y') ?? '0000' }}-{{ str_pad((string) $ir->id, 4, '0', STR_PAD_LEFT) }}"
                                 data-ir-job="{{ $ir->jobOrder?->job_order_no ?? '—' }}"
                                 data-ir-bus="{{ $ir->jobOrder?->bus_no ?? '—' }}"
                                 data-ir-requester="{{ $ir->requester?->name ?? '—' }}"
                                 data-ir-date="{{ $ir->created_at?->format('M d, Y · h:i A') ?? '—' }}"
                                 data-ir-parts-count="{{ $parts->count() }}"
-                                data-ir-status="{{ $waitingForJoParts ? 'Partially Issued' : $ir->status }}"
+                                data-ir-status="{{ $displayStatus }}"
                                 data-ir-release-policy="{{ $ir->jobOrder?->parts_issue_strategy === 'issue_available_only' ? 'Issue Available Parts' : 'Wait Until Complete' }}"
                                 data-ir-verify-url="{{ route('warehouse.item-requests.verify', $ir) }}"
                                 data-ir-jo-parts="{{ json_encode($joRequirements->values()->all()) }}"
                                 data-ir-issue-url="{{ route('warehouse.item-requests.issue', $ir) }}"
-                                data-ir-can-issue="{{ (in_array($ir->status, ['Submitted', 'Partially Issued'], true) || $resumingHandover) ? '1' : '0' }}"
+                                data-ir-can-issue="{{ $canPrepareIssuance && ! $quantityReviewRequired ? '1' : '0' }}"
                                 data-ir-parts="{{ $parts->map(fn ($p) => ($p['name'] ?? '—').' — '.($p['quantity'] ?? 0).' '.($p['unit'] ?? ''))->implode(' | ') }}"
                                 data-ir-remarks="{{ $ir->remarks ?? '' }}"
-                                data-ir-signed-slip-url="{{ in_array($ir->status, ['Issued', 'Partially Issued'], true) ? route('warehouse.item-requests.signed-slip', $ir) : '' }}"><i class="fa-solid fa-eye" aria-hidden="true"></i></button>
+                                data-ir-signed-slip-url="{{ $signedSlipByRequest[$ir->id] ?? '' }}"><i class="fa-solid fa-eye" aria-hidden="true"></i></button>
 
-                            @if((in_array($ir->status, ['Submitted', 'Partially Issued'], true) || $resumingHandover) && auth()->user()?->hasSystemPermission('warehouse', 'edit'))
-                                <x-ui.action-button type="issue" icon="fa-file-pen" :disabled="$issueBlockedByPolicy" :title="$issueBlockedByPolicy ? 'Waiting for all Job Order parts per Maintenance Head policy' : 'Prepare Issuance Slip'" aria-label="Prepare Issuance Slip" data-ir-prepare
+                            @if($canPrepareIssuance && auth()->user()?->hasSystemPermission('warehouse', 'edit'))
+                                <x-ui.action-button type="issue" icon="fa-file-pen" :disabled="$issueBlockedByPolicy || $quantityReviewRequired" :title="$quantityReviewRequired ? 'Maintenance Head must confirm exact JO part quantities before SWIS issuance' : ($issueBlockedByPolicy ? 'Waiting for all Job Order parts per Maintenance Head policy' : 'Prepare Issuance Slip')" aria-label="Prepare Issuance Slip" data-ir-prepare
                                     data-ir-number="IR-{{ $ir->created_at?->format('Y') ?? '0000' }}-{{ str_pad((string) $ir->id, 4, '0', STR_PAD_LEFT) }}"
                                     data-ir-job="{{ $ir->jobOrder?->job_order_no ?? '—' }}"
                                     data-ir-bus="{{ $ir->jobOrder?->bus_no ?? '—' }}"
@@ -145,6 +155,7 @@
                                     data-ir-issue-url="{{ route('warehouse.item-requests.issue', $ir) }}"
                                     data-ir-remarks="{{ $ir->remarks ?? '' }}" />
                             @endif
+                            </div>
                         </td>
                     </tr>
                     @empty

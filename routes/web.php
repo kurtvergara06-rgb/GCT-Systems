@@ -11,6 +11,10 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [LoginController::class, 'show'])->name('login');
 
+// Public informational pages; authentication is not required to read these notices.
+Route::view('/privacy', 'Legal.privacy')->name('legal.privacy');
+Route::view('/terms', 'Legal.terms')->name('legal.terms');
+
 Route::get('/registration/pending', function (\Illuminate\Http\Request $request) {
     $userId = $request->session()->get('pending_registration_user_id')
         ?: $request->session()->get('registration_otp_user_id');
@@ -73,7 +77,10 @@ Route::middleware('auth')->group(function () {
         return response()->json([
             'authenticated' => true,
             'account_id' => (string) $request->user()->getAuthIdentifier(),
-            'lifetime_seconds' => max(1, (int) config('session.lifetime', 120)) * 60,
+            'lifetime_seconds' => min(
+                max(1, (int) config('session.lifetime', 120)),
+                (int) (\App\Services\SecurityPolicy::current()['session_timeout'] ?: config('session.lifetime', 120))
+            ) * 60,
         ])->header('Cache-Control', 'no-store');
     })->middleware('throttle:30,1')->name('session.renew');
 

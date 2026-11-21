@@ -20,6 +20,7 @@ class RestockingPurchaseRequestController extends Controller
         $role = strtolower(trim((string) $user?->role));
         abort_unless(
             $user && $user->hasSystemPermission('warehouse', 'edit')
+                && $user->hasSystemPermission('warehouse', 'approve')
             && (($department === 'warehouse' && in_array($role, ['head', 'warehouse head'], true))
                 || ($department === 'admin' && in_array($role, ['head', 'system admin'], true))),
             403

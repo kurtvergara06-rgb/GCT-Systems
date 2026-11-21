@@ -5,8 +5,110 @@
 
 .descriptive-rebuild {
     padding: 0 0 56px;
-    background: #f8fafc;
+    background: light-dark(#f8fafc, var(--gct-theme-surface));
     min-height: calc(100vh - 64px);
+}
+
+/* Light Mode only: maintain true white KPI and analytics card surfaces.
+   Explicitly scoped so shared analytics surfaces do not tint these panels. */
+html:not([data-gct-theme="dark"]) .descriptive-rebuild .descriptive-stats-grid .stat-card,
+html:not([data-gct-theme="dark"]) .descriptive-rebuild .descriptive-stats-grid .stat-card-link,
+html:not([data-gct-theme="dark"]) .descriptive-rebuild .descriptive-dashboard-card,
+html:not([data-gct-theme="dark"]) .descriptive-rebuild .operations-snapshot-primary,
+html:not([data-gct-theme="dark"]) .descriptive-rebuild .operations-snapshot-panel,
+html:not([data-gct-theme="dark"]) .descriptive-rebuild .operations-snapshot-kpi,
+html:not([data-gct-theme="dark"]) .descriptive-rebuild .operations-snapshot-chart {
+    background-color: #ffffff;
+    border-color: #dce5f2;
+    box-shadow: 0 4px 16px rgba(15, 35, 65, 0.07);
+}
+
+/* Selected Operations Performance layout, scoped to the operational overview. */
+.descriptive-rebuild .operations-snapshot {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    gap: 16px;
+    align-items: stretch;
+    margin-bottom: 22px;
+    color: light-dark(#0b1f44, var(--gct-theme-fg));
+}
+.descriptive-rebuild .operations-snapshot-primary,
+.descriptive-rebuild .operations-snapshot-panel {
+    min-width: 0;
+    background: light-dark(#ffffff, var(--gct-theme-surface));
+    border: 1px solid light-dark(#dce5f2, var(--gct-theme-border));
+    border-radius: 16px;
+    box-shadow: 0 4px 16px rgba(12, 35, 68, .06);
+}
+.descriptive-rebuild .operations-snapshot-primary { padding: 18px; display: flex; flex-direction: column; gap: 16px; }
+.descriptive-rebuild .operations-snapshot-heading { display: flex; gap: 12px; align-items: center; padding-bottom: 14px; border-bottom: 1px solid light-dark(#e6edf5, var(--gct-theme-border)); }
+.descriptive-rebuild .operations-snapshot-heading-icon { flex: 0 0 42px; width: 42px; height: 42px; display: grid; place-items: center; border-radius: 12px; background: light-dark(#e8f0ff, #233e64); color: light-dark(#2563eb, #8cb6ff); font-size: 19px; }
+.descriptive-rebuild .operations-snapshot-heading > div { min-width: 0; flex: 1; }
+.descriptive-rebuild .operations-snapshot-heading h2 { margin: 0; font-size: clamp(18px, 1.6vw, 24px); line-height: 1.2; font-weight: 800; }
+.descriptive-rebuild .operations-snapshot-heading p,
+.descriptive-rebuild .operations-snapshot-section-heading p { margin: 4px 0 0; font-size: 12px; color: light-dark(#64748b, var(--gct-theme-muted)); }
+.descriptive-rebuild .operations-snapshot-period { display: inline-flex; gap: 6px; align-items: center; padding: 8px 10px; border-radius: 10px; background: light-dark(#edf4ff, var(--gct-theme-surface-raised)); color: light-dark(#173d85, #d7e6fc); font-size: 11px; font-weight: 700; text-align: right; }
+.descriptive-rebuild .operations-snapshot-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 16px; }
+.descriptive-rebuild .operations-snapshot-kpi { min-width: 0; display: flex; align-items: center; gap: 10px; padding: 14px 10px; border: 1px solid light-dark(#dce5f2, var(--gct-theme-border)); border-radius: 13px; background: light-dark(#ffffff, var(--gct-theme-surface-raised)); text-decoration: none; color: inherit; }
+.descriptive-rebuild .operations-snapshot-kpi-icon { flex: 0 0 38px; width: 38px; height: 38px; display: grid; place-items: center; border-radius: 10px; font-size: 17px; }
+.descriptive-rebuild .operations-snapshot-kpi-icon.blue { background: light-dark(#eaf2ff, #294467); color: light-dark(#2563eb, #a9caff); }
+.descriptive-rebuild .operations-snapshot-kpi-icon.green { background: light-dark(#e8f9ef, #204735); color: light-dark(#16a34a, #86efac); }
+.descriptive-rebuild .operations-snapshot-kpi div { min-width: 0; }
+.descriptive-rebuild .operations-snapshot-kpi div > span { display: block; font-size: 11px; font-weight: 700; }
+.descriptive-rebuild .operations-snapshot-kpi strong { display: block; margin-top: 3px; font-size: clamp(18px, 1.8vw, 28px); line-height: 1.15; }
+.descriptive-rebuild .operations-snapshot-kpi strong.positive { color: light-dark(#169a46, #7beaac); }
+.descriptive-rebuild .operations-snapshot-kpi small { display: block; margin-top: 3px; font-size: 10px; color: light-dark(#64748b, var(--gct-theme-muted)); }
+.descriptive-rebuild .operations-snapshot-chart { min-width: 0; border: 1px solid light-dark(#e5edf7, var(--gct-theme-border)); border-radius: 13px; padding: 15px 13px 12px; flex: 1; }
+.descriptive-rebuild .operations-snapshot-section-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
+.descriptive-rebuild .operations-snapshot-section-heading h3 { display: flex; align-items: center; gap: 9px; margin: 0; font-size: 16px; font-weight: 800; line-height: 1.3; }
+.descriptive-rebuild .operations-snapshot-section-heading h3 i { color: #2563eb; }
+.descriptive-rebuild .operations-snapshot-legend { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; font-size: 10px; font-weight: 600; }
+.descriptive-rebuild .operations-snapshot-legend span { display: flex; align-items: center; gap: 5px; }
+.descriptive-rebuild .operations-snapshot-dot { flex: 0 0 9px; display: inline-block; width: 9px; height: 9px; border-radius: 50%; }
+.descriptive-rebuild .operations-snapshot-dot.scheduled { background: #2563eb; }
+.descriptive-rebuild .operations-snapshot-dot.completed { background: #16a34a; }
+.descriptive-rebuild .operations-snapshot-dot.maintenance { background: #f59e0b; }
+.descriptive-rebuild .operations-snapshot-dot.inactive { background: #94a3b8; }
+.descriptive-rebuild .operations-snapshot-chart-shell { height: 330px; }
+.descriptive-rebuild .operations-snapshot-secondary { display: flex; gap: 12px; flex-wrap: wrap; border-top: 1px solid light-dark(#e6edf5, var(--gct-theme-border)); padding-top: 10px; }
+.descriptive-rebuild .operations-snapshot-secondary a { display: inline-flex; align-items: center; gap: 6px; color: light-dark(#334155, var(--gct-theme-muted)); font-size: 11px; text-decoration: none; }
+.descriptive-rebuild .operations-snapshot-secondary a i { color: #2563eb; }
+.descriptive-rebuild .operations-snapshot-secondary a small { color: light-dark(#64748b, var(--gct-theme-muted)); }
+.descriptive-rebuild .operations-snapshot-aside { min-width: 0; display: flex; flex-direction: column; gap: 16px; }
+.descriptive-rebuild .operations-snapshot-panel { padding: 18px; }
+.descriptive-rebuild .operations-snapshot-online { padding: 6px 9px; background: light-dark(#e8faef, #204735); color: light-dark(#15803d, #86efac); font-size: 12px; font-weight: 800; border-radius: 9px; white-space: nowrap; }
+.descriptive-rebuild .operations-snapshot-progress { width: 100%; height: 15px; display: flex; overflow: hidden; border-radius: 999px; background: light-dark(#e6edf5, #33465f); }
+.descriptive-rebuild .operations-snapshot-progress .active { background: #16a34a; }
+.descriptive-rebuild .operations-snapshot-progress .maintenance { background: #f59e0b; }
+.descriptive-rebuild .operations-snapshot-progress-labels { display: flex; flex-wrap: wrap; gap: 8px 14px; justify-content: space-between; margin-top: 14px; font-size: 11px; }
+.descriptive-rebuild .operations-snapshot-progress-labels span { display: flex; align-items: center; gap: 5px; }
+.descriptive-rebuild .operations-snapshot-distribution { min-height: 0; }
+.descriptive-rebuild .operations-distribution { flex: 1; }
+.descriptive-rebuild .operations-distribution .fleet-health-visual-wrap { grid-template-columns: minmax(120px, 40%) minmax(0, 1fr); gap: 12px; min-height: 0; }
+.descriptive-rebuild .operations-distribution .fleet-health-chart-container { height: 172px; }
+.descriptive-rebuild .operations-distribution .fleet-health-row { background: transparent; border: none; border-bottom: 1px solid light-dark(#edf2f7, var(--gct-theme-border)); border-radius: 0; padding: 7px 0; }
+.descriptive-rebuild .operations-distribution .fleet-health-status-stack { max-height: none; overflow: visible; }
+.descriptive-rebuild .operations-distribution .status-name-desc strong { color: light-dark(#0f172a, var(--gct-theme-fg)); }
+.descriptive-rebuild .operations-distribution .fleet-health-chart-center strong { color: light-dark(#0f172a, var(--gct-theme-fg)); }
+.descriptive-rebuild .operations-snapshot-telemetry-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; padding-top: 8px; border-top: 1px solid light-dark(#e6edf5, var(--gct-theme-border)); }
+.descriptive-rebuild .operations-snapshot-telemetry-grid > div { min-width: 0; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 5px; padding: 6px 8px; }
+.descriptive-rebuild .operations-snapshot-telemetry-grid > div + div { border-left: 1px solid light-dark(#e6edf5, var(--gct-theme-border)); }
+.descriptive-rebuild .operations-snapshot-telemetry-grid i { color: light-dark(#2563eb, #93c5fd); font-size: 18px; }
+.descriptive-rebuild .operations-snapshot-telemetry-grid strong { font-size: clamp(13px, 1.5vw, 19px); overflow-wrap: anywhere; }
+.descriptive-rebuild .operations-snapshot-telemetry-grid small { font-size: 10px; line-height: 1.4; color: light-dark(#64748b, var(--gct-theme-muted)); }
+.descriptive-rebuild .operations-snapshot-records { font-size: 10px; color: light-dark(#64748b, var(--gct-theme-muted)); white-space: nowrap; }
+@media (max-width: 1250px) {
+    .descriptive-rebuild .operations-snapshot { grid-template-columns: 1fr; }
+    .descriptive-rebuild .operations-snapshot-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 660px) {
+    .descriptive-rebuild .operations-snapshot-heading { flex-wrap: wrap; }
+    .descriptive-rebuild .operations-snapshot-period { margin-left: 54px; }
+    .descriptive-rebuild .operations-snapshot-kpis { grid-template-columns: 1fr; }
+    .descriptive-rebuild .operations-distribution .fleet-health-visual-wrap { grid-template-columns: minmax(0, 1fr); }
+    .descriptive-rebuild .operations-snapshot-chart-shell { height: 260px; }
+    .descriptive-rebuild .operations-snapshot-telemetry-grid { grid-template-columns: 1fr; }
+    .descriptive-rebuild .operations-snapshot-telemetry-grid > div + div { border-left: 0; border-top: 1px solid light-dark(#e6edf5, var(--gct-theme-border)); }
 }
 
 /* =========================================================================
@@ -30,9 +132,9 @@
 .descriptive-stats-grid .stat-card-link {
     min-height: 104px;
     padding: 16px 18px;
-    border: 1px solid #e2e8f0;
+    border: 1px solid light-dark(#e2e8f0, var(--gct-theme-border));
     border-radius: 14px;
-    background: #ffffff;
+    background: light-dark(#ffffff, var(--gct-theme-surface));
     box-shadow: 0 4px 16px rgba(12, 35, 68, 0.05);
     color: inherit;
     text-decoration: none;
@@ -76,7 +178,7 @@
     margin: 0;
     font-size: 11px;
     font-weight: 700;
-    color: #64748b;
+    color: light-dark(#64748b, var(--gct-theme-muted));
     text-transform: uppercase;
     letter-spacing: 0.04em;
 }
@@ -85,7 +187,7 @@
     margin: 3px 0 2px;
     font-size: 22px;
     font-weight: 800;
-    color: #0f172a;
+    color: light-dark(#0f172a, var(--gct-theme-fg));
     line-height: 1.1;
     letter-spacing: -0.02em;
 }
@@ -93,7 +195,7 @@
 .descriptive-stats-grid .stat-card-content small {
     display: block;
     font-size: 11px;
-    color: #64748b;
+    color: light-dark(#64748b, var(--gct-theme-muted));
     font-weight: 500;
     white-space: nowrap;
     overflow: hidden;
@@ -115,8 +217,8 @@
 }
 
 .descriptive-dashboard-card {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
+    background: light-dark(#ffffff, var(--gct-theme-surface));
+    border: 1px solid light-dark(#e2e8f0, var(--gct-theme-border));
     border-radius: 14px;
     padding: 20px 22px;
     box-shadow: 0 4px 16px rgba(12, 35, 68, 0.04);
@@ -150,7 +252,7 @@
 
 .dashboard-card-header h2 {
     margin: 0;
-    color: #0f172a;
+    color: light-dark(#0f172a, var(--gct-theme-fg));
     font-size: 17px;
     font-weight: 800;
     display: flex;
@@ -165,16 +267,16 @@
 
 .dashboard-card-header p {
     margin: 3px 0 0;
-    color: #64748b;
+    color: light-dark(#64748b, var(--gct-theme-muted));
     font-size: 11.5px;
 }
 
 .dashboard-view-link {
     min-height: 30px;
     padding: 0 11px;
-    border: 1px solid #e2e8f0;
+    border: 1px solid light-dark(#e2e8f0, var(--gct-theme-border));
     border-radius: 8px;
-    background: #ffffff;
+    background: light-dark(#ffffff, var(--gct-theme-surface));
     color: #2563eb;
     display: inline-flex;
     align-items: center;
@@ -207,7 +309,7 @@
     gap: 6px;
     padding: 4px 10px;
     border-radius: 8px;
-    background: #f8fafc;
+    background: light-dark(#f8fafc, var(--gct-theme-surface-raised));
     border: 1px solid #edf2f7;
     font-size: 11px;
     font-weight: 600;
@@ -253,14 +355,14 @@
     align-items: center;
     gap: 12px;
     padding: 10px 14px;
-    background: #f8fafc;
-    border: 1px solid #edf2f7;
+    background: light-dark(#f8fafc, var(--gct-theme-surface));
+    border: 1px solid light-dark(#edf2f7, var(--gct-theme-border));
     border-radius: 10px;
     transition: background 0.15s ease;
 }
 
 .telemetry-tile:hover {
-    background: #f1f5f9;
+    background: light-dark(#f1f5f9, var(--gct-theme-surface));
 }
 
 .telemetry-tile i {
@@ -272,14 +374,14 @@
     display: block;
     font-size: 14px;
     font-weight: 800;
-    color: #0f172a;
+    color: light-dark(#0f172a, var(--gct-theme-fg));
     line-height: 1.2;
 }
 
 .telemetry-tile small {
     display: block;
     font-size: 11px;
-    color: #64748b;
+    color: light-dark(#64748b, var(--gct-theme-muted));
     margin-top: 1px;
 }
 
@@ -317,14 +419,14 @@
 .fleet-health-chart-center strong {
     font-size: 20px;
     font-weight: 800;
-    color: #0f172a;
+    color: light-dark(#0f172a, var(--gct-theme-fg));
     line-height: 1;
 }
 
 .fleet-health-chart-center span {
     font-size: 10px;
     font-weight: 700;
-    color: #64748b;
+    color: light-dark(#64748b, var(--gct-theme-muted));
     text-transform: uppercase;
     letter-spacing: 0.04em;
     margin-top: 3px;
@@ -335,7 +437,12 @@
     flex-direction: column;
     gap: 8px;
     max-height: 230px;
+    min-height: 0;
+    overflow-x: hidden;
     overflow-y: auto;
+    padding-right: 7px;
+    scrollbar-width: thin;
+    scrollbar-color: light-dark(#a8bbd1, #506781) transparent;
 }
 
 .fleet-health-row {
@@ -344,14 +451,14 @@
     justify-content: space-between;
     padding: 8px 12px;
     border-radius: 9px;
-    background: #f8fafc;
-    border: 1px solid #edf2f7;
+    background: light-dark(#f8fafc, var(--gct-theme-surface));
+    border: 1px solid light-dark(#edf2f7, var(--gct-theme-border));
     transition: all 0.15s ease;
 }
 
 .fleet-health-row:hover {
-    background: #f1f5f9;
-    border-color: #cbd5e1;
+    background: light-dark(#f1f5f9, var(--gct-theme-surface));
+    border-color: light-dark(#cbd5e1, var(--gct-theme-border));
 }
 
 .fleet-health-left {
@@ -372,14 +479,14 @@
     display: block;
     font-size: 12px;
     font-weight: 700;
-    color: #0f172a;
+    color: light-dark(#0f172a, var(--gct-theme-fg));
     line-height: 1.2;
 }
 
 .status-name-desc small {
     display: block;
     font-size: 10.5px;
-    color: #64748b;
+    color: light-dark(#64748b, var(--gct-theme-muted));
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -395,13 +502,13 @@
 .fleet-count {
     font-size: 15px;
     font-weight: 800;
-    color: #0f172a;
+    color: light-dark(#0f172a, var(--gct-theme-fg));
 }
 
 .fleet-health-right small {
     font-size: 10.5px;
     font-weight: 600;
-    color: #64748b;
+    color: light-dark(#64748b, var(--gct-theme-muted));
 }
 
 /* =========================================================
@@ -457,8 +564,8 @@
 
 .safety-metric-tile {
     padding: 12px 14px;
-    background: #f8fafc;
-    border: 1px solid #edf2f7;
+    background: light-dark(#f8fafc, var(--gct-theme-surface));
+    border: 1px solid light-dark(#edf2f7, var(--gct-theme-border));
     border-radius: 10px;
     text-align: center;
 }
@@ -474,14 +581,14 @@
     display: block;
     font-size: 11px;
     font-weight: 700;
-    color: #334155;
+    color: light-dark(#334155, var(--gct-theme-fg));
     margin-top: 2px;
 }
 
 .safety-metric-tile small {
     display: block;
     font-size: 10.5px;
-    color: #64748b;
+    color: light-dark(#64748b, var(--gct-theme-muted));
 }
 
 /* =========================================================
@@ -492,8 +599,12 @@
     flex-direction: column;
     gap: 8px;
     max-height: 420px;
+    min-height: 0;
+    overflow-x: hidden;
     overflow-y: auto;
-    padding-right: 4px;
+    padding-right: 7px;
+    scrollbar-width: thin;
+    scrollbar-color: light-dark(#a8bbd1, #506781) transparent;
 }
 
 .recent-descriptive-item {
@@ -502,19 +613,19 @@
     gap: 12px;
     padding: 11px 14px;
     border-radius: 10px;
-    border: 1px solid rgba(226, 232, 240, 0.9);
-    background: #ffffff;
+    border: 1px solid light-dark(#e2e8f0, var(--gct-theme-border));
+    background: light-dark(#ffffff, var(--gct-theme-surface));
     transition: all 0.15s ease;
 }
 
 .recent-descriptive-item:hover {
-    background: #f8fbff;
-    border-color: #cbd5e1;
+    background: light-dark(#f8fbff, var(--gct-theme-surface));
+    border-color: light-dark(#cbd5e1, var(--gct-theme-border));
 }
 
 .recent-descriptive-item.urgent {
-    background: #fffcfc;
-    border-color: #fee2e2;
+    background: light-dark(#fffcfc, #352630);
+    border-color: light-dark(#fee2e2, #80505b);
 }
 
 .item-icon-box {
@@ -582,7 +693,7 @@
 .item-code {
     font-size: 13px;
     font-weight: 800;
-    color: #0f172a;
+    color: light-dark(#0f172a, var(--gct-theme-fg));
     font-family: ui-monospace, SFMono-Regular, monospace;
 }
 
@@ -590,7 +701,7 @@
 .item-entity-name {
     font-size: 13px;
     font-weight: 800;
-    color: #0f172a;
+    color: light-dark(#0f172a, var(--gct-theme-fg));
 }
 
 .badge-chip {
@@ -611,9 +722,9 @@
 }
 
 .badge-chip.shift-chip {
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    color: #475569;
+    background: light-dark(#f8fafc, var(--gct-theme-surface-raised));
+    border: 1px solid light-dark(#e2e8f0, var(--gct-theme-border));
+    color: light-dark(#475569, var(--gct-theme-muted));
 }
 
 .badge-chip.dept-admin { background: #eff6ff; color: #1e40af; }
@@ -644,7 +755,7 @@
 
 .item-description-text {
     font-size: 11.5px;
-    color: #334155;
+    color: light-dark(#334155, var(--gct-theme-fg));
     line-height: 1.4;
     white-space: nowrap;
     overflow: hidden;
@@ -656,7 +767,7 @@
     align-items: center;
     gap: 12px;
     font-size: 11px;
-    color: #64748b;
+    color: light-dark(#64748b, var(--gct-theme-muted));
     flex-wrap: wrap;
     margin-top: 2px;
 }
@@ -669,9 +780,54 @@
 
 .item-time-ago {
     font-size: 11px;
-    color: #64748b;
+    color: light-dark(#64748b, var(--gct-theme-muted));
     font-weight: 500;
     white-space: nowrap;
+}
+
+/* Theme-aware inner scrollbars, while retaining vertical scrolling. */
+.descriptive-rebuild .recent-descriptive-list::-webkit-scrollbar,
+.descriptive-rebuild .fleet-health-status-stack::-webkit-scrollbar { width: 7px; }
+.descriptive-rebuild .recent-descriptive-list::-webkit-scrollbar-track,
+.descriptive-rebuild .fleet-health-status-stack::-webkit-scrollbar-track { background: transparent; }
+.descriptive-rebuild .recent-descriptive-list::-webkit-scrollbar-thumb,
+.descriptive-rebuild .fleet-health-status-stack::-webkit-scrollbar-thumb {
+    background: light-dark(#a8bbd1, #506781);
+    border-radius: 999px;
+    border: 1px solid transparent;
+    background-clip: padding-box;
+}
+.descriptive-rebuild .recent-descriptive-list::-webkit-scrollbar-thumb:hover,
+.descriptive-rebuild .fleet-health-status-stack::-webkit-scrollbar-thumb:hover {
+    background: light-dark(#708da9, #829bb7);
+}
+html[data-gct-theme="dark"] .descriptive-rebuild .recent-descriptive-item .item-code,
+html[data-gct-theme="dark"] .descriptive-rebuild .recent-descriptive-item .item-user-name,
+html[data-gct-theme="dark"] .descriptive-rebuild .recent-descriptive-item .item-entity-name,
+html[data-gct-theme="dark"] .descriptive-rebuild .fleet-health-row .status-name-desc strong {
+    color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] .descriptive-rebuild .fleet-health-row .status-name-desc small {
+    color: var(--gct-theme-muted);
+}
+html[data-gct-theme="dark"] .descriptive-rebuild .recent-descriptive-item {
+    background: #1b2a40;
+    border-color: #35465e;
+}
+html[data-gct-theme="dark"] .descriptive-rebuild .recent-descriptive-item:hover {
+    background: #243650;
+    border-color: #526b88;
+}
+html[data-gct-theme="dark"] .descriptive-rebuild .recent-descriptive-item.urgent {
+    background: #302631;
+    border-color: #774555;
+}
+html[data-gct-theme="dark"] .descriptive-rebuild .fleet-health-row {
+    background: #1b2a40;
+    border-color: #35465e;
+}
+html[data-gct-theme="dark"] .descriptive-rebuild .fleet-health-row:hover {
+    background: #243650;
 }
 
 /* =========================================================
@@ -703,13 +859,13 @@
 .dashboard-empty-state h3 {
     font-size: 14px;
     font-weight: 700;
-    color: #1e293b;
+    color: light-dark(#1e293b, var(--gct-theme-fg));
     margin: 0 0 4px;
 }
 
 .dashboard-empty-state p {
     font-size: 12px;
-    color: #64748b;
+    color: light-dark(#64748b, var(--gct-theme-muted));
     max-width: 420px;
     margin: 0;
     line-height: 1.4;

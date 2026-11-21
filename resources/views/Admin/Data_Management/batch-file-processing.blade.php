@@ -1,5 +1,5 @@
 <x-layout.app
-    title="FROMS - Batch File Processing"
+    title="FROMS - Data Import Management"
     :assets="[
         'resources/css/Admin/Data_Management/batch-file-processing.css',
         'resources/css/Admin/Data_Management/generic-batch-review.css',
@@ -135,7 +135,7 @@
         data-gps-batch-status="{{ $selectedBatch?->status ?? '' }}"
     >
         <x-layout.topbar
-            title="Batch File Processing"
+            title="Data Import Management"
             subtitle="Convert raw, messy, or semi-structured files into reviewed structured records."
             notification-count="6"
         />
@@ -161,8 +161,13 @@
                             <i class="fa-solid fa-cloud-arrow-up"></i>
                             Upload GPS Data File
                         </h2>
-
                         <p>Upload a GPS report for extraction, validation, and review.</p>
+                    </div>
+                    <div class="gps-nlp-indicator" data-gps-nlp-status="checking"
+                         data-status-url="{{ route('batch-file-processing.nlp-status', [], false) }}"
+                         role="status" aria-live="polite" title="Checking Python NLP readiness">
+                        <span class="gps-nlp-indicator-dot" aria-hidden="true"></span>
+                        <span data-gps-nlp-label>NLP Checking</span>
                     </div>
                 </div>
 

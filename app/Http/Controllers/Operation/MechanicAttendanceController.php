@@ -25,6 +25,7 @@ class MechanicAttendanceController extends Controller
         $user = $request->user();
         $module = $this->moduleFor($request);
 
+        abort_unless(in_array(strtolower(trim((string) $user?->department)), ['maintenance', 'admin'], true), 403);
         abort_unless(
             $user?->hasSystemPermission($module, 'view'),
             403,
@@ -524,7 +525,8 @@ class MechanicAttendanceController extends Controller
     {
         $department = strtolower(trim((string) $request->user()?->department));
 
-        return in_array($department, ['operation', 'operations'], true) ? 'operation' : 'maintenance';
+        // Mechanic Attendance is owned by Maintenance regardless of URL.
+        return 'maintenance';
     }
 
     private function moduleName(Request $request): string
@@ -535,6 +537,7 @@ class MechanicAttendanceController extends Controller
     private function authorizeModuleAction(Request $request, string $action): void
     {
         $module = $this->moduleFor($request);
+        abort_unless(in_array(strtolower(trim((string) $request->user()?->department)), ['maintenance', 'admin'], true), 403);
 
         abort_unless(
             $request->user()?->hasSystemPermission($module, $action),

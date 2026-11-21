@@ -593,8 +593,8 @@ const replaceMain = async (nextDocument, finalUrl, { push = true, restoreScroll 
     nextMain.classList.add('gct-main-entering');
     currentMain.replaceWith(nextMain);
     // Partial navigation swaps <main>, not <body>. Keep department theme
-    // scopes in sync so Operation and Maintenance styles do not leak or disappear.
-    for (const scope of ['gctOperationPage', 'gctMaintenancePage']) {
+    // scopes in sync so department styles do not leak or disappear.
+    for (const scope of ['gctOperationPage', 'gctMaintenancePage', 'gctWarehousePage', 'gctPurchasePage']) {
         if (nextDocument.body.dataset[scope] === '1') {
             document.body.dataset[scope] = '1';
         } else {
@@ -663,6 +663,8 @@ const navigate = async (url, options = {}) => {
         return;
     }
 
+    // Leave the navigation shell alone. The content-only loader is rendered
+    // beside the existing sidebar by page-transitions.js.
     const exitPromise = beginMainExit(currentMain);
 
     try {
@@ -726,12 +728,14 @@ const navigate = async (url, options = {}) => {
 
 const eligibleLink = (link, event) => {
     if (!link || event.defaultPrevented || event.button !== 0) return false;
-    // Sidebar destinations must perform a normal document navigation until every
-    // page-specific script supports reinitialization after a DOM swap. Cached
-    // Vite modules otherwise keep listeners attached to detached elements,
-    // leaving buttons inert until the user manually refreshes. Keep AJAX
-    // navigation for other eligible links and partial table/filter updates.
-    if (link.closest('#appSidebar')) return false;
+    // Keep the sidebar DOM mounted for compatible destinations. An incompatible
+    // destination is detected from its rendered opt-out metadata after fetching
+    // and automatically falls back to a full page load. Explicit opt-out links
+    // and the Trip Schedule modal route remain full-document navigations.
+    const isSidebarLink = Boolean(link.closest('#appSidebar'));
+    if (isSidebarLink && document.querySelector('meta[name="gct-partial-navigation"]')?.content !== 'enabled') {
+        return false;
+    }
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return false;
     if (link.hasAttribute('download') || link.hasAttribute('data-no-page-loader')) return false;
     if (link.hasAttribute('data-no-partial-navigation')) return false;

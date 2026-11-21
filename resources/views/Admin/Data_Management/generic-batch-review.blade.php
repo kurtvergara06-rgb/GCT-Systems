@@ -11,7 +11,6 @@
         <x-layout.topbar
             title="Batch File Processing"
             subtitle="Review structured records before publishing them to the selected module."
-            notification-count="6"
         />
 
         <section class="generic-review-card">

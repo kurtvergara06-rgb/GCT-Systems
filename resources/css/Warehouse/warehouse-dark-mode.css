@@ -1,0 +1,923 @@
+/*
+ * Warehouse-only dark appearance bridge. Reuses the same GCT semantic palette
+ * as Operation/Maintenance, without changing Light Mode, status semantics,
+ * print layouts, signature paper, modal geometry or application workflows.
+ */
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] {
+  color-scheme: dark;
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] :is(.app,.main,.warehouse-dashboard-main,.warehouse-inventory-page,.warehouse-part-main,.warehouse-ir-page,.incoming-delivery-page,.stock-movement-page,.inventory-movement-page) {
+  background-color: var(--gct-theme-canvas);
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] :is(.warehouse-dashboard-page,.warehouse-dashboard-main) {
+  --wh-navy: var(--gct-theme-fg);
+  --wh-navy-light: var(--gct-theme-muted);
+  --wh-text: var(--gct-theme-fg);
+  --wh-text-secondary: var(--gct-theme-muted);
+  --wh-muted: var(--gct-theme-muted);
+  --wh-border: var(--gct-theme-border);
+  --wh-surface: var(--gct-theme-surface);
+  --wh-soft-surface: var(--gct-theme-surface-raised);
+  --wh-blue-soft: #243f62;
+  --wh-blue-border: #36577c;
+  --wh-shadow: 0 4px 18px rgba(0,0,0,.20);
+  --wh-shadow-hover: 0 10px 28px rgba(0,0,0,.28);
+}
+/* Warehouse Inventory: one semantic palette for existing row and Add Item styles.
+   The selectors remain in inventory.css instead of accumulating overrides. */
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .warehouse-inventory-page {
+  --wh-inventory-row: #18283d;
+  --wh-inventory-row-alt: #1e3047;
+  --wh-inventory-row-hover: #263d56;
+  --wh-inventory-alert-row: #1c2e44;
+  --wh-inventory-ink: #edf4ff;
+  --wh-inventory-secondary: #b1c1d7;
+  --wh-inventory-header-ink: #cfddf0;
+  --wh-inventory-border: #394c65;
+  --wh-inventory-code-bg: #253d59;
+  --wh-inventory-code-ink: #cce1ff;
+  --wh-inventory-reserved: #f5c36c;
+  --wh-inventory-available: #82bcff;
+  --wh-inventory-section: #1b2b40;
+  --wh-inventory-section-header: #24374f;
+  --wh-inventory-icon-ink: #a5ccff;
+  --wh-inventory-icon-bg: #2a4565;
+  --wh-inventory-input: #17283d;
+  --wh-inventory-focus: rgba(66,139,230,.18);
+  --wh-inventory-note: #213c5b;
+  --wh-inventory-footer: #18283d;
+  --wh-reorder-rules-border: #2c6853;
+  --wh-reorder-rules-bg: #1a4235;
+  --wh-reorder-rules-ink: #9de9ba;
+  --wh-reorder-ml-border: #365c90;
+  --wh-reorder-ml-bg: #253e61;
+  --wh-reorder-ml-ink: #b9d7ff;
+  --wh-reorder-existing-border: #4a5f76;
+  --wh-reorder-existing-bg: #283a4e;
+  --wh-reorder-existing-ink: #cedbee;
+  /* Inventory ML status surfaces remain legible in the dark theme. */
+  --wh-ml-detail: #c2d0e2;
+  --wh-ml-divider: #45607a;
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .inventory-ml-indicator--online {
+  --wh-ml-line: #2d6553;
+  --wh-ml-surface: #183e35;
+  --wh-ml-ink: #97e9c0;
+  --wh-ml-dot: #4ddd94;
+  --wh-ml-dot-halo: #275745;
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .inventory-ml-indicator--fallback {
+  --wh-ml-line: #685735;
+  --wh-ml-surface: #3c3428;
+  --wh-ml-ink: #f4d38b;
+  --wh-ml-dot: #f5c66e;
+  --wh-ml-dot-halo: #625033;
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .inventory-ml-indicator--offline {
+  --wh-ml-line: #743c49;
+  --wh-ml-surface: #442b37;
+  --wh-ml-ink: #ffafb8;
+  --wh-ml-dot: #ff7582;
+  --wh-ml-dot-halo: #653c49;
+}
+/* Inventory audit and edit dialogs inherit one shared dark palette. The
+   existing modal rules in inventory.css use these tokens in both themes. */
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] :is(#movementHistoryModal,#editModal) {
+  --wh-modal-surface: #1a293e;
+  --wh-modal-subtle: #20334b;
+  --wh-modal-heading: #263b55;
+  --wh-modal-locked: #24354b;
+  --wh-modal-row: #1c2c41;
+  --wh-modal-row-alt: #23374f;
+  --wh-modal-accent-bg: #294668;
+  --wh-modal-accent: #9fc9ff;
+  --wh-modal-border: #3b506b;
+  --wh-modal-ink: #eff5ff;
+  --wh-modal-muted: #b5c8e1;
+}
+/* Inventory Add/Edit/View form headings, labels and section icons need
+   readable dark ink even when their light-mode rules hardcode navy. */
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .warehouse-inventory-page :is(
+  .form-grid label, .details-grid label,
+  .inventory-section-basic h3, .inventory-section-details h3,
+  .inventory-section-additional h3, .inventory-details-section h3
+) {
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .warehouse-inventory-page :is(
+  .inventory-movement-title-icon, .inventory-add-dialog .inventory-section-icon,
+  .inventory-edit-dialog .inventory-section-icon
+) {
+  background: var(--gct-theme-surface-raised);
+  color: var(--gct-theme-accent);
+  border-color: var(--gct-theme-border);
+}
+/* Warehouse Item Requests table palette; badges retain semantic colors. */
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .warehouse-ir-page {
+  --wh-ir-jo-ink: #ccddf5;
+  --wh-ir-jo-bg: #263e5a;
+  --wh-ir-jo-border: #436284;
+  --wh-ir-progress-ink: #e6f0ff;
+  --wh-ir-progress-muted: #b2c3d9;
+  --wh-ir-row: #17253a;
+  --wh-ir-row-alt: #20334a;
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .incoming-delivery-page {
+  --delivery-navy: var(--gct-theme-fg);
+  --delivery-text: var(--gct-theme-fg);
+  --delivery-muted: var(--gct-theme-muted);
+  --delivery-border: var(--gct-theme-border);
+  --delivery-head: var(--gct-theme-surface-raised);
+  --delivery-filter-bg: var(--gct-theme-input);
+}
+
+/* Incoming Deliveries: readable data values in the existing dark table surface. */
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .incoming-delivery-card :is(
+  .incoming-date-stack strong, .incoming-first-part, .po-receipt-compact > strong
+) {
+  color: #e2e8f0;
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .incoming-delivery-card .incoming-date-stack small {
+  color: #b0c1d8;
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .incoming-delivery-card .po-receipt-track {
+  background: #334761;
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .incoming-delivery-card .po-receipt-left {
+  color: #f7c46d;
+}
+
+/* Receive Purchase Order: preserve the existing partial-receipt workflow and
+   apply readable dark surfaces to the form, summary, mode cards and line items. */
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] #incomingReceiptModal .incoming-receipt-dialog {
+  background: #162235;
+  border: 1px solid #344761;
+  color: #e2e8f0;
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] #incomingReceiptModal :is(
+  .incoming-receipt-header, .incoming-receipt-footer
+) {
+  background: #162235;
+  border-color: #344761;
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] #incomingReceiptModal .incoming-receipt-content {
+  background: #162235;
+  color: #e2e8f0;
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] #incomingReceiptModal .incoming-receipt-header h2 {
+  color: #f1f5f9;
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] #incomingReceiptModal .incoming-receipt-header small {
+  color: #93c5fd;
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] #incomingReceiptModal :is(
+  .incoming-receipt-header p, .incoming-receipt-help, .incoming-receipt-meta small,
+  .incoming-receipt-mode-button small
+) {
+  color: #b7c8de;
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] #incomingReceiptModal :is(
+  .incoming-receipt-meta > div, .incoming-receipt-mode-button
+) {
+  background: #23364f;
+  border-color: #405775;
+  color: #e2e8f0;
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] #incomingReceiptModal .incoming-receipt-meta strong {
+  color: #f1f5f9;
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] #incomingReceiptModal .incoming-receipt-mode-button i {
+  color: #93c5fd;
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] #incomingReceiptModal .incoming-receipt-method h3 {
+  color: #f1f5f9;
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] #incomingReceiptModal .incoming-receipt-method > p {
+  color: #b7c8de;
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] #incomingReceiptModal .incoming-receipt-mode-button:hover {
+  background: #2b4362;
+  border-color: #75a8ea;
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] #incomingReceiptModal .incoming-receipt-mode-indicator {
+  border-color: #93aaca;
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] #incomingReceiptModal .incoming-receipt-mode-button[aria-pressed="true"] {
+  background: #294c74;
+  border: 2px solid #75a8ea;
+  box-shadow: 0 2px 9px rgba(0,0,0,.2);
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] #incomingReceiptModal .incoming-receipt-mode-button[aria-pressed="true"] .incoming-receipt-mode-indicator {
+  border-color: #93c5fd;
+  background: #3b82f6;
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] #incomingReceiptModal .incoming-receipt-table-wrap {
+  border-color: #405775;
+  background: #1b2a40;
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] #incomingReceiptModal .incoming-receipt-items {
+  background: #1b2a40;
+  color: #e2e8f0;
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] #incomingReceiptModal .incoming-receipt-items th {
+  background: #293d57;
+  border-color: #405775;
+  color: #dbe7f7;
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] #incomingReceiptModal .incoming-receipt-items td {
+  background: #1b2a40;
+  border-color: #405775;
+  color: #f1f5f9;
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] #incomingReceiptModal .incoming-receipt-items input {
+  background: #101d2e;
+  border-color: #607b9e;
+  color: #f1f5f9;
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] #incomingReceiptModal .incoming-receipt-items input[readonly] {
+  background: #25354b;
+  color: #bdcee3;
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] #incomingReceiptModal :is(
+  .incoming-receipt-close, .incoming-receipt-cancel
+) {
+  background: #263b55;
+  border-color: #506a8a;
+  color: #f1f5f9;
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] #incomingReceiptModal .incoming-receipt-footer button:disabled {
+  opacity: .6;
+}
+
+/* Incoming Deliveries record navigation: dark surfaces on both tab states. */
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .incoming-delivery-card .warehouse-record-tabs {
+  background: #1b2a40;
+  border-color: #344761;
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .incoming-delivery-card .warehouse-record-tab {
+  background: transparent;
+  color: #cbd5e1;
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .incoming-delivery-card .warehouse-record-tab:hover {
+  background: #263b57;
+  color: #f8fafc;
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .incoming-delivery-card .warehouse-record-tab.is-active {
+  background: #304563;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .18);
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .stock-movement-page {
+  --sm-navy: var(--gct-theme-fg);
+  --sm-text: var(--gct-theme-fg);
+  --sm-muted: var(--gct-theme-muted);
+  --sm-border: var(--gct-theme-border);
+  --sm-head: var(--gct-theme-surface-raised);
+  --sm-filter-bg: var(--gct-theme-input);
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] :is(
+  .table-card,.stat-card,.stat-card-link,.panel-card,.card,.inventory-card,
+  .warehouse-part-card,.warehouse-history-card,.warehouse-part-toolbar,
+  .incoming-delivery-card,.stock-movement-card,.warehouse-kpi-card,
+  .warehouse-panel,.warehouse-dashboard-card,.ir-summary-card,.ir-record-card,
+  .ir-record-count,.warehouse-restock-pr-dialog,.warehouse-edit-dialog,
+  .incoming-receipt-dialog,.incoming-receipt-panel,.modal-box,
+  .warehouse-ir-confirm-section,.warehouse-ir-jo-coverage,
+  .warehouse-ir-reference-strip,.warehouse-restock-pr-item,
+  .warehouse-restock-pr-section,.warehouse-restock-pr-info
+) {
+  background-color: var(--gct-theme-surface);
+  border-color: var(--gct-theme-border);
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] :is(
+  .topbar h1,.topbar h2,.section-header h2,.section-header h3,
+  .ir-record-header h2,.ir-summary-card strong,.warehouse-kpi-card strong,
+  .warehouse-panel h2,.warehouse-panel h3,.warehouse-restock-pr-heading h2,
+  .incoming-receipt-dialog h2,.modal-box h2,.modal-box h3
+) { color: var(--gct-theme-fg); }
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] :is(
+  .topbar p,.section-header p,.ir-record-header p,.ir-summary-card small,
+  .warehouse-kpi-card small,.warehouse-panel p,.warehouse-restock-pr-heading p,
+  .form-group label,.warehouse-ir-stock-time,.warehouse-ir-process-subtext
+) { color: var(--gct-theme-muted); }
+
+/* Tables and toolbar surfaces, including pages with fixed light colors. */
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] :is(
+  .table-wrap,.ir-table-wrap,.warehouse-ir-stock-table-wrap,
+  .inventory-table,.warehouse-part-table,.incoming-delivery-table,
+  .stock-movement-table,.warehouse-dashboard-table,.ir-table,
+  .warehouse-ir-stock-table,.incoming-receipt-items,.parts-breakdown,
+  .warehouse-part-table tbody tr,.warehouse-part-table tbody tr:nth-child(even),
+  .warehouse-part-table tbody tr:hover,.warehouse-ir-page .ir-table tbody tr:nth-child(even),
+  .incoming-delivery-card .incoming-delivery-table tbody tr:nth-child(even),
+  .incoming-delivery-card .incoming-delivery-table .gct-empty-table-row,
+  .incoming-delivery-card .incoming-delivery-table .gct-empty-cell
+) { background-color: var(--gct-theme-surface); border-color: var(--gct-theme-border); color: var(--gct-theme-fg); }
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] :is(
+  .inventory-table thead th,.warehouse-part-table thead,
+  .warehouse-part-table thead th,.stock-movement-table thead th,
+  .incoming-delivery-table thead th,.warehouse-dashboard-table thead th,
+  .warehouse-ir-page .ir-table thead th,.warehouse-ir-stock-table th,
+  .incoming-delivery-card .incoming-delivery-table thead th,
+  .incoming-receipt-items th,.parts-breakdown-head
+) { background-color: var(--gct-theme-surface-raised); color: var(--gct-theme-muted); border-color: var(--gct-theme-border); }
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] :is(
+  .inventory-table td,.warehouse-part-table td,.stock-movement-table td,
+  .incoming-delivery-table td,.warehouse-dashboard-table td,
+  .ir-table td,.warehouse-ir-stock-table td,.incoming-receipt-items td,
+  .warehouse-ir-page .ir-table td:nth-child(5),.warehouse-ir-page .ir-table .warehouse-ir-item-label
+) { color: var(--gct-theme-fg); border-color: var(--gct-theme-border); }
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] :is(
+  .inventory-table tbody tr:hover,.stock-movement-table tbody tr:hover,
+  .incoming-delivery-table tbody tr:hover,.warehouse-dashboard-table tbody tr:hover,
+  .warehouse-part-table tbody tr:hover
+) { background-color: var(--gct-theme-hover); }
+
+/* Warehouse dialogs and input controls; keep signature and print canvases white. */
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] :is(
+  .modal-box,.modal-header,.modal-body,.modal-footer,.ir-modal,
+  .ir-modal-body,.ir-modal-footer,.warehouse-edit-body,.warehouse-edit-section,
+  .warehouse-restock-pr-section-title,.warehouse-ir-details-body,
+  .warehouse-ir-slip-fields > div,.incoming-receipt-meta > div,
+  .warehouse-ir-jo-coverage,.warehouse-ir-confirm-section
+) { background-color: var(--gct-theme-surface); border-color: var(--gct-theme-border); color: var(--gct-theme-fg); }
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] :is(
+  input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+  select,textarea,.search-box input,.warehouse-restock-pr-item,
+  .inventory-header-actions .secondary-btn,.incoming-receipt-mode-button,
+  .incoming-receipt-cancel,.warehouse-restock-add-item
+) { background-color: var(--gct-theme-input); color: var(--gct-theme-fg); border-color: var(--gct-theme-border); }
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] :is(input,textarea)::placeholder { color: var(--gct-theme-placeholder); }
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] :is(
+  .warehouse-ir-stock-table tr:nth-child(even) td,
+  .warehouse-ir-page .ir-table tbody tr:nth-child(even),
+  .warehouse-ir-page .ir-record-count,.warehouse-ir-ref-tag,
+  .warehouse-ir-jo-coverage,.warehouse-restock-pr-section-title
+) { background-color: var(--gct-theme-surface-raised); border-color: var(--gct-theme-border); }
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] :is(
+  .warehouse-ir-ref-tag,.warehouse-ir-stock-message,
+  .warehouse-ir-page .ir-table .warehouse-ir-item-label
+) { color: var(--gct-theme-fg); }
+
+/* Popovers rendered directly under body cannot inherit a page-root selector. */
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] > :is(
+  .ir-parts-popover,.warehouse-pr-parts-popup,.warehouse-ir-stock-popover,
+  .warehouse-pr-stock-popover
+) { background-color: var(--gct-theme-surface-raised); border-color: var(--gct-theme-border); color: var(--gct-theme-fg); }
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] > :is(
+  .ir-parts-popover,.warehouse-pr-parts-popup,.warehouse-ir-stock-popover,
+  .warehouse-pr-stock-popover
+) > div { color: var(--gct-theme-fg); border-color: var(--gct-theme-border); }
+
+/* Item Request review and SWIS screen: use legible ink on a consistent
+   dark surface. These styles intentionally apply only to the on-screen
+   dialogs; the physical SWIS print layout remains white. */
+@media screen {
+  html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"]
+  :is(#warehouseItemRequestDetails, #warehouseIrSlipModal) {
+    --wh-ir-dialog-bg: #19293e;
+    --wh-ir-dialog-card: #22364e;
+    --wh-ir-dialog-row: #1c2e45;
+    --wh-ir-dialog-row-alt: #243a54;
+    --wh-ir-dialog-border: #3b536f;
+    --wh-ir-dialog-ink: #eef5ff;
+    --wh-ir-dialog-muted: #bed0e6;
+  }
+  html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"]
+  :is(#warehouseItemRequestDetails, #warehouseIrSlipModal)
+  :is(.ir-modal, .ir-modal-body, .ir-modal-footer, .warehouse-ir-details-body,
+      .warehouse-ir-slip-body, .warehouse-ir-stock-table-wrap) {
+    background: var(--wh-ir-dialog-bg);
+    color: var(--wh-ir-dialog-ink);
+    border-color: var(--wh-ir-dialog-border);
+  }
+  html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"]
+  :is(#warehouseItemRequestDetails, #warehouseIrSlipModal)
+  :is(.warehouse-ir-view-section, .warehouse-ir-reference-strip,
+      .warehouse-ir-slip-fields, .warehouse-ir-confirm-section,
+      .warehouse-ir-jo-coverage, .warehouse-ir-details-remarks .ir-detail-text,
+      .warehouse-ir-view-caution) {
+    background: var(--wh-ir-dialog-card);
+    border-color: var(--wh-ir-dialog-border);
+    color: var(--wh-ir-dialog-ink);
+  }
+  html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"]
+  :is(#warehouseItemRequestDetails, #warehouseIrSlipModal)
+  :is(.warehouse-ir-reference-strip > div, .warehouse-ir-slip-fields > div) {
+    background: transparent;
+    border-color: var(--wh-ir-dialog-border);
+  }
+  html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"]
+  :is(#warehouseItemRequestDetails, #warehouseIrSlipModal)
+  :is(.warehouse-ir-reference-strip strong, .warehouse-ir-slip-fields strong,
+      .warehouse-ir-view-secondary strong, .warehouse-ir-slip-meta-line strong,
+      .warehouse-ir-view-section-heading h3, .warehouse-ir-verify-heading label,
+      .warehouse-ir-stock-physical, .warehouse-ir-details-meta strong,
+      .warehouse-ir-details-remarks label, .warehouse-ir-slip-signatures span,
+      .warehouse-ir-confirm-section h3, .warehouse-ir-slip-table tbody td,
+      .warehouse-ir-stock-table tbody td, .warehouse-ir-stock-table tbody td:first-child,
+      .warehouse-ir-jo-coverage h3, .warehouse-ir-handwritten-line,
+      .warehouse-ir-slip-table tbody td strong) {
+    color: var(--wh-ir-dialog-ink);
+  }
+  html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"]
+  :is(#warehouseItemRequestDetails, #warehouseIrSlipModal)
+  :is(.warehouse-ir-reference-strip span, .warehouse-ir-slip-fields span,
+      .warehouse-ir-view-secondary, .warehouse-ir-slip-meta-line,
+      .warehouse-ir-view-section-heading p, .warehouse-ir-slip-signatures small,
+      .warehouse-ir-stock-time, .warehouse-ir-stock-message,
+      .warehouse-ir-view-only-label, .warehouse-ir-stock-hint,
+      .warehouse-ir-jo-coverage p, .warehouse-ir-view-caution,
+      .warehouse-ir-confirm-section p, .warehouse-ir-confirm-check,
+      .warehouse-ir-slip-signature-cell, .warehouse-ir-details-meta span) {
+    color: var(--wh-ir-dialog-muted);
+  }
+  html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"]
+  :is(#warehouseItemRequestDetails, #warehouseIrSlipModal)
+  .warehouse-ir-stock-table th {
+    background: #2a405c;
+    border-color: var(--wh-ir-dialog-border);
+    color: #d4e2f4;
+  }
+  html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"]
+  :is(#warehouseItemRequestDetails, #warehouseIrSlipModal)
+  .warehouse-ir-stock-table tbody td {
+    background: var(--wh-ir-dialog-row);
+    border-color: var(--wh-ir-dialog-border);
+    color: var(--wh-ir-dialog-ink);
+  }
+  html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"]
+  :is(#warehouseItemRequestDetails, #warehouseIrSlipModal)
+  .warehouse-ir-stock-table tbody tr:nth-child(even) td {
+    background: var(--wh-ir-dialog-row-alt);
+  }
+  html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"]
+  #warehouseItemRequestDetails .warehouse-ir-stock-table
+  :is(tbody td:nth-child(5), .warehouse-ir-jo-outside) {
+    color: #8ae4ba;
+  }
+  html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"]
+  #warehouseItemRequestDetails .warehouse-ir-stock-table tbody td
+  :is(.warehouse-ir-stock-status.is-available, .warehouse-ir-stock-status.is-partial,
+      .warehouse-ir-stock-status.is-unavailable) {
+    color: inherit;
+  }
+  html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"]
+  #warehouseItemRequestDetails .warehouse-ir-stock-table tbody td
+  .warehouse-ir-stock-status.is-available { color: #176c42; }
+  html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"]
+  #warehouseItemRequestDetails .warehouse-ir-stock-table tbody td
+  .warehouse-ir-stock-status.is-partial { color: #98611a; }
+  html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"]
+  #warehouseItemRequestDetails .warehouse-ir-stock-table tbody td
+  .warehouse-ir-stock-status.is-unavailable { color: #a72d36; }
+  html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"]
+  #warehouseItemRequestDetails .warehouse-ir-view-section-heading > i {
+    color: #b8d5ff;
+    background: #304d70;
+  }
+  html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"]
+  #warehouseItemRequestDetails .warehouse-ir-view-status {
+    color: #c4dcff;
+    background: #263f61;
+    border-color: #47658b;
+  }
+  html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"]
+  #warehouseItemRequestDetails .warehouse-ir-jo-outside {
+    background: #483829;
+    color: #ffce94 !important;
+  }
+  html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"]
+  #warehouseIrSlipModal .warehouse-ir-slip-signatures .warehouse-ir-signature-line,
+  html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"]
+  #warehouseIrSlipModal .warehouse-ir-handwritten-line {
+    border-bottom-color: #a5b8d0;
+  }
+  html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"]
+  #warehouseIrSlipModal .warehouse-ir-confirm-fields label {
+    color: var(--wh-ir-dialog-ink);
+  }
+}
+
+/* Preserve paper-white printing and visible ink for all warehouse slips. */
+@media print {
+  html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] :is(
+    #warehouseIrSlipModal,.warehouse-ir-slip-modal,.warehouse-ir-slip-fields > div,
+    .warehouse-ir-slip-table,.warehouse-ir-slip-table th,
+    .warehouse-ir-slip-table td
+  ) { background: #fff !important; color: #111 !important; }
+}
+
+/* Dashboard finishing pass: eliminate the light reference-layout glow and
+   restore readable labels without altering status chips or graph datasets. */
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .warehouse-dashboard-main {
+  background: var(--gct-theme-canvas);
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .warehouse-dashboard-page :is(
+  .warehouse-reference-kpis .warehouse-kpi-card,
+  .warehouse-reference-overview > .warehouse-panel,
+  .warehouse-reference-alerts,
+  .warehouse-panel
+) {
+  border-color: var(--gct-theme-border);
+  box-shadow: 0 4px 18px rgba(0,0,0,.17);
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .warehouse-dashboard-page :is(
+  .warehouse-reference-kpis .warehouse-kpi-card::after,
+  .warehouse-reference-overview > .warehouse-panel::before
+) { background-image: none; }
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .warehouse-dashboard-page :is(
+  .warehouse-reference-title h2,
+  .warehouse-reference-legend strong,
+  .warehouse-donut-center strong,
+  .warehouse-kpi-content strong,
+  .warehouse-alert-copy strong,
+  .warehouse-reference-alerts h2
+) { color: var(--gct-theme-fg); }
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .warehouse-dashboard-page :is(
+  .warehouse-reference-title p,
+  .warehouse-reference-legend > div > span:nth-child(2),
+  .warehouse-reference-legend strong em,
+  .warehouse-donut-center span,
+  .warehouse-kpi-content small,
+  .warehouse-kpi-footer,
+  .warehouse-kpi-footer > span,
+  .warehouse-alert-copy small,
+  .warehouse-reference-alerts .warehouse-alert-row time,
+  .warehouse-panel-eyebrow,
+  .warehouse-issued-total small
+) { color: var(--gct-theme-muted) !important; }
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .warehouse-dashboard-page :is(
+  .warehouse-reference-kpis .warehouse-kpi-trend.neutral,
+  .warehouse-reference-overview select,
+  .warehouse-trend-panel select
+) { background-color: var(--gct-theme-surface-raised) !important; border-color: var(--gct-theme-border) !important; color: var(--gct-theme-fg) !important; }
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .warehouse-dashboard-page :is(
+  .warehouse-audit-table tbody tr:nth-child(even),
+  .warehouse-alert-row:hover,
+  .warehouse-issued-row:hover
+) { background-color: var(--gct-theme-surface-raised) !important; }
+
+
+/* Warehouse dashboard dark-mode finish: shared empty-row component and
+   legacy audit cells have explicit light backgrounds. Scope fixes to the
+   Warehouse dashboard rather than changing the reusable components. */
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .warehouse-dashboard-page {
+  --wh-dashboard-row: #18283d;
+  --wh-dashboard-row-alt: #1c2d43;
+  --wh-dashboard-row-hover: #243b56;
+  --wh-dashboard-header: #24354c;
+  --wh-dashboard-line: #35465e;
+  --wh-stock-in-ink: #86e7b6;
+  --wh-stock-in-bg: #173e34;
+  --wh-stock-in-line: #326555;
+  --wh-stock-out-ink: #ff9eac;
+  --wh-stock-out-bg: #472a38;
+  --wh-stock-out-line: #775163;
+  --wh-adjustment-ink: #a7ccff;
+  --wh-adjustment-bg: #213e62;
+  --wh-adjustment-line: #3e6189;
+}
+
+/* Equal-looking queue panels and a single consistent table shell. */
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .warehouse-dashboard-page :is(
+  .warehouse-queue-panel .warehouse-table-scroll,
+  .warehouse-audit-panel .warehouse-table-scroll,
+  .warehouse-replenishment-panel .warehouse-table-scroll
+) {
+  background: var(--wh-dashboard-row);
+  border-color: var(--wh-dashboard-line);
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .warehouse-dashboard-page :is(
+  .warehouse-queue-panel .warehouse-dashboard-table thead th,
+  .warehouse-audit-panel .warehouse-audit-table thead th,
+  .warehouse-replenishment-panel .warehouse-dashboard-table thead th
+) {
+  background: var(--wh-dashboard-header) !important;
+  color: #d5e2f5 !important;
+  border-bottom-color: var(--wh-dashboard-line);
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .warehouse-dashboard-page :is(
+  .warehouse-queue-panel .warehouse-dashboard-table thead th i,
+  .warehouse-audit-panel .warehouse-audit-table thead th i,
+  .warehouse-replenishment-panel .warehouse-dashboard-table thead th i
+) { color: #91b1d9; }
+
+/* Apply backgrounds to cells, not only tr: the existing audit table explicitly
+   declares white backgrounds on td, including the first column. */
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .warehouse-dashboard-page :is(
+  .warehouse-queue-panel .warehouse-dashboard-table tbody td,
+  .warehouse-audit-panel .warehouse-audit-table tbody td,
+  .warehouse-replenishment-panel .warehouse-dashboard-table tbody td
+) {
+  background: var(--wh-dashboard-row) !important;
+  color: #e7eef9;
+  border-bottom-color: var(--wh-dashboard-line);
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .warehouse-dashboard-page :is(
+  .warehouse-queue-panel .warehouse-dashboard-table tbody tr:nth-child(even) td,
+  .warehouse-audit-panel .warehouse-audit-table tbody tr:nth-child(even) td,
+  .warehouse-replenishment-panel .warehouse-dashboard-table tbody tr:nth-child(even) td
+) { background: var(--wh-dashboard-row-alt) !important; }
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .warehouse-dashboard-page :is(
+  .warehouse-queue-panel .warehouse-dashboard-table tbody tr:hover td,
+  .warehouse-audit-panel .warehouse-audit-table tbody tr:hover td,
+  .warehouse-replenishment-panel .warehouse-dashboard-table tbody tr:hover td
+) { background: var(--wh-dashboard-row-hover) !important; }
+
+/* Audit rows: clear hierarchy for item, date, operator and IDs. */
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .warehouse-dashboard-page :is(
+  .warehouse-row-number,
+  .warehouse-item-cell .warehouse-table-primary,
+  .warehouse-date-cell strong,
+  .warehouse-user-cell strong,
+  .warehouse-queue-panel .warehouse-dashboard-table td
+) { color: #eef4ff !important; }
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .warehouse-dashboard-page :is(
+  .warehouse-item-cell small,
+  .warehouse-date-cell small,
+  .warehouse-user-cell small,
+  .warehouse-dashboard-table td small
+) { color: #adbed4 !important; }
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .warehouse-dashboard-page :is(
+  .warehouse-audit-reference,
+  .warehouse-reference
+) {
+  background: #243954 !important;
+  border-color: #426184 !important;
+  color: #d2e6ff !important;
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .warehouse-dashboard-page :is(
+  .warehouse-user-avatar,
+  .warehouse-item-icon,
+  .warehouse-item-icon[class*="tone-"]
+) {
+  background: #273c55 !important;
+  border-color: #405a77 !important;
+  color: #b8d7fa !important;
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .warehouse-dashboard-page .warehouse-date-cell > i {
+  color: #8db5e4 !important;
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .warehouse-dashboard-page :is(
+  .warehouse-movement-qty.warehouse-positive,
+  .warehouse-positive
+) { color: #67d9a6 !important; }
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .warehouse-dashboard-page :is(
+  .warehouse-movement-qty.warehouse-negative,
+  .warehouse-negative
+) { color: #ff9da7 !important; }
+
+/* Retain the intentionally blue View actions and semantic movement badges.
+   Improve link contrast without making every action bright white. */
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .warehouse-dashboard-page .warehouse-panel-link {
+  background: #243954;
+  border: 1px solid #426184;
+  color: #d7e8ff;
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .warehouse-dashboard-page .warehouse-panel-link:hover,
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .warehouse-dashboard-page .warehouse-panel-link:focus-visible {
+  background: #2e4d72;
+  color: #fff;
+}
+
+
+/* Audit/queue View actions use !important light colors in dashboard CSS;
+   override just the action states, not semantic status badges. */
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .warehouse-dashboard-page .warehouse-view-action {
+  background: var(--gct-theme-surface-raised) !important;
+  border-color: var(--gct-theme-border) !important;
+  color: #c8e0ff !important;
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .warehouse-dashboard-page .warehouse-view-action:is(:hover,:focus-visible) {
+  background: var(--gct-theme-hover) !important;
+  border-color: #6489b6 !important;
+  color: #f1f6ff !important;
+}
+
+/* Warehouse alerts: compact, readable notification cards instead of
+   full-width divider rows. Limited to the dashboard in Dark Mode. */
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .warehouse-dashboard-page .warehouse-reference-overview > .warehouse-reference-alerts {
+  height: auto;
+  min-height: 0;
+  padding: 18px 20px 20px;
+  overflow: visible;
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .warehouse-dashboard-page .warehouse-reference-alerts .warehouse-reference-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .warehouse-dashboard-page .warehouse-reference-alerts .warehouse-reference-title h2 {
+  color: #f0f5ff;
+  font-size: 17px;
+  line-height: 1.35;
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .warehouse-dashboard-page .warehouse-reference-alerts .warehouse-reference-view-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 32px;
+  padding: 0 11px;
+  border: 1px solid #3c5471;
+  border-radius: 9px;
+  background: #21344e;
+  color: #c7dffe;
+  font-size: 11px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .warehouse-dashboard-page .warehouse-reference-alerts .warehouse-reference-view-all:is(:hover,:focus-visible) {
+  background: #304a6c;
+  color: #fff;
+  border-color: #6081a9;
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .warehouse-dashboard-page .warehouse-reference-alerts .warehouse-alert-list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin: 0;
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .warehouse-dashboard-page .warehouse-reference-alerts .warehouse-alert-row {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) auto 12px;
+  align-items: center;
+  gap: 12px;
+  min-height: 59px;
+  padding: 9px 12px;
+  margin: 0;
+  border: 1px solid #30445d;
+  border-radius: 11px;
+  background: #1a2b41;
+  box-shadow: none;
+  color: #ebf2fc;
+  text-decoration: none;
+  transform: none;
+  transition: background .15s ease,border-color .15s ease;
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .warehouse-dashboard-page .warehouse-reference-alerts .warehouse-alert-row:last-child {
+  border-bottom: 1px solid #30445d;
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .warehouse-dashboard-page .warehouse-reference-alerts .warehouse-alert-row:is(:hover,:focus-visible) {
+  background: #253b56;
+  border-color: #527399;
+  box-shadow: none;
+  transform: none;
+  outline-offset: 2px;
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .warehouse-dashboard-page .warehouse-reference-alerts .warehouse-alert-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  font-size: 13px;
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .warehouse-dashboard-page .warehouse-reference-alerts .warehouse-alert-icon.warning,
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .warehouse-dashboard-page .warehouse-reference-alerts .warehouse-alert-icon.critical {
+  background: #403522;
+  border: 1px solid #725931;
+  color: #ffca68;
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .warehouse-dashboard-page .warehouse-reference-alerts .warehouse-alert-icon.critical {
+  background: #4a2933;
+  border-color: #81505d;
+  color: #ff9ea9;
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .warehouse-dashboard-page .warehouse-reference-alerts .warehouse-alert-copy strong,
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .warehouse-dashboard-page .warehouse-reference-alerts .warehouse-alert-row:hover .warehouse-alert-copy strong {
+  display: block;
+  color: #f2f6ff;
+  font-size: 12.5px;
+  font-weight: 750;
+  line-height: 1.4;
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .warehouse-dashboard-page .warehouse-reference-alerts .warehouse-alert-copy small {
+  display: block;
+  margin-top: 3px;
+  color: #b5c7dc;
+  font-size: 11px;
+  line-height: 1.45;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .warehouse-dashboard-page .warehouse-reference-alerts .warehouse-alert-row time {
+  padding: 5px 9px;
+  border: 1px solid #354b66;
+  border-radius: 999px;
+  background: #23364f;
+  color: #c3d4e9 !important;
+  font-size: 10.5px;
+  white-space: nowrap;
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .warehouse-dashboard-page .warehouse-reference-alerts .warehouse-alert-row > i {
+  justify-self: end;
+  color: #91abc9;
+  font-size: 10px;
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .warehouse-dashboard-page .warehouse-reference-alerts .warehouse-alert-row:hover > i {
+  color: #d9eaff;
+}
+@media (max-width: 640px) {
+  html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .warehouse-dashboard-page .warehouse-reference-overview > .warehouse-reference-alerts {
+    padding: 14px;
+  }
+  html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .warehouse-dashboard-page .warehouse-reference-alerts .warehouse-alert-row {
+    grid-template-columns: 36px minmax(0,1fr) 12px;
+    grid-template-areas: "icon copy arrow" "icon stamp arrow";
+    gap: 5px 10px;
+    padding: 11px 10px;
+  }
+  html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .warehouse-dashboard-page .warehouse-reference-alerts .warehouse-alert-icon { grid-area: icon; }
+  html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .warehouse-dashboard-page .warehouse-reference-alerts .warehouse-alert-copy { grid-area: copy; }
+  html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .warehouse-dashboard-page .warehouse-reference-alerts .warehouse-alert-row time { grid-area: stamp; justify-self: start; }
+  html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .warehouse-dashboard-page .warehouse-reference-alerts .warehouse-alert-row > i { grid-area: arrow; align-self: center; }
+}
+
+/* Remaining Warehouse light-only surfaces: targeted component styles.
+   Keep semantic badges, signature canvases, and SWIS print paper unchanged. */
+
+/* Dashboard summary tiles, filters and small neutral labels. */
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .warehouse-dashboard-page :is(
+  .warehouse-trend-summary > div, .warehouse-usage-summary-note,
+  .warehouse-panel-period, .warehouse-audit-summary > span:not(.received):not(.issued)
+) {
+  background: var(--gct-theme-surface-raised);
+  border-color: var(--gct-theme-border);
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .warehouse-dashboard-page .warehouse-category-filter {
+  background: var(--gct-theme-input);
+  border-color: var(--gct-theme-border);
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .warehouse-dashboard-page :is(
+  .warehouse-trend-summary small, .warehouse-usage-summary-note,
+  .warehouse-panel-period
+) {
+  color: var(--gct-theme-muted);
+}
+
+/* Inventory Issue Stock preview and sticky movement footer. */
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .warehouse-inventory-page :is(
+  .issue-stock-preview, .inventory-movement-modal__footer
+) {
+  background: var(--gct-theme-surface);
+  border-color: var(--gct-theme-border);
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .warehouse-inventory-page .issue-stock-preview :is(
+  .preview-value, .preview-label
+) {
+  color: var(--gct-theme-fg);
+}
+
+/* Part Requests Issue Parts cards, including the explicit light headings. */
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] :is(
+  .issue-part-item-card, .warehouse-issued-quantities, .warehouse-issued-row,
+  .toolbar-count-chip
+) {
+  background: var(--gct-theme-surface-raised);
+  border-color: var(--gct-theme-border);
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] :is(
+  .issue-part-item-name strong, .issue-part-item-details .detail-value
+) {
+  color: var(--gct-theme-fg);
+}
+
+/* The Job Order +N parts popup is mounted directly under body. */
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] > .warehouse-jo-parts-popup {
+  background: var(--gct-theme-surface);
+  border-color: var(--gct-theme-border);
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] > .warehouse-jo-parts-popup .warehouse-jo-parts-row {
+  background: var(--gct-theme-surface-raised);
+  color: var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] > .warehouse-jo-parts-popup .warehouse-jo-parts-row strong {
+  color: #a8ceff;
+}
+
+/* Stock Movements table record count is not a status badge. */
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .stock-movement-page .stock-movement-record-count {
+  background: var(--gct-theme-surface-raised);
+  border-color: var(--gct-theme-border);
+  color: var(--gct-theme-muted);
+}
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .stock-movement-page .stock-movement-record-count strong {
+  color: var(--gct-theme-fg);
+}
+
+/* One scoped palette for the standalone queue empty state (no empty-table overrides). */
+html[data-gct-theme="dark"] body[data-gct-warehouse-page="1"] .warehouse-dashboard-page .warehouse-queue-panel {
+  --wh-queue-empty-heading: #eef4ff;
+  --wh-queue-empty-copy: #afc0d5;
+  --wh-queue-empty-icon: #8fb5de;
+  --wh-queue-empty-icon-bg: #203752;
+  --wh-queue-empty-icon-border: #355575;
+}

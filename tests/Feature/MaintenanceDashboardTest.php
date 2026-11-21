@@ -458,6 +458,154 @@ class MaintenanceDashboardTest extends TestCase
         $response->assertSee('JO-2026-MECH1');
     }
 
+    public function test_dashboard_recognizes_multiple_mechanics_from_assignment_records(): void
+    {
+        $user = $this->createMaintenanceUser();
+        $mechanics = collect([
+            ['mechanic_id' => 'MECH-MULTI-01', 'mechanic_name' => 'Assigned One'],
+            ['mechanic_id' => 'MECH-MULTI-02', 'mechanic_name' => 'Assigned Two'],
+            ['mechanic_id' => 'MECH-MULTI-03', 'mechanic_name' => 'Unassigned Three'],
+        ])->map(function (array $data): Mechanic {
+            $mechanic = Mechanic::create($data + [
+                'employment_status' => 'Active', 'shift' => 'Day',
+            ]);
+            MechanicAttendance::create([
+                'mechanic_id' => $mechanic->mechanic_id,
+                'mechanic_name' => $mechanic->mechanic_name,
+                'attendance_date' => now(config('app.business_timezone', 'Asia/Manila'))->toDateString(),
+                'status' => 'Present',
+            ]);
+            return $mechanic;
+        });
+
+        $jo = JobOrder::create([
+            'job_order_no' => 'JO-MULTI-001',
+            'bus_no' => 'BUS-MULTI',
+            'problem_issue' => 'Multi-mechanic repair',
+            'maintenance_type' => 'Repair',
+            'status' => 'On Going',
+            'review_status' => 'Approved',
+            'assigned_mechanic' => 'Assigned One, Assigned Two',
+        ]);
+        foreach ($mechanics->take(2) as $mechanic) {
+            $jo->mechanicAssignments()->create([
+                'mechanic_id' => $mechanic->id,
+                'mechanic_name' => $mechanic->mechanic_name,
+            ]);
+        }
+
+        $response = $this->actingAs($user)->get(route('maintenance-dashboard'));
+        $response->assertOk()->assertViewHas('onDutyMechanicsCount', 2)
+            ->assertViewHas('availableMechanicsCount', 1);
+        $this->assertEqualsCanonicalizing(
+            ['MECH-MULTI-01', 'MECH-MULTI-02'],
+            $response->viewData('onDutyMechanicsList')->pluck('mechanic_id')->all()
+        );
+    }
+
+    public function test_dashboard_does_not_call_absent_or_on_hold_mechanics_on_duty(): void
+    {
+        $user = $this->createMaintenanceUser();
+        $absent = Mechanic::create([
+            'mechanic_id' => 'MECH-ABSENT-01',
+            'mechanic_name' => 'Absent Mechanic',
+            'employment_status' => 'Active',
+            'shift' => 'Day',
+        ]);
+        $waiting = Mechanic::create([
+            'mechanic_id' => 'MECH-WAIT-01',
+            'mechanic_name' => 'Waiting Mechanic',
+            'employment_status' => 'Active',
+            'shift' => 'Day',
+        ]);
+        $date = now(config('app.business_timezone', 'Asia/Manila'))->toDateString();
+        foreach ([[$absent, 'Absent'], [$waiting, 'Present']] as [$mechanic, $status]) {
+            MechanicAttendance::create([
+                'mechanic_id' => $mechanic->mechanic_id,
+                'mechanic_name' => $mechanic->mechanic_name,
+                'attendance_date' => $date,
+                'status' => $status,
+            ]);
+        }
+        JobOrder::create([
+            'job_order_no' => 'JO-ABSENT-001', 'bus_no' => 'BUS-ABSENT',
+            'problem_issue' => 'Absence check', 'maintenance_type' => 'Repair',
+            'status' => 'On Going', 'assigned_mechanic' => 'Absent Mechanic',
+        ]);
+        JobOrder::create([
+            'job_order_no' => 'JO-WAIT-001', 'bus_no' => 'BUS-WAIT',
+            'problem_issue' => 'Waiting on approval', 'maintenance_type' => 'Repair',
+            'status' => 'On Hold', 'assigned_mechanic' => 'Waiting Mechanic',
+        ]);
+
+        $response = $this->actingAs($user)->get(route('maintenance-dashboard'));
+        $response->assertOk()->assertViewHas('onDutyMechanicsCount', 0)
+            ->assertViewHas('availableMechanicsCount', 0);
+        $this->assertCount(2, $response->viewData('otherMechanicsList'));
+        $this->assertSame('Assigned / On Hold', $response->viewData('otherMechanicsList')
+            ->firstWhere('mechanic_id', 'MECH-WAIT-01')->status);
+    }
+
+    public function test_parts_blockers_follow_current_jo_statuses_and_repair_bay_follows_bus_status(): void
+    {
+        $user = $this->createMaintenanceUser();
+
+        Bus::create([
+            'bus_no' => 'BUS-PMS-NOT-STARTED',
+            'status' => 'Active',
+        ]);
+        Bus::create([
+            'bus_no' => 'BUS-PARTS-WAITING',
+            'status' => 'Under Maintenance',
+        ]);
+
+        JobOrder::create([
+            'job_order_no' => 'JO-PMS-NOT-STARTED',
+            'bus_no' => 'BUS-PMS-NOT-STARTED',
+            'problem_issue' => 'PMS approved, waiting for release',
+            'maintenance_type' => 'PMS',
+            'status' => 'On Hold',
+            'review_status' => 'Approved',
+        ]);
+        JobOrder::create([
+            'job_order_no' => 'JO-PARTS-SUBMITTED',
+            'bus_no' => 'BUS-PARTS-WAITING',
+            'problem_issue' => 'Brake repair waiting for inventory issue',
+            'maintenance_type' => 'Repair',
+            'status' => 'On Hold',
+            'review_status' => 'Approved',
+            'part_needed' => 'Brake pads',
+            'part_status' => 'Submitted',
+        ]);
+        JobOrder::create([
+            'job_order_no' => 'JO-PARTS-FOR-PURCHASE',
+            'bus_no' => 'BUS-PARTS-WAITING',
+            'problem_issue' => 'Another repair waiting for purchase',
+            'maintenance_type' => 'Repair',
+            'status' => 'On Hold',
+            'review_status' => 'Approved',
+            'part_needed' => 'Radiator',
+            'part_status' => 'For Purchase',
+        ]);
+        JobOrder::create([
+            'job_order_no' => 'JO-PARTS-ISSUED',
+            'bus_no' => 'BUS-PARTS-WAITING',
+            'problem_issue' => 'Parts already issued',
+            'maintenance_type' => 'Repair',
+            'status' => 'On Going',
+            'review_status' => 'Approved',
+            'part_needed' => 'Oil filter',
+            'part_status' => 'Issued',
+        ]);
+
+        $response = $this->actingAs($user)->get(route('maintenance-dashboard'));
+        $response->assertOk()->assertViewHas('busesInRepairBay', 1);
+        $this->assertEqualsCanonicalizing(
+            ['JO-PARTS-SUBMITTED', 'JO-PARTS-FOR-PURCHASE'],
+            $response->viewData('blockedJobOrders')->pluck('job_order_no')->all()
+        );
+    }
+
     public function test_dashboard_fleet_readiness_uses_bus_master_statuses(): void
     {
         $user = $this->createMaintenanceUser();

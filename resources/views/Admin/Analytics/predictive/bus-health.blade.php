@@ -80,44 +80,13 @@
             </div>
         </x-analytics.card>
 
-        {{-- FAILURE & WEAR RISK HORIZON (Replacing redundant Maintenance Signals) --}}
-        <x-analytics.card class="predictive-card health-issues-card health-horizon-card" title="Failure Risk & Wear Horizon" description="Forecasted failure timeline based on active job order backlogs and mechanical telemetry.">
+        {{-- Evidence-backed current maintenance signals. --}}
+        <x-analytics.card class="predictive-card health-issues-card health-horizon-card" title="Maintenance Attention by Recorded Evidence" description="Current bus status and recorded maintenance work; no failure timeline is predicted.">
             <div class="health-horizon-list">
                 @php
-                    $horizons = $health->horizons ?? [
-                        'immediate' => (object) [
-                            'label' => 'Critical / In Shop (< 24 Hours)',
-                            'badge' => 'CRITICAL',
-                            'count' => 2,
-                            'tone' => 'danger',
-                            'description' => 'Severe overdue work; grounded or imminent breakdown',
-                            'sample' => 'GCT-108, GCT-101',
-                        ],
-                        'high' => (object) [
-                            'label' => 'High Risk Wear (3–5 Days)',
-                            'badge' => 'HIGH WEAR',
-                            'count' => 2,
-                            'tone' => 'warning',
-                            'description' => 'Active job orders; wear accelerating on major systems',
-                            'sample' => 'GCT-107, GCT-112',
-                        ],
-                        'routine' => (object) [
-                            'label' => 'PMS Window (6–14 Days)',
-                            'badge' => 'SCHEDULED',
-                            'count' => 1,
-                            'tone' => 'info',
-                            'description' => 'Approaching periodic preventive maintenance interval',
-                            'sample' => 'GCT-114',
-                        ],
-                        'safe' => (object) [
-                            'label' => 'Healthy Operating State (15+ Days)',
-                            'badge' => 'HEALTHY',
-                            'count' => 9,
-                            'tone' => 'success',
-                            'description' => 'Optimal diagnostic metrics; fully cleared for dispatch',
-                            'sample' => 'GCT-102, GCT-103',
-                        ],
-                    ];
+                    // Controller supplies evidence-backed groups; never
+                    // invent fallback counts or fictional bus IDs.
+                    $horizons = $health->horizons ?? [];
                 @endphp
 
                 @foreach($horizons as $key => $horizon)
@@ -143,18 +112,18 @@
     </section>
 
     {{-- PREDICTION TABLE --}}
-    <x-analytics.card class="predictive-card predictions-card" title="Bus Maintenance Forecast" description="Fleet units ranked by breakdown probability, component wear, and job order urgency.">
-        <div class="table-wrap predictive-health-table-wrap" tabindex="0" aria-label="Scrollable bus maintenance forecast table">
+    <x-analytics.card class="predictive-card predictions-card" title="Bus Maintenance Attention" description="Recorded bus status, open work orders and overdue maintenance. No component failure or breakdown date is inferred.">
+        <div class="table-wrap predictive-health-table-wrap" tabindex="0" aria-label="Scrollable bus maintenance attention table">
             <table class="predictive-table predictive-health-table">
                 <thead>
                     <tr>
                         <th style="width: 10%;">Bus</th>
                         <th style="width: 15%;">Plate & Model</th>
-                        <th style="width: 18%;">Health Index</th>
+                        <th style="width: 18%;">Health Estimate</th>
                         <th style="width: 13%;">Operational Status</th>
-                        <th style="width: 18%;">Predicted Component at Risk</th>
+                        <th style="width: 18%;">Component Diagnosis</th>
                         <th style="width: 13%;">Work Orders</th>
-                        <th style="width: 13%;">Breakdown Horizon</th>
+                        <th style="width: 13%;">Failure Timeline</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -167,11 +136,11 @@
                             $openOrders = (int) ($row[4] ?? $row['open'] ?? 0);
                             $overdue = (int) ($row[5] ?? $row['overdue'] ?? 0);
                             $riskLevel = $row[6] ?? $row['level'] ?? 'Low';
-                            $healthScore = (int) ($row[8] ?? $row['health_score'] ?? ($overdue > 0 ? 30 : 90));
-                            $component = $row[9] ?? $row['predicted_component'] ?? ($overdue > 0 ? 'Braking System' : 'System Clear');
-                            $breakdownHorizon = $row[10] ?? $row['est_breakdown'] ?? ($overdue >= 5 ? '< 24h / Grounded' : '~5–7 Days');
+                            $healthScore = null;
+                            $component = 'Not determined';
+                            $breakdownHorizon = 'Not estimated';
 
-                            $healthTone = $healthScore <= 40 ? 'danger' : ($healthScore <= 70 ? 'warning' : 'success');
+                            $healthTone = $overdue > 0 ? 'danger' : ($openOrders > 0 ? 'warning' : 'success');
                             $statusTone = match(strtolower(trim($status))) {
                                 'active' => 'success',
                                 'under maintenance' => 'warning',
@@ -189,15 +158,7 @@
                                 </div>
                             </td>
                             <td>
-                                <div class="table-health-score-cell">
-                                    <div class="health-score-top">
-                                        <strong class="score-number score-{{ $healthTone }}">{{ $healthScore }}%</strong>
-                                        <span class="score-label">{{ $healthScore <= 40 ? 'Critical' : ($healthScore <= 70 ? 'Moderate' : 'Optimal') }}</span>
-                                    </div>
-                                    <div class="health-score-track" title="Bus Health: {{ $healthScore }}%">
-                                        <div class="health-score-fill health-score-fill--{{ $healthTone }}" style="width: {{ $healthScore }}%"></div>
-                                    </div>
-                                </div>
+                                <span class="score-label">Not measured</span>
                             </td>
                             <td>
                                 <x-ui.status-badge :status="$status" class="bus-status-pill bus-status-pill--{{ $statusTone }}" />
@@ -234,7 +195,7 @@
     </x-analytics.card>
 
     <p class="predictive-footer">
-        <i class="fa-solid fa-circle-info"></i> Maintenance forecasts are evaluated from active job orders, diagnostic attention scores, and mechanical failure telemetry.
+        <i class="fa-solid fa-circle-info"></i> Maintenance indicators use recorded bus status and job orders only. They are not validated predictions of failure or component wear.
     </p>
 
 </div>

@@ -358,6 +358,15 @@ window.listenForSystemUpdates = function () {
             const routeKey = `${payload.module}:${payload.entity}`;
             const watched = (window.realtimePageRouteMap[routeKey] || []).map(normalizePath);
             const isRelevantPage = watched.includes(currentPath);
+            const shellDepartment = document.getElementById('appSidebar')?.dataset.gctShell?.toLowerCase();
+            if (payload?.entity === 'RolePermission'
+                && shellDepartment === String(payload.module || '').toLowerCase()) {
+                // Analytics is not an operational table region; reauthorize it
+                // (and its sidebar) when permissions for this department change.
+                window.location.reload();
+                return;
+            }
+
 
             // Every client may receive the shared Reverb event, but user-facing
             // feedback must only appear where that module/entity is relevant.

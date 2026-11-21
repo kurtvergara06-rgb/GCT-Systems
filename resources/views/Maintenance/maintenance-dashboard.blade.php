@@ -447,7 +447,7 @@
             {{-- Other / Off Duty Section --}}
             @if($otherMechanicsList->isNotEmpty())
               <div class="roster-group-label mt-3">
-                <i class="fa-solid fa-calendar-xmark text-muted"></i> Off Duty / Absent ({{ $otherMechanicsList->count() }})
+                <i class="fa-solid fa-calendar-xmark text-muted"></i> Not Available / Assigned on Hold ({{ $otherMechanicsList->count() }})
               </div>
               @foreach($otherMechanicsList->take(3) as $mech)
                 <div class="roster-item other-item">

@@ -11,7 +11,7 @@
 .descriptive-domain-fleet-trip .analytics-card {
     border-color: var(--fleet-trip-line);
     border-radius: 14px;
-    background: #fff;
+    background: light-dark(#fff, var(--gct-theme-surface));
     box-shadow: var(--fleet-trip-shadow);
 }
 
@@ -33,7 +33,7 @@
     padding: 14px 15px;
     border: 1px solid var(--fleet-trip-line);
     border-radius: 14px;
-    background: #fff;
+    background: light-dark(#fff, var(--gct-theme-surface));
     box-shadow: var(--fleet-trip-shadow);
 }
 
@@ -156,7 +156,7 @@
     align-items: center;
     gap: 16px;
     font-size: 10px;
-    color: #64748b;
+    color: light-dark(#64748b, var(--gct-theme-muted));
 }
 .descriptive-domain-fleet-trip .trip-legend-bar {
     display: inline-block;
@@ -360,7 +360,7 @@
     transition: border-color 0.2s, box-shadow 0.2s;
 }
 .descriptive-domain-fleet-trip .fleet-trip-insight-tile:hover {
-    border-color: #cbd5e1;
+    border-color: light-dark(#cbd5e1, var(--gct-theme-border));
     box-shadow: 0 3px 10px rgba(15, 35, 71, 0.04);
 }
 .descriptive-domain-fleet-trip .fleet-trip-insight-icon {
@@ -401,7 +401,7 @@
 }
 .descriptive-domain-fleet-trip .fleet-trip-insight-detail {
     font-size: 9px;
-    color: #64748b;
+    color: light-dark(#64748b, var(--gct-theme-muted));
     font-weight: 600;
 }
 .descriptive-domain-fleet-trip .fleet-trip-insight-title {

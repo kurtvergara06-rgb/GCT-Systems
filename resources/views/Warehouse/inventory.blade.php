@@ -62,21 +62,28 @@
       {{-- INVENTORY TABLE --}}
       <section data-ajax-region="records" class="table-card inventory-card">
 
-        <div class="section-header">
-          <div>
+        <div class="section-header inventory-records-header">
+          <div class="inventory-records-heading">
             <h2>Inventory Stock Records</h2>
             <p>Track warehouse stock levels, item thresholds, and item availability</p>
+            <div class="inventory-ml-indicator inventory-ml-indicator--{{ $inventoryMlStatus['state'] }}"
+                 role="status" aria-label="Inventory machine learning status">
+              <span class="inventory-ml-indicator__dot" aria-hidden="true"></span>
+              <strong>{{ $inventoryMlStatus['label'] }}</strong>
+              <span class="inventory-ml-indicator__divider" aria-hidden="true"></span>
+              <span class="inventory-ml-indicator__detail">{{ $inventoryMlStatus['message'] }}</span>
+            </div>
           </div>
 
-          @if($canEditWarehouse)
-            <div class="inventory-header-actions" aria-label="Inventory actions">
-              <button type="button" class="primary-btn" id="openAddModal"><i class="fa-solid fa-plus"></i> Add Item</button>
-            </div>
-          @endif
-        </div>
+          <div class="inventory-records-controls">
+            @if($canEditWarehouse)
+              <div class="inventory-header-actions" aria-label="Inventory actions">
+                <button type="button" class="primary-btn" id="openAddModal"><i class="fa-solid fa-plus"></i> Add Item</button>
+              </div>
+            @endif
 
-        <div class="inventory-list-controls">
-          <x-ui.table-toolbar
+            <div class="inventory-list-controls">
+              <x-ui.table-toolbar
             action="{{ route('inventory', [], false) }}"
             data-server-filter="true"
             data-lazy-pagination="true"
@@ -95,7 +102,9 @@
                 @endforeach
               </x-ui.table-toolbar-field>
             </x-slot:filters>
-          </x-ui.table-toolbar>
+              </x-ui.table-toolbar>
+            </div>
+          </div>
         </div>
 
         <div class="table-wrap gct-responsive-records gct-sticky-actions">
@@ -119,8 +128,10 @@
                   $reservedQuantity = max(0, (int) ($reservedByItem[$item->id] ?? 0));
                   $onHandQuantity = (int) ($item->quantity_available ?? $item->on_hand ?? 0);
                   $availableQuantity = max(0, $onHandQuantity - $reservedQuantity);
-                  $autoReorderPoint = $calculatedThresholds[$item->id]['reorder_point'] ?? null;
-                  $minimumStockLevel = $autoReorderPoint ?? (int) ($item->reorder_level ?? 0);
+                  $reorderResolution = $resolvedReorderPoints[$item->id] ?? ['reorder_point' => null, 'source' => 'pending', 'reason' => 'Insufficient verified issuance history.'];
+                  $minimumStockLevel = $reorderResolution['reorder_point'];
+                  $reorderSource = $reorderResolution['source'];
+                  $reorderReason = $reorderResolution['reason'];
                   $status = $calculator->stockStatus($onHandQuantity, $reservedQuantity, $minimumStockLevel > 0 ? $minimumStockLevel : null);
 
                   $rowClass = match($status) {
@@ -144,20 +155,22 @@
                   <td class="inventory-available-cell"><strong>{{ $availableQuantity }} <small>{{ $item->unit_of_measurement }}</small></strong></td>
                   <td>
                     <span class="inventory-reorder-value">
-                      @if($autoReorderPoint === null && (int) $item->reorder_level === 0)
-                        <strong title="Awaiting three months of signed issuance history">Pending</strong>
+                      @if($minimumStockLevel === null)
+                        <span class="inventory-reorder-pending" title="{{ $reorderReason }}">Not Calculated</span>
                       @else
-                        <strong>{{ $minimumStockLevel }}</strong>
+                        <strong class="inventory-reorder-amount" title="{{ $reorderReason }}">{{ $minimumStockLevel }} <small>{{ $item->unit_of_measurement }}</small></strong>
+                        @if($reorderSource === 'ml_prediction')
+                          <span class="inventory-reorder-auto inventory-reorder-auto--ml" title="{{ $reorderReason }}" aria-label="ML prediction with verified rule safeguard">ML</span>
+                        @elseif($reorderSource === 'signed_issuances')
+                          <span class="inventory-reorder-auto" title="{{ $reorderReason }}" aria-label="Calculated from signed issuances">Rules</span>
+                        @elseif($reorderSource === 'existing_rule')
+                          <span class="inventory-reorder-auto inventory-reorder-auto--existing" title="{{ $reorderReason }}" aria-label="Existing recorded reorder point">Existing</span>
+                        @endif
                       @endif
-                      @if($autoReorderPoint !== null)
-                        <span class="inventory-reorder-auto" aria-label="Automatically calculated reorder point">Auto</span>
-                      @else
-                        <span class="inventory-reorder-info" tabindex="0" role="img"
-                          aria-label="Existing reorder point; insufficient verified three-month issuance history."
-                          title="Existing threshold retained. Insufficient verified three-month issuance history.">
-                          <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
-                        </span>
-                      @endif
+                      <span class="inventory-reorder-info" tabindex="0" role="img"
+                        aria-label="{{ $reorderReason }}" title="{{ $reorderReason }}">
+                        <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+                      </span>
                     </span>
                   </td>
                   <td>
@@ -206,7 +219,7 @@
                 </tr>
               @empty
                 <x-ui.empty-row
-                  colspan="9"
+                  colspan="8"
                   message="No inventory items found."
                 />
               @endforelse
@@ -229,7 +242,7 @@
         <span class="inventory-add-header-icon"><i class="fa-solid fa-box-open" aria-hidden="true"></i></span>
         <div class="inventory-add-header-copy">
           <h2 id="inventoryAddTitle">Add Inventory Item</h2>
-          <p>Create a new warehouse inventory record with stock and threshold details.</p>
+          <p>Enter the part details and opening stock.</p>
         </div>
         <button type="button" class="close-btn closeModal" aria-label="Close Add Inventory Item">&times;</button>
       </div>
@@ -246,7 +259,7 @@
         @csrf
 
         <section class="inventory-section-basic inventory-add-section">
-          <div class="inventory-add-section-heading"><span class="inventory-add-section-icon"><i class="fa-solid fa-file-lines" aria-hidden="true"></i></span><div><h3>01 — Item Information</h3><p>Basic details about the inventory item.</p></div></div>
+          <div class="inventory-add-section-heading"><span class="inventory-add-section-icon"><i class="fa-solid fa-file-lines" aria-hidden="true"></i></span><div><h3>01 — Item Details</h3><p>Identify the part.</p></div></div>
           <div class="form-grid">
             <div class="form-group">
               <label>Item Code <span class="inventory-required">*</span></label>
@@ -264,22 +277,22 @@
         </section>
 
         <section class="inventory-section-details inventory-add-section">
-          <div class="inventory-add-section-heading"><span class="inventory-add-section-icon"><i class="fa-solid fa-layer-group" aria-hidden="true"></i></span><div><h3>02 — Stock Information</h3><p>Enter opening quantity. Reorder Point is calculated automatically.</p></div></div>
+          <div class="inventory-add-section-heading"><span class="inventory-add-section-icon"><i class="fa-solid fa-layer-group" aria-hidden="true"></i></span><div><h3>02 — Opening Stock</h3><p>Enter the quantity and unit.</p></div></div>
           <div class="form-grid">
             <div class="form-group">
               <label>Initial On-Hand Quantity <span class="inventory-required">*</span></label>
               <div class="inventory-add-input"><i class="fa-solid fa-hashtag" aria-hidden="true"></i><input type="number" name="on_hand" min="0" required></div>
             </div>
             <div class="form-group">
-              <label>Unit of Measurement <span class="inventory-required">*</span></label>
-              <div class="inventory-add-input"><i class="fa-solid fa-ruler" aria-hidden="true"></i><input type="text" name="unit_of_measurement" list="inventory-unit-options" required placeholder="Select or enter unit"></div>
+              <label>Stock Unit <span class="inventory-required">*</span> <small class="inventory-add-field-hint">(pcs, bottles, liters)</small></label>
+              <div class="inventory-add-input"><i class="fa-solid fa-ruler" aria-hidden="true"></i><input type="text" name="unit_of_measurement" list="inventory-unit-options" required placeholder="e.g., pcs, bottles, liters"></div>
             </div>
-            <p class="inventory-add-note"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Reorder Point is calculated automatically from three complete months of signed parts issuances. New items show Pending Calculation until sufficient history exists.</p>
+            
           </div>
         </section>
 
         <section class="inventory-section-additional inventory-add-section">
-          <div class="inventory-add-section-heading"><span class="inventory-add-section-icon"><i class="fa-solid fa-truck" aria-hidden="true"></i></span><div><h3>03 — Supply &amp; Storage</h3><p>Supplier and storage location information.</p></div></div>
+          <div class="inventory-add-section-heading"><span class="inventory-add-section-icon"><i class="fa-solid fa-truck" aria-hidden="true"></i></span><div><h3>03 — Supply &amp; Storage</h3><p>Optional supplier and location.</p></div></div>
           <div class="form-grid">
             <div class="form-group">
               <label>Supplier</label>
@@ -292,7 +305,7 @@
           </div>
         </section>
 
-        <p class="inventory-add-note"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Low-stock alerts compare available stock (on hand minus reserved) against the item's reorder point.</p>
+        <p class="inventory-add-note inventory-add-note--summary"><i class="fa-solid fa-circle-info" aria-hidden="true"></i><span><strong>Reorder point is automatic.</strong> Uses genuine ML when eligible, otherwise verified issuance rules or an existing level. New items without sufficient data show <strong>Not Calculated</strong>. Low-stock alerts use on-hand minus reserved stock.</span></p>
         <div class="modal-actions full-width">
           <button type="button" class="secondary-btn cancel-btn closeModal">Cancel</button>
           <button type="submit" class="primary-btn">Save Item</button>
@@ -314,7 +327,7 @@
     @endforeach
   </datalist>
   <datalist id="inventory-unit-options">
-    @foreach(['pcs', 'set', 'box', 'liter', 'pair', 'pack', 'roll', 'meter', 'kg', 'unit'] as $unitOption)
+    @foreach(['pcs', 'pair', 'set', 'bottles', 'liters', 'box', 'pack', 'roll', 'meter', 'kg', 'unit'] as $unitOption)
       <option value="{{ $unitOption }}"></option>
     @endforeach
   </datalist>
@@ -340,15 +353,15 @@
               <div class="form-group"><label for="edit_item_code">Item Code</label><div class="inventory-edit-locked"><input id="edit_item_code" type="text" readonly aria-readonly="true"><i class="fa-solid fa-lock" aria-hidden="true"></i></div></div>
               <div class="form-group"><label for="edit_item_name">Item Name <em>*</em></label><input name="item_name" id="edit_item_name" type="text" maxlength="255" required></div>
               <div class="form-group"><label for="edit_category">Category <em>*</em></label><input name="category" id="edit_category" type="text" list="inventory-category-options" required></div>
-              <div class="form-group"><label for="edit_unit">Unit of Measurement</label><div class="inventory-edit-locked"><input id="edit_unit" type="text" readonly aria-readonly="true"><i class="fa-solid fa-lock" aria-hidden="true"></i></div></div>
+              <div class="form-group"><label for="edit_unit">Stock Unit</label><div class="inventory-edit-locked"><input id="edit_unit" type="text" readonly aria-readonly="true"><i class="fa-solid fa-lock" aria-hidden="true"></i></div></div>
             </div>
           </section>
           <section class="inventory-edit-section">
-            <div class="inventory-edit-section-heading"><span><i class="fa-solid fa-chart-simple"></i></span><div><h3>Stock Thresholds</h3><p>Reorder Point is calculated automatically from signed issuance history.</p></div></div>
+            <div class="inventory-edit-section-heading"><span><i class="fa-solid fa-chart-simple"></i></span><div><h3>Stock Thresholds</h3><p>Automatic reorder point; physical stock remains ledger-controlled.</p></div></div>
             <div class="inventory-edit-grid inventory-edit-threshold-grid">
               <div class="inventory-edit-threshold-notice">
                 <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
-                <div><strong>Automatic Reorder Point</strong><p>Calculated from three complete months of signed issuances. Until then, the existing threshold is retained.</p></div>
+                <div><strong>Automatic Reorder Point</strong><p>Uses eligible genuine ML or signed issuance history. Retains an existing threshold when available; otherwise shows Not Calculated.</p></div>
               </div>
               <div class="inventory-edit-onhand"><span>Current On Hand <i class="fa-solid fa-lock" aria-hidden="true"></i></span><strong><span id="edit_quantity">—</span> <small id="edit_onhand_unit">pcs</small></strong><p>Updated through inventory movements.</p></div>
             </div>

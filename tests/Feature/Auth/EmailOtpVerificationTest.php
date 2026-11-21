@@ -40,7 +40,7 @@ class EmailOtpVerificationTest extends TestCase
         Mail::fake();
         $this->post(route('register.submit'), [
             'name' => 'OTP Test Employee', 'email' => 'otp.test@example.com',
-            'password' => 'StrongPassword123!', 'password_confirmation' => 'StrongPassword123!',
+            'password' => 'StrongPassword123!', 'password_confirmation' => 'StrongPassword123!', 'privacy_acknowledged' => '1',
         ])->assertRedirect(route('verification.otp'));
 
         $user = User::where('email', 'otp.test@example.com')->firstOrFail();
@@ -166,7 +166,7 @@ class EmailOtpVerificationTest extends TestCase
             'name' => 'Brevo Failure Employee',
             'email' => 'brevo.failure@example.com',
             'password' => 'StrongPassword123!',
-            'password_confirmation' => 'StrongPassword123!',
+            'password_confirmation' => 'StrongPassword123!', 'privacy_acknowledged' => '1',
         ]);
 
         $response->assertRedirect(route('verification.otp'))

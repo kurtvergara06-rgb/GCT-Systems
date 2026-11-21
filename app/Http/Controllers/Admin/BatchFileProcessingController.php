@@ -11,6 +11,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Jobs\ProcessGpsPdfBatch;
+use App\Jobs\EnrichGpsNlpChunk;
 use App\Services\Gps\PdfGpsRuleParser;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -22,6 +23,49 @@ use Illuminate\Support\Facades\Auth;
 class BatchFileProcessingController extends Controller
 {
     use SystemDataUpdateBroadcaster;
+
+    public function nlpStatus(): \Illuminate\Http\JsonResponse
+    {
+        $disabled = ! (bool) config('gps_nlp.enabled');
+        if ($disabled) {
+            return response()->json(['status' => 'disabled', 'message' => 'GPS NLP enrichment is disabled.'])
+                ->header('Cache-Control', 'no-store');
+        }
+
+        if (! config('gps_nlp.token')) {
+            return response()->json(['status' => 'offline', 'message' => 'NLP shared token is not configured.'])
+                ->header('Cache-Control', 'no-store');
+        }
+
+        try {
+            $ready = \Illuminate\Support\Facades\Cache::remember('gps-nlp-enrichment-readiness', 15, function (): bool {
+                $url = rtrim((string) config('gps_nlp.url'), '/').'/nlp/enrich-gps-status';
+                $response = \Illuminate\Support\Facades\Http::withHeaders([
+                    'X-GCT-NLP-Token' => (string) config('gps_nlp.token'),
+                ])->connectTimeout(2)->timeout(3)->get($url);
+
+                return $response->successful()
+                    && $response->json('ready') === true
+                    && $response->json('source') === 'operational_rules';
+            });
+
+            return response()->json([
+                'status' => $ready ? 'online' : 'offline',
+                'message' => $ready
+                    ? 'Lightweight rule-based GPS NLP is ready.'
+                    : 'NLP service is unavailable or not ready.',
+            ])->header('Cache-Control', 'no-store');
+        } catch (\Throwable $exception) {
+            \Illuminate\Support\Facades\Log::warning('GPS NLP readiness request failed', [
+                'message' => $exception->getMessage(),
+            ]);
+
+            return response()->json([
+                'status' => 'offline',
+                'message' => 'NLP service cannot be reached.',
+            ])->header('Cache-Control', 'no-store');
+        }
+    }
 
     public function index(Request $request)
     {
@@ -62,6 +106,12 @@ class BatchFileProcessingController extends Controller
                     ->orWhere('location', 'like', "%{$search}%")
                     ->orWhere('coordinates', 'like', "%{$search}%");
             });
+        }
+
+        $nlpEnabled = (bool) config('gps_nlp.enabled')
+            && \Illuminate\Support\Facades\Schema::hasTable('gps_nlp_enrichments');
+        if ($nlpEnabled) {
+            $recordsQuery->with('nlpEnrichment');
         }
 
         $records = $recordsQuery
@@ -119,6 +169,10 @@ class BatchFileProcessingController extends Controller
 
         $recordsExtracted = GpsTripRecord::count();
 
+        $nlpAnalyzedCount = $nlpEnabled && $selectedBatch
+            ? DB::table('gps_nlp_enrichments')->where('batch_upload_id', $selectedBatch->id)->count()
+            : 0;
+
         return view('Admin.Data_Management.batch-file-processing', compact(
             'batches',
             'records',
@@ -132,7 +186,9 @@ class BatchFileProcessingController extends Controller
             'recordsExtracted',
             'fleetCoverage',
             'fleetVehicleCount',
-            'fleetRecordCount'
+            'fleetRecordCount',
+            'nlpEnabled',
+            'nlpAnalyzedCount'
         ));
     }
 
@@ -290,6 +346,8 @@ class BatchFileProcessingController extends Controller
                     )
                     : null,
             ]);
+
+            EnrichGpsNlpChunk::enqueueIfEnabled($batch->id);
 
             $this->broadcastSystemDataUpdated(
                 'Admin',
@@ -463,6 +521,7 @@ class BatchFileProcessingController extends Controller
 
     public function confirm(BatchUpload $batchUpload)
     {
+        abort_unless(auth()->user()?->hasSystemPermission('administration', 'full_control'), 403);
         if ($batchUpload->status === 'Failed') {
             return redirect()
                 ->to(route('batch-file-processing', [], false))
@@ -530,6 +589,7 @@ class BatchFileProcessingController extends Controller
 
     public function destroy(BatchUpload $batchUpload)
     {
+        abort_unless(auth()->user()?->hasSystemPermission('administration', 'full_control'), 403);
         $affectedBusNumbers = $batchUpload->tripRecords()
             ->whereNotNull('bus_no')
             ->pluck('bus_no')

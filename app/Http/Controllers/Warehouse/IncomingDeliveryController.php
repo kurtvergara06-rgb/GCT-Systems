@@ -11,6 +11,7 @@ use App\Models\Warehouse\InventoryItem;
 use App\Services\Warehouse\InventoryLedgerService;
 use App\Services\Maintenance\PartsReservationService;
 use App\Services\Maintenance\ItemRequestPartsService;
+use App\Services\PartParser;
 use App\Support\TableSort;
 use App\Traits\SystemDataUpdateBroadcaster;
 use Illuminate\Http\RedirectResponse;
@@ -343,9 +344,10 @@ class IncomingDeliveryController extends Controller
     }
 
     /**
-     * Only a wholly unissued IR may grow after replenishment. A previously
-     * issued IR is an immutable handover record; Maintenance must create its
-     * next linked IR from the remaining-JO suggestion instead.
+     * A Submitted IR stays the parent of future signed SWIS handovers.
+     * Replenishment only reconciles its requested quantities to the approved
+     * explicit JO requirements; it never adds another IR or rewrites a signed
+     * partial handover. Bare legacy part names have no proven quantity.
      */
     private function refreshSubmittedItemRequest(JobOrder $jobOrder): void
     {
@@ -354,32 +356,41 @@ class IncomingDeliveryController extends Controller
             ->where('status', 'Submitted')
             ->lockForUpdate()
             ->first();
-
-        if (!$ir) {
+        if (! $ir) {
             return;
         }
 
-        $additionalParts = $this->irParts->availableParts((string) $jobOrder->part_needed, $jobOrder);
-        if ($additionalParts === []) {
+        $text = (string) $jobOrder->part_needed;
+        if (! app(PartParser::class)->hasExplicitQuantities($text)) {
+            return;
+        }
+        $requirements = app(PartParser::class)->parsePartText($text);
+        if ($requirements === []) {
             return;
         }
 
-        $parts = collect($ir->requested_parts ?? []);
-        foreach ($additionalParts as $newPart) {
-            $index = $parts->search(fn ($part) =>
-                (int) ($part['inventory_item_id'] ?? 0) === (int) ($newPart['inventory_item_id'] ?? 0)
-                && mb_strtolower(trim((string) ($part['name'] ?? ''))) === mb_strtolower(trim((string) ($newPart['name'] ?? '')))
-                && mb_strtolower(trim((string) ($part['unit'] ?? ''))) === mb_strtolower(trim((string) ($newPart['unit'] ?? '')))
-            );
-            if ($index === false) {
-                $parts->push($newPart);
-            } else {
-                $part = $parts[$index];
-                $part['quantity'] = (int) ($part['quantity'] ?? 0) + (int) $newPart['quantity'];
-                $parts[$index] = $part;
+        // Preserve exact submitted item identity and never replace a larger
+        // legacy IR quantity without an authorized correction of the JO.
+        $existing = collect($ir->requested_parts ?? []);
+        $parts = collect($requirements)->map(function (array $part) use ($existing) {
+            $key = fn ($name, $unit) => mb_strtolower(trim((string) $name)).'|'
+                .app(PartParser::class)->normalizeUnit((string) $unit);
+            $match = $existing->first(fn ($row) => $key($row['name'] ?? '', $row['unit'] ?? '')
+                === $key($part['name'], $part['unit']));
+            if ($match && (int) ($match['quantity'] ?? 0) > (int) $part['quantity']) {
+                return $match;
             }
+            return [
+                'name' => $part['name'],
+                'quantity' => (int) $part['quantity'],
+                'unit' => $part['unit'],
+                'inventory_item_id' => $match['inventory_item_id'] ?? ($part['inventory_item_id'] ?? null),
+            ];
+        })->values()->all();
+
+        if ($parts !== $ir->requested_parts) {
+            $ir->update(['requested_parts' => $parts]);
         }
-        $ir->update(['requested_parts' => $parts->values()->all()]);
     }
 
     private function findInventoryItemForUpdate(string $itemName): ?InventoryItem

@@ -7,7 +7,7 @@ and is not fabricated into the training history.
 
 import logging
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
@@ -138,6 +138,40 @@ def inventory_demand_prediction(payload: InventoryPredictionRequest) -> dict:
         )
 
     return prediction_to_dict(prediction, request_bus, payload.part_id)
+
+
+class InventoryBatchPredictionRequest(BaseModel):
+    parts: List[InventoryPredictionRequest] = Field(..., min_length=1, max_length=100)
+
+
+@router.post("/predict/batch")
+def inventory_batch_predictions(payload: InventoryBatchPredictionRequest) -> dict:
+    """Batch genuine fleet-part forecasts for a single Warehouse page refresh.
+
+    Individual unknown parts return an error entry; no synthetic or sample
+    model is ever allowed to determine a Warehouse reorder threshold.
+    """
+    from .predict import inventory_readiness, predict_inventory_demand, prediction_to_dict
+
+    readiness = inventory_readiness()
+    policy = evaluate_model_source("Inventory Model #4", readiness.source)
+    if not (readiness.ml_ready and readiness.source == "genuine" and policy.allowed):
+        raise HTTPException(status_code=503, detail="Genuine Inventory Model #4 is not ready.")
+
+    results = []
+    for part in payload.parts:
+        prediction = predict_inventory_demand(
+            bus_id="FLEET",
+            part_id=part.part_id,
+            forecast_date=part.forecast_date,
+            current_stock=part.current_stock,
+        )
+        if prediction is None:
+            results.append({"part_id": part.part_id, "success": False})
+        else:
+            results.append(prediction_to_dict(prediction, "FLEET", part.part_id))
+
+    return {"success": True, "data_source": "genuine", "forecast_scope": "fleet_part", "results": results}
 
 
 @router.post("/cache/reset")

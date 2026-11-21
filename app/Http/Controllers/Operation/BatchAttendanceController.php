@@ -34,6 +34,7 @@ class BatchAttendanceController extends Controller
     public function roster(Request $request, string $type): JsonResponse
     {
         $this->assertType($type);
+        $this->authorizeType($request, $type, 'view');
 
         $validated = $request->validate([
             'date' => ['required', 'date'],
@@ -107,7 +108,7 @@ class BatchAttendanceController extends Controller
                 'attendance_date' => $date,
                 'time_in' => $this->timeValue($record?->time_in),
                 'time_out' => $this->timeValue($record?->time_out),
-                'status' => $status ?: ($type === 'driver' ? 'Unmarked' : 'Present'),
+                'status' => $status ?: 'Unmarked',
                 'availability' => $this->availabilityLabel($type, $record, $personId),
                 'assigned_job' => $type === 'mechanic'
                     ? (string) ($record?->assigned_job ?? '')
@@ -129,6 +130,7 @@ class BatchAttendanceController extends Controller
     public function store(Request $request, string $type): JsonResponse
     {
         $this->assertType($type);
+        $this->authorizeType($request, $type, 'edit');
 
         $validated = $request->validate([
             'attendance_date' => ['required', 'date'],
@@ -343,6 +345,10 @@ class BatchAttendanceController extends Controller
         }
 
         if ($type === 'mechanic') {
+            if (! $record || ! $record->time_in
+                || ! in_array($record->status, ['Present', 'Late', 'On Duty'], true)) {
+                return 'Not recorded';
+            }
             $mechanic = Mechanic::query()->where('mechanic_id', $personId)->first();
             $onApprovedJo = $mechanic && JobOrder::query()
                 ->assignedToMechanic($mechanic->mechanic_name, $mechanic->mechanic_id)
@@ -391,6 +397,18 @@ class BatchAttendanceController extends Controller
     private function personIdColumn(string $type): string
     {
         return $type === 'driver' ? 'driver_id' : 'mechanic_id';
+    }
+
+    private function authorizeType(Request $request, string $type, string $permission): void
+    {
+        $department = strtolower(trim((string) $request->user()?->department));
+        if ($type === 'mechanic') {
+            abort_unless(in_array($department, ['maintenance', 'admin'], true), 403);
+        } else {
+            abort_unless(in_array($department, ['operation', 'admin'], true), 403);
+        }
+        $module = $type === 'mechanic' ? 'maintenance' : 'operation';
+        abort_unless($request->user()?->hasSystemPermission($module, $permission), 403);
     }
 
     private function assertType(string $type): void

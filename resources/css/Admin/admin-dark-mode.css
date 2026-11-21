@@ -1,0 +1,130 @@
+/*
+ * GCT Administration dark theme: compatibility styles only.
+ *
+ * Neutral colors belong in their originating Admin stylesheets via
+ * light-dark(light-value, var(--gct-theme-*)).
+ * Keep this file small: shared framework elements and non-neutral legacy
+ * surfaces only. Do not stack duplicates or change semantic status colors.
+ * Screen-only so print and exported records retain original formatting.
+ */
+@media screen {
+  html[data-gct-theme="dark"] body[data-gct-admin-page="1"] {
+    color-scheme: dark;
+    background: var(--gct-theme-canvas);
+    color: var(--gct-theme-fg);
+  }
+
+  /* Application shell and non-neutral dashboard gradients. */
+  html[data-gct-theme="dark"] body[data-gct-admin-page="1"] :is(
+    .app, .main, .admin-dashboard-main, .records-page,
+    .permissions-page, .general-settings-page,
+    .security-settings-page, .notifications-page, .activity-logs-page,
+    .analytics-stage-page, .descriptive-rebuild, .diagnostic-rebuild,
+    .prescriptive-rebuild
+  ) {
+    background: var(--gct-theme-canvas);
+    color: var(--gct-theme-fg);
+  }
+
+  /* Shared layout components whose styling is defined outside Admin. */
+  html[data-gct-theme="dark"] body[data-gct-admin-page="1"] :is(
+    .section-header, .records-card, .table-card, .stat-card, .stat-card-link,
+    .panel-card, .topbar-dropdown, .topbar-dropdown-header,
+    .topbar-list-item, .sidebar-profile-menu,
+    .admin-kpi-card, .admin-panel, .admin-gateway-card,
+    .analytics-card, .analytics-kpi-card, .department-analytics-panel
+  ) {
+    background: var(--gct-theme-surface);
+    border-color: var(--gct-theme-border);
+    color: var(--gct-theme-fg);
+  }
+
+  /* Shared tables and search/filter controls; status badges are excluded. */
+  html[data-gct-theme="dark"] body[data-gct-admin-page="1"] :is(
+    .admin-table, .analytics-table,
+    .diag-table, .predictive-table, .ft-table, .data-history-table,
+    .activity-logs-table
+  ) {
+    background: var(--gct-theme-surface);
+    color: var(--gct-theme-fg);
+  }
+  html[data-gct-theme="dark"] body[data-gct-admin-page="1"] :is(
+    .admin-table, .analytics-table,
+    .diag-table, .predictive-table, .ft-table, .data-history-table,
+    .activity-logs-table
+  ) thead th {
+    background: var(--gct-theme-surface-raised);
+    border-color: var(--gct-theme-border);
+    color: var(--gct-theme-muted);
+  }
+  html[data-gct-theme="dark"] body[data-gct-admin-page="1"] :is(
+    .admin-table, .analytics-table,
+    .diag-table, .predictive-table, .ft-table, .data-history-table,
+    .activity-logs-table
+  ) tbody td {
+    border-color: var(--gct-theme-border);
+    color: var(--gct-theme-fg);
+  }
+  html[data-gct-theme="dark"] body[data-gct-admin-page="1"] :is(
+    .admin-table, .analytics-table,
+    .diag-table, .predictive-table, .ft-table, .data-history-table,
+    .activity-logs-table
+  ) tbody tr:hover {
+    background: var(--gct-theme-hover);
+  }
+
+  /* Legacy modal hosts and dropdowns. */
+  html[data-gct-theme="dark"] body[data-gct-admin-page="1"] :is(
+    .admin-user-modal, .admin-modal, .activity-modal, .history-modal,
+    .generic-batch-review-modal, .admin-ml-dialog,
+    .modal-content, .ui-form-modal, .ui-form-content,
+    .filter-dropdown, .sort-dropdown, .filter-panel
+  ) {
+    background: var(--gct-theme-surface);
+    border-color: var(--gct-theme-border);
+    color: var(--gct-theme-fg);
+  }
+  html[data-gct-theme="dark"] body[data-gct-admin-page="1"] :is(
+    .admin-user-form input, .admin-user-form select,
+    .records-toolbar input, .records-toolbar select,
+    .filter-dropdown input, .filter-dropdown select,
+    .history-toolbar input, .history-toolbar select
+  ) {
+    background: var(--gct-theme-input);
+    color: var(--gct-theme-fg);
+    border-color: var(--gct-theme-control-border);
+  }
+  html[data-gct-theme="dark"] body[data-gct-admin-page="1"] :is(
+    input, textarea
+  )::placeholder {
+    color: var(--gct-theme-placeholder);
+    opacity: 1;
+  }
+  html[data-gct-theme="dark"] body[data-gct-admin-page="1"] :is(
+    input, select, textarea, button, a
+  ):focus-visible {
+    outline-color: var(--gct-theme-focus);
+  }
+
+  /* Non-semantic chart surfaces and row action containers. */
+  html[data-gct-theme="dark"] body[data-gct-admin-page="1"] :is(
+    .admin-ml-card, .donut-stat-card, .system-diagnostics-bar,
+    .users-main .record-actions, .users-main .application-status-tabs,
+    .users-main .application-status-tab.is-active,
+    .permission-page-tabs, .permission-access-card,
+    .permission-employee-choice, .permission-department-choice,
+    .permission-feature-choice, .permission-option,
+    .role-directory, .role-access-panel, .module-access-row,
+    .department-module-matrix .system-admin-module-row,
+    .department-analytics-chart-area
+  ) {
+    background: var(--gct-theme-surface-raised);
+    border-color: var(--gct-theme-border);
+    color: var(--gct-theme-fg);
+  }
+  html[data-gct-theme="dark"] body[data-gct-admin-page="1"] :is(
+    .admin-panel-link, .gateway-arrow
+  ) {
+    color: var(--gct-theme-accent);
+  }
+}

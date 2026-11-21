@@ -2,128 +2,6 @@ window.GCTPartialNavigation.registerInitializer(
     'admin-role-permissions',
     '.permissions-page',
     () => {
-        const tabs = Array.from(document.querySelectorAll('[data-permission-tab]'));
-        const roleSection = document.getElementById('permissionDepartmentRoles');
-        const additionalSection = document.getElementById('permissionAdditionalAccess');
-        tabs.forEach((tab) => {
-            tab.addEventListener('click', () => {
-                const showRoles = tab.dataset.permissionTab === 'roles';
-                if (roleSection) roleSection.hidden = !showRoles;
-                if (additionalSection) additionalSection.hidden = showRoles;
-                tabs.forEach((item) => {
-                    const selected = item === tab;
-                    item.classList.toggle('active', selected);
-                    item.setAttribute('aria-selected', String(selected));
-                });
-            });
-        });
-
-
-        // Read-only access planner. Never submit grants until the backend authorizes each feature.
-        const employeeChoices = Array.from(document.querySelectorAll('[data-access-employee]'));
-        const employeeSearch = document.getElementById('additionalEmployeeSearch');
-        const departmentChoices = Array.from(document.querySelectorAll('[data-access-department-choice]'));
-        const featureList = document.getElementById('additionalFeatureList');
-        const featureDescriptions = {
-            'View Purchase Request Status': 'Track requisition progress without editing requests.',
-            'View Purchase Order Status': 'Review purchase orders and their current status.',
-            'View Delivery Status': 'Monitor supplier deliveries and receiving progress.',
-            'View Stock Availability': 'Check inventory quantities, reservations, and available stock.',
-            'View Incoming Delivery Status': 'Review incoming deliveries and received quantities.',
-            'View Trip Schedules': 'Review planned trip departure schedules.',
-            'View Bus Availability': 'Check availability without changing assignments.',
-            'View Job Order Status': 'Track maintenance progress and job status.',
-            'View PMS Schedule Status': 'Review preventive maintenance schedule status.'
-        };
-        const review = document.getElementById('additionalAccessReview');
-        const empty = document.getElementById('additionalEmployeeEmpty');
-        const selectedName = document.getElementById('additionalSelectedName');
-        const selectedRole = document.getElementById('additionalSelectedRole');
-        const featureCatalog = {
-            purchase: ['View Purchase Request Status', 'View Purchase Order Status', 'View Delivery Status'],
-            warehouse: ['View Stock Availability', 'View Incoming Delivery Status'],
-            operation: ['View Trip Schedules', 'View Bus Availability'],
-            maintenance: ['View Job Order Status', 'View PMS Schedule Status']
-        };
-        let accessEmployee = null;
-        let accessDepartment = null;
-        const selectedFeatures = new Set();
-        const updateReview = () => {
-            if (!review) return;
-            review.replaceChildren();
-            const paragraph = document.createElement('p');
-            paragraph.textContent = !accessEmployee ? 'Select an employee to begin.' : selectedFeatures.size === 0
-                ? 'No features selected. This preview will not change access.'
-                : accessEmployee.dataset.accessName + ': ' + [...selectedFeatures].join(', ') + '. Preview only — not saved.';
-            review.appendChild(paragraph);
-        };
-        const updateFeatures = () => {
-            if (!featureList) return;
-            featureList.replaceChildren();
-            selectedFeatures.clear();
-            if (!accessDepartment) {
-                const p = document.createElement('p');
-                p.textContent = 'Choose a department to preview available features.';
-                featureList.appendChild(p);
-            } else {
-                for (const feature of featureCatalog[accessDepartment] || []) {
-                    const label = document.createElement('label');
-                    label.className = 'permission-feature-choice';
-                    const checkbox = document.createElement('input');
-                    checkbox.type = 'checkbox';
-                    checkbox.addEventListener('change', () => {
-                        if (checkbox.checked) selectedFeatures.add(feature);
-                        else selectedFeatures.delete(feature);
-                        label.classList.toggle('selected', checkbox.checked);
-                        updateReview();
-                    });
-                    const span = document.createElement('span');
-                    const title = document.createElement('strong');
-                    title.textContent = feature;
-                    const description = document.createElement('small');
-                    description.textContent = featureDescriptions[feature] || '';
-                    span.append(title, description);
-                    const viewTag = document.createElement('em');
-                    viewTag.textContent = 'View only';
-                    label.append(checkbox, span, viewTag);
-                    featureList.appendChild(label);
-                }
-            }
-            updateReview();
-        };
-        employeeChoices.forEach((choice) => choice.addEventListener('click', () => {
-            accessEmployee = choice;
-            accessDepartment = null;
-            employeeChoices.forEach((c) => c.classList.toggle('active', c === choice));
-            if (selectedName) selectedName.textContent = choice.dataset.accessName;
-            if (selectedRole) selectedRole.textContent = choice.dataset.accessDepartment + ' · ' + choice.dataset.accessRole;
-            departmentChoices.forEach((c) => {
-                c.disabled = c.dataset.accessDepartmentChoice === choice.dataset.accessDepartment;
-                c.classList.remove('active');
-            });
-            updateFeatures();
-        }));
-        employeeSearch?.addEventListener('input', () => {
-            const searchText = employeeSearch.value.toLowerCase().trim();
-            let shown = 0;
-            employeeChoices.forEach((c) => {
-                c.hidden = !((c.dataset.accessName + ' ' + c.dataset.accessDepartment).toLowerCase().includes(searchText));
-                if (!c.hidden) shown++;
-            });
-            if (empty) empty.hidden = shown > 0;
-        });
-        departmentChoices.forEach((choice) => choice.addEventListener('click', () => {
-            if (!accessEmployee || choice.disabled) return;
-            accessDepartment = choice.dataset.accessDepartmentChoice;
-            departmentChoices.forEach((c) => c.classList.toggle('active', c === choice));
-            updateFeatures();
-        }));
-        document.getElementById('additionalAccessClear')?.addEventListener('click', () => {
-            accessDepartment = null;
-            departmentChoices.forEach((c) => c.classList.remove('active'));
-            updateFeatures();
-        });
-
         const search = document.getElementById('rolePermissionSearch');
         const roleForms = document.querySelectorAll('.role-select-form');
 
@@ -136,6 +14,36 @@ window.GCTPartialNavigation.registerInitializer(
             });
         });
 
+        // Client-side pagination keeps the assigned accounts list compact without altering permissions.
+        const membership = document.getElementById('assignedAccountsDisclosure');
+        const accountRows = Array.from(document.querySelectorAll('#assignedAccountsRows [data-assigned-account]'));
+        const memberSearch = document.getElementById('assignedAccountSearch');
+        const memberEmpty = document.getElementById('assignedAccountEmpty');
+        const memberRange = document.getElementById('assignedAccountsRange');
+        const memberPage = document.getElementById('assignedAccountsPage');
+        const previousMemberPage = document.getElementById('assignedAccountsPrevious');
+        const nextMemberPage = document.getElementById('assignedAccountsNext');
+        let membershipPage = 0;
+        const renderMembership = () => {
+            const query = (memberSearch?.value || '').trim().toLowerCase();
+            const matched = accountRows.filter((row) => (row.dataset.search || '').includes(query));
+            const totalPages = Math.max(1, Math.ceil(matched.length / 5));
+            membershipPage = Math.max(0, Math.min(membershipPage, totalPages - 1));
+            const offset = membershipPage * 5;
+            const displayed = new Set(matched.slice(offset, offset + 5));
+            accountRows.forEach((row) => { row.hidden = !displayed.has(row); });
+            if (memberEmpty) memberEmpty.hidden = matched.length !== 0;
+            if (memberRange) memberRange.textContent = matched.length ? 'Showing ' + (offset+1) + ' to ' + Math.min(offset+5,matched.length) + ' of ' + matched.length + ' accounts' : 'Showing 0 of 0 accounts';
+            if (memberPage) memberPage.textContent = 'Page ' + (membershipPage+1) + ' of ' + totalPages;
+            if (previousMemberPage) previousMemberPage.disabled = membershipPage === 0;
+            if (nextMemberPage) nextMemberPage.disabled = membershipPage >= totalPages-1;
+        };
+        memberSearch?.addEventListener('input', () => { membershipPage = 0; renderMembership(); });
+        previousMemberPage?.addEventListener('click', () => { membershipPage--; renderMembership(); });
+        nextMemberPage?.addEventListener('click', () => { membershipPage++; renderMembership(); });
+        membership?.addEventListener('toggle', () => { if(membership.open) renderMembership(); });
+        renderMembership();
+
         const panel = document.getElementById('rolePermissionPanel');
         const form = document.getElementById('rolePermissionForm');
         const editButton = document.getElementById('editPermissionsButton');
@@ -145,6 +53,61 @@ window.GCTPartialNavigation.registerInitializer(
         const editBanner = document.getElementById('permissionEditBanner');
         const inputs = Array.from(document.querySelectorAll('[data-permission-input]'));
         const initialStates = inputs.map((input) => input.checked);
+        const reviewPanel = document.getElementById('permissionChangeReview');
+        const reviewList = document.getElementById('permissionChangeList');
+        const reviewImpact = document.getElementById('permissionChangeImpact');
+        const originalImpact = reviewImpact?.textContent || '';
+
+        const reviewCount = document.getElementById('permissionChangeCount');
+        const changes = () => inputs.flatMap((input, index) => {
+            if (input.checked === initialStates[index]) return [];
+            const name = input.closest('[data-permission-option]')?.querySelector('span')?.textContent?.trim() || input.name;
+            const module = input.name.match(/^permissions\[([^\]]+)\]/)?.[1] || '';
+            return [{ module, name, action: input.checked ? 'Grant' : 'Revoke' }];
+        });
+        const refreshReview = () => {
+            const pending = changes();
+            if (reviewPanel) reviewPanel.hidden = !form?.classList.contains('is-editing');
+            if (reviewCount) reviewCount.textContent = pending.length + (pending.length === 1 ? ' Change' : ' Changes');
+            if (reviewList) {
+                reviewList.replaceChildren();
+                if (!pending.length) {
+                    const item = document.createElement('li');
+                    item.className = 'permission-change-empty';
+                    item.textContent = 'No permission changes yet.';
+                    reviewList.appendChild(item);
+                }
+                for (const change of pending) {
+                    const item = document.createElement('li');
+                    item.className = 'permission-change-item';
+                    const icon = document.createElement('span');
+                    icon.className = 'permission-change-icon';
+                    icon.setAttribute('aria-hidden', 'true');
+                    const glyph = document.createElement('i');
+                    glyph.className = 'fa-solid ' + (change.action === 'Grant' ? 'fa-shield-halved' : 'fa-lock');
+                    icon.appendChild(glyph);
+
+                    const content = document.createElement('span');
+                    content.className = 'permission-change-description';
+                    const title = document.createElement('strong');
+                    title.textContent = change.name + (change.module === 'analytics' ? ' Analytics' : '');
+                    const description = document.createElement('small');
+                    description.textContent = 'Permission within ' + change.module.charAt(0).toUpperCase() + change.module.slice(1);
+                    content.append(title, description);
+
+                    const action = document.createElement('span');
+                    action.className = 'permission-change-action ' + change.action.toLowerCase();
+                    action.textContent = change.action;
+                    item.append(icon, content, action);
+                    reviewList.appendChild(item);
+                }
+            }
+            if (reviewImpact) reviewImpact.textContent = originalImpact;
+            if (saveButton) saveButton.disabled = pending.length === 0;
+            if (form) form.dataset.confirmMessage = pending.map((change) =>
+                change.module + ' — ' + change.name + ': ' + change.action
+            ).join('; ') + '. ' + originalImpact;
+        };
 
         const syncOption = (input) => {
             const option = input.closest('[data-permission-option]');
@@ -168,11 +131,27 @@ window.GCTPartialNavigation.registerInitializer(
             button.style.display = visible ? 'inline-flex' : 'none';
         };
 
+        const syncAnalyticsDependencies = () => {
+            const view = inputs.find(input => input.name === 'permissions[analytics][view]');
+            if (!view) return;
+            const editing = form?.classList.contains('is-editing');
+            for (const capability of ['analyze', 'recommendations']) {
+                const input = inputs.find(input => input.name === `permissions[analytics][${capability}]`);
+                if (!input) continue;
+                if (!view.checked) input.checked = false;
+                input.disabled = !editing || !view.checked;
+                input.closest('[data-permission-option]')?.setAttribute('title', !view.checked ? 'Grant Analytics View first.' : '');
+                syncOption(input);
+            }
+        };
+
         const setEditMode = (enabled) => {
             inputs.forEach((input) => { input.disabled = !enabled; });
             panel?.classList.toggle('is-editing', enabled);
             form?.classList.toggle('is-editing', enabled);
             if (editBanner) editBanner.hidden = !enabled;
+            syncAnalyticsDependencies();
+            refreshReview();
 
             setButtonVisibility(editButton, !enabled);
             setButtonVisibility(cancelButton, enabled);
@@ -195,7 +174,7 @@ window.GCTPartialNavigation.registerInitializer(
             setEditMode(false);
         });
         inputs.forEach((input) => {
-            input.addEventListener('change', () => syncOption(input));
+            input.addEventListener('change', () => { syncOption(input); syncAnalyticsDependencies(); refreshReview(); });
         });
     }
 );

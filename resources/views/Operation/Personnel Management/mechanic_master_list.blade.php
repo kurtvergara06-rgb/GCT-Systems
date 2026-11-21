@@ -26,7 +26,8 @@
         'deactivate' => 'operation.personnel.mechanics.deactivate',
         'activate' => 'operation.personnel.mechanics.activate',
     ];
-    $canEditMechanic = auth()->user()?->hasSystemPermission($mechanicPermissionModule, 'edit') ?? false;
+    $canEditMechanic = $isMaintenanceUser
+        && (auth()->user()?->hasSystemPermission('maintenance', 'edit') ?? false);
 @endphp
 <div class="app">
 <x-layout.sidebar :department="$isMaintenanceUser ? 'Maintenance' : 'Operation'" />

@@ -69,7 +69,8 @@ class WarehouseActiveHistoryTabsTest extends TestCase
 
         $history
             ->assertOk()
-            ->assertSee('Completed and closed Warehouse requisitions are kept here')
+            ->assertSee('warehouse-record-tab', false)
+            ->assertSee('History')
             ->assertSee('PR-HISTORY-TAB')
             ->assertDontSee('PR-ACTIVE-TAB')
             ->assertDontSee('send-purchase-btn', false)

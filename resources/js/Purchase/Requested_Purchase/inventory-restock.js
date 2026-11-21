@@ -5,6 +5,9 @@ window.GCTPartialNavigation.registerInitializer('purchase-inventory-restock', '.
     modal.classList.add('show');
     modal.classList.add('active');
     modal.style.display = 'flex';
+    // Always show the request summary first, including after a previous scroll.
+    const content = modal.querySelector('.restock-review-content');
+    if (content) content.scrollTop = 0;
   }
 
   function closeModal(modal) {

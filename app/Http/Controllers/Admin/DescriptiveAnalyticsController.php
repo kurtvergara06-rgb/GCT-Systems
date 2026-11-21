@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Admin\ActivityLog;
+use App\Services\DepartmentAnalyticsService;
+use Carbon\CarbonImmutable;
 use App\Models\Admin\GpsTripRecord;
 use App\Models\Admin\User;
 use App\Models\Maintenance\Bus;
@@ -20,6 +22,42 @@ class DescriptiveAnalyticsController extends Controller
 {
     public function index(Request $request): View
     {
+        $user = $request->user();
+        abort_unless($user, 403);
+
+        // Never run Admin-wide Analytics queries for a department account.
+        $departmentName = strtolower(trim((string) $user->department));
+        $roleName = strtolower(trim((string) $user->role));
+        $isSystemAdmin = $departmentName === 'admin'
+            && in_array($roleName, ['head', 'system admin'], true);
+        if (! $isSystemAdmin) {
+            abort_unless($user->hasSystemPermission('analytics', 'view'), 403);
+            abort_unless(in_array($departmentName, ['operation', 'maintenance', 'warehouse', 'purchase'], true), 403);
+            if ($departmentName === 'maintenance') {
+                return view('Admin.Analytics.descriptive.layout', [
+                    'maintenanceAnalytics' => app(\App\Services\MaintenanceAnalyticsService::class)->report($request),
+                    'stage' => 'descriptive', 'department' => 'maintenance', 'departmentScoped' => true,
+                ]);
+            }
+
+            $dates = $request->validate([
+                'from' => ['nullable', 'date_format:Y-m-d'],
+                'to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:from'],
+            ]);
+            $from = $dates['from'] ?? now()->startOfMonth()->subMonths(5)->toDateString();
+            $to = $dates['to'] ?? now()->toDateString();
+            abort_if($from > $to || CarbonImmutable::parse($from)->diffInDays(CarbonImmutable::parse($to)) > 366, 422,
+                'Choose a date range of at most one year.');
+            return view('Admin.Analytics.descriptive.layout', array_merge(
+                app(DepartmentAnalyticsService::class)->summary($departmentName, $from, $to),
+                [
+                    'departmentScoped' => true,
+                    'department' => $departmentName,
+                    'stage' => 'descriptive',
+                ]
+            ));
+        }
+
         $activeSummary = $request->input('view') === 'administrative' ? 'administrative' : 'operational';
 
         $allowedPeriods = ['this-month', 'last-30-days', 'last-3-months', 'this-year'];
@@ -113,8 +151,8 @@ class DescriptiveAnalyticsController extends Controller
 
         // 2. Assignments
         $totalRequiredBuses = (int) $allTrips->sum('required_buses');
-        $totalAssignedBuses = (int) $allTrips->sum(fn ($t) => $t->assignments->count());
-        $assignmentFulfillmentRate = $totalRequiredBuses > 0 ? round(($totalAssignedBuses / $totalRequiredBuses) * 100, 1) : 0.0;
+        $totalAssignedBuses = (int) $allTrips->sum(fn ($t) => min(max(0, (int) $t->required_buses), $t->assignments->filter(fn ($assignment) => $assignment->bus_id !== null && (trim((string) $assignment->driver_id) !== '' || $assignment->driver_master_id !== null))->unique('slot_number')->count()));
+        $assignmentFulfillmentRate = $totalRequiredBuses > 0 ? min(100.0, round(($totalAssignedBuses / $totalRequiredBuses) * 100, 1)) : 0.0;
 
         // 3. GPS Telemetry Trips
         $gpsRecords = $this->tripQuery($selectedBus, $start, $end)->orderBy('beginning_at')->get();

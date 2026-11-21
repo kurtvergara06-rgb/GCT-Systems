@@ -161,7 +161,7 @@
                                             <div class="bus-icon-badge {{ $displayStatus === 'Active' ? 'is-active' : 'is-muted' }}" aria-hidden="true">
                                                 <i class="fa-solid fa-bus"></i>
                                             </div>
-                                            <span class="bus-id-text" title="{{ $bus->bus_no }}">{{ $bus->bus_no }}</span>
+                                            <x-ui.id-badge :value="$bus->bus_no" size="small" tone="neutral" class="bus-id-text" />
                                         </div>
                                     </td>
                                     <td>

@@ -2,6 +2,17 @@ import Chart from 'chart.js/auto';
 
 const prescriptiveChartInstances = {};
 
+function getPrescriptiveChartTheme() {
+    const isDark = document.documentElement.dataset.gctTheme === 'dark';
+    return {
+        text: isDark ? '#e1ebf9' : '#334155',
+        muted: isDark ? '#b6c9e2' : '#64748b',
+        legend: isDark ? '#d7e5f7' : '#475569',
+        grid: isDark ? '#3b4e68' : '#eef2f8',
+        donutBorder: isDark ? '#162235' : '#ffffff',
+    };
+}
+
 function destroyPrescriptiveChart(canvasId) {
     if (prescriptiveChartInstances[canvasId]) {
         prescriptiveChartInstances[canvasId].destroy();
@@ -49,6 +60,7 @@ function initPrescriptiveAnalytics() {
    THESIS OBJECTIVE 6.4.1 — OPERATIONS PRESCRIPTIVE CHARTS
    ========================================================================= */
 function initOperationsPrescriptiveCharts(data) {
+    const chartTheme = getPrescriptiveChartTheme();
     // Both charts display independent observed counts; unassigned trips are a
     // subset of scheduled trips and must never be stacked onto them.
     const valueLabels = {
@@ -56,7 +68,7 @@ function initOperationsPrescriptiveCharts(data) {
         afterDatasetsDraw(chart) {
             const { ctx } = chart;
             ctx.save();
-            ctx.fillStyle = '#334155';
+            ctx.fillStyle = chartTheme.text;
             ctx.font = '600 11px Poppins, sans-serif';
             ctx.textAlign = 'left';
             ctx.textBaseline = 'middle';
@@ -98,12 +110,12 @@ function initOperationsPrescriptiveCharts(data) {
                 maintainAspectRatio: false,
                 layout: { padding: { right: 26, left: 8, top: 4, bottom: 4 } },
                 plugins: {
-                    legend: { position: 'bottom', labels: { usePointStyle: true, pointStyle: 'rectRounded', boxWidth: 10, padding: 16, color: '#475569', font: { family: 'Poppins', size: 10, weight: '600' } } },
+                    legend: { position: 'bottom', labels: { usePointStyle: true, pointStyle: 'rectRounded', boxWidth: 10, padding: 16, color: chartTheme.legend, font: { family: 'Poppins', size: 10, weight: '600' } } },
                     tooltip: { backgroundColor: '#0f172a', padding: 10 },
                 },
                 scales: {
-                    x: { beginAtZero: true, suggestedMax: Math.max(2, ...rows.map((row) => Math.max(row.scheduled, row.unassigned))) + 0.5, ticks: { precision: 0, color: '#64748b' }, grid: { color: '#eef2f8' }, border: { display: false } },
-                    y: { grid: { display: false }, border: { display: false }, ticks: { color: '#334155', font: { family: 'Poppins', size: 11, weight: '600' } } },
+                    x: { beginAtZero: true, suggestedMax: Math.max(2, ...rows.map((row) => Math.max(row.scheduled, row.unassigned))) + 0.5, ticks: { precision: 0, color: chartTheme.muted }, grid: { color: chartTheme.grid }, border: { display: false } },
+                    y: { grid: { display: false }, border: { display: false }, ticks: { color: chartTheme.text, font: { family: 'Poppins', size: 11, weight: '600' } } },
                 },
             },
         });
@@ -136,8 +148,8 @@ function initOperationsPrescriptiveCharts(data) {
                 layout: { padding: { right: 27, left: 4, top: 4, bottom: 4 } },
                 plugins: { legend: { display: false }, tooltip: { backgroundColor: '#0f172a', padding: 10 } },
                 scales: {
-                    x: { beginAtZero: true, suggestedMax: Math.max(2, ...values.map((v) => Number(v) || 0)) + 0.5, ticks: { precision: 0, color: '#64748b' }, grid: { color: '#eef2f8' }, border: { display: false } },
-                    y: { ticks: { color: '#334155', font: { family: 'Poppins', size: 10, weight: '600' }, autoSkip: false }, grid: { display: false }, border: { display: false } },
+                    x: { beginAtZero: true, suggestedMax: Math.max(2, ...values.map((v) => Number(v) || 0)) + 0.5, ticks: { precision: 0, color: chartTheme.muted }, grid: { color: chartTheme.grid }, border: { display: false } },
+                    y: { ticks: { color: chartTheme.text, font: { family: 'Poppins', size: 10, weight: '600' }, autoSkip: false }, grid: { display: false }, border: { display: false } },
                 },
             },
         });
@@ -148,6 +160,7 @@ function initOperationsPrescriptiveCharts(data) {
    THESIS OBJECTIVE 6.4.2 — RESTOCKING PRESCRIPTIVE CHARTS
    ========================================================================= */
 function initRestockingPrescriptiveCharts(data) {
+    const chartTheme = getPrescriptiveChartTheme();
     // 1. Recommended Restock Quantity by Category (Horizontal Bar Chart)
     const categoryCanvas = document.getElementById('prescriptiveCategoryBarChart');
     if (categoryCanvas && data.categoryLabels && data.categoryLabels.length > 0) {
@@ -187,12 +200,12 @@ function initRestockingPrescriptiveCharts(data) {
                 scales: {
                     x: {
                         beginAtZero: true,
-                        ticks: { precision: 0, font: { family: 'Poppins', size: 11 }, color: '#64748b' },
-                        grid: { color: '#f1f5f9' },
+                        ticks: { precision: 0, font: { family: 'Poppins', size: 11 }, color: chartTheme.muted },
+                        grid: { color: chartTheme.grid },
                     },
                     y: {
                         grid: { display: false },
-                        ticks: { font: { family: 'Poppins', size: 11, weight: '600' }, color: '#334155' },
+                        ticks: { font: { family: 'Poppins', size: 11, weight: '600' }, color: chartTheme.text },
                     },
                 },
             },
@@ -241,7 +254,7 @@ function initRestockingPrescriptiveCharts(data) {
                         labels: {
                             boxWidth: 11,
                             font: { family: 'Poppins', size: 11, weight: '600' },
-                            color: '#475569',
+                            color: chartTheme.legend,
                         },
                     },
                     tooltip: {
@@ -254,12 +267,12 @@ function initRestockingPrescriptiveCharts(data) {
                 scales: {
                     x: {
                         grid: { display: false },
-                        ticks: { font: { family: 'Poppins', size: 10.5 }, color: '#64748b' },
+                        ticks: { font: { family: 'Poppins', size: 10.5 }, color: chartTheme.muted },
                     },
                     y: {
                         beginAtZero: true,
-                        ticks: { precision: 0, font: { family: 'Poppins', size: 11 }, color: '#64748b' },
-                        grid: { color: '#f1f5f9' },
+                        ticks: { precision: 0, font: { family: 'Poppins', size: 11 }, color: chartTheme.muted },
+                        grid: { color: chartTheme.grid },
                     },
                 },
             },
@@ -279,7 +292,7 @@ function initRestockingPrescriptiveCharts(data) {
                         data: data.priorityValues || [],
                         backgroundColor: data.priorityColors || ['#dc2626', '#ea580c', '#eab308', '#16a34a'],
                         borderWidth: 2,
-                        borderColor: '#ffffff',
+                        borderColor: chartTheme.donutBorder,
                         hoverOffset: 4,
                     },
                 ],
@@ -287,18 +300,9 @@ function initRestockingPrescriptiveCharts(data) {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                cutout: '72%',
+                cutout: '76%',
                 plugins: {
-                    legend: {
-                        display: true,
-                        position: 'bottom',
-                        labels: {
-                            boxWidth: 11,
-                            padding: 10,
-                            font: { family: 'Poppins', size: 10.5, weight: '600' },
-                            color: '#334155',
-                        },
-                    },
+                    legend: { display: false },
                     tooltip: {
                         padding: 10,
                         backgroundColor: '#0f172a',

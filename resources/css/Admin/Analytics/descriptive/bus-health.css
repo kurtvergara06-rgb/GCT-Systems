@@ -14,7 +14,7 @@
 .descriptive-domain-bus-health .analytics-card {
     border-color: var(--bus-health-line);
     border-radius: 14px;
-    background: #fff;
+    background: light-dark(#fff, var(--gct-theme-surface));
     box-shadow: var(--bus-health-shadow);
 }
 
@@ -69,7 +69,7 @@
     padding: 15px 16px;
     border: 1px solid var(--bus-health-line);
     border-radius: 14px;
-    background: #fff;
+    background: light-dark(#fff, var(--gct-theme-surface));
     box-shadow: var(--bus-health-shadow);
 }
 
@@ -167,7 +167,7 @@
     position: absolute;
     inset: 28px;
     border-radius: 50%;
-    background: #fff;
+    background: light-dark(#fff, var(--gct-theme-surface));
     box-shadow: inset 0 0 0 1px #eef2f7;
 }
 
@@ -325,7 +325,7 @@
     padding: 12px;
     border: 1px solid #dce8fb;
     border-radius: 11px;
-    background: #f7faff;
+    background: light-dark(#f7faff, var(--gct-theme-surface));
 }
 
 .descriptive-domain-bus-health .bus-health-callout-icon {

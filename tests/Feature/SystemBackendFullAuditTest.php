@@ -214,7 +214,6 @@ class SystemBackendFullAuditTest extends TestCase
         // 2.8 Settings
         $this->get(route('admin.settings.general'))->assertOk();
         $this->get(route('admin.settings.security'))->assertOk();
-        $this->get(route('admin.settings.notifications'))->assertOk();
     }
 
     // =========================================================================
@@ -303,7 +302,14 @@ class SystemBackendFullAuditTest extends TestCase
         $this->assertMatchesRegularExpression('/^DRV-\\d+$/', $driver->driver_id);
 
         $this->get(route('operation.personnel.mechanics'))->assertOk();
-        $mechResponse = $this->post(route('operation.personnel.mechanics.store'), [
+        $maintenanceHead = User::factory()->create([
+            'department' => 'Maintenance',
+            'role' => 'head',
+            'status' => 'Active',
+            'must_change_password' => false,
+            'onboarding_completed' => true,
+        ]);
+        $mechResponse = $this->actingAs($maintenanceHead)->post(route('maintenance.personnel.mechanics.store'), [
             'mechanic_id' => 'MEC-AUDIT-01',
             'mechanic_name' => 'Audit Mechanic Mario',
             'contact_number' => '09187654321',
@@ -322,8 +328,9 @@ class SystemBackendFullAuditTest extends TestCase
             'attendance_date' => $tripSchedule->trip_date->toDateString(),
             'status' => 'Present',
         ]);
-        $this->get(route('driver-attendance'))->assertOk();
-        $this->get(route('mechanic-attendance'))->assertOk();
+        $this->actingAs($operationHead)->get(route('driver-attendance'))->assertOk();
+        $this->actingAs($maintenanceHead)->get(route('mechanic-attendance'))->assertOk();
+        $this->actingAs($operationHead);
 
         // 3.5 Bus Master List
         $busResponse = $this->post(route('bus-master-list.store'), [

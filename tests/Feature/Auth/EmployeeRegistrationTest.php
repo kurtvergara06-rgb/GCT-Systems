@@ -25,6 +25,7 @@ class EmployeeRegistrationTest extends TestCase
             'department' => 'admin',
             'role' => 'head',
             'status' => 'Active',
+            'privacy_acknowledged' => '1',
         ]);
 
         $response->assertRedirect(route('verification.otp'));

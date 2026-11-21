@@ -1,4 +1,7 @@
 @php
+    if (! isset($maintenanceAnalytics)) {
+    $departmentScoped = (bool) ($departmentScoped ?? false);
+    if (! $departmentScoped) {
     $url = route('analytics.descriptive', [], false);
     $periodOptions = [
         'this-month' => 'This Month',
@@ -108,24 +111,63 @@
             'userDeptValues' => array_values($usersByDepartment),
         ];
     }
+    }
+    }
+    if (isset($maintenanceAnalytics)) {
+        $departmentScoped = true;
+        $pageTitle = $title = ucfirst($stage).' Analytics';
+        $pageSubtitle = $subtitle = match ($stage) {
+            'descriptive' => 'Maintenance performance overview',
+            'diagnostic' => 'Maintenance and fuel issue investigation',
+            'predictive' => 'Estimates based on verified historical maintenance and fuel records',
+            default => 'Recommendations for Maintenance Head review',
+        };
+        $pageAssets = [
+            'resources/css/Admin/Analytics/design-system.css',
+            'resources/css/Admin/Analytics/maintenance.css',
+            'resources/js/Admin/Analytics/maintenance.js',
+        ];
+    }
 @endphp
 <x-layout.app
     title="FROMS - Descriptive Analytics"
-    :assets="[
-        'resources/css/Admin/Analytics/descriptive/descriptive-rebuild.css',
-        'resources/css/Admin/Analytics/design-system.css',
-        'resources/js/Admin/Analytics/descriptive/descriptive-analytics.js'
-    ]"
+    :assets="isset($maintenanceAnalytics) ? $pageAssets : ($departmentScoped
+        ? [
+            'resources/css/Admin/Analytics/descriptive/descriptive-rebuild.css',
+            'resources/css/Admin/Analytics/design-system.css',
+            'resources/css/Admin/Analytics/department-stage.css',
+            'resources/js/Admin/Analytics/department-stage.js'
+        ]
+        : [
+            'resources/css/Admin/Analytics/descriptive/descriptive-rebuild.css',
+            'resources/css/Admin/Analytics/design-system.css',
+            'resources/js/Admin/Analytics/descriptive/descriptive-analytics.js'
+        ])"
     :partial-navigation="false"
 >
     <div class="app">
-        <x-layout.sidebar department="Admin" />
-        <main class="main analytics-stage-page descriptive-rebuild">
+        <x-layout.sidebar :department="$departmentScoped ? auth()->user()->department : 'Admin'" />
+        <main class="main analytics-stage-page descriptive-rebuild {{ isset($maintenanceAnalytics) ? 'department-analytics-page' : '' }}">
             <x-layout.topbar
                 title="Descriptive Analytics"
-                subtitle="Operational and administrative summaries from recorded system activity · Objective 6.1."
-            />
+                :subtitle="isset($maintenanceAnalytics) ? $subtitle : ($departmentScoped
+                    ? ucfirst($department).' Department · Recorded department activity and status distribution'
+                    : 'Operational and administrative summaries from recorded system activity · Objective 6.1.')"
+            >
+                @if(isset($maintenanceAnalytics) && $stage === 'descriptive')
+                    <x-slot:toolbar>
+                        @include('Admin.Analytics.maintenance.filters')
+                    </x-slot:toolbar>
+                @endif
+            </x-layout.topbar>
+            @if(isset($maintenanceAnalytics))
+                @include('Admin.Analytics.maintenance.content')
+            @else
 
+
+            @if($departmentScoped)
+                @include('Admin.Analytics.descriptive.department-content')
+            @else
             @if($illustrativeAnalytics)
                 <p style="font-size:10px;color:#64748b;margin-bottom:8px">Illustrative reporting figures for presentation only.</p>
             @endif
@@ -155,173 +197,135 @@
                      THESIS OBJECTIVE 6.1.1 — OPERATIONAL SUMMARY
                      ========================================================================= -->
 
-                <!-- 1. Top KPI Summary Cards Row (5 Cards - Aligned with Maintenance Dashboard) -->
-                <section class="stats-grid descriptive-stats-grid">
-                    <!-- Scheduled Trips -->
-                    <x-ui.summary-card
-                        label="Scheduled Trips"
-                        value="{{ number_format($totalScheduledTrips) }}"
-                        small="{{ $completedTrips }} Completed · {{ $pendingDdrTrips }} Pending · {{ $missedTrips }} Missed"
-                        icon="fa-route"
-                        color="blue"
-                        href="{{ route('trip-schedule') }}"
-                    />
-
-                    <!-- Trip Assignments -->
-                    <x-ui.summary-card
-                        label="Trip Assignments"
-                        value="{{ number_format($totalAssignedBuses) }}"
-                        small="{{ $assignmentFulfillmentRate }}% Filled · {{ $totalAssignedBuses }} of {{ $totalRequiredBuses }} req"
-                        icon="fa-people-arrows"
-                        color="purple"
-                        href="{{ route('driver-bus-assignment') }}"
-                    />
-
-                    <!-- Active fleet status share; dispatch clearance is checked separately. -->
-                    <x-ui.summary-card
-                        label="Active Fleet Share"
-                        value="{{ $fleetAvailability }}%"
-                        small="{{ $activeBuses }}/{{ $totalBuses }} Active · {{ $underMaintenance }} in repair"
-                        icon="fa-bus"
-                        color="green"
-                        href="{{ route('bus-availability') }}"
-                    />
-
-                    <!-- GPS Records -->
-                    <x-ui.summary-card
-                        label="GPS Records"
-                        value="{{ number_format($gpsTripCount) }}"
-                        small="{{ number_format($gpsTotalDistance, 1) }} km · {{ round($gpsAverageSpeed, 1) }} km/h avg"
-                        icon="fa-location-dot"
-                        color="cyan"
-                    />
-
-                    <!-- Total Incidents -->
-                    <x-ui.summary-card
-                        label="Total Incidents"
-                        value="{{ number_format($totalIncidents) }}"
-                        small="{{ $resolvedIncidents }} Resolved · {{ $breakdownsCount }} Breakdowns"
-                        icon="fa-triangle-exclamation"
-                        color="red"
-                        href="{{ route('incidents') }}"
-                    />
-                </section>
-
-                <!-- 2. Charts Row 1: Activity Trend (Wide) + Fleet Health Donut -->
-                <div class="descriptive-grid grid-wide-left">
-                    <!-- Scheduled vs GPS Activity Trend -->
-                    <div class="descriptive-dashboard-card">
-                        <div class="dashboard-card-header">
-                            <div>
-                                <span class="dashboard-eyebrow">OPERATIONAL TELEMETRY</span>
-                                <h2><i class="fa-solid fa-chart-column"></i> Trip Scheduling & Telemetry Trend</h2>
-                                <p>Scheduled trips, completions, and processed GPS telemetry across {{ $periodLabel }}.</p>
-                            </div>
-
-                            <div class="chart-header-actions">
-                                <div class="chart-kpi-pill">
-                                    <i class="fa-solid fa-route text-blue"></i>
-                                    <span>Trips: <strong>{{ $totalScheduledTrips }}</strong></span>
-                                </div>
-                                <div class="chart-kpi-pill">
-                                    <i class="fa-solid fa-circle-check text-green"></i>
-                                    <span>Done: <strong>{{ $completedTrips }}</strong></span>
-                                </div>
-                                <div class="chart-kpi-pill">
-                                    <i class="fa-solid fa-location-dot text-cyan"></i>
-                                    <span>GPS: <strong>{{ $gpsTripCount }}</strong></span>
-                                </div>
-                            </div>
-                        </div>
-
-                        @if($totalScheduledTrips > 0 || $gpsTripCount > 0 || $totalIncidents > 0)
-                            <div class="descriptive-chart-shell">
-                                <canvas id="operationalActivityTrendChart"></canvas>
-                            </div>
-
-                            <!-- Telemetry Summary Strip (Eliminates visual emptiness) -->
-                            <div class="telemetry-summary-row">
-                                <div class="telemetry-tile">
-                                    <i class="fa-solid fa-road text-blue"></i>
-                                    <div>
-                                        <strong>{{ number_format($gpsTotalDistance, 1) }} km</strong>
-                                        <small>Total Distance Traveled</small>
-                                    </div>
-                                </div>
-                                <div class="telemetry-tile">
-                                    <i class="fa-solid fa-gauge text-cyan"></i>
-                                    <div>
-                                        <strong>{{ round($gpsAverageSpeed, 1) }} km/h</strong>
-                                        <small>Avg Telemetry Speed</small>
-                                    </div>
-                                </div>
-                                <div class="telemetry-tile">
-                                    <i class="fa-solid fa-stopwatch text-amber"></i>
-                                    <div>
-                                        <strong>{{ number_format($gpsTotalIdleMinutes) }} mins</strong>
-                                        <small>Engine Idle Duration</small>
-                                    </div>
-                                </div>
-                            </div>
-                        @else
-                            <div class="dashboard-empty-state">
-                                <div class="dashboard-empty-icon"><i class="fa-solid fa-chart-line"></i></div>
-                                <h3>No Activity in Selected Period</h3>
-                                <p>No scheduled trips, GPS batch logs, or incidents match {{ $periodLabel }}. Select a broader date range.</p>
-                            </div>
-                        @endif
+                <!-- Operations snapshot: selected balanced reference layout. All figures are live. -->
+                <div class="operations-snapshot-kpis" aria-label="Key operational metrics">
+                    <a href="{{ route('trip-schedule') }}" class="operations-snapshot-kpi">
+                        <span class="operations-snapshot-kpi-icon blue"><i class="fa-solid fa-route" aria-hidden="true"></i></span>
+                        <div><span>Scheduled Trips</span><strong>{{ number_format($totalScheduledTrips) }}</strong><small>Trips in selected period</small></div>
+                    </a>
+                    <div class="operations-snapshot-kpi">
+                        <span class="operations-snapshot-kpi-icon green"><i class="fa-solid fa-circle-check" aria-hidden="true"></i></span>
+                        <div><span>Completed Trips</span><strong class="positive">{{ number_format($completedTrips) }}</strong><small>{{ $totalScheduledTrips > 0 ? round($completedTrips / $totalScheduledTrips * 100, 1) : 0 }}% of scheduled</small></div>
                     </div>
-
-                    <!-- Fleet Health Donut -->
-                    <div class="descriptive-dashboard-card">
-                        <div class="dashboard-card-header">
-                            <div>
-                                <span class="dashboard-eyebrow">FLEET READINESS</span>
-                                <h2><i class="fa-solid fa-chart-pie"></i> Fleet Status Distribution</h2>
-                                <p>Recorded status of the {{ $totalBuses }} registered fleet buses; dispatch clearance is checked separately.</p>
-                            </div>
-                            <a href="{{ route('bus-availability') }}" class="dashboard-view-link">
-                                <span>Fleet Bay</span>
-                                <i class="fa-solid fa-arrow-right"></i>
-                            </a>
-                        </div>
-
-                        @if($totalBuses > 0)
-                            <div class="fleet-health-visual-wrap">
-                                <div class="fleet-health-chart-container">
-                                    <canvas id="operationalFleetDonutChart"></canvas>
-                                    <div class="fleet-health-chart-center" aria-hidden="true">
-                                        <strong>{{ $fleetAvailability }}%</strong>
-                                        <span>Active</span>
-                                    </div>
-                                </div>
-                                <div class="fleet-health-status-stack">
-                                    @foreach($fleetStatusStats as $item)
-                                        <div class="fleet-health-row">
-                                            <div class="fleet-health-left">
-                                                <span class="status-indicator-dot" style="background:{{ $item->color }}"></span>
-                                                <div class="status-name-desc">
-                                                    <strong>{{ $item->label }}</strong>
-                                                    <small>{{ $item->label === 'Active Fleet' ? 'Recorded as Active' : ($item->label === 'Under Maintenance' ? 'Recorded as Under Maintenance' : 'Not recorded as Active') }}</small>
-                                                </div>
-                                            </div>
-                                            <div class="fleet-health-right">
-                                                <span class="fleet-count" style="color:{{ $item->color }}">{{ $item->count }}</span>
-                                                <small>{{ $item->pct }}%</small>
-                                            </div>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            </div>
-                        @else
-                            <div class="dashboard-empty-state">
-                                <div class="dashboard-empty-icon"><i class="fa-solid fa-bus"></i></div>
-                                <h3>No Buses Found</h3>
-                                <p>The Bus Master List is currently empty.</p>
-                            </div>
-                        @endif
+                    <a href="{{ route('bus-availability') }}" class="operations-snapshot-kpi">
+                        <span class="operations-snapshot-kpi-icon green"><i class="fa-solid fa-bus" aria-hidden="true"></i></span>
+                        <div><span>Active Fleet</span><strong class="positive">{{ $fleetAvailability }}%</strong><small>{{ $activeBuses }} of {{ $totalBuses }} buses</small></div>
+                    </a>
+                    <div class="operations-snapshot-kpi">
+                        <span class="operations-snapshot-kpi-icon blue"><i class="fa-solid fa-location-dot" aria-hidden="true"></i></span>
+                        <div><span>GPS Records</span><strong>{{ number_format($gpsTripCount) }}</strong><small>Processed GPS telemetry</small></div>
                     </div>
                 </div>
+
+                <section class="operations-snapshot" aria-label="Operations performance and fleet readiness">
+                    <div class="operations-snapshot-primary">
+                        <header class="operations-snapshot-heading">
+                            <span class="operations-snapshot-heading-icon"><i class="fa-solid fa-chart-column" aria-hidden="true"></i></span>
+                            <div>
+                                <h2>Operations Performance</h2>
+                                <p>Trip execution and fleet availability.</p>
+                            </div>
+                            <span class="operations-snapshot-period"><i class="fa-regular fa-calendar" aria-hidden="true"></i> {{ $dateRangeDisplay }}</span>
+                        </header>
+
+                        <div class="operations-snapshot-chart">
+                            <div class="operations-snapshot-section-heading">
+                                <div>
+                                    <h3><i class="fa-solid fa-chart-column" aria-hidden="true"></i> Daily Trip Activity</h3>
+                                    <p>Scheduled versus completed trips.</p>
+                                </div>
+                                <div class="operations-snapshot-legend">
+                                    <span><i class="operations-snapshot-dot scheduled"></i> Scheduled Trips</span>
+                                    <span><i class="operations-snapshot-dot completed"></i> Completed Trips</span>
+                                </div>
+                            </div>
+                            @if($totalScheduledTrips > 0 || $gpsTripCount > 0 || $totalIncidents > 0)
+                                <div class="descriptive-chart-shell operations-snapshot-chart-shell">
+                                    <canvas id="operationalActivityTrendChart"></canvas>
+                                </div>
+                            @else
+                                <div class="dashboard-empty-state">
+                                    <div class="dashboard-empty-icon"><i class="fa-solid fa-chart-line"></i></div>
+                                    <h3>No Activity in Selected Period</h3>
+                                    <p>No scheduled trips or GPS records match {{ $periodLabel }}.</p>
+                                </div>
+                            @endif
+                        </div>
+                        <div class="operations-snapshot-secondary">
+                            <a href="{{ route('driver-bus-assignment') }}"><i class="fa-solid fa-people-arrows" aria-hidden="true"></i> Trip Assignments <strong>{{ number_format($totalAssignedBuses) }}</strong> <small>{{ $assignmentFulfillmentRate }}% filled</small></a>
+                            <a href="{{ route('incidents') }}"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> Incidents <strong>{{ number_format($totalIncidents) }}</strong> <small>{{ $resolvedIncidents }} resolved</small></a>
+                        </div>
+                    </div>
+
+                    <div class="operations-snapshot-aside">
+                        <section class="operations-snapshot-panel operations-availability">
+                            <div class="operations-snapshot-section-heading">
+                                <h3><i class="fa-solid fa-layer-group" aria-hidden="true"></i> Fleet Availability</h3>
+                                <span class="operations-snapshot-online">{{ $fleetAvailability }}% Active</span>
+                            </div>
+                            <div class="operations-snapshot-progress" role="img" aria-label="{{ $fleetAvailability }} percent active buses and {{ $totalBuses > 0 ? round($underMaintenance / $totalBuses * 100, 1) : 0 }} percent under maintenance">
+                                @if($totalBuses > 0)
+                                    <span class="active" style="width:{{ max(0, min(100, $fleetAvailability)) }}%"></span>
+                                    <span class="maintenance" style="width:{{ max(0, min(100, $underMaintenance / $totalBuses * 100)) }}%"></span>
+                                @endif
+                            </div>
+                            <div class="operations-snapshot-progress-labels">
+                                <span><i class="operations-snapshot-dot completed"></i><strong>{{ $activeBuses }}</strong> Active</span>
+                                <span><i class="operations-snapshot-dot maintenance"></i><strong>{{ $underMaintenance }}</strong> Maintenance</span>
+                                <span><i class="operations-snapshot-dot inactive"></i><strong>{{ $inactiveBuses }}</strong> Inactive</span>
+                            </div>
+                        </section>
+
+                        <section class="operations-snapshot-panel operations-distribution">
+                            <div class="operations-snapshot-section-heading">
+                                <h3><i class="fa-solid fa-chart-pie" aria-hidden="true"></i> Fleet Status Distribution</h3>
+                                <a href="{{ route('bus-availability') }}" class="dashboard-view-link">Fleet Bay <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+                            </div>
+                            @if($totalBuses > 0)
+                                <div class="fleet-health-visual-wrap">
+                                    <div class="fleet-health-chart-container">
+                                        <canvas id="operationalFleetDonutChart"></canvas>
+                                        <div class="fleet-health-chart-center" aria-hidden="true">
+                                            <strong>{{ $fleetAvailability }}%</strong>
+                                            <span>Active</span>
+                                        </div>
+                                    </div>
+                                    <div class="fleet-health-status-stack">
+                                        @foreach($fleetStatusStats as $item)
+                                            <div class="fleet-health-row">
+                                                <div class="fleet-health-left">
+                                                    <span class="status-indicator-dot" style="background:{{ $item->color }}"></span>
+                                                    <div class="status-name-desc">
+                                                        <strong>{{ $item->label }}</strong>
+                                                        <small>{{ $item->label === 'Active Fleet' ? 'Recorded as Active' : ($item->label === 'Under Maintenance' ? 'Recorded as Under Maintenance' : 'Not recorded as Active') }}</small>
+                                                    </div>
+                                                </div>
+                                                <div class="fleet-health-right">
+                                                    <span class="fleet-count" style="color:{{ $item->color }}">{{ $item->count }}</span>
+                                                    <small>{{ $item->pct }}%</small>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @else
+                                <div class="dashboard-empty-state"><h3>No Buses Found</h3><p>The Bus Master List is currently empty.</p></div>
+                            @endif
+                        </section>
+
+                        <section class="operations-snapshot-panel operations-telemetry">
+                            <div class="operations-snapshot-section-heading">
+                                <h3><i class="fa-solid fa-location-dot" aria-hidden="true"></i> GPS Telemetry Summary</h3>
+                                <span class="operations-snapshot-records">{{ number_format($gpsTripCount) }} records</span>
+                            </div>
+                            <div class="operations-snapshot-telemetry-grid">
+                                <div><i class="fa-solid fa-road" aria-hidden="true"></i><strong>{{ number_format($gpsTotalDistance, 1) }} km</strong><small>Total Distance Traveled</small></div>
+                                <div><i class="fa-solid fa-gauge" aria-hidden="true"></i><strong>{{ round($gpsAverageSpeed, 1) }} km/h</strong><small>Avg Telemetry Speed</small></div>
+                                <div><i class="fa-solid fa-stopwatch" aria-hidden="true"></i><strong>{{ number_format($gpsTotalIdleMinutes) }} mins</strong><small>Engine Idle Duration</small></div>
+                            </div>
+                        </section>
+                    </div>
+                </section>
 
                 <!-- 3. Charts Row 2: Trip Status Donut + Incidents & Safety Overview -->
                 <div class="descriptive-grid">
@@ -915,6 +919,8 @@
                     @endif
                 </div>
 
+            @endif
+            @endif
             @endif
         </main>
     </div>

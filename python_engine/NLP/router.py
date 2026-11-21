@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import hmac
+import os
 from typing import Any, Literal
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Header, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from .ingestion import (
@@ -46,6 +48,80 @@ def analyze_text(payload: TextAnalysisRequest) -> dict[str, Any]:
         "source": "operational_rules",
         "trained_model": False,
     }
+
+
+class GpsEnrichmentItem(BaseModel):
+    id: int = Field(gt=0)
+    description: str = Field(default="", max_length=1200)
+    bus_no: str = Field(default="", max_length=80)
+    grouping: str = Field(default="", max_length=120)
+    duration_minutes: float | None = None
+    total_minutes: float | None = None
+    in_motion_minutes: float | None = None
+    idling_minutes: float | None = None
+    mileage_km: float | None = None
+    engine_hours: float | None = None
+
+
+class GpsEnrichmentBatch(BaseModel):
+    records: list[GpsEnrichmentItem] = Field(min_length=1, max_length=25)
+
+
+@router.get("/enrich-gps-status")
+def enrich_gps_status(x_gct_nlp_token: str | None = Header(default=None)) -> dict[str, Any]:
+    """Authenticated readiness check for the actual lightweight enrichment path."""
+    token = os.getenv("GCT_NLP_ENRICH_TOKEN", "")
+    if not token or not x_gct_nlp_token or not hmac.compare_digest(token, x_gct_nlp_token):
+        raise HTTPException(status_code=403, detail="NLP enrichment token required.")
+    from .anomaly_detector import readiness as anomaly_readiness
+    from .ner_extractor import readiness as ner_readiness
+    from .severity_ner_predictor import readiness as severity_readiness
+
+    ready = all(check()["ready"] for check in (
+        anomaly_readiness, ner_readiness, severity_readiness
+    ))
+    return {
+        "ready": ready,
+        "source": "operational_rules",
+        "trained_model": False,
+        "max_batch_size": 25,
+    }
+
+
+@router.post("/enrich-gps-batch")
+def enrich_gps_batch(
+    payload: GpsEnrichmentBatch,
+    x_gct_nlp_token: str | None = Header(default=None),
+) -> dict[str, Any]:
+    """Bounded, advisory rule NLP. No model loading, PDF processing or ingestion writes."""
+    token = os.getenv("GCT_NLP_ENRICH_TOKEN", "")
+    if not token or not x_gct_nlp_token or not hmac.compare_digest(token, x_gct_nlp_token):
+        raise HTTPException(status_code=403, detail="NLP enrichment token required.")
+
+    from .anomaly_detector import anomaly_details
+    from .ner_extractor import extract_entities
+    from .severity_ner_predictor import predict_record as classify_severity
+
+    results = []
+    for item in payload.records:
+        record = item.model_dump()
+        text = " ".join(part for part in (
+            record.get("description"), "bus " + record["bus_no"] if record["bus_no"] else "",
+            "route " + record["grouping"] if record["grouping"] else "",
+        ) if part)
+        try:
+            entities = extract_entities(text, use_spacy=False)
+            severity = classify_severity(record, use_spacy=False)
+            anomaly = anomaly_details(record)
+            results.append({
+                "id": item.id, "success": True, "entities": entities,
+                "severity": severity, "anomaly": anomaly,
+                "source": "operational_rules", "trained_model": False,
+            })
+        except Exception:
+            # A bad input must not abort another record's enrichment.
+            results.append({"id": item.id, "success": False, "source": "operational_rules", "trained_model": False})
+    return {"success": True, "records": results, "source": "operational_rules", "trained_model": False}
 
 
 @router.get("/status")

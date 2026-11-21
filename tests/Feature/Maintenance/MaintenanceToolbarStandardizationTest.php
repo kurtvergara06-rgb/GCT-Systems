@@ -44,3 +44,17 @@ it('keeps daily monitoring filters and recent fuel record controls independent',
         ->toContain("'report_date' => 'report_date'")
         ->toContain("'km_per_liter' => 'km_per_liter'");
 });
+
+
+it('uses shared ID components and consistent request modal geometry', function (): void {
+    $requests = file_get_contents(resource_path('views/Maintenance/item-requests.blade.php'));
+    $mechanics = file_get_contents(resource_path('views/Maintenance/mechanic-list.blade.php'));
+    $modalCss = file_get_contents(resource_path('css/Maintenance/request-modal-shared.css'));
+
+    expect($requests)->toContain('<x-ui.id-badge')->toContain('maintenance-ir-id-badge');
+    expect($mechanics)->toContain('<x-ui.id-badge')->toContain('mechanic-id-pill');
+    expect($modalCss)->toContain('Consistent centered request-modal geometry')
+        ->toContain('max-height: calc(100dvh - 24px)')
+        ->toContain('#itemRequestModal')
+        ->toContain('#prModal');
+});

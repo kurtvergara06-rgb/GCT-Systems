@@ -94,8 +94,8 @@
 
     <main class="main purchase-orders-page purchase-module-page records-page">
       <x-layout.topbar
-        title="Purchase Orders"
-        subtitle="Manage procurement records for vehicle parts, equipment & operational materials"
+        title="{{ $activeTab === 'history' ? 'Purchase History' : 'Purchase Orders' }}"
+        subtitle="{{ $activeTab === 'history' ? 'Review delivered, picked-up and rejected purchase orders' : 'Manage procurement records for vehicle parts, equipment & operational materials' }}"
         notification-count="6"
       />
 
@@ -111,9 +111,9 @@
           <div class="section-heading">
             <span class="section-icon"><i class="fa-solid fa-file-invoice-dollar"></i></span>
             <div>
-              <span class="purchase-section-eyebrow">PROCUREMENT RECORDS</span>
-              <h2>Purchase Order Records</h2>
-              <p>Track procurement progress, request references, totals, and delivery status.</p>
+              <span class="purchase-section-eyebrow">{{ $activeTab === 'history' ? 'PROCUREMENT ARCHIVE' : 'PROCUREMENT RECORDS' }}</span>
+              <h2>{{ $activeTab === 'history' ? 'Completed Purchase Orders' : 'Purchase Order Records' }}</h2>
+              <p>{{ $activeTab === 'history' ? 'Delivered, picked-up and rejected purchase orders are retained for reference and audit.' : 'Track procurement progress, request references, totals, and delivery status.' }}</p>
             </div>
           </div>
           <div class="section-count"><span>{{ $purchaseOrders->total() }}</span> records</div>
@@ -128,11 +128,11 @@
               filter-title="Filter Purchase Orders"
               :sort-options="['po_date' => 'PO Date', 'po_no' => 'PO Number', 'supplier_name' => 'Supplier', 'total_amount' => 'Total Amount', 'status' => 'Status']"
               default-sort="po_date" default-direction="desc">
-              
+              <x-slot:hidden><input type="hidden" name="record_view" value="{{ $activeTab }}"></x-slot:hidden>
               <x-slot:filters>
                 <x-ui.table-toolbar-field label="Status" name="status" default="">
-                  <option value="">All Active Statuses</option>
-                  @foreach(['For Review', 'Revision Required', 'Ordered', 'For Pick-up', 'For Delivery'] as $status)
+                  <option value="">All {{ $activeTab === 'history' ? 'History' : 'Active' }} Statuses</option>
+                  @foreach($activeTab === 'history' ? ['Delivered', 'Picked Up', 'Rejected'] : ['For Review', 'Revision Required', 'Ordered', 'For Pick-up', 'For Delivery'] as $status)
                     <option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>
                   @endforeach
                 </x-ui.table-toolbar-field>
@@ -163,14 +163,14 @@
                   $normalizedPoStatus = strtolower(trim((string) ($purchaseOrder->status ?? '')));
                   $isEditable = $normalizedPoStatus === 'revision required';
                   $isForReview = $normalizedPoStatus === 'for review';
-                  $canReviewPo = ((strtolower(trim((string) (auth()->user()->department ?? ''))) === 'purchase' && strtolower(trim((string) (auth()->user()->role ?? ''))) === 'head') || strtolower(trim((string) (auth()->user()->role ?? ''))) === 'system admin' || (strtolower(trim((string) (auth()->user()->department ?? ''))) === 'admin' && strtolower(trim((string) (auth()->user()->role ?? ''))) === 'head'));
+                  $canReviewPo = ((strtolower(trim((string) (auth()->user()->department ?? ''))) === 'purchase' && strtolower(trim((string) (auth()->user()->role ?? ''))) === 'head') || strtolower(trim((string) (auth()->user()->role ?? ''))) === 'system admin' || (strtolower(trim((string) (auth()->user()->department ?? ''))) === 'admin' && strtolower(trim((string) (auth()->user()->role ?? ''))) === 'head')) && (auth()->user()?->hasSystemPermission('purchase', 'approve') ?? false);
                   $isDraft = $normalizedPoStatus === 'draft';
                   $nextStatuses = [];
                 @endphp
 
                 <tr>
-                  <td><div class="po-number-cell"><strong>{{ $purchaseOrder->po_no }}</strong></div></td>
-                  <td><span class="po-reference">{{ $hasRequest ? $displayRequestNo : '—' }}</span></td>
+                  <td><div class="po-number-cell"><x-ui.id-badge :value="$purchaseOrder->po_no" size="small" tone="neutral" class="purchase-record-id" /></div></td>
+                  <td><x-ui.id-badge :value="$hasRequest ? $displayRequestNo : '—'" size="small" tone="neutral" class="po-reference purchase-record-id" /></td>
                   <td>
                     <div class="po-item-preview">
                       <strong>{{ $firstItemName ?: '—' }}</strong>
@@ -353,7 +353,8 @@ data-po-no="{{ $purchaseOrder->po_no }}"
           </table>
         </div>
 
-        <x-ui.table-footer :items="$purchaseOrders" data-lazy-pagination="true" />
+          <x-ui.table-footer :items="$purchaseOrders" data-lazy-pagination="true" />
+
       </section>
     </main>
   </div>
@@ -516,7 +517,8 @@ data-po-no="{{ $purchaseOrder->po_no }}"
 
   <div id="poDetailOverlay" class="modal-overlay po-detail-overlay" style="display:none" role="presentation">
     <div class="po-detail-dialog" role="dialog" aria-modal="true" aria-labelledby="poDetailTitle">
-      <header class="po-detail-header"><div><h2 id="poDetailTitle">Purchase Order Details</h2><p>View purchase items and recorded approval signatures.</p></div><button type="button" id="poDetailCloseTop" aria-label="Close"><i class="fa-solid fa-xmark"></i></button></header>
+      <header class="po-detail-header"><div><h2 id="poDetailTitle">Purchase Order Details</h2><p>View purchase items and recorded approval signatures.</p>
+</div><button type="button" id="poDetailCloseTop" aria-label="Close"><i class="fa-solid fa-xmark"></i></button></header>
       <div class="po-detail-body">
         <section class="po-detail-card"><div class="po-detail-facts">
           <div><span class="po-detail-fact-icon" aria-hidden="true"><i class="fa-solid fa-file-invoice"></i></span><span class="po-detail-fact-copy"><small>PO Number</small><strong id="poDetailNo">—</strong></span></div><div><span class="po-detail-fact-icon" aria-hidden="true"><i class="fa-solid fa-file-lines"></i></span><span class="po-detail-fact-copy"><small>PR Number</small><strong id="poDetailPr">—</strong></span></div>
@@ -655,7 +657,7 @@ data-po-no="{{ $purchaseOrder->po_no }}"
   </div>
   <style>
     .po-head-review-overlay{align-items:center;justify-content:center;padding:20px;z-index:1100}
-    .purchase-orders-page .purchase-order-card .po-status-cell .po-status-box{display:inline-flex!important;align-items:center!important;gap:5px!important;padding:6px 9px!important;min-height:27px!important;border:1px solid #c4d9f5!important;border-radius:5px!important;background:#edf5ff!important;color:#15549e!important;box-shadow:none!important;outline:none!important;white-space:nowrap!important}.purchase-orders-page .purchase-order-card .po-status-cell .po-status-box::before,.purchase-orders-page .purchase-order-card .po-status-cell .po-status-box::after{content:none!important;display:none!important}
+    .purchase-orders-page .purchase-order-card td.po-status-cell > [data-ui-component="status-badge"].po-status-box{display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:6px!important;min-width:96px!important;max-width:100%!important;height:30px!important;min-height:30px!important;padding:5px 10px!important;border:1px solid #c4d9f5!important;border-radius:7px!important;box-shadow:none!important;outline:none!important;white-space:nowrap!important}.purchase-orders-page .purchase-order-card .po-status-cell .po-status-box::before,.purchase-orders-page .purchase-order-card .po-status-cell .po-status-box::after{content:none!important;display:none!important}
     .purchase-orders-page .po-review-action,.purchase-orders-page .po-review-action:hover,.purchase-orders-page .po-review-action:focus-visible{transform:none!important;scale:1!important;box-shadow:none!important}
     .purchase-orders-page .po-review-action{transition:background-color .16s ease,color .16s ease,border-color .16s ease!important}
     .purchase-orders-page .po-review-action:hover{background:#cfe3ff!important;color:#084aa9!important;border-color:#92b9ec!important}

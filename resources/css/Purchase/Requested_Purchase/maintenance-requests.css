@@ -456,25 +456,7 @@
    VIEW MODAL OVERLAY
 ========================================================= */
 
-.requested-pr-view-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: var(--modal-backdrop-z-index, 99999);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  box-sizing: border-box;
-  background: var(--modal-backdrop-bg, rgba(15, 23, 42, 0.42));
-  backdrop-filter: var(--modal-backdrop-blur, blur(5px));
-  -webkit-backdrop-filter: var(--modal-backdrop-blur, blur(5px));
-  overscroll-behavior: contain;
-}
-
-.requested-pr-view-overlay.show,
-.requested-pr-view-overlay.active {
-  display: flex;
-}
+/* Shared Purchasing modal overlay rules: purchase-module-ui.css */
 
 /* =========================================================
    VIEW MODAL
@@ -1990,3 +1972,271 @@ main.purchase-maintenance-requests-page .requested-purchase-table td.requested-p
 /* Final PR Details footer sizing: Create PO matches Close, not global primary button. */
 .requested-pr-view-overlay .requested-pr-footer #requestedPrCreatePoForm:not([hidden]){display:inline-flex!important;width:auto!important;flex:0 0 auto!important;align-items:center;margin:0!important}
 .requested-pr-view-overlay .requested-pr-footer #requestedPrCreatePoForm .requested-pr-create-po-btn{height:34px!important;min-height:34px!important;max-height:34px!important;width:auto!important;min-width:0!important;padding:0 13px!important;font-size:11px!important;line-height:1!important;font-weight:700!important;box-sizing:border-box;flex:0 0 auto}
+
+
+/* 2026-11-20: Repair Purchase Requisitions table in dark mode and at narrower widths.
+   Seven columns and existing request/modal actions are deliberately unchanged. */
+main.purchase-maintenance-requests-page .requested-purchase-card,
+main.purchase-maintenance-requests-page .records-card { min-width: 0; }
+main.purchase-maintenance-requests-page .requested-purchase-card > .records-table-wrap,
+main.purchase-maintenance-requests-page .records-card > .records-table-wrap {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  margin-top: 14px;
+  overflow-x: auto !important;
+  overflow-y: visible;
+  scrollbar-width: thin;
+}
+main.purchase-maintenance-requests-page .requested-purchase-table {
+  width: 100%;
+  min-width: 1100px;
+  table-layout: auto !important;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+main.purchase-maintenance-requests-page .requested-purchase-table thead th,
+main.purchase-maintenance-requests-page .requested-purchase-table tbody td {
+  box-sizing: border-box;
+  padding: 13px 12px !important;
+  vertical-align: middle !important;
+  height: auto;
+}
+main.purchase-maintenance-requests-page .requested-purchase-table th:nth-child(1),
+main.purchase-maintenance-requests-page .requested-purchase-table td:nth-child(1) { width: 15%; min-width: 155px; }
+main.purchase-maintenance-requests-page .requested-purchase-table th:nth-child(2),
+main.purchase-maintenance-requests-page .requested-purchase-table td:nth-child(2) { width: 9%; min-width: 95px; }
+main.purchase-maintenance-requests-page .requested-purchase-table th:nth-child(3),
+main.purchase-maintenance-requests-page .requested-purchase-table td:nth-child(3) { width: 24%; min-width: 225px; }
+main.purchase-maintenance-requests-page .requested-purchase-table th:nth-child(4),
+main.purchase-maintenance-requests-page .requested-purchase-table td:nth-child(4) { width: 11%; min-width: 100px; text-align: left !important; }
+main.purchase-maintenance-requests-page .requested-purchase-table th:nth-child(5),
+main.purchase-maintenance-requests-page .requested-purchase-table td:nth-child(5) { width: 11%; min-width: 110px; text-align: center !important; }
+main.purchase-maintenance-requests-page .requested-purchase-table th:nth-child(6),
+main.purchase-maintenance-requests-page .requested-purchase-table td:nth-child(6) { width: 16%; min-width: 135px; text-align: center !important; }
+main.purchase-maintenance-requests-page .requested-purchase-table th:nth-child(7),
+main.purchase-maintenance-requests-page .requested-purchase-table td:nth-child(7) {
+  width: 14%;
+  min-width: 125px;
+  text-align: center !important;
+  padding-right: 15px !important;
+}
+main.purchase-maintenance-requests-page .requested-purchase-table .requested-pr-reference {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+main.purchase-maintenance-requests-page .requested-purchase-table .requested-pr-reference strong {
+  display: inline-block;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-size: 12px !important;
+  font-weight: 750 !important;
+  letter-spacing: 0;
+  overflow-wrap: anywhere;
+  white-space: normal !important;
+}
+main.purchase-maintenance-requests-page .requested-purchase-table td.requested-pr-quantity {
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  white-space: nowrap;
+}
+main.purchase-maintenance-requests-page .requested-purchase-table td.requested-pr-actions-cell .record-actions {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-width: 0;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+main.purchase-maintenance-requests-page .requested-purchase-table td.requested-pr-actions-cell .requested-pr-review-button {
+  box-sizing: border-box;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: auto !important;
+  min-width: 88px !important;
+  max-width: 100% !important;
+  height: 34px !important;
+  padding: 0 12px !important;
+  gap: 7px;
+  white-space: nowrap;
+}
+main.purchase-maintenance-requests-page .requested-purchase-table td.requested-pr-actions-cell .requested-pr-review-button:focus-visible {
+  outline: 2px solid #83b7ff !important;
+  outline-offset: 2px;
+}
+/* Explicit high-contrast text for dark-mode requisition rows. */
+html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] main.purchase-maintenance-requests-page .requested-purchase-table .requested-pr-reference strong,
+html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] main.purchase-maintenance-requests-page .requested-purchase-table td.requested-pr-quantity,
+html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] main.purchase-maintenance-requests-page .requested-purchase-table .requested-pr-part > strong,
+html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] main.purchase-maintenance-requests-page .requested-purchase-table .requested-pr-part-qty strong {
+  color: #eef5ff !important;
+}
+html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] main.purchase-maintenance-requests-page .requested-purchase-table td.requested-pr-quantity {
+  opacity: 1 !important;
+}
+html:not([data-gct-theme="dark"]) main.purchase-maintenance-requests-page .requested-purchase-table .requested-pr-reference strong,
+html:not([data-gct-theme="dark"]) main.purchase-maintenance-requests-page .requested-purchase-table td.requested-pr-quantity {
+  color: #142b4a !important;
+}
+@media (max-width: 760px) {
+  main.purchase-maintenance-requests-page .requested-purchase-table { min-width: 1060px; }
+  main.purchase-maintenance-requests-page .records-card > .records-table-wrap { overscroll-behavior-x: contain; }
+}
+
+
+/* Requisition status badges and expandable parts — consistent dark/light display. */
+main.purchase-maintenance-requests-page .requested-purchase-table td.requested-pr-status {
+  min-width: 175px !important;
+  width: 175px !important;
+  overflow: visible !important;
+  padding-left: 10px !important;
+  padding-right: 10px !important;
+  text-align: center !important;
+}
+main.purchase-maintenance-requests-page .requested-purchase-table th:nth-child(6) {
+  min-width: 175px !important;
+  width: 175px !important;
+}
+main.purchase-maintenance-requests-page .requested-purchase-table td.requested-pr-status > :is(.badge, .requested-pr-ordered-badge, [data-ui-component="status-badge"]) {
+  box-sizing: border-box !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: auto !important;
+  min-width: 125px !important;
+  max-width: none !important;
+  height: auto !important;
+  min-height: 32px !important;
+  padding: 6px 12px !important;
+  gap: 7px !important;
+  line-height: 1.3 !important;
+  border-radius: 7px !important;
+  white-space: nowrap !important;
+  overflow: visible !important;
+  vertical-align: middle;
+  font-size: 11px !important;
+  font-weight: 750 !important;
+}
+main.purchase-maintenance-requests-page .requested-purchase-table td.requested-pr-status .status-badge__label {
+  white-space: nowrap !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  width: auto !important;
+  max-width: none !important;
+  font-size: 11px !important;
+}
+main.purchase-maintenance-requests-page .requested-purchase-table td.requested-pr-status :is(i, .status-badge__icon) {
+  flex: 0 0 auto !important;
+}
+main.purchase-maintenance-requests-page .requested-purchase-table .requested-pr-part {
+  display: flex !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+  min-width: 0;
+  overflow: visible;
+}
+main.purchase-maintenance-requests-page .requested-purchase-table .requested-pr-part > strong {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+main.purchase-maintenance-requests-page .requested-purchase-table .requested-pr-more {
+  flex: 0 0 auto !important;
+  min-width: 0;
+  position: relative;
+}
+main.purchase-maintenance-requests-page .requested-purchase-table .requested-pr-more > summary {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px !important;
+  border: 1px solid #a9c6eb !important;
+  border-radius: 6px;
+  background: #eaf3ff !important;
+  color: #15549e !important;
+  font-size: 10px !important;
+  font-weight: 750 !important;
+  line-height: 1.3;
+  white-space: nowrap;
+  cursor: pointer;
+  list-style: none;
+}
+main.purchase-maintenance-requests-page .requested-purchase-table .requested-pr-more > summary::-webkit-details-marker { display: none; }
+main.purchase-maintenance-requests-page .requested-purchase-table .requested-pr-more > summary > i {
+  font-size: 9px;
+  transition: transform .15s ease;
+}
+main.purchase-maintenance-requests-page .requested-purchase-table .requested-pr-more > summary[aria-expanded="true"] > i {
+  transform: rotate(180deg);
+}
+main.purchase-maintenance-requests-page .requested-purchase-table .requested-pr-more > summary:focus-visible {
+  outline: 2px solid #71a9f3;
+  outline-offset: 2px;
+}
+.requested-pr-floating-popover {
+  box-sizing: border-box;
+  z-index: 100100 !important;
+  overflow-y: auto;
+  border: 1px solid #b9d2f3 !important;
+  border-radius: 9px;
+  padding: 7px 12px !important;
+  background: #ffffff !important;
+  box-shadow: 0 16px 36px rgba(0,0,0,.25) !important;
+  color: #142a49 !important;
+}
+.requested-pr-floating-popover .requested-pr-more-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  color: #142a49 !important;
+  font-size: 11px;
+  padding: 9px 2px;
+}
+.requested-pr-floating-popover .requested-pr-more-row + .requested-pr-more-row { border-top: 1px solid #e1e9f5; }
+.requested-pr-floating-popover .requested-pr-more-row strong { color: #123864 !important; white-space: nowrap; font-size: 11px; }
+html[data-gct-theme="dark"] body[data-gct-purchase-page="1"] main.purchase-maintenance-requests-page .requested-purchase-table .requested-pr-more > summary {
+  background: #243d5d !important;
+  color: #cce3ff !important;
+  border-color: #4b719b !important;
+}
+
+
+/* Parts dropdown matches Purchase Requisition details in dark mode.
+   The floating panel is appended to <body>, outside the .purchase page scope. */
+html[data-gct-theme="dark"] .requested-pr-floating-popover {
+  background: #1e2d43 !important;
+  border-color: #425b7a !important;
+  color: #edf3fc !important;
+  box-shadow: 0 16px 38px rgba(0, 0, 0, .42) !important;
+}
+html[data-gct-theme="dark"] .requested-pr-floating-popover .requested-pr-more-row,
+html[data-gct-theme="dark"] .requested-pr-floating-popover .requested-pr-more-row > span {
+  color: #edf3fc !important;
+}
+html[data-gct-theme="dark"] .requested-pr-floating-popover .requested-pr-more-row strong {
+  color: #c5ddff !important;
+  font-weight: 750 !important;
+  opacity: 1 !important;
+}
+html[data-gct-theme="dark"] .requested-pr-floating-popover .requested-pr-more-row + .requested-pr-more-row {
+  border-top-color: #3a516d !important;
+}
+
+

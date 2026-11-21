@@ -59,6 +59,15 @@ class RolePermissionService
             );
         }
 
+        foreach (['diagnostic', 'predictive', 'recommendations'] as $capability) {
+            if (filter_var(data_get($submittedPermissions, 'analytics.'.$capability, false), FILTER_VALIDATE_BOOLEAN)
+                && ! filter_var(data_get($submittedPermissions, 'analytics.view', false), FILTER_VALIDATE_BOOLEAN)) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'permissions.analytics.'.$capability => 'Analytics View is required before granting '.$capability.'.',
+                ]);
+            }
+        }
+
         // Analytics is shareable; operational modules remain department-isolated.
         foreach (array_keys($this->modules()['analytics']['capabilities']) as $capability) {
             $normalized['analytics'][$capability] = (bool) data_get(
@@ -156,9 +165,10 @@ class RolePermissionService
                 'icon' => 'fa-chart-line',
                 'description' => 'Operational analytics and decision-support recommendations',
                 'capabilities' => [
-                    'view' => ['label' => 'View', 'icon' => 'fa-eye'],
-                    'analyze' => ['label' => 'Analyze', 'icon' => 'fa-chart-column'],
-                    'recommendations' => ['label' => 'Recommendations', 'icon' => 'fa-lightbulb'],
+                    'view' => ['label' => 'Descriptive', 'icon' => 'fa-chart-column'],
+                    'diagnostic' => ['label' => 'Diagnostic', 'icon' => 'fa-magnifying-glass'],
+                    'predictive' => ['label' => 'Predictive', 'icon' => 'fa-chart-line'],
+                    'recommendations' => ['label' => 'Prescriptive', 'icon' => 'fa-lightbulb'],
                 ],
             ],
             'administration' => [

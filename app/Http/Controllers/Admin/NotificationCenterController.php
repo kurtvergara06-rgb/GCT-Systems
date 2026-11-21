@@ -13,6 +13,14 @@ use Illuminate\Support\Str;
 
 class NotificationCenterController extends Controller
 {
+    // Classification and SQL filtering share the same terminology/precedence.
+    // This prevents the Critical counter disagreeing with the Critical tab.
+    private const TYPE_TERMS = [
+        'critical' => ['critical', 'failed', 'security', 'rejected'],
+        'warning' => ['warning', 'low stock', 'on hold', 'overdue', 'due soon'],
+        'success' => ['completed', 'approved', 'received', 'success', 'created'],
+    ];
+
     public function index(Request $request)
     {
         return view('Admin.System_Monitoring.notifications', $this->data($request));
@@ -91,15 +99,9 @@ class NotificationCenterController extends Controller
         $unreadQuery = clone $all;
         $this->applyUnreadFilter($unreadQuery, $readAt, $individuallyReadIds);
         $unreadNotifications = $unreadQuery->count();
-        $criticalAlerts = (clone $all)
-            ->where(function ($builder): void {
-                $builder
-                    ->where('message', 'like', '%critical%')
-                    ->orWhere('message', 'like', '%failed%')
-                    ->orWhere('action', 'like', '%reject%')
-                    ->orWhere('action', 'like', '%security%');
-            })
-            ->count();
+        $criticalQuery = clone $all;
+        $this->applyTypeFilter($criticalQuery, 'critical');
+        $criticalAlerts = $criticalQuery->count();
         $systemUpdates = max(0, $totalNotifications - $criticalAlerts);
 
         $modules = TopbarNotification::query()
@@ -202,18 +204,12 @@ class NotificationCenterController extends Controller
 
     private function typeFor(TopbarNotification $notification): string
     {
-        $text = strtolower(trim($notification->action . ' ' . $notification->message));
+        $text = strtolower(trim((string) $notification->action.' '.(string) $notification->message));
 
-        if (Str::contains($text, ['critical', 'failed', 'security', 'rejected'])) {
-            return 'Critical';
-        }
-
-        if (Str::contains($text, ['warning', 'low stock', 'on hold', 'overdue', 'due soon'])) {
-            return 'Warning';
-        }
-
-        if (Str::contains($text, ['completed', 'approved', 'received', 'success', 'created'])) {
-            return 'Success';
+        foreach (self::TYPE_TERMS as $type => $terms) {
+            if (Str::contains($text, $terms)) {
+                return ucfirst($type);
+            }
         }
 
         return 'Update';
@@ -222,47 +218,39 @@ class NotificationCenterController extends Controller
     private function applyTypeFilter($query, string $type): void
     {
         $type = strtolower($type);
+        if (! in_array($type, ['critical', 'warning', 'success', 'update'], true)) {
+            // Unknown categories must not accidentally show all notifications.
+            $query->whereRaw('1 = 0');
+            return;
+        }
 
-        if ($type === 'critical') {
-            $query->where(function ($builder): void {
-                $builder->where('message', 'like', '%critical%')
-                    ->orWhere('message', 'like', '%failed%')
-                    ->orWhere('action', 'like', '%reject%')
-                    ->orWhere('action', 'like', '%security%');
+        // Exclude higher-severity matches first: a security alert containing
+        // "completed" remains Critical rather than also appearing in Success.
+        foreach (self::TYPE_TERMS as $category => $terms) {
+            if ($category === $type) {
+                $this->applyTermGroup($query, $terms, true);
+                return;
+            }
+            $this->applyTermGroup($query, $terms, false);
+        }
+        // Update includes only entries not matching the other categories.
+    }
+
+    private function applyTermGroup($query, array $terms, bool $include): void
+    {
+        $match = static function ($builder) use ($terms): void {
+            $builder->where(function ($group) use ($terms): void {
+                foreach ($terms as $term) {
+                    $group->orWhereRaw("LOWER(COALESCE(action, '')) LIKE ?", ['%'.$term.'%'])
+                        ->orWhereRaw("LOWER(COALESCE(message, '')) LIKE ?", ['%'.$term.'%']);
+                }
             });
-        } elseif ($type === 'warning') {
-            $query->where(function ($builder): void {
-                $builder->where('message', 'like', '%warning%')
-                    ->orWhere('message', 'like', '%low stock%')
-                    ->orWhere('message', 'like', '%on hold%')
-                    ->orWhere('message', 'like', '%overdue%')
-                    ->orWhere('message', 'like', '%due soon%');
-            });
-        } elseif ($type === 'success') {
-            $query->where(function ($builder): void {
-                $builder->where('action', 'like', '%completed%')
-                    ->orWhere('action', 'like', '%approved%')
-                    ->orWhere('action', 'like', '%received%')
-                    ->orWhere('action', 'like', '%created%')
-                    ->orWhere('message', 'like', '%success%');
-            });
-        } elseif ($type === 'update') {
-            $query->where(function ($builder): void {
-                $builder->whereRaw('LOWER(CONCAT(COALESCE(action, \'\'), \' \', COALESCE(message, \'\'))) NOT LIKE ?', ['%critical%'])
-                    ->whereRaw('LOWER(CONCAT(COALESCE(action, \'\'), \' \', COALESCE(message, \'\'))) NOT LIKE ?', ['%failed%'])
-                    ->whereRaw('LOWER(CONCAT(COALESCE(action, \'\'), \' \', COALESCE(message, \'\'))) NOT LIKE ?', ['%security%'])
-                    ->whereRaw('LOWER(CONCAT(COALESCE(action, \'\'), \' \', COALESCE(message, \'\'))) NOT LIKE ?', ['%rejected%'])
-                    ->whereRaw('LOWER(CONCAT(COALESCE(action, \'\'), \' \', COALESCE(message, \'\'))) NOT LIKE ?', ['%warning%'])
-                    ->whereRaw('LOWER(CONCAT(COALESCE(action, \'\'), \' \', COALESCE(message, \'\'))) NOT LIKE ?', ['%low stock%'])
-                    ->whereRaw('LOWER(CONCAT(COALESCE(action, \'\'), \' \', COALESCE(message, \'\'))) NOT LIKE ?', ['%on hold%'])
-                    ->whereRaw('LOWER(CONCAT(COALESCE(action, \'\'), \' \', COALESCE(message, \'\'))) NOT LIKE ?', ['%overdue%'])
-                    ->whereRaw('LOWER(CONCAT(COALESCE(action, \'\'), \' \', COALESCE(message, \'\'))) NOT LIKE ?', ['%due soon%'])
-                    ->whereRaw('LOWER(CONCAT(COALESCE(action, \'\'), \' \', COALESCE(message, \'\'))) NOT LIKE ?', ['%completed%'])
-                    ->whereRaw('LOWER(CONCAT(COALESCE(action, \'\'), \' \', COALESCE(message, \'\'))) NOT LIKE ?', ['%approved%'])
-                    ->whereRaw('LOWER(CONCAT(COALESCE(action, \'\'), \' \', COALESCE(message, \'\'))) NOT LIKE ?', ['%received%'])
-                    ->whereRaw('LOWER(CONCAT(COALESCE(action, \'\'), \' \', COALESCE(message, \'\'))) NOT LIKE ?', ['%success%'])
-                    ->whereRaw('LOWER(CONCAT(COALESCE(action, \'\'), \' \', COALESCE(message, \'\'))) NOT LIKE ?', ['%created%']);
-            });
+        };
+
+        if ($include) {
+            $query->where($match);
+        } else {
+            $query->whereNot($match);
         }
     }
 

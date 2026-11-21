@@ -24,6 +24,7 @@ use Illuminate\Support\Facades\Storage;
     'role',
     'status',
     'last_login_at',
+    'password_changed_at',
     'avatar_path',
 ])]
 #[Hidden([
@@ -77,6 +78,11 @@ class User extends Authenticatable implements MustVerifyEmail
             return false;
         }
 
+        if ($module === 'analytics' && $capability !== 'view'
+            && ! (bool) data_get($rolePermission->permissions, 'analytics.view', false)) {
+            return false;
+        }
+
         return (bool) data_get(
             $rolePermission->permissions,
             $module.'.'.$capability,
@@ -120,6 +126,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'last_login_at' => 'datetime',
+            'password_changed_at' => 'datetime',
             'must_change_password' => 'boolean',
             'onboarding_completed' => 'boolean',
             'onboarding_completed_at' => 'datetime',

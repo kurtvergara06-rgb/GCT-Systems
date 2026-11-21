@@ -46,7 +46,7 @@ Route::middleware([
             ->group(function () {
                 Route::get('/', 'index')->name('part-requests');
                 Route::post('/restocking', [RestockingPurchaseRequestController::class, 'store'])
-                    ->middleware('system.permission:warehouse,edit')->name('part-requests.restock.store');
+                    ->middleware(['system.permission:warehouse,edit', 'system.permission:warehouse,approve'])->name('part-requests.restock.store');
                 Route::post('/job-orders/{jobOrder}/issue', 'issueJobOrder')
                     ->middleware('system.permission:warehouse,edit')
                     ->name('part-requests.job-order.issue');
@@ -54,10 +54,10 @@ Route::middleware([
                     ->middleware('system.permission:warehouse,edit')
                     ->name('part-requests.issue');
                 Route::post('/{purchaseRequest}/send-to-purchase', 'sendToPurchase')
-                    ->middleware('role:warehouse:head,warehouse:warehouse head,admin:head,admin:admin,admin:system admin')
+                    ->middleware(['role:warehouse:head,warehouse:warehouse head,admin:head,admin:admin,admin:system admin', 'system.permission:warehouse,approve'])
                     ->name('part-requests.send-to-purchase');
                 Route::post('/{purchaseRequest}/return-for-revision', 'returnForRevision')
-                    ->middleware('role:warehouse:head,warehouse:warehouse head,admin:head,admin:admin,admin:system admin')
+                    ->middleware(['role:warehouse:head,warehouse:warehouse head,admin:head,admin:admin,admin:system admin', 'system.permission:warehouse,approve'])
                     ->name('part-requests.return-for-revision');
             });
 

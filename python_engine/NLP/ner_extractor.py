@@ -144,7 +144,7 @@ def _event_entities(text: str) -> list[dict[str, str]]:
     return events
 
 
-def extract_entities(text: str | None) -> dict[str, object]:
+def extract_entities(text: str | None, *, use_spacy: bool = True) -> dict[str, object]:
     """Extract operational entities from free text.
 
     Returned keys are stable so downstream severity/analytics code can depend
@@ -174,7 +174,7 @@ def extract_entities(text: str | None) -> dict[str, object]:
     organizations: list[str] = []
     source = "domain_rules"
 
-    nlp = _get_spacy_model()
+    nlp = _get_spacy_model() if use_spacy else None
     if nlp is not None:
         try:
             doc = nlp(text)

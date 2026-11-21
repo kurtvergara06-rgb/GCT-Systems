@@ -185,7 +185,9 @@ def save_inventory_model(
         "target_range": result.target_range,
         "periods": result.periods,
         "disclaimer": (
-            "SAMPLE / DEVELOPMENT DATA - NOT ACTUAL GCT OPERATIONAL DATA"
+            "GENUINE GCT WAREHOUSE LEDGER DATA"
+            if result.source == "genuine"
+            else "SAMPLE / DEVELOPMENT DATA - NOT ACTUAL GCT OPERATIONAL DATA"
         ),
     }
     with open(paths["features"], "w", encoding="utf-8") as f:
@@ -256,7 +258,7 @@ def save_inventory_model(
     logger.info("Wrote inventory model report to %s", paths["report"])
 
 
-def save_state(result: InventoryModelResult, paths: Optional[Dict[str, Path]] = None) -> None:
+def save_state(result: InventoryModelResult, paths: Optional[Dict[str, Path]] = None, *, genuine_gate_passed: bool = False) -> None:
     """Write a JSON state file describing inventory model readiness."""
     paths = paths or model_paths()
     paths["dir"].mkdir(parents=True, exist_ok=True)
@@ -269,11 +271,20 @@ def save_state(result: InventoryModelResult, paths: Optional[Dict[str, Path]] = 
     state = {
         **metadata,
         "model_ready": result.trained,
+        "genuine_gate_passed": bool(result.source == "genuine" and result.trained and genuine_gate_passed),
         "message": (
-            "INVENTORY_ML_READY (SAMPLE/DEVELOPMENT)" if result.trained else "INVENTORY_ML_NOT_READY"
+            "INVENTORY_ML_READY (GENUINE GCT DATA)"
+            if result.trained and result.source == "genuine" and genuine_gate_passed
+            else "INVENTORY_ML_READY (SAMPLE/DEVELOPMENT)"
+            if result.trained and result.source != "genuine"
+            else "INVENTORY_ML_NOT_READY"
         ),
         "source": result.source,
-        "disclaimer": "SAMPLE / DEVELOPMENT DATA - NOT ACTUAL GCT OPERATIONAL DATA",
+        "disclaimer": (
+            "GENUINE GCT WAREHOUSE LEDGER DATA"
+            if result.source == "genuine" and genuine_gate_passed
+            else "SAMPLE / DEVELOPMENT DATA - NOT ACTUAL GCT OPERATIONAL DATA"
+        ),
         "sample_count": result.n_samples,
         "n_train": result.n_train,
         "n_test": result.n_test,

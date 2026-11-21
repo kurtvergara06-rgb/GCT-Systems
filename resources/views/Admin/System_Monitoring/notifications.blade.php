@@ -1,11 +1,8 @@
 <x-layout.app
     title="FROMS - Notifications"
     :assets="[
-        'resources/css/Main-styles/main.css',
-        'resources/css/Main-styles/sidebar.css',
         'resources/css/Admin/System_Monitoring/notifications.css',
         'resources/css/Admin/System_Monitoring/notifications-components.css',
-        'resources/js/Main-js/sidebar.js',
         'resources/js/Admin/System_Monitoring/notifications.js',
     ]"
 >
@@ -161,9 +158,9 @@
                         <x-admin.notification-item :notification="$notification" />
                     @empty
                         <x-ui.empty-state
-                            icon="fa-bell-slash"
-                            title="No notifications"
-                            description="System notifications will appear here when new events are recorded."
+                            icon="{{ $activeNotificationView === 'critical' ? 'fa-shield-halved' : ($activeNotificationView === 'unread' ? 'fa-envelope-open' : 'fa-bell-slash') }}"
+                            title="{{ match ($activeNotificationView) { 'critical' => 'No critical alerts', 'unread' => 'No unread notifications', 'history' => 'No notification history', default => 'No notifications' } }}"
+                            description="{{ match ($activeNotificationView) { 'critical' => 'There are no critical alerts matching the selected filters.', 'unread' => 'All caught up. There are no unread notifications.', 'history' => 'No read notifications match the selected filters.', default => 'No notifications match the current selection.' } }}"
                         />
                     @endforelse
 

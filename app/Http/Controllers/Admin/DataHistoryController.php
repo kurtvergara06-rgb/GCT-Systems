@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Admin\BatchUpload;
 use App\Models\Admin\DataActivity;
 use App\Support\TableSort;
 use Illuminate\Http\JsonResponse;
@@ -48,7 +49,8 @@ class DataHistoryController extends Controller
         $stats = [
             'total' => (clone $batchActivities)->count(),
             'successful' => (clone $batchActivities)->where('status', 'Completed')->count(),
-            'processed_files' => (clone $batchActivities)->where('status', 'Completed')->count(),
+            // Distinct files successfully published by the GPS batch workflow.
+            'processed_files' => BatchUpload::query()->where('status', 'Processed')->count(),
             'failed' => (clone $batchActivities)->whereIn('status', ['Failed', 'Needs Correction'])->count(),
         ];
 

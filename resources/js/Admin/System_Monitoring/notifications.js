@@ -26,9 +26,13 @@ window.GCTPartialNavigation.registerInitializer('admin-notifications', '.notific
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
 
     const updateEmptyState = () => {
-        const visible = rows().filter((item) => !item.hidden).length;
+        const notificationRows = rows();
+        const visible = notificationRows.filter((item) => !item.hidden).length;
+        // The Blade empty state already handles genuinely empty result sets.
+        // Only show the client-side "No matching" message when filters hide
+        // existing records; never display both empty states together.
         if (empty) {
-            empty.hidden = visible !== 0;
+            empty.hidden = notificationRows.length === 0 || visible !== 0;
         }
     };
 

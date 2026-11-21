@@ -25,7 +25,7 @@
     min-height: 42px;
     padding: 0 16px;
     border-color: #e7edf6;
-    background: #fff;
+    background: light-dark(#fff, var(--gct-theme-surface));
 }
 
 .fleet-trip-page .fleet-analytics-tab.active {
@@ -182,7 +182,7 @@
 .analytics-table td {
     padding: 10px 8px;
     color: #344258;
-    border-bottom: 1px solid #edf2f7;
+    border-bottom: 1px solid light-dark(#edf2f7, var(--gct-theme-border));
     vertical-align: middle;
 }
 
@@ -241,7 +241,7 @@
     align-items: center;
     gap: 10px;
     padding: 9px 0;
-    border-bottom: 1px solid #edf2f7;
+    border-bottom: 1px solid light-dark(#edf2f7, var(--gct-theme-border));
 }
 
 .analytics-rank-row:last-child { border-bottom: 0; }
@@ -366,7 +366,7 @@
 .predictive-summary-note {
     padding: 10px 12px;
     border-radius: 10px;
-    background: #f8fbff;
+    background: light-dark(#f8fbff, var(--gct-theme-surface));
     color: #5f6f83;
     font-size: 10px;
 }
@@ -476,7 +476,7 @@
     width: 112px;
     height: 112px;
     border-radius: 50%;
-    background: #ffffff;
+    background: light-dark(#ffffff, var(--gct-theme-surface));
 }
 
 .diagnostic-donut-center {
@@ -510,8 +510,8 @@
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    border-bottom: 1px solid #edf2f7;
-    color: #475569;
+    border-bottom: 1px solid light-dark(#edf2f7, var(--gct-theme-border));
+    color: light-dark(#475569, var(--gct-theme-muted));
     font-size: 10px;
 }
 
@@ -634,7 +634,7 @@
 
 .forecast-group > strong {
     align-self: end;
-    color: #475569;
+    color: light-dark(#475569, var(--gct-theme-muted));
     font-size: 9px;
 }
 

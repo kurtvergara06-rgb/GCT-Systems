@@ -39,10 +39,12 @@ def is_genuine() -> bool:
 def data_thresholds() -> Dict[str, int]:
     """Minimum data before the inventory model is considered usable."""
     return {
-        "min_rows": int(os.environ.get("INVENTORY_MIN_ROWS", "1000")),
+        # Fleet-level (part, week) coverage, not a fabricated bus count.
+        "min_rows": int(os.environ.get("INVENTORY_MIN_ROWS", "260")),
         "min_buses": int(os.environ.get("INVENTORY_MIN_BUSES", "3")),
-        "min_parts": int(os.environ.get("INVENTORY_MIN_PARTS", "10")),
+        "min_parts": int(os.environ.get("INVENTORY_MIN_PARTS", "20")),
         "min_weeks": int(os.environ.get("INVENTORY_MIN_WEEKS", "13")),
+        "min_stock_out_events": int(os.environ.get("INVENTORY_MIN_STOCK_OUT_EVENTS", "500")),
     }
 
 

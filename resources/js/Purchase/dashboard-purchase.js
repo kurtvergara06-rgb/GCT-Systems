@@ -7,6 +7,17 @@ const chartIds = [
     'purchaseSpendTrendChart',
 ];
 
+// Chart.js draws axis labels directly to canvas, so CSS alone cannot recolor them.
+const purchaseChartPalette = () => {
+    const dark = document.documentElement.dataset.gctTheme === 'dark';
+    return {
+        tick: dark ? '#b1bfd2' : '#64748b',
+        grid: dark ? 'rgba(83, 106, 136, 0.35)' : 'rgba(226, 232, 240, 0.65)',
+        segmentBorder: dark ? '#162235' : '#ffffff',
+        emptySegment: dark ? '#35465e' : '#e2e8f0',
+    };
+};
+
 const destroyChart = (canvas) => {
     if (!canvas) return;
     const existing = Chart.getChart(canvas);
@@ -60,6 +71,7 @@ function initializeFulfillmentChart() {
     }
 
     const total = values.reduce((sum, v) => sum + Number(v || 0), 0);
+    const palette = purchaseChartPalette();
 
     new Chart(canvas, {
         type: 'doughnut',
@@ -67,8 +79,8 @@ function initializeFulfillmentChart() {
             labels,
             datasets: [{
                 data: total === 0 ? [1] : values,
-                backgroundColor: total === 0 ? ['#e2e8f0'] : colors,
-                borderColor: '#ffffff',
+                backgroundColor: total === 0 ? [palette.emptySegment] : colors,
+                borderColor: palette.segmentBorder,
                 borderWidth: 3,
                 hoverOffset: 6,
             }],
@@ -122,6 +134,7 @@ function initializeSpendTrendChart() {
     const spendValues = trendData.map((d) => Number(d.spend || 0));
     const orderValues = trendData.map((d) => Number(d.orders || 0));
 
+    const palette = purchaseChartPalette();
     const maxSpend = Math.max(0, ...spendValues);
     const hasData = spendValues.some((v) => v > 0) || orderValues.some((v) => v > 0);
 
@@ -137,7 +150,7 @@ function initializeSpendTrendChart() {
             labels,
             datasets: [
                 {
-                    label: 'Spend Amount',
+                    label: 'Committed PO Value',
                     data: spendValues,
                     backgroundColor: barGradient,
                     hoverBackgroundColor: '#062d82',
@@ -158,7 +171,7 @@ function initializeSpendTrendChart() {
                     grid: { display: false },
                     border: { display: false },
                     ticks: {
-                        color: '#64748b',
+                        color: palette.tick,
                         font: { size: 11, weight: '600', family: 'Poppins, Inter, sans-serif' },
                     },
                 },
@@ -168,13 +181,13 @@ function initializeSpendTrendChart() {
                     beginAtZero: true,
                     suggestedMax: maxSpend > 0 ? maxSpend * 1.15 : 5000,
                     grid: {
-                        color: 'rgba(226, 232, 240, 0.65)',
+                        color: palette.grid,
                         borderDash: [3, 3],
                         drawTicks: false,
                     },
                     border: { display: false },
                     ticks: {
-                        color: '#64748b',
+                        color: palette.tick,
                         font: { size: 10, family: 'Poppins, Inter, sans-serif' },
                         maxTicksLimit: 5,
                         callback: (val) => {
@@ -194,7 +207,7 @@ function initializeSpendTrendChart() {
                             const index = items[0]?.dataIndex;
                             return fullLabels[index] || items[0]?.label || '';
                         },
-                        label: (ctx) => ` Spend: ${formatPeso(ctx.parsed.y)}`,
+                        label: (ctx) => ` Committed value: ${formatPeso(ctx.parsed.y)}`,
                         afterBody: (items) => {
                             const idx = items[0]?.dataIndex;
                             const ord = orderValues[idx] || 0;

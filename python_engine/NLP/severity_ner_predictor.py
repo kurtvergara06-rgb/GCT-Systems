@@ -41,9 +41,9 @@ def build_text(record: dict[str, Any]) -> str:
     )
 
 
-def predict_record(record: dict[str, Any]) -> dict[str, Any]:
+def predict_record(record: dict[str, Any], *, use_spacy: bool = True) -> dict[str, Any]:
     base = base_severity(record)
-    entities = extract_entities(build_text(record))
+    entities = extract_entities(build_text(record), use_spacy=use_spacy)
     event_labels = {
         str(event.get("label"))
         for event in entities.get("events", [])

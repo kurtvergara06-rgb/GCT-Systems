@@ -5,13 +5,13 @@
 .batch-processing-page {
     --batch-primary: #0b40b5;
     --batch-primary-dark: #082f83;
-    --batch-navy: #061f3d;
+    --batch-navy: light-dark(#061f3d, var(--gct-theme-fg));
     --batch-yellow: #ffc400;
-    --batch-text: #0f172a;
-    --batch-muted: #64748b;
-    --batch-border: #dbe4f0;
-    --batch-soft: #f8fafc;
-    --batch-white: #ffffff;
+    --batch-text: light-dark(#0f172a, var(--gct-theme-fg));
+    --batch-muted: light-dark(#64748b, var(--gct-theme-muted));
+    --batch-border: light-dark(#dbe4f0, var(--gct-theme-border));
+    --batch-soft: light-dark(#f8fafc, var(--gct-theme-surface-raised));
+    --batch-white: light-dark(#ffffff, var(--gct-theme-surface));
     --batch-green: #16a34a;
     --batch-red: #dc2626;
     --batch-orange: #b45309;
@@ -105,8 +105,8 @@
     padding: 0 14px;
     border: 1px solid var(--batch-border);
     border-radius: 9px;
-    background: #f8fafc;
-    color: #061f3d;
+    background: light-dark(#f8fafc, var(--gct-theme-surface-raised));
+    color: var(--batch-text);
     font-size: 13px;
     font-weight: 700;
 }
@@ -135,7 +135,7 @@
     border: 1px solid var(--batch-border);
     border-radius: 9px;
     outline: none;
-    background: #ffffff;
+    background: light-dark(#ffffff, var(--gct-theme-surface));
     color: var(--batch-text);
     font: inherit;
     font-size: 12px;
@@ -155,9 +155,9 @@
     min-height: 112px;
     margin-top: 14px;
     padding: 16px;
-    border: 1.5px dashed #b8cae0;
+    border: 1.5px dashed light-dark(#b8cae0, #5a7291);
     border-radius: 13px;
-    background: #f8fbff;
+    background: light-dark(#f8fbff, var(--gct-theme-surface-raised));
     display: flex;
     align-items: center;
     justify-content: center;
@@ -168,8 +168,8 @@
 
 .compact-dropzone:hover,
 .compact-dropzone.drag-active {
-    border-color: var(--batch-primary);
-    background: #eef5ff;
+    border-color: light-dark(var(--batch-primary), #83a9f0);
+    background: light-dark(#eef5ff, var(--gct-theme-hover));
 }
 
 .dropzone-icon {
@@ -177,8 +177,8 @@
     height: 46px;
     flex: 0 0 46px;
     border-radius: 12px;
-    background: #e7f0ff;
-    color: var(--batch-primary);
+    background: light-dark(#e7f0ff, #274567);
+    color: light-dark(var(--batch-primary), #a7caff);
     display: grid;
     place-items: center;
     font-size: 18px;
@@ -255,7 +255,7 @@
     padding: 0 15px;
     border-radius: 10px;
     background: var(--batch-yellow);
-    color: var(--batch-navy);
+    color: light-dark(#061f3d, #13253d);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -275,6 +275,12 @@
 .save-all-records-btn:disabled {
     cursor: not-allowed;
     opacity: 0.55;
+}
+html[data-gct-theme="dark"] .batch-processing-page .upload-data-btn:disabled {
+    opacity: 1;
+    background: #75601c;
+    color: #f0d993;
+    border: 1px solid #8a7125;
 }
 
 /* =========================================================
@@ -299,7 +305,7 @@
     padding: 0 14px;
     border: 1px solid var(--batch-border);
     border-radius: 10px;
-    background: #ffffff;
+    background: light-dark(#ffffff, var(--gct-theme-surface));
     color: var(--batch-text);
     display: inline-flex;
     align-items: center;
@@ -326,9 +332,9 @@
 .batch-stat {
     min-width: 0;
     padding: 12px;
-    border: 1px solid #e4ebf4;
+    border: 1px solid light-dark(#e4ebf4, var(--gct-theme-border));
     border-radius: 12px;
-    background: #fbfdff;
+    background: light-dark(#fbfdff, var(--gct-theme-surface-raised));
     display: flex;
     align-items: center;
     gap: 10px;
@@ -384,9 +390,9 @@
 .latest-batch-card {
     margin-top: 14px;
     padding: 14px;
-    border: 1px solid #dce7f4;
+    border: 1px solid light-dark(#dce7f4, var(--gct-theme-border));
     border-radius: 13px;
-    background: #f8fbff;
+    background: light-dark(#f8fbff, var(--gct-theme-surface));
 }
 
 .latest-batch-header {
@@ -474,7 +480,7 @@
     padding: 9px 10px;
     border: 1px solid #e2eaf4;
     border-radius: 9px;
-    background: #ffffff;
+    background: light-dark(#ffffff, var(--gct-theme-surface));
 }
 
 .latest-batch-counts span {
@@ -570,7 +576,7 @@
     flex: 0 0 auto;
     margin-bottom: 12px;
     padding-bottom: 12px;
-    border-bottom: 1px solid #e7edf5;
+    border-bottom: 1px solid light-dark(#e7edf5, var(--gct-theme-border));
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
@@ -583,6 +589,7 @@
     min-height: 0;
     max-height: none;
     overflow-y: auto;
+    overflow-x: hidden;
     padding-right: 6px;
 }
 
@@ -590,6 +597,7 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
+    min-width: 0;
 }
 
 .uploaded-file-list::-webkit-scrollbar,
@@ -607,15 +615,19 @@
     display: flex;
     align-items: center;
     gap: 8px;
+    min-width: 0;
+    width: 100%;
 }
 
 .uploaded-file {
-    width: 100%;
+    flex: 1 1 0;
+    min-width: 0;
+    width: auto;
     min-height: 58px;
     padding: 10px;
-    border: 1px solid #e1e9f3;
+    border: 1px solid light-dark(#e1e9f3, var(--gct-theme-border));
     border-radius: 11px;
-    background: #ffffff;
+    background: light-dark(#ffffff, var(--gct-theme-surface));
     color: inherit;
     display: flex;
     align-items: center;
@@ -627,8 +639,8 @@
 
 .uploaded-file:hover,
 .uploaded-file.active-file {
-    border-color: #9fc0f4;
-    background: #eef5ff;
+    border-color: light-dark(#9fc0f4, #567aa7);
+    background: light-dark(#eef5ff, var(--gct-theme-hover));
 }
 
 .uploaded-file.active-file {
@@ -777,7 +789,7 @@
     padding: 14px;
     border: 1px solid var(--batch-border);
     border-radius: 11px;
-    background: #f8fafc;
+    background: light-dark(#f8fafc, var(--gct-theme-surface));
 }
 
 .text-preview pre {
@@ -884,7 +896,7 @@
     position: absolute;
     top: 50%;
     left: 12px;
-    color: #64748b;
+    color: light-dark(#64748b, var(--gct-theme-muted));
     font-size: 12px;
     transform: translateY(-50%);
 }
@@ -930,7 +942,7 @@
     overscroll-behavior: contain;
     border: 1px solid var(--batch-border);
     border-radius: 12px;
-    background: #ffffff;
+    background: light-dark(#ffffff, var(--gct-theme-surface));
     scrollbar-gutter: stable;
     scrollbar-width: thin;
     scrollbar-color: #cbd5e1 transparent;
@@ -949,13 +961,13 @@
     z-index: 5;
     height: 42px;
     padding: 0 11px;
-    border-bottom: 1px solid var(--batch-border);
-    box-shadow: 0 1px 0 var(--batch-border);
-    background: #edf3fb;
-    color: #3e5169;
-    font-size: 10px;
-    font-weight: 900;
-    letter-spacing: 0.03em;
+    border-bottom: 1px solid light-dark(#dce5f0, #41536d);
+    box-shadow: none;
+    background: light-dark(#f3f7fb, var(--gct-theme-surface-raised));
+    color: light-dark(#41516a, var(--gct-theme-muted));
+    font-size: 10.5px;
+    font-weight: 800;
+    letter-spacing: .055em;
     text-align: left;
     text-transform: uppercase;
     white-space: nowrap;
@@ -964,8 +976,8 @@
 .batch-records-table td {
     height: 50px;
     padding: 0 11px;
-    border-bottom: 1px solid #e7edf5;
-    color: #334155;
+    border-bottom: 1px solid light-dark(#b9cadd, #41536d);
+    color: light-dark(#334155, var(--gct-theme-fg));
     font-size: 11px;
     text-align: left;
     vertical-align: middle;
@@ -978,8 +990,12 @@
     font-weight: 800;
 }
 
+.batch-records-table tbody tr:nth-child(even) {
+    background: light-dark(#f7f9fc, var(--gct-theme-surface-raised));
+}
+
 .batch-records-table tbody tr:hover {
-    background: #f7faff;
+    background: light-dark(#edf4ff, var(--gct-theme-hover));
 }
 
 .batch-records-table tbody tr:last-child td {
@@ -1018,7 +1034,7 @@
     padding: 0 14px;
     border: 1px solid #d8e2ef;
     border-radius: 8px;
-    background: #ffffff;
+    background: light-dark(#ffffff, var(--gct-theme-surface));
     color: #163b62;
     display: inline-flex;
     align-items: center;
@@ -1042,7 +1058,7 @@
 }
 
 .simple-page-info {
-    color: #64748b;
+    color: light-dark(#64748b, var(--gct-theme-muted));
     font-size: 13px;
     font-weight: 700;
     white-space: nowrap;
@@ -1102,6 +1118,7 @@
     border: 1px solid #d9e3ef;
     border-radius: 18px;
     background: #ffffff;
+    color: #0b2344;
     display: flex;
     flex-direction: column;
     box-shadow: 0 28px 80px rgba(15, 23, 42, 0.28);
@@ -1112,12 +1129,13 @@
     width: min(1420px, 94vw);
 }
 
+html[data-gct-theme="dark"] .records-modal { background:#18263b; color:#eaf2fc; border-color:#41536d; }
 .records-modal-header {
     flex: 0 0 auto;
     min-height: 72px;
     padding: 16px 18px;
     border-bottom: 1px solid #e5ebf3;
-    background: #ffffff;
+    background: light-dark(#ffffff, var(--gct-theme-surface));
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
@@ -1146,7 +1164,7 @@
     flex: 0 0 36px;
     border: 1px solid #e1e8f0;
     border-radius: 10px;
-    background: #f8fafc;
+    background: light-dark(#f8fafc, var(--gct-theme-surface));
     color: var(--batch-navy);
     cursor: pointer;
     display: grid;
@@ -1165,7 +1183,7 @@
     margin: 0;
     padding: 10px 18px;
     border-bottom: 1px solid #e8eef5;
-    background: #f8fafc;
+    background: light-dark(#f8fafc, var(--gct-theme-surface));
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -1183,7 +1201,7 @@
     border: 1px solid #cfdbe8;
     border-radius: 9px;
     outline: none;
-    background: #ffffff;
+    background: light-dark(#ffffff, var(--gct-theme-surface));
     color: var(--batch-text);
     font-size: 11px;
 }
@@ -1200,7 +1218,7 @@
     padding: 7px 10px;
     border-radius: 999px;
     background: #eef2f7;
-    color: #64748b;
+    color: light-dark(#64748b, var(--gct-theme-muted));
     font-size: 10px;
     font-weight: 800;
     white-space: nowrap;
@@ -1255,8 +1273,8 @@
 }
 
 .clean-data-note {
-    background: #f8fafc;
-    color: #64748b;
+    background: light-dark(#f8fafc, var(--gct-theme-surface));
+    color: light-dark(#64748b, var(--gct-theme-muted));
 }
 
 .clean-data-tools {
@@ -1284,7 +1302,7 @@
     overflow: auto;
     border: 0;
     border-radius: 0;
-    background: #ffffff;
+    background: light-dark(#ffffff, var(--gct-theme-surface));
 }
 
 .records-modal-table {
@@ -1315,7 +1333,7 @@
     height: 46px;
     padding: 7px 12px;
     border-bottom: 1px solid #e8edf3;
-    color: #334155;
+    color: light-dark(#334155, var(--gct-theme-fg));
     font-size: 10.5px;
     text-align: left;
     vertical-align: middle;
@@ -1361,7 +1379,7 @@
     border: 1px solid #d5e0ec;
     border-radius: 7px;
     outline: none;
-    background: #ffffff;
+    background: light-dark(#ffffff, var(--gct-theme-surface));
     color: var(--batch-text);
     font: inherit;
     font-size: 10px;
@@ -1400,7 +1418,7 @@
     width: min(430px, 94vw);
     padding: 30px 28px;
     border-radius: 18px;
-    background: #ffffff;
+    background: light-dark(#ffffff, var(--gct-theme-surface));
     text-align: center;
     box-shadow: 0 24px 70px rgba(15, 23, 42, 0.3);
 }
@@ -1484,8 +1502,8 @@
 
 .batch-delete-cancel-btn {
     border: 1px solid var(--batch-border);
-    background: #ffffff;
-    color: #475569;
+    background: light-dark(#ffffff, var(--gct-theme-surface));
+    color: light-dark(#475569, var(--gct-theme-muted));
 }
 
 .batch-delete-confirm-btn {
@@ -1508,7 +1526,7 @@
     overflow-y: auto;
     padding: 24px;
     border-radius: 18px;
-    background: #ffffff;
+    background: light-dark(#ffffff, var(--gct-theme-surface));
     box-shadow: 0 24px 70px rgba(15, 23, 42, 0.3);
 }
 
@@ -1546,7 +1564,7 @@
 }
 
 .edit-trip-grid .form-group label {
-    color: #334155;
+    color: light-dark(#334155, var(--gct-theme-fg));
     font-size: 12px;
     font-weight: 800;
 }
@@ -1739,18 +1757,18 @@
 .processing-grid .record-inspection {
     min-width:0; min-height:330px; max-height:430px;
     display:flex; flex-direction:column; overflow:hidden;
-    padding:16px; background:#fff; border:1px solid #dfe8f3;
+    padding:16px; background: light-dark(#fff, var(--gct-theme-surface)); border:1px solid #dfe8f3;
     border-radius:14px;
 }
 .record-inspection-header h3 { margin:0 0 4px; font-size:14px; font-weight:800; color:#0b2447; }
 .record-inspection-header h3 i { color:#1552c0; margin-right:7px; }
-.record-inspection-header p { margin:0 0 12px; font-size:11px; color:#64748b; }
+.record-inspection-header p { margin:0 0 12px; font-size:11px; color: light-dark(#64748b, var(--gct-theme-muted)); }
 .record-inspection .inspection-tab-input { position:absolute; opacity:0; width:1px; height:1px; }
 .record-inspection-tabs { display:flex; gap:8px; margin-bottom:12px; }
 .record-inspection-tabs label {
     display:inline-flex; align-items:center; gap:7px; cursor:pointer;
     padding:8px 12px; border:1px solid #dfe8f3; border-radius:8px;
-    background:#fff; color:#334766; font-size:11px; font-weight:700;
+    background: light-dark(#fff, var(--gct-theme-surface)); color:#334766; font-size:11px; font-weight:700;
 }
 #gps-inspection-parsed:checked ~ .record-inspection-tabs label[for="gps-inspection-parsed"],
 #gps-inspection-source:checked ~ .record-inspection-tabs label[for="gps-inspection-source"] {
@@ -1771,7 +1789,7 @@
 .record-inspection-content .text-preview { min-height:0; overflow:auto; }
 .structured-records-card .gps-compact-record-row td { vertical-align:top; }
 .record-inspection-content .inspection-helper {
-    margin:0 0 10px; color:#64748b; font-size:11px;
+    margin:0 0 10px; color: light-dark(#64748b, var(--gct-theme-muted)); font-size:11px;
 }
 .gps-view-details-btn {
     display:inline-flex; align-items:center; gap:6px; cursor:pointer;
@@ -1783,8 +1801,8 @@
 .gps-view-details-btn:focus-visible { outline:2px solid #185abc; outline-offset:2px; }
 .gps-record-modal { width:min(640px,94vw); height:auto; max-height:calc(100dvh - 40px); display:flex; flex-direction:column; }
 .gps-record-modal-body { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; padding:18px; overflow-y:auto; min-height:0; }
-.gps-record-modal-field { min-width:0; border:1px solid #e0e9f5; border-radius:9px; background:#f7faff; padding:11px; }
-.gps-record-modal-field span { display:block; color:#64748b; font-size:10px; margin-bottom:5px; }
+.gps-record-modal-field { min-width:0; border:1px solid #e0e9f5; border-radius:9px; background: light-dark(#f7faff, var(--gct-theme-surface)); padding:11px; }
+.gps-record-modal-field span { display:block; color: light-dark(#64748b, var(--gct-theme-muted)); font-size:10px; margin-bottom:5px; }
 .gps-record-modal-field strong { display:block; color:#102449; font-size:12px; overflow-wrap:anywhere; }
 .gps-record-modal-footer { display:flex; justify-content:flex-end; padding:14px 18px; border-top:1px solid #e0e9f5; }
 .gps-record-modal-footer button { padding:10px 18px; cursor:pointer; }
@@ -1806,7 +1824,7 @@
     text-align: center;
     border: 1px dashed #d5e1f0;
     border-radius: 11px;
-    background: #f8fbff;
+    background: light-dark(#f8fbff, var(--gct-theme-surface));
 }
 .gps-records-empty-icon {
     width: 42px;
@@ -1820,7 +1838,7 @@
     margin-bottom: 11px;
 }
 .gps-records-empty h3 { margin: 0 0 5px; font-size: 13px; font-weight: 800; color: #112b51; }
-.gps-records-empty p { margin: 0; max-width: 450px; font-size: 11px; line-height: 1.6; color: #64748b; }
+.gps-records-empty p { margin: 0; max-width: 450px; font-size: 11px; line-height: 1.6; color: light-dark(#64748b, var(--gct-theme-muted)); }
 .structured-records-card .batch-search-form input:disabled {
     opacity: .65;
     cursor: not-allowed;
@@ -1835,24 +1853,50 @@
 .uploaded-file .gps-file-progress-track > span { display:block; height:100%; border-radius:inherit; background:#1752bf; transition:width .35s ease; }
 
 /* Vehicle coverage replaces the redundant inline record-inspection pane. */
-.gps-fleet-coverage { min-width:0; display:flex; flex-direction:column; gap:12px; }
+.gps-fleet-coverage {
+    min-width:0;
+    min-height:330px;
+    max-height:430px;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+}
 .gps-fleet-coverage .panel-card-header { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
 .gps-fleet-metrics { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
-.gps-fleet-metric { min-width:0; padding:14px; border:1px solid #e0eaf7; background:#f6f9ff; border-radius:10px; display:flex; flex-direction:column; gap:5px; }
-.gps-fleet-metric span { color:#64748b; font-size:11px; }
-.gps-fleet-metric strong { color:#10274d; font-size:20px; font-weight:800; font-variant-numeric:tabular-nums; }
-.gps-fleet-list-heading { display:flex; justify-content:space-between; align-items:center; gap:10px; padding-top:9px; border-top:1px solid #e4edf7; }
-.gps-fleet-list-heading h4 { margin:0; color:#112b50; font-size:12px; font-weight:800; }
+.gps-fleet-metric { min-width:0; padding:14px; border:1px solid light-dark(#e0eaf7, var(--gct-theme-border)); background:light-dark(#f6f9ff, var(--gct-theme-surface-raised)); border-radius:10px; display:flex; flex-direction:column; gap:5px; }
+.gps-fleet-metric span { color: light-dark(#64748b, var(--gct-theme-muted)); font-size:11px; }
+.gps-fleet-metric strong { color:var(--batch-text); font-size:20px; font-weight:800; font-variant-numeric:tabular-nums; }
+.gps-fleet-list-heading { display:flex; justify-content:space-between; align-items:center; gap:10px; padding-top:9px; border-top:1px solid light-dark(#e4edf7, var(--gct-theme-border)); }
+.gps-fleet-list-heading h4 { margin:0; color:var(--batch-text); font-size:12px; font-weight:800; }
 .gps-fleet-list-heading span { color:#71829b; font-size:10px; }
-.gps-fleet-vehicle-list { min-height:0; overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:11px; padding-right:6px; }
+.gps-fleet-vehicle-list {
+    min-width:0;
+    min-height:0;
+    flex:1 1 auto;
+    overflow-x:hidden;
+    overflow-y:auto;
+    display:flex;
+    flex-direction:column;
+    gap:11px;
+    padding-right:7px;
+    scrollbar-width:thin;
+    scrollbar-color:light-dark(#aabbd3, #536981) transparent;
+}
+.gps-fleet-vehicle-list::-webkit-scrollbar { width:6px; }
+.gps-fleet-vehicle-list::-webkit-scrollbar-track { background:transparent; }
+.gps-fleet-vehicle-list::-webkit-scrollbar-thumb {
+    border-radius:999px;
+    background:light-dark(#aabbd3, #536981);
+}
 .gps-fleet-vehicle { display:flex; flex-direction:column; gap:7px; }
 .gps-fleet-vehicle-info { display:flex; justify-content:space-between; align-items:center; gap:10px; font-size:11px; }
-.gps-fleet-vehicle-info span { display:inline-flex; align-items:center; gap:8px; font-weight:700; color:#143058; overflow-wrap:anywhere; }
+.gps-fleet-vehicle-info span { display:inline-flex; align-items:center; gap:8px; font-weight:700; color:var(--batch-text); overflow-wrap:anywhere; }
 .gps-fleet-vehicle-info i { color:#3765a4; }
-.gps-fleet-vehicle-info small { color:#64748b; font-size:10px; white-space:nowrap; }
+.gps-fleet-vehicle-info small { color: light-dark(#64748b, var(--gct-theme-muted)); font-size:10px; white-space:nowrap; }
 .gps-fleet-vehicle-track { height:5px; border-radius:999px; background:#e6edf8; overflow:hidden; }
 .gps-fleet-vehicle-track > span { display:block; height:100%; background:#2563eb; border-radius:inherit; }
-.gps-fleet-coverage-empty { display:flex; flex:1; min-height:125px; flex-direction:column; align-items:center; justify-content:center; gap:10px; text-align:center; color:#64748b; font-size:11px; padding:16px; }
+.gps-fleet-coverage-empty { display:flex; flex:1; min-height:125px; flex-direction:column; align-items:center; justify-content:center; gap:10px; text-align:center; color: light-dark(#64748b, var(--gct-theme-muted)); font-size:11px; padding:16px; }
 .gps-fleet-coverage-empty i { color:#7396ca; font-size:22px; }
 .gps-fleet-coverage-empty p { margin:0; max-width:330px; }
 @media (max-width:540px) { .gps-fleet-metrics { grid-template-columns:repeat(2,minmax(0,1fr)); } .gps-fleet-metric { padding:10px; } }
@@ -1860,7 +1904,7 @@
 /* Six-column GPS table: rows stream in during table scrolling. */
 .structured-records-card .batch-records-table { min-width: 760px; }
 .structured-records-card .gps-infinite-footer { display:flex; align-items:center; justify-content:space-between; gap:12px; }
-.structured-records-card .gps-load-state { font-size:11px; color:#64748b; }
+.structured-records-card .gps-load-state { font-size:11px; color: light-dark(#64748b, var(--gct-theme-muted)); }
 
 /* Structured GPS records: six-column compact layout, stable sticky header. */
 .structured-records-card { min-width:0; }
@@ -1891,7 +1935,7 @@
 .structured-records-card .batch-records-table th {
     height:40px;
     top:0;
-    background:#f0f5fc;
+    background:light-dark(#f0f5fc, var(--gct-theme-surface-raised));
     font-size:10px;
 }
 .structured-records-card .batch-records-table td {
@@ -1912,8 +1956,8 @@
 .structured-records-card .batch-records-table td:nth-child(5) { width:12%; text-align:right; }
 .structured-records-card .batch-records-table th:nth-child(6),
 .structured-records-card .batch-records-table td:nth-child(6) { width:11%; text-align:right; }
-.structured-records-card .batch-records-table tbody tr:nth-child(even) { background:#fbfdff; }
-.structured-records-card .batch-records-table tbody tr:hover { background:#edf5ff; }
+.structured-records-card .batch-records-table tbody tr:nth-child(even) { background:light-dark(#fbfdff, var(--gct-theme-surface-raised)); }
+.structured-records-card .batch-records-table tbody tr:hover { background:light-dark(#edf5ff, var(--gct-theme-hover)); }
 .structured-records-card .gps-infinite-footer { margin-top:10px; }
 @media(max-width:1100px) {
     .structured-records-card .section-header { align-items:stretch; flex-wrap:wrap; }
@@ -1926,13 +1970,129 @@
 .structured-records-card .gps-full-records-table th,
 .structured-records-card .gps-full-records-table td { width:auto; text-align:left; white-space:nowrap; }
 .structured-records-card .gps-full-records-table th:nth-child(1),
-.structured-records-card .gps-full-records-table td:nth-child(1) { position:sticky; left:0; z-index:3; background:#fff; min-width:90px; }
+.structured-records-card .gps-full-records-table td:nth-child(1) { position:sticky; left:0; z-index:3; background: light-dark(#fff, var(--gct-theme-surface)); min-width:90px; }
 .structured-records-card .gps-full-records-table th:nth-child(2),
-.structured-records-card .gps-full-records-table td:nth-child(2) { position:sticky; left:90px; z-index:3; background:#fff; min-width:152px; box-shadow:2px 0 5px #10274d10; }
-.structured-records-card .gps-full-records-table th:nth-child(-n+2) { z-index:7; background:#f0f5fc; }
+.structured-records-card .gps-full-records-table td:nth-child(2) { position:sticky; left:90px; z-index:3; background: light-dark(#fff, var(--gct-theme-surface)); min-width:152px; box-shadow:2px 0 5px #10274d10; }
+.structured-records-card .gps-full-records-table th:nth-child(-n+2) { z-index:7; background:light-dark(#f0f5fc, var(--gct-theme-surface-raised)); }
 .structured-records-card .gps-full-records-table .gps-location-cell { max-width:220px; overflow:hidden; text-overflow:ellipsis; }
-.structured-records-card .gps-full-records-table tbody tr:nth-child(even) td:nth-child(-n+2) { background:#fbfdff; }
-.structured-records-card .gps-full-records-table tbody tr:hover td:nth-child(-n+2) { background:#edf5ff; }
+.structured-records-card .gps-full-records-table tbody tr:nth-child(even) td:nth-child(-n+2) { background:light-dark(#fbfdff, var(--gct-theme-surface-raised)); }
+.structured-records-card .gps-full-records-table tbody tr:hover td:nth-child(-n+2) { background:light-dark(#edf5ff, var(--gct-theme-hover)); }
 .gps-validation-flag,.gps-validation-ok { display:inline-flex; align-items:center; font-size:10px; font-weight:700; border-radius:6px; padding:4px 7px; }
 .gps-validation-flag { color:#95600b; background:#fff4d7; }
 .gps-validation-ok { color:#247047; background:#e4f7ed; }
+
+/* Optional, read-only NLP suggestions. Scoped to the GPS review workspace. */
+.structured-records-card .gps-nlp-status {
+    display:flex;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:9px;
+    padding:10px 13px;
+    margin:0 0 12px;
+    border:1px solid light-dark(#cbdcf3, var(--gct-theme-border));
+    border-radius:10px;
+    background:light-dark(#f6faff, var(--gct-theme-surface-raised));
+    color:light-dark(#234e84, var(--gct-theme-fg));
+    font-size:12px;
+}
+.structured-records-card .gps-nlp-status small {
+    flex-basis:100%;
+    color:light-dark(#64748b, var(--gct-theme-muted));
+    font-size:11px;
+}
+.structured-records-card .gps-nlp-row-insight {
+    display:flex;
+    align-items:center;
+    gap:5px;
+    margin-top:5px;
+    color:light-dark(#20589e, #a7caff);
+    font-size:10px;
+    font-weight:700;
+}
+
+/* Live NLP readiness in the GPS upload card. */
+.batch-processing-page .upload-card-header {
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:12px;
+}
+.batch-processing-page .upload-card-header > div:first-child { min-width:0; }
+.batch-processing-page .gps-nlp-indicator {
+    display:inline-flex;
+    flex:0 0 auto;
+    align-items:center;
+    justify-content:center;
+    gap:7px;
+    min-height:29px;
+    padding:5px 10px;
+    border:1px solid light-dark(#cbd5e1, #52657e);
+    border-radius:999px;
+    background:light-dark(#f1f5f9, #29384d);
+    color:light-dark(#475569, #cbd5e1);
+    font-size:11px;
+    font-weight:800;
+    white-space:nowrap;
+}
+.batch-processing-page .gps-nlp-indicator-dot {
+    width:7px;
+    height:7px;
+    flex:0 0 7px;
+    border-radius:50%;
+    background:currentColor;
+}
+.batch-processing-page .gps-nlp-indicator[data-gps-nlp-status="online"] {
+    border-color:light-dark(#b6e7c9, #376b51);
+    background:light-dark(#ecfdf3, #163d30);
+    color:light-dark(#166534, #a7f3c3);
+}
+.batch-processing-page .gps-nlp-indicator[data-gps-nlp-status="offline"] {
+    border-color:light-dark(#fecaca, #80545a);
+    background:light-dark(#fff1f2, #422831);
+    color:light-dark(#b91c1c, #fecaca);
+}
+.batch-processing-page .gps-nlp-indicator[data-gps-nlp-status="disabled"] {
+    border-color:light-dark(#d6dce5, #52657e);
+    background:light-dark(#f1f5f9, #29384d);
+    color:light-dark(#64748b, #cbd5e1);
+}
+@media(max-width:540px) {
+    .batch-processing-page .upload-card-header { flex-wrap:wrap; }
+}
+
+/* Dark Mode: preserve contrast in selected GPS files, summary icons and metrics. */
+html[data-gct-theme="dark"] .batch-processing-page .batch-stat-icon.navy {
+    background:#2c415c;
+    color:#dbeafe;
+}
+html[data-gct-theme="dark"] .batch-processing-page .batch-stat-icon.blue {
+    background:#233f67;
+    color:#a6caff;
+}
+html[data-gct-theme="dark"] .batch-processing-page .batch-stat-icon.green {
+    background:#1d4939;
+    color:#a7f3c3;
+}
+html[data-gct-theme="dark"] .batch-processing-page .batch-stat-icon.yellow {
+    background:#534328;
+    color:#fcd34d;
+}
+html[data-gct-theme="dark"] .batch-processing-page .gps-fleet-vehicle-track {
+    background:#33465e;
+}
+/* Dark table cells must paint their own backgrounds: some shared table
+   selectors otherwise leave alternating rows with light surfaces. */
+html[data-gct-theme="dark"] .batch-processing-page .gps-full-records-table thead th {
+    background:var(--gct-theme-surface-raised);
+    color:var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] .batch-processing-page .gps-full-records-table tbody tr td {
+    background:var(--gct-theme-surface);
+    color:var(--gct-theme-fg);
+}
+html[data-gct-theme="dark"] .batch-processing-page .gps-full-records-table tbody tr:nth-child(even) td {
+    background:var(--gct-theme-surface-raised);
+}
+html[data-gct-theme="dark"] .batch-processing-page .gps-full-records-table tbody tr:hover td {
+    background:var(--gct-theme-hover);
+}

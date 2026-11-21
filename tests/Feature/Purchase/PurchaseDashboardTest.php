@@ -90,15 +90,71 @@ class PurchaseDashboardTest extends TestCase
 
         // Assert rendered HTML contains charts and key elements (using false for unescaped ampersand)
         $response->assertSee('Purchase Dashboard');
-        $response->assertSee('Procurement Spend & PO Volume', false);
+        $response->assertSee('Committed PO Value & Volume', false);
         $response->assertSee('Fulfillment & Order Stages', false);
-        $response->assertSee('Top Suppliers by Spend');
+        $response->assertSee('Top Suppliers by Committed PO Value');
         $response->assertSee('Requisition Sources', false);
         $response->assertSee('purchaseSpendTrendChart');
         $response->assertSee('purchaseFulfillmentChart');
         $response->assertSee('Apex Parts Supply');
         $response->assertSee('PO-2026-TEST-01');
         $response->assertSee('PR-2026-TEST-01');
+    }
+
+    public function test_dashboard_excludes_unapproved_and_rejected_po_amounts_from_commitments(): void
+    {
+        $user = $this->purchaseUser();
+        foreach ([
+            ['PO-COMMITTED', 'Ordered', 1000],
+            ['PO-PENDING', 'For Review', 25000],
+            ['PO-REJECTED', 'Rejected', 75000],
+        ] as [$number, $status, $amount]) {
+            PurchaseOrder::create([
+                'po_no' => $number,
+                'po_date' => today(),
+                'supplier_name' => 'Audit Supplier',
+                'net_amount' => $amount,
+                'status' => $status,
+            ]);
+        }
+
+        $response = $this->actingAs($user)->get(route('dashboard-purchase'));
+        $response->assertOk()
+            ->assertViewHas('totalSpend', 1000.0)
+            ->assertViewHas('totalOrdersCount', 1)
+            ->assertViewHas('avgOrderValue', 1000.0)
+            ->assertSeeText('Committed PO Value');
+
+        $this->assertSame(1000.0, (float) collect($response->viewData('spendTrendMonthly'))->sum('spend'));
+        $this->assertSame(1000.0, (float) collect($response->viewData('topSuppliers'))->sum('spend'));
+    }
+
+    public function test_fulfillment_kpi_counts_actual_purchase_orders_not_unconverted_prs(): void
+    {
+        $user = $this->purchaseUser();
+        PurchaseOrder::create([
+            'po_no' => 'PO-DELIVERED-FULFILLMENT',
+            'po_date' => today(),
+            'supplier_name' => 'Fulfillment Supplier',
+            'status' => 'Delivered',
+            'net_amount' => 100,
+        ]);
+        for ($i = 1; $i <= 3; $i++) {
+            MaintenanceRequest::create([
+                'pr_no' => 'PR-UNCONVERTED-'.$i,
+                'job_order_no' => 'JO-UNCONVERTED-'.$i,
+                'bus_no' => 'BUS-'.$i,
+                'item' => 'Filters - Qty: 1 pcs',
+                'quantity' => 1,
+                'status' => 'For Purchase',
+                'source_type' => 'Maintenance Request',
+            ]);
+        }
+
+        $response = $this->actingAs($user)->get(route('dashboard-purchase'));
+        $response->assertOk()->assertViewHas('forPurchase', 3)
+            ->assertViewHas('deliveredOrders', 1)
+            ->assertViewHas('fulfillmentRate', 100);
     }
 
     public function test_purchase_dashboard_fulfills_shared_ui_contracts(): void

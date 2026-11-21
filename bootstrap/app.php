@@ -36,6 +36,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             PreferredAiResolutionMiddleware::class,
             RecordSystemActivity::class,
+            \App\Http\Middleware\EnforceSecurityPolicy::class,
             RequirePasswordChange::class,
             RequireOnboarding::class,
         ]);

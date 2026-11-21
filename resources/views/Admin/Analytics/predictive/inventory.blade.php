@@ -320,10 +320,6 @@
         </div>
     </x-analytics.card>
 
-    <p class="predictive-footer">
-        <i class="fa-solid fa-circle-info"></i> Stock-level indicators use recorded quantities and reorder points. A time-to-stockout estimate requires sufficient actual issuance history.
-    </p>
-
 </div>
 
 <script>

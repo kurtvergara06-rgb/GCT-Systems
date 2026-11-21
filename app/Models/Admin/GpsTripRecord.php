@@ -5,6 +5,7 @@ namespace App\Models\Admin;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class GpsTripRecord extends Model
 {
@@ -41,6 +42,11 @@ class GpsTripRecord extends Model
         'mileage_km' => 'decimal:2',
         'raw_data' => 'array',
     ];
+
+    public function nlpEnrichment(): HasOne
+    {
+        return $this->hasOne(GpsNlpEnrichment::class, 'gps_trip_record_id');
+    }
 
     public function batchUpload(): BelongsTo
     {

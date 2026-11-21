@@ -1,4 +1,38 @@
 window.GCTPartialNavigation.registerInitializer('admin-batch-processing', '.batch-processing-page', function () {
+    // Keep the badge tied to the actual authenticated Python NLP endpoint.
+    // The proxy does not expose the shared token to the browser.
+    const nlpBadge = document.querySelector('.batch-processing-page .gps-nlp-indicator');
+    if (nlpBadge) {
+        const updateNlpStatus = (status, message) => {
+            if (!nlpBadge.isConnected) return;
+            const allowed = ['online', 'offline', 'disabled'];
+            const state = allowed.includes(status) ? status : 'offline';
+            nlpBadge.dataset.gpsNlpStatus = state;
+            const label = nlpBadge.querySelector('[data-gps-nlp-label]');
+            if (label) label.textContent = 'NLP ' + (state === 'online' ? 'Online' : state === 'disabled' ? 'Disabled' : 'Offline');
+            nlpBadge.title = message || 'NLP availability';
+        };
+        const pollNlpStatus = async () => {
+            if (!nlpBadge.isConnected) return;
+            if (document.visibilityState !== 'hidden') {
+                try {
+                    const response = await fetch(nlpBadge.dataset.statusUrl, {
+                        credentials: 'same-origin',
+                        headers: { Accept: 'application/json' },
+                        cache: 'no-store',
+                    });
+                    if (!response.ok) throw new Error('NLP status unavailable');
+                    const data = await response.json();
+                    updateNlpStatus(data.status, data.message);
+                } catch (_) {
+                    updateNlpStatus('offline', 'Unable to verify NLP service availability.');
+                }
+            }
+            if (nlpBadge.isConnected) window.setTimeout(pollNlpStatus, 30000);
+        };
+        pollNlpStatus();
+    }
+
     // Automatically update the selected batch after the PDF queue finishes.
     // Poll only while Processing; never interfere with review form edits.
     const processingPage = document.querySelector('.batch-processing-page');
@@ -548,19 +582,7 @@ window.GCTPartialNavigation.registerInitializer('admin-batch-processing', '.batc
         });
     }
 
-    if (deleteModal) {
-        deleteModal.addEventListener('click', function (event) {
-            if (event.target !== deleteModal) {
-                return;
-            }
-
-            closeModal(deleteModal);
-
-            if (deleteForm) {
-                deleteForm.setAttribute('action', '');
-            }
-        });
-    }
+    // Keep deletion pending until explicit confirmation or cancellation.
 
     if (deleteForm) {
         deleteForm.addEventListener('submit', async function (event) {

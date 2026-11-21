@@ -75,6 +75,15 @@ class BatchAttendanceTimeFlowTest extends TestCase
             $this->assertSame($expectedDriverStatuses[$row['person_id']], $attendance->status);
         }
 
+        // Mechanic attendance is owned by Maintenance, not Operation.
+        $maintenanceUser = User::factory()->create([
+            'department' => 'Maintenance',
+            'role' => 'head',
+            'status' => 'Active',
+            'must_change_password' => false,
+            'onboarding_completed' => true,
+        ]);
+
         Mechanic::create([
             'mechanic_id' => 'M-0730',
             'mechanic_name' => 'Seven Thirty Mechanic',
@@ -82,7 +91,7 @@ class BatchAttendanceTimeFlowTest extends TestCase
             'employment_status' => 'Active',
         ]);
 
-        $this->actingAs($user)
+        $this->actingAs($maintenanceUser)
             ->postJson(route('operation.attendance.batch.store', ['type' => 'mechanic']), [
                 'attendance_date' => '2026-10-08',
                 'rows' => [[

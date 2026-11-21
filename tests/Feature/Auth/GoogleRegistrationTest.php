@@ -34,7 +34,7 @@ class GoogleRegistrationTest extends TestCase
             ->assertSee('applicant@example.com');
 
         $this->withSession($this->googleSession())
-            ->post(route('auth.google.register.submit'), ['name' => 'Official Employee Name', 'password' => 'SecureGCTPassword#2026', 'password_confirmation' => 'SecureGCTPassword#2026'])
+            ->post(route('auth.google.register.submit'), ['name' => 'Official Employee Name', 'password' => 'SecureGCTPassword#2026', 'password_confirmation' => 'SecureGCTPassword#2026', 'privacy_acknowledged' => '1'])
             ->assertRedirect(route('verification.otp'));
 
         $this->assertDatabaseHas('users', [
@@ -82,7 +82,7 @@ class GoogleRegistrationTest extends TestCase
     {
         User::factory()->create(['email' => 'applicant@example.com']);
         $this->withSession($this->googleSession())
-            ->post(route('auth.google.register.submit'), ['name' => 'Another Name', 'password' => 'SecureGCTPassword#2026', 'password_confirmation' => 'SecureGCTPassword#2026'])
+            ->post(route('auth.google.register.submit'), ['name' => 'Another Name', 'password' => 'SecureGCTPassword#2026', 'password_confirmation' => 'SecureGCTPassword#2026', 'privacy_acknowledged' => '1'])
             ->assertRedirect(route('login'));
         $this->assertSame(1, User::where('email', 'applicant@example.com')->count());
     }
@@ -105,7 +105,7 @@ class GoogleRegistrationTest extends TestCase
             ->post(route('auth.google.register.submit'), [
                 'name' => 'Official Employee Name',
                 'password' => 'SecureGCTPassword#2026',
-                'password_confirmation' => 'SecureGCTPassword#2026',
+                'password_confirmation' => 'SecureGCTPassword#2026', 'privacy_acknowledged' => '1',
             ])
             ->assertRedirect(route('verification.otp'))
             ->assertSessionHas('error', 'The verification code could not be sent. Please try Resend Code.');

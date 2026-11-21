@@ -7,7 +7,6 @@ use App\Models\Maintenance\Bus;
 use App\Models\Maintenance\FuelReport;
 use App\Models\Maintenance\PurchaseRequest;
 use App\Models\Operation\Driver;
-use App\Models\Operation\DriverAttendance;
 use App\Models\Operation\Incident;
 use App\Models\Operation\IncidentReplacement;
 use App\Models\Operation\ShuttleRoute;
@@ -49,6 +48,37 @@ class AnalyticsStageController extends Controller
         EtaPredictionService $etaService
     ): View {
         abort_unless(array_key_exists($stage, self::STAGES), 404);
+        $user = $request->user();
+        abort_unless($user, 403);
+        $isAdmin = strtolower(trim((string) $user->department)) === 'admin'
+            && in_array(strtolower(trim((string) $user->role)), ['head', 'system admin'], true);
+        if (! $isAdmin) {
+            abort_unless($user->hasSystemPermission('analytics', 'view')
+                && $user->hasSystemPermission('analytics', match ($stage) { 'diagnostic' => 'diagnostic', 'predictive' => 'predictive', 'prescriptive' => 'recommendations', default => 'view' }), 403);
+            $department = strtolower(trim((string) $user->department));
+            abort_unless(in_array($department, ['maintenance', 'operation', 'warehouse', 'purchase'], true), 403);
+            if ($department === 'maintenance') {
+                return view('Admin.Analytics.'.$stage.'.layout', [
+                    'maintenanceAnalytics' => app(\App\Services\MaintenanceAnalyticsService::class)->report($request),
+                    'stage' => $stage, 'department' => $department, 'departmentScoped' => true,
+                ]);
+            }
+            // Preserve other departments' existing safe, scoped stage content.
+            $dates = $request->validate([
+                'from' => ['nullable', 'date_format:Y-m-d'],
+                'to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:from'],
+            ]);
+            $from = $dates['from'] ?? now()->startOfMonth()->subMonths(5)->toDateString();
+            $to = $dates['to'] ?? now()->toDateString();
+            abort_if($from > $to || Carbon::parse($from)->diffInDays(Carbon::parse($to)) > 366, 422,
+                'Choose a date range of at most one year.');
+            return view('Admin.Analytics.department-stage', array_merge(
+                app(\App\Services\DepartmentAnalyticsService::class)->summary($department, $from, $to),
+                compact('department', 'stage'),
+                ['modelReadiness' => $stage === 'predictive' ? app(\App\Services\DepartmentAnalyticsService::class)->modelReadiness($department) : []]
+            ));
+        }
+
 
         $domain = strtolower(trim((string) $request->input('domain', 'all')));
         if (! in_array($domain, self::DOMAINS, true)) {
@@ -69,10 +99,19 @@ class AnalyticsStageController extends Controller
             ->orderBy('parts_name')
             ->get();
         $inventoryTotal = $inventoryItems->count();
-        $inventoryLow = $inventoryItems
-            ->filter(fn (InventoryItem $item) => $item->on_hand > 0 && $item->on_hand <= (int) $item->reorder_level)
-            ->count();
-        $inventoryCritical = $inventoryItems->where('on_hand', '<=', 0)->count();
+        // Use Warehouse's effective threshold, including verified issuance
+        // history. A missing threshold is not automatically low stock.
+        $thresholdCalculator = app(\App\Services\Warehouse\InventoryThresholdCalculator::class);
+        $inventoryStates = $inventoryItems->map(function (InventoryItem $item) use ($thresholdCalculator): string {
+            $usage = $thresholdCalculator->calculate($item);
+            return $thresholdCalculator->stockStatus(
+                (int) $item->on_hand,
+                0,
+                $thresholdCalculator->effectiveReorderPoint($item, $usage)
+            );
+        });
+        $inventoryLow = $inventoryStates->filter(fn ($status) => $status === 'Low Stock')->count();
+        $inventoryCritical = $inventoryStates->filter(fn ($status) => $status === 'Critical')->count();
 
         $inventory = (object) [
             'total' => $inventoryTotal,
@@ -340,9 +379,6 @@ class AnalyticsStageController extends Controller
     {
         $selectedBus = strtoupper(trim((string) $request->input('bus', 'all')));
         $period = (string) $request->input('period', 'this-month');
-        // Explicit, read-only sample preview. Never activate by missing-data fallback.
-        $demoMode = $request->boolean('preview', false);
-
         [$start, $end] = $this->resolveDatePeriod($period);
 
         $incidentsQuery = Incident::query()
@@ -366,13 +402,6 @@ class AnalyticsStageController extends Controller
 
         $realIncidents = $incidentsQuery->orderByDesc('incident_reported_at')->get();
         $realCount = $realIncidents->count();
-
-        // The presentation uses a clearly identified sample dataset only when
-        // there are no real incident records for this selection.
-        $isDemo = $demoMode; // Live diagnostics by default; screenshot preview is explicit.
-        if ($isDemo) {
-            return $this->getDemoIncidentDiagnostics($realCount, $period, $selectedBus);
-        }
 
         // Live Operational Records
         $totalIncidents = $realCount;
@@ -521,155 +550,13 @@ class AnalyticsStageController extends Controller
         ];
     }
 
-    private function getDemoIncidentDiagnostics(int $realCount, string $period, string $selectedBus): object
-    {
-        $causes = collect([
-            (object) ['label' => 'Engine Cooling & Radiator', 'count' => 5, 'pct' => 35.7, 'color' => '#ef4444'],
-            (object) ['label' => 'Tire Puncture & Blowout', 'count' => 3, 'pct' => 21.4, 'color' => '#f59e0b'],
-            (object) ['label' => 'Brake Pressure Drop', 'count' => 2, 'pct' => 14.3, 'color' => '#3b82f6'],
-            (object) ['label' => 'Electrical / Alternator', 'count' => 2, 'pct' => 14.3, 'color' => '#8b5cf6'],
-            (object) ['label' => 'Clutch & Transmission', 'count' => 1, 'pct' => 7.1, 'color' => '#10b981'],
-            (object) ['label' => 'Minor Body Scraping', 'count' => 1, 'pct' => 7.1, 'color' => '#64748b'],
-        ]);
-
-        $replacements = collect([
-            (object) ['category' => '< 30m (Rapid Dispatch)', 'count' => 6, 'pct' => 43, 'color' => '#10b981'],
-            (object) ['category' => '30 - 60m (Standard)', 'count' => 4, 'pct' => 29, 'color' => '#3b82f6'],
-            (object) ['category' => '> 60m (Extended Bay)', 'count' => 2, 'pct' => 14, 'color' => '#ef4444'],
-            (object) ['category' => 'On-Site / No Swap', 'count' => 2, 'pct' => 14, 'color' => '#94a3b8'],
-        ]);
-
-        $trend = collect([
-            (object) ['label' => 'Oct 27', 'incidents' => 2, 'replacements' => 1],
-            (object) ['label' => 'Oct 28', 'incidents' => 3, 'replacements' => 2],
-            (object) ['label' => 'Oct 29', 'incidents' => 1, 'replacements' => 1],
-            (object) ['label' => 'Oct 30', 'incidents' => 4, 'replacements' => 3],
-            (object) ['label' => 'Oct 31', 'incidents' => 2, 'replacements' => 2],
-            (object) ['label' => 'Nov 1', 'incidents' => 1, 'replacements' => 1],
-            (object) ['label' => 'Nov 2', 'incidents' => 1, 'replacements' => 1],
-        ]);
-
-        $records = collect([
-            (object) [
-                'incident_no' => 'INC-DEMO-001',
-                'bus_no' => 'GCT-102',
-                'driver_name' => 'Dennis Alforque',
-                'incident_type' => 'Bus Breakdown',
-                'description' => 'Coolant leak near radiator hose clamp, engine temp spiking past 105°C.',
-                'replacement_bus_no' => 'GCT-108',
-                'downtime_minutes' => 22,
-                'downtime_formatted' => '22m',
-                'status' => 'Resolved',
-                'route_name' => 'Tanauan - Calamba Express',
-                'job_order_no' => 'JO-2026-0014',
-                'reported_at' => now()->subHours(5)->format('M d, Y h:i A'),
-                'is_demo' => true,
-            ],
-            (object) [
-                'incident_no' => 'INC-DEMO-002',
-                'bus_no' => 'GCT-105',
-                'driver_name' => 'Allan Tingson',
-                'incident_type' => 'Tire Failure',
-                'description' => 'Rear outer tire punctured by road debris on highway km 42.',
-                'replacement_bus_no' => 'GCT-111',
-                'downtime_minutes' => 18,
-                'downtime_formatted' => '18m',
-                'status' => 'Resolved',
-                'route_name' => 'Sto. Tomas - Turbina Route',
-                'job_order_no' => 'JO-2026-0015',
-                'reported_at' => now()->subHours(14)->format('M d, Y h:i A'),
-                'is_demo' => true,
-            ],
-            (object) [
-                'incident_no' => 'INC-DEMO-003',
-                'bus_no' => 'GCT-201',
-                'driver_name' => 'Eduardo Ramos',
-                'incident_type' => 'Bus Breakdown',
-                'description' => 'Pneumatic brake line pressure drop warning; safely stopped at road shoulder.',
-                'replacement_bus_no' => 'GCT-204',
-                'downtime_minutes' => 35,
-                'downtime_formatted' => '35m',
-                'status' => 'Resolved',
-                'route_name' => 'Batangas City - Lipa Terminal',
-                'job_order_no' => 'JO-2026-0016',
-                'reported_at' => now()->subDays(1)->format('M d, Y h:i A'),
-                'is_demo' => true,
-            ],
-            (object) [
-                'incident_no' => 'INC-DEMO-004',
-                'bus_no' => 'GCT-103',
-                'driver_name' => 'Rodel Penoso',
-                'incident_type' => 'Electrical Malfunction',
-                'description' => 'Alternator warning light illuminated; battery charging voltage dropped below 11.5V.',
-                'replacement_bus_no' => 'GCT-107',
-                'downtime_minutes' => 42,
-                'downtime_formatted' => '42m',
-                'status' => 'Resolved',
-                'route_name' => 'Tanauan - SM Terminal',
-                'job_order_no' => 'JO-2026-0017',
-                'reported_at' => now()->subDays(2)->format('M d, Y h:i A'),
-                'is_demo' => true,
-            ],
-            (object) [
-                'incident_no' => 'INC-DEMO-005',
-                'bus_no' => 'GCT-302',
-                'driver_name' => 'Edwin Raborar',
-                'incident_type' => 'Transmission Issue',
-                'description' => 'Clutch slippage under load during hill incline, gear engagement stiff.',
-                'replacement_bus_no' => 'GCT-305',
-                'downtime_minutes' => 28,
-                'downtime_formatted' => '28m',
-                'status' => 'Resolved',
-                'route_name' => 'Malvar - Alabang Route',
-                'job_order_no' => 'JO-2026-0018',
-                'reported_at' => now()->subDays(3)->format('M d, Y h:i A'),
-                'is_demo' => true,
-            ],
-            (object) [
-                'incident_no' => 'INC-DEMO-006',
-                'bus_no' => 'GCT-109',
-                'driver_name' => 'Roy Centuangeo',
-                'incident_type' => 'Bus Breakdown',
-                'description' => 'Overheating in terminal bay prior to passenger boarding; preventive replacement.',
-                'replacement_bus_no' => 'GCT-110',
-                'downtime_minutes' => 15,
-                'downtime_formatted' => '15m',
-                'status' => 'Resolved',
-                'route_name' => 'Lipa - Buendia Direct',
-                'job_order_no' => 'JO-2026-0019',
-                'reported_at' => now()->subDays(4)->format('M d, Y h:i A'),
-                'is_demo' => true,
-            ],
-        ]);
-
-        return (object) [
-            'is_demo' => true,
-            'real_count' => $realCount,
-            'total_incidents' => 14,
-            'replacements_count' => 12,
-            'breakdowns_count' => 8,
-            'resolved_count' => 13,
-            'average_downtime_minutes' => 36.2,
-            'average_downtime_formatted' => '36.2 mins',
-            'most_common_cause' => 'Engine Cooling & Radiator',
-            'cause_distribution' => $causes,
-            'replacement_distribution' => $replacements,
-            'incident_trend' => $trend,
-            'records' => $records,
-            'safety_score' => 92,
-        ];
-    }
-
     /**
-     * Enrich Fuel Diagnostic Data with Thesis Objective 6.2.2 Baseline Anomaly Detection & Demonstration Dataset.
+     * Enrich Fuel Diagnostic Data with Thesis Objective 6.2.2 Baseline Anomaly Detection.
      */
     private function enrichFuelDiagnosticData(Request $request, array $fuel, Collection $buses): object
     {
         $selectedBus = strtoupper(trim((string) $request->input('bus', 'all')));
         $period = (string) $request->input('period', 'this-month');
-        // Explicit, read-only sample preview. Never activate by missing-data fallback.
-        $demoMode = $request->boolean('preview', false);
-
         $totalFuel = (float) ($fuel['totalFuel'] ?? 0);
         $totalDistance = (float) ($fuel['totalDistance'] ?? 0);
         $fleetAverage = (float) ($fuel['fleetAverage'] ?? 0);
@@ -678,12 +565,6 @@ class AnalyticsStageController extends Controller
         $highIdlingUnits = collect($fuel['highIdlingUnits'] ?? []);
         $trend = collect($fuel['trend'] ?? []);
         $idlingMedian = (float) ($fuel['idlingMedian'] ?? 0);
-
-        // Show an illustrative chart only if actual fuel observations are absent.
-        $isDemo = $demoMode; // Live fuel diagnostics by default; screenshot preview is explicit.
-        if ($isDemo) {
-            return $this->getDemoFuelDiagnostics($totalFuel, $fleetAverage, $period, $selectedBus);
-        }
 
         // Live Historical Baseline Anomaly Detection (Objective 6.2.2)
         // Rule: requires vehicle-specific historical baseline with >= 3 prior valid measurements and >= 20% drop.
@@ -751,136 +632,15 @@ class AnalyticsStageController extends Controller
         ];
     }
 
-    private function getDemoFuelDiagnostics(float $realFuel, float $realAvg, string $period, string $selectedBus): object
+    private function resolveDatePeriod(string $period, ?string $timezone = null): array
     {
-        $trend = collect([
-            (object) ['label' => 'Oct 27', 'fuel_liters' => 142.5, 'distance_km' => 840.0, 'efficiency' => 5.89],
-            (object) ['label' => 'Oct 28', 'fuel_liters' => 168.0, 'distance_km' => 985.0, 'efficiency' => 5.86],
-            (object) ['label' => 'Oct 29', 'fuel_liters' => 135.2, 'distance_km' => 812.0, 'efficiency' => 6.01],
-            (object) ['label' => 'Oct 30', 'fuel_liters' => 174.8, 'distance_km' => 992.0, 'efficiency' => 5.68],
-            (object) ['label' => 'Oct 31', 'fuel_liters' => 155.0, 'distance_km' => 915.0, 'efficiency' => 5.90],
-            (object) ['label' => 'Nov 1', 'fuel_liters' => 162.4, 'distance_km' => 945.0, 'efficiency' => 5.82],
-            (object) ['label' => 'Nov 2', 'fuel_liters' => 128.5, 'distance_km' => 760.0, 'efficiency' => 5.91],
-        ]);
-
-        $summaries = collect([
-            (object) [
-                'bus_no' => 'GCT-101',
-                'distance_km' => 1240.0,
-                'fuel_liters' => 200.0,
-                'km_per_liter' => 6.20,
-                'prior_measurements_count' => 6,
-                'has_baseline' => true,
-                'baseline_efficiency' => 6.25,
-                'drop_percent' => -0.8,
-                'is_objective_622_anomaly' => false,
-                'idling_minutes' => 65.0,
-                'status' => 'Optimal',
-                'is_demo' => true,
-            ],
-            (object) [
-                'bus_no' => 'GCT-102',
-                'distance_km' => 1120.0,
-                'fuel_liters' => 195.0,
-                'km_per_liter' => 5.74,
-                'prior_measurements_count' => 5,
-                'has_baseline' => true,
-                'baseline_efficiency' => 5.82,
-                'drop_percent' => -1.4,
-                'is_objective_622_anomaly' => false,
-                'idling_minutes' => 84.0,
-                'status' => 'Standard',
-                'is_demo' => true,
-            ],
-            (object) [
-                'bus_no' => 'GCT-104',
-                'distance_km' => 980.0,
-                'fuel_liters' => 205.0,
-                'km_per_liter' => 4.78,
-                'prior_measurements_count' => 8,
-                'has_baseline' => true,
-                'baseline_efficiency' => 6.42,
-                'drop_percent' => -25.5,
-                'is_objective_622_anomaly' => true,
-                'idling_minutes' => 148.0,
-                'status' => 'Confirmed Anomaly',
-                'is_demo' => true,
-            ],
-            (object) [
-                'bus_no' => 'GCT-105',
-                'distance_km' => 1310.0,
-                'fuel_liters' => 218.0,
-                'km_per_liter' => 6.01,
-                'prior_measurements_count' => 7,
-                'has_baseline' => true,
-                'baseline_efficiency' => 5.95,
-                'drop_percent' => 1.0,
-                'is_objective_622_anomaly' => false,
-                'idling_minutes' => 72.0,
-                'status' => 'Standard',
-                'is_demo' => true,
-            ],
-            (object) [
-                'bus_no' => 'GCT-201',
-                'distance_km' => 890.0,
-                'fuel_liters' => 192.0,
-                'km_per_liter' => 4.64,
-                'prior_measurements_count' => 5,
-                'has_baseline' => true,
-                'baseline_efficiency' => 6.05,
-                'drop_percent' => -23.3,
-                'is_objective_622_anomaly' => true,
-                'idling_minutes' => 165.0,
-                'status' => 'Confirmed Anomaly',
-                'is_demo' => true,
-            ],
-            (object) [
-                'bus_no' => 'GCT-301',
-                'distance_km' => 450.0,
-                'fuel_liters' => 82.0,
-                'km_per_liter' => 5.49,
-                'prior_measurements_count' => 2,
-                'has_baseline' => false,
-                'baseline_efficiency' => 0.0,
-                'drop_percent' => 0.0,
-                'is_objective_622_anomaly' => false,
-                'idling_minutes' => 40.0,
-                'status' => 'Insufficient Data',
-                'is_demo' => true,
-            ],
-        ]);
-
-        $efficiencyDistribution = collect([
-            (object) ['label' => 'Optimal (≥ 6.0 km/L)', 'count' => 2, 'pct' => 33, 'color' => '#10b981'],
-            (object) ['label' => 'Standard (5.0 - 5.9 km/L)', 'count' => 2, 'pct' => 33, 'color' => '#3b82f6'],
-            (object) ['label' => 'Confirmed Anomaly (≥20% drop)', 'count' => 2, 'pct' => 33, 'color' => '#ef4444'],
-        ]);
-
-        return (object) [
-            'is_demo' => true,
-            'real_fuel' => $realFuel,
-            'total_fuel' => 1092.0,
-            'total_distance' => 6350.0,
-            'fleet_average' => 5.82,
-            'anomalies_count' => 2,
-            'idle_loss_liters' => 48.5,
-            'bus_summaries' => $summaries,
-            'review_units' => $summaries->where('is_objective_622_anomaly', true)->values(),
-            'high_idling_units' => $summaries->where('idling_minutes', '>=', 100)->values(),
-            'trend' => $trend,
-            'efficiency_distribution' => $efficiencyDistribution,
-            'idling_median' => 78.0,
-        ];
-    }
-
-    private function resolveDatePeriod(string $period): array
-    {
-        $end = now()->endOfDay();
+        $today = now($timezone);
+        $end = $today->copy()->endOfDay();
         $start = match ($period) {
-            'last-30-days' => now()->subDays(29)->startOfDay(),
-            'last-3-months', 'last-90-days' => now()->subDays(89)->startOfDay(),
-            'this-year', 'last-12-months' => now()->startOfYear()->startOfDay(),
-            default => now()->startOfMonth()->startOfDay(),
+            'last-30-days' => $today->copy()->subDays(29)->startOfDay(),
+            'last-3-months', 'last-90-days' => $today->copy()->subDays(89)->startOfDay(),
+            'this-year', 'last-12-months' => $today->copy()->startOfYear()->startOfDay(),
+            default => $today->copy()->startOfMonth()->startOfDay(),
         };
 
         return [$start, $end];
@@ -908,9 +668,6 @@ class AnalyticsStageController extends Controller
         $tripsAtRisk = (int) ($fleetDiag->review_count ?? 0);
 
         $predictedRecords = collect($fleetPred->predictions ?? []);
-        $averageDelayRiskPct = $predictedRecords->isNotEmpty()
-            ? (float) $predictedRecords->avg('delay_risk_percent')
-            : 0.0;
         // No trip observations means no defensible completion-rate forecast.
         $completionForecast = $tripCount > 0
             ? max(0.0, min(100.0, 100.0 - (($tripsAtRisk / $tripCount) * 100)))
@@ -948,15 +705,15 @@ class AnalyticsStageController extends Controller
 
         $issueCandidates = collect([
             (object) [
-                'title' => 'Trip delay risk',
-                'description' => 'Trips predicted to deviate from route baselines.',
+                'title' => 'Recorded delay indicators',
+                'description' => 'Observed trip deviations from route baselines, not predictions.',
                 'icon' => 'fa-clock',
                 'count' => $delayRisk,
                 'unit' => 'trips',
             ],
             (object) [
-                'title' => 'High idle risk',
-                'description' => 'Buses predicted to exceed expected idle thresholds.',
+                'title' => 'Recorded high-idle indicators',
+                'description' => 'Observed high-idle records, not future forecasts.',
                 'icon' => 'fa-clock-rotate-left',
                 'count' => $highIdleRisk,
                 'unit' => 'buses',
@@ -1129,7 +886,11 @@ class AnalyticsStageController extends Controller
         $fuelTrendEfficiency = $fuelTrend->map(function ($bucket): ?float {
             $value = data_get($bucket, 'efficiency');
 
-            return $value === null ? null : round((float) $value, 2);
+            // An absent or zero efficiency reading is not a valid measured km/L.
+            // Do not display it as a zero-efficiency observation on the chart.
+            return is_numeric($value) && (float) $value > 0
+                ? round((float) $value, 2)
+                : null;
         })->values();
 
         // A valid consumption projection requires at least four recorded days
@@ -1146,16 +907,6 @@ class AnalyticsStageController extends Controller
         $fuelTrendEfficiencyForecast = $fuelTrendEfficiency->map(fn ($value) => null)->values();
 
         $busRiskRow = [];
-        $components = [
-            'Braking System & Pads',
-            'Transmission & Clutch',
-            'Alternator & Belts',
-            'Cooling & Radiator',
-            'Engine Lubrication',
-            'Suspension Bushings',
-            'Electrical & Wiring',
-        ];
-        $compIndex = 0;
         foreach ($buses as $bus) {
             $busNo = strtoupper(trim((string) $bus->bus_no));
             $attention = collect($busAttention)->first(
@@ -1166,25 +917,11 @@ class AnalyticsStageController extends Controller
             $score = (int) ($attention?->attention_score ?? 0);
             $level = $overdue > 0 ? 'High' : ($open > 0 ? 'Medium' : 'Low');
 
-            // Health Score: 100 base, penalize for open and overdue orders
-            $healthScore = max(18, min(100, 100 - ($score * 3) - ($overdue * 5)));
-            if (strtolower((string) $bus->status) === 'under maintenance') {
-                $healthScore = min(35, $healthScore);
-            } elseif (strtolower((string) $bus->status) === 'inactive') {
-                $healthScore = min(50, $healthScore);
-            }
-
-            $predictedComponent = ($overdue > 0 || $open > 0)
-                ? $components[$compIndex % count($components)]
-                : 'System Clearance';
-            $compIndex++;
-
-            $estBreakdown = match (true) {
-                $overdue >= 5 || strtolower((string) $bus->status) === 'under maintenance' => '< 24h / Grounded',
-                $overdue > 0 => '~2–4 Days',
-                $open > 0 => '~5–7 Days',
-                default => 'Clear (>15 Days)',
-            };
+            // No failure probability or component life can be inferred from
+            // current job order counts alone.
+            $healthScore = null;
+            $predictedComponent = 'Not determined';
+            $estBreakdown = 'Not estimated';
 
             $busRiskRow[] = [
                 0 => $bus->bus_no,
@@ -1281,9 +1018,9 @@ class AnalyticsStageController extends Controller
             (object) [
                 'domain' => 'Fleet & Trip',
                 'basis' => number_format($tripCount) . ' trips',
-                'signal' => number_format($tripsAtRisk) . ' at risk',
+                'signal' => number_format($tripsAtRisk) . ' flagged',
                 'level' => $riskLevel($delayRisk + $highIdleRisk, 4, 1),
-                'status' => $fleetPred->available === true ? 'ML forecast' : 'Derived from trend',
+                'status' => $fleetPred->available === true ? 'Statistical trip estimate' : 'No eligible trip estimate',
                 'icon' => 'fa-route',
             ],
             (object) [
@@ -1299,7 +1036,7 @@ class AnalyticsStageController extends Controller
                 'basis' => number_format($buses->count()) . ' buses',
                 'signal' => number_format($overdueOrders->count()) . ' overdue',
                 'level' => $riskLevel($busAttention->count(), 3, 1),
-                'status' => 'Job order records',
+                'status' => 'Rule-based job order signals',
                 'icon' => 'fa-screwdriver-wrench',
             ],
             (object) [
@@ -1307,7 +1044,7 @@ class AnalyticsStageController extends Controller
                 'basis' => number_format($inventoryDiag->total) . ' items',
                 'signal' => number_format($inventoryAttentionRows->count()) . ' attention',
                 'level' => $riskLevel($inventoryDiag->critical, 1, 0),
-                'status' => 'Reorder exposure',
+                'status' => 'Rule-based inventory thresholds',
                 'icon' => 'fa-boxes-stacked',
             ],
         ]);
@@ -1338,11 +1075,11 @@ class AnalyticsStageController extends Controller
         return (object) [
             'all' => (object) [
                 'kpis' => [
-                    ['label' => 'Trips at Risk', 'value' => number_format($tripsAtRisk), 'icon' => 'fa-triangle-exclamation', 'tone' => 'danger', 'caption' => $tripCount > 0 ? sprintf('%.0f%% of processed trips', $tripCount > 0 ? ($tripsAtRisk / $tripCount) * 100 : 0) : 'No processed trips'],
-                    ['label' => 'Predicted Delays', 'value' => number_format($delayRisk), 'icon' => 'fa-clock', 'tone' => 'warning', 'caption' => number_format($averageDelayRiskPct, 0) . '% avg. delay risk'],
-                    ['label' => 'Utilization Forecast', 'value' => number_format($fleetAvailability, 1) . '%', 'icon' => 'fa-chart-line', 'tone' => 'success', 'caption' => 'Availability from fleet status'],
+                    ['label' => 'GPS Records Flagged', 'value' => number_format($tripsAtRisk), 'icon' => 'fa-triangle-exclamation', 'tone' => 'danger', 'caption' => $tripCount > 0 ? sprintf('%.0f%% of processed trips', $tripCount > 0 ? ($tripsAtRisk / $tripCount) * 100 : 0) : 'No processed trips'],
+                    ['label' => 'Recorded Delay Indicators', 'value' => number_format($delayRisk), 'icon' => 'fa-clock', 'tone' => 'warning', 'caption' => 'Historical GPS flags, not future predictions'],
+                    ['label' => 'Active Fleet Share', 'value' => number_format($fleetAvailability, 1) . '%', 'icon' => 'fa-chart-line', 'tone' => 'success', 'caption' => 'Availability from fleet status'],
                     ['label' => 'Fuel Review Units', 'value' => number_format($fuelReviewUnits->count()), 'icon' => 'fa-gas-pump', 'tone' => 'warning', 'caption' => number_format($fuelHighIdlingUnits->count()) . ' high-idle units'],
-                    ['label' => 'Completion Forecast', 'value' => number_format($completionForecast, 1) . '%', 'icon' => 'fa-circle-check', 'tone' => 'purple', 'caption' => $tripCount > 0 ? 'Based on trip history' : 'No history yet'],
+                    ['label' => 'Historical Unflagged Share', 'value' => $completionForecast !== null ? number_format($completionForecast, 1) . '%' : '—', 'icon' => 'fa-circle-check', 'tone' => 'purple', 'caption' => $tripCount > 0 ? 'Share of GPS records with no review flags' : 'No history yet'],
                 ],
                 'overview' => (object) [
                     'labels' => ['Fleet & Trip', 'Fuel', 'Bus Health', 'Inventory'],
@@ -1364,7 +1101,7 @@ class AnalyticsStageController extends Controller
                     (object) [
                         'icon' => 'fa-chart-line',
                         'tone' => 'blue',
-                        'title' => 'Top forecast area',
+                        'title' => 'Top recorded attention area',
                         'text' => $highestDomain
                             ? sprintf('%s leads forecast signal volume with %s.', $highestDomain->domain, $highestDomain->signal)
                             : 'No forecast signals are present in the selected records.',
@@ -1374,8 +1111,8 @@ class AnalyticsStageController extends Controller
                         'tone' => 'green',
                         'title' => 'Prediction engine',
                         'text' => $fleetPred->available === true
-                            ? 'Fleet & Trip ML forecasting is live for upcoming scheduled trips.'
-                            : 'Python prediction service is offline; forecasts fall back to recorded-trend calculations.',
+                            ? 'Historical route-based trip estimates are available; ETA ML status is independent.'
+                            : 'No eligible trip estimates are available; recorded diagnostics are still shown.',
                     ],
                     (object) [
                         'icon' => 'fa-gas-pump',
@@ -1391,7 +1128,7 @@ class AnalyticsStageController extends Controller
                         'title' => 'Stock exposure',
                         'text' => $inventoryAttentionRows->isNotEmpty()
                             ? sprintf('%d stock items need restocking attention.', $inventoryAttentionRows->count())
-                            : 'All inventory items are above reorder level.',
+                            : ($inventoryDiag->total > 0 ? 'Recorded items have no reorder-threshold alerts.' : 'No inventory records are available.'),
                     ],
                 ]),
             ],
@@ -1401,7 +1138,7 @@ class AnalyticsStageController extends Controller
                     'predictedDelays' => $delayRisk,
                     'utilization' => round($fleetAvailability, 1),
                     'highIdleRisk' => $highIdleRisk,
-                    'completionForecast' => round($completionForecast, 1),
+                    'completionForecast' => $completionForecast !== null ? round($completionForecast, 1) : null,
                 ],
                 'issues' => $fleetIssues,
                 'predictions' => $predictionRows,
@@ -1446,36 +1183,37 @@ class AnalyticsStageController extends Controller
                 'rows' => $busRiskRows,
                 'horizons' => [
                     'immediate' => (object) [
-                        'label' => 'Critical / In Shop (< 24 Hours)',
-                        'badge' => 'CRITICAL',
-                        'count' => max(2, (int) $healthDiag->maintenance + collect($busAttention)->filter(fn ($r) => (int) ($r->overdue_orders ?? 0) >= 5)->count()),
+                        'label' => 'Under Maintenance',
+                        'badge' => 'GROUNDED',
+                        'count' => $healthDiag->maintenance,
                         'tone' => 'danger',
-                        'description' => 'Severe overdue work or currently grounded in shop',
-                        'sample' => 'GCT-108, GCT-101',
+                        'description' => 'Current recorded bus status (not a failure forecast)',
+                        'sample' => $buses->filter(fn ($bus) => strtolower((string) $bus->status) === 'under maintenance')->pluck('bus_no')->take(3)->implode(', '),
                     ],
                     'high' => (object) [
-                        'label' => 'High Risk Wear (3–5 Days)',
-                        'badge' => 'HIGH RISK',
-                        'count' => max(2, collect($busAttention)->filter(fn ($r) => (int) ($r->overdue_orders ?? 0) < 5 && (int) ($r->open_orders ?? 0) > 0)->count()),
+                        'label' => 'Overdue Job Orders',
+                        'badge' => 'OVERDUE',
+                        'count' => $busAttention->filter(fn ($row) => (int) ($row->overdue_orders ?? 0) > 0)->count(),
                         'tone' => 'warning',
-                        'description' => 'Active job orders; wear accelerating on key components',
-                        'sample' => 'GCT-107, GCT-112',
+                        'description' => 'Buses with overdue maintenance records; no failure time inferred',
+                        'sample' => $busAttention->filter(fn ($row) => (int) ($row->overdue_orders ?? 0) > 0)->pluck('bus_no')->take(3)->implode(', '),
                     ],
                     'routine' => (object) [
-                        'label' => 'PMS Window (6–14 Days)',
-                        'badge' => 'SCHEDULED',
-                        'count' => max(1, (int) $healthDiag->inactive),
+                        'label' => 'Open Job Orders',
+                        'badge' => 'REVIEW',
+                        'count' => $busAttention->filter(fn ($row) => (int) ($row->open_orders ?? 0) > 0)->count(),
                         'tone' => 'info',
-                        'description' => 'Approaching periodic preventive maintenance interval',
-                        'sample' => 'GCT-114',
+                        'description' => 'Current open maintenance workload, not a wear forecast',
+                        'sample' => $busAttention->filter(fn ($row) => (int) ($row->open_orders ?? 0) > 0)->pluck('bus_no')->take(3)->implode(', '),
                     ],
                     'safe' => (object) [
-                        'label' => 'Healthy Operating State (15+ Days)',
-                        'badge' => 'HEALTHY',
-                        'count' => max(1, (int) $healthDiag->active - 2),
+                        'label' => 'Active Without Open Orders',
+                        'badge' => 'NO JO FLAGS',
+                        'count' => $buses->filter(fn ($bus) => strtolower((string) $bus->status) === 'active'
+                            && ! $busAttention->contains(fn ($row) => (string) $row->bus_no === (string) $bus->bus_no && (int) ($row->open_orders ?? 0) > 0))->count(),
                         'tone' => 'success',
-                        'description' => 'Optimal diagnostic metrics; fully cleared for dispatch',
-                        'sample' => 'GCT-102, GCT-103',
+                        'description' => 'Still subject to required pre-trip checks',
+                        'sample' => '',
                     ],
                 ],
                 'issues' => collect([
@@ -1549,364 +1287,19 @@ class AnalyticsStageController extends Controller
         ?object $diagnostic,
         ?object $predictive
     ): object {
-        $tripCount = (int) ($fleet['tripCount'] ?? 0);
-        $totalBuses = (int) ($fleet['totalBuses'] ?? 0);
-        $activeBuses = (int) ($fleet['activeBuses'] ?? 0);
-
-        $predAll = $predictive?->all;
-        $predFleet = $predictive?->fleet;
-        $predFuel = $predictive?->fuel;
-        $predHealth = $predictive?->bus_health;
-        $predInventory = $predictive?->inventory;
-
-        $overdueOrdersCount = (int) ($diagnostic?->bus_health?->overdue_orders?->count() ?? 12);
-        $lowStockCount = (int) ($diagnostic?->inventory?->attention_rows?->count() ?? 10);
-        $fuelReviewCount = (int) ($diagnostic?->fuel?->review_units?->count() ?? 3);
-        $delayRiskCount = (int) ($predFleet?->stats['predictedDelays'] ?? 1);
-
-        // 1. ALL DOMAIN PRESCRIPTIVE
-        $allPrescriptive = (object) [
-            'note' => 'Sample / demonstration values - illustrative planning baselines, not outputs from live production models.',
-            'kpis' => [
-                ['label' => 'Immediate Action Items', 'value' => '7', 'icon' => 'fa-bolt', 'tone' => 'danger', 'caption' => 'Critical operational tasks pending'],
-                ['label' => 'Projected Fuel Recovery', 'value' => '168 L/mo', 'icon' => 'fa-gas-pump', 'tone' => 'success', 'caption' => 'Idle cutoff + injector tuning'],
-                ['label' => 'On-Time Recovery Potential', 'value' => '+5.8%', 'icon' => 'fa-clock', 'tone' => 'blue', 'caption' => 'Target: 98.2% on-time dispatch'],
-                ['label' => 'Turnaround Acceleration', 'value' => '-36 Hours', 'icon' => 'fa-gauge-high', 'tone' => 'purple', 'caption' => 'Expediting mechanical repair queue'],
-                ['label' => 'Prescriptive Execution Rate', 'value' => '82.4%', 'icon' => 'fa-circle-check', 'tone' => 'success', 'caption' => '14 of 17 playbooks adopted'],
-            ],
-            'queue' => collect([
-                [
-                    'rank' => 1,
-                    'title' => 'Emergency Reorder for 10 Depleted Parts',
-                    'domain' => 'Inventory',
-                    'impact' => 'Prevents grounded units due to zero brake pads & oil filters',
-                    'urgency' => 'Critical (< 24h)',
-                    'savings' => 'Zero stockout risk',
-                    'badge' => 'danger',
-                    'action_label' => 'Generate PO',
-                    'action_url' => route('analytics.stage', ['stage' => 'prescriptive', 'domain' => 'inventory'], false),
-                    'icon' => 'fa-boxes-stacked',
-                ],
-                [
-                    'rank' => 2,
-                    'title' => 'Expedite Overdue PMS on GCT-108 & GCT-101',
-                    'domain' => 'Bus Health',
-                    'impact' => 'Mitigate 92% breakdown risk on morning high-volume routes',
-                    'urgency' => 'High (< 48h)',
-                    'savings' => '2 Breakdowns Prevented',
-                    'badge' => 'danger',
-                    'action_label' => 'Assign Bay 2',
-                    'action_url' => route('analytics.stage', ['stage' => 'prescriptive', 'domain' => 'bus-health'], false),
-                    'icon' => 'fa-screwdriver-wrench',
-                ],
-                [
-                    'rank' => 3,
-                    'title' => 'Enforce 10-Minute Idle Cutoff on Flagged Units',
-                    'domain' => 'Fuel',
-                    'impact' => 'Eliminates 42 L/wk wasted fuel across Bus 07, 12, and 14 (168 L/mo)',
-                    'urgency' => 'Medium (3-5 Days)',
-                    'savings' => '42 L / week Saved',
-                    'badge' => 'warning',
-                    'action_label' => 'Issue Policy',
-                    'action_url' => route('analytics.stage', ['stage' => 'prescriptive', 'domain' => 'fuel'], false),
-                    'icon' => 'fa-gas-pump',
-                ],
-                [
-                    'rank' => 4,
-                    'title' => 'Stagger Route 3 Headway & Stage Standby Bus',
-                    'domain' => 'Fleet & Trip',
-                    'impact' => 'Recovers 18 mins peak congestion delay on Ayala–SM City',
-                    'urgency' => 'Medium (3-5 Days)',
-                    'savings' => '+5.8% on-time dispatch',
-                    'badge' => 'warning',
-                    'action_label' => 'Adjust Schedule',
-                    'action_url' => route('analytics.stage', ['stage' => 'prescriptive', 'domain' => 'fleet-trip'], false),
-                    'icon' => 'fa-route',
-                ],
-            ]),
-            'table_rows' => collect([
-                (object) [
-                    'domain' => 'Fleet & Trip',
-                    'icon' => 'fa-route',
-                    'prescriptions' => 'Stage 1 Standby Bus • Stagger 07:30 Headway',
-                    'expected_gain' => '+5.8% on-time arrival',
-                    'level' => 'medium',
-                    'status' => 'Ready to Deploy',
-                    'slug' => 'fleet-trip',
-                ],
-                (object) [
-                    'domain' => 'Fuel',
-                    'icon' => 'fa-gas-pump',
-                    'prescriptions' => 'Idle Limiter Advisory • Injector Calibration (3 units)',
-                    'expected_gain' => 'Save 168 L / mo',
-                    'level' => 'medium',
-                    'status' => 'Pending Calibration',
-                    'slug' => 'fuel',
-                ],
-                (object) [
-                    'domain' => 'Bus Health',
-                    'icon' => 'fa-screwdriver-wrench',
-                    'prescriptions' => 'Reassign Bay 2 Mechanics • Expedite 12 Job Orders',
-                    'expected_gain' => '-36 Hours turnaround recovery',
-                    'level' => 'high',
-                    'status' => 'Urgent Action',
-                    'slug' => 'bus-health',
-                ],
-                (object) [
-                    'domain' => 'Inventory',
-                    'icon' => 'fa-boxes-stacked',
-                    'prescriptions' => 'Emergency PO for 10 Items • Recalibrate Safety Buffer',
-                    'expected_gain' => 'Zero stockout exposure',
-                    'level' => 'high',
-                    'status' => 'Immediate Procurement',
-                    'slug' => 'inventory',
-                ],
-            ]),
-            'execution_stats' => (object) [
-                'completed' => 8,
-                'in_progress' => 5,
-                'pending' => 7,
-                'total' => 20,
-            ],
-            'savings_chart' => (object) [
-                'labels' => ['Fleet Dispatch', 'Fuel Efficiency', 'PMS Uptime', 'Inventory Buffer'],
-                'current' => [82, 74, 76, 68],
-                'prescriptive' => [96, 91, 95, 94],
-            ],
-        ];
-
-        // 2. FLEET & TRIP PRESCRIPTIVE
-        $fleetPrescriptive = (object) [
-            'note' => 'Sample / demonstration values - illustrative planning baselines, not outputs from live production models.',
-            'kpis' => [
-                ['label' => 'Active Prescriptions', 'value' => '4 Plans', 'icon' => 'fa-clipboard-list', 'tone' => 'blue', 'caption' => 'Headway & standby allocation'],
-                ['label' => 'Delay Recovery Potential', 'value' => '24 mins', 'icon' => 'fa-clock-rotate-left', 'tone' => 'success', 'caption' => 'Estimated peak schedule recovery'],
-                ['label' => 'Standby Bus Readiness', 'value' => '2 Units', 'icon' => 'fa-bus', 'tone' => 'purple', 'caption' => 'Staged at North Terminal'],
-                ['label' => 'Corridor Flow Index', 'value' => '91.4%', 'icon' => 'fa-chart-line', 'tone' => 'success', 'caption' => '+6.2% optimized trajectory'],
-            ],
-            'actions' => collect([
-                [
-                    'route' => 'Route 3 - Ayala - SM City',
-                    'issue' => 'Peak Congestion (+18m delay at 07:30)',
-                    'prescribed_action' => 'Add 5-min stagger offset and stage standby bus GCT-104 at Ayala depot',
-                    'impact' => 'Reduces peak departure delay by 14 mins',
-                    'priority' => 'High',
-                    'status' => 'Recommended',
-                    'action_url' => route('trip-schedule'),
-                ],
-                [
-                    'route' => 'Route 5 - Talisay - Parkmall',
-                    'issue' => 'Extended Layover Variance (22 mins avg idle)',
-                    'prescribed_action' => 'Enforce dynamic turnaround clock; shorten turnaround window to 12 mins',
-                    'impact' => 'Saves 10 mins per rotation cycle',
-                    'priority' => 'Medium',
-                    'status' => 'Pending Approval',
-                    'action_url' => route('trip-schedule'),
-                ],
-                [
-                    'route' => 'Route 2 - Fuente - Ayala',
-                    'issue' => 'Slow Transit Speed (16.2 km/h bottleneck)',
-                    'prescribed_action' => 'Reroute via Osmeña Blvd bypass during 17:00–19:00 evening window',
-                    'impact' => 'Recovers +8 km/h travel velocity',
-                    'priority' => 'Medium',
-                    'status' => 'Recommended',
-                    'action_url' => route('trip-schedule'),
-                ],
-                [
-                    'route' => 'Route 1 - Talamban - IT Park',
-                    'issue' => 'Morning Student Surge (Headway Deficit)',
-                    'prescribed_action' => 'Inject short-turn shuttle service from Banilad flyover to IT Park terminal',
-                    'impact' => 'Eliminates 35-passenger terminal queues',
-                    'priority' => 'Low',
-                    'status' => 'Scheduled',
-                    'action_url' => route('trip-schedule'),
-                ],
-            ]),
-        ];
-
-        // 3. FUEL PRESCRIPTIVE
-        $fuelPrescriptive = (object) [
-            'note' => 'Sample / demonstration values - illustrative planning baselines, not outputs from live production models.',
-            'kpis' => [
-                ['label' => 'Prescribed Savings Target', 'value' => '168 L/mo', 'icon' => 'fa-gas-pump', 'tone' => 'green', 'caption' => '42 L/week across 4 flagged units'],
-                ['label' => 'Idle Mitigation Potential', 'value' => '-42 mins/day', 'icon' => 'fa-clock', 'tone' => 'blue', 'caption' => 'Across top 5 idling units'],
-                ['label' => 'Injector Calibration', 'value' => '3 Buses', 'icon' => 'fa-wrench', 'tone' => 'warning', 'caption' => 'Operating below 3.2 km/L baseline'],
-                ['label' => 'Fleet Eco-Score Target', 'value' => '89.5', 'icon' => 'fa-leaf', 'tone' => 'green', 'caption' => 'From current 76.2 baseline'],
-            ],
-            'actions' => collect([
-                [
-                    'bus_no' => 'Bus 07 (GCT-107)',
-                    'issue' => 'Frequent Idling (38m idle per shift)',
-                    'prescription' => 'Activate 10-minute auto-engine shutoff timer & install driver idle buzzer',
-                    'savings' => '14.0 L / week Saved',
-                    'priority' => 'High',
-                    'status' => 'Policy Ready',
-                ],
-                [
-                    'bus_no' => 'Bus 12 (GCT-112)',
-                    'issue' => 'Low Efficiency (2.85 km/L vs 3.59 baseline)',
-                    'prescription' => 'Schedule high-pressure fuel injector ultrasonic cleaning and intake air filter replacement',
-                    'savings' => '16.0 L / week Saved',
-                    'priority' => 'High',
-                    'status' => 'Service Order Pending',
-                ],
-                [
-                    'bus_no' => 'Bus 05 (GCT-105)',
-                    'issue' => 'Rapid Acceleration & Braking (Telemetry flag)',
-                    'prescription' => 'Assign 1-on-1 Eco-Driving refresher course with lead operations trainer',
-                    'savings' => '7.0 L / week Saved',
-                    'priority' => 'Medium',
-                    'status' => 'Training Assigned',
-                ],
-                [
-                    'bus_no' => 'Bus 03 (GCT-103)',
-                    'issue' => 'AC Compressor Constant Load',
-                    'prescription' => 'Inspect AC thermostat sensor and seal cabin insulation strips',
-                    'savings' => '5.0 L / week Saved',
-                    'priority' => 'Low',
-                    'status' => 'Inspected',
-                ],
-            ]),
-        ];
-
-        // 4. BUS HEALTH PRESCRIPTIVE
-        $busHealthPrescriptive = (object) [
-            'note' => 'Sample / demonstration values - illustrative planning baselines, not outputs from live production models.',
-            'kpis' => [
-                ['label' => 'Expedited Work Orders', 'value' => '12 Jobs', 'icon' => 'fa-screwdriver-wrench', 'tone' => 'danger', 'caption' => 'Preventing active fleet groundings'],
-                ['label' => 'Turnaround Compression', 'value' => '-36 Hours', 'icon' => 'fa-bolt', 'tone' => 'purple', 'caption' => 'Average repair cycle reduction'],
-                ['label' => 'Bay Allocation Efficiency', 'value' => '94.0%', 'icon' => 'fa-warehouse', 'tone' => 'success', 'caption' => 'Optimal lift & mechanic utilization'],
-                ['label' => 'Breakdown Prevention', 'value' => '96.2%', 'icon' => 'fa-shield-halved', 'tone' => 'blue', 'caption' => 'Estimated pre-failure interception'],
-            ],
-            'actions' => collect([
-                [
-                    'bus_no' => 'GCT-108',
-                    'component' => 'Braking System & Pads',
-                    'prescription' => 'Reassign 2 mechanics from Bay 4 to Bay 2; execute emergency brake pad replacement & drum machining within 12 hours',
-                    'bay' => 'Bay 2 (Heavy Lift)',
-                    'priority' => 'Critical (< 24h)',
-                    'status' => 'Queued for Lift',
-                ],
-                [
-                    'bus_no' => 'GCT-101',
-                    'component' => 'Cooling System & Radiator',
-                    'prescription' => 'Perform radiator flush, replace thermostat assembly, and pressure test coolant loop before next scheduled dispatch',
-                    'bay' => 'Bay 1 (Mechanical)',
-                    'priority' => 'Critical (< 24h)',
-                    'status' => 'Queued for Lift',
-                ],
-                [
-                    'bus_no' => 'GCT-110',
-                    'component' => 'Transmission & Clutch',
-                    'prescription' => 'Perform clutch fluid bleeding and adjust release fork clearance to prevent plate slip',
-                    'bay' => 'Bay 3 (Powertrain)',
-                    'priority' => 'High (2–3 Days)',
-                    'status' => 'Staged',
-                ],
-                [
-                    'bus_no' => 'GCT-104',
-                    'component' => 'Alternator & Drive Belts',
-                    'prescription' => 'Re-tension drive belt and test diode rectifier output under full electrical load',
-                    'bay' => 'Bay 4 (Electrical)',
-                    'priority' => 'Medium (3–5 Days)',
-                    'status' => 'Scheduled',
-                ],
-            ]),
-        ];
-
-        // 5. INVENTORY PRESCRIPTIVE
-        $inventoryPrescriptive = (object) [
-            'note' => 'Sample / demonstration values - illustrative planning baselines, not outputs from live production models.',
-            'kpis' => [
-                ['label' => 'Prescribed Purchase Orders', 'value' => '10 Parts', 'icon' => 'fa-cart-shopping', 'tone' => 'danger', 'caption' => 'Replenishing depleted reserves'],
-                ['label' => 'Total Reorder Volume', 'value' => '47 Qty', 'icon' => 'fa-boxes-stacked', 'tone' => 'blue', 'caption' => 'Consolidated replenishment batch'],
-                ['label' => 'Safety Buffer Adjustment', 'value' => '+15%', 'icon' => 'fa-shield', 'tone' => 'purple', 'caption' => 'Recalibrated for PMS demand surge'],
-                ['label' => 'Stockout Interception', 'value' => '100%', 'icon' => 'fa-circle-check', 'tone' => 'success', 'caption' => 'Full coverage of maintenance orders'],
-            ],
-            'po_batches' => collect([
-                [
-                    'item_code' => 'BRK-PAD-01',
-                    'item_name' => 'Heavy Duty Brake Pad Set',
-                    'category' => 'Brakes & Friction',
-                    'current_stock' => 0,
-                    'reorder_qty' => 12,
-                    'unit_of_measurement' => 'sets',
-                    'safety_buffer' => '5 sets',
-                    'storage_location' => 'Bay 2 - Rack A',
-                    'supplier' => 'Cebu Auto Supply Corp.',
-                    'lead_time' => '24–48 Hours',
-                    'priority' => 'Critical',
-                ],
-                [
-                    'item_code' => 'FLT-OIL-04',
-                    'item_name' => 'Diesel Engine Oil Filter',
-                    'category' => 'Filters',
-                    'current_stock' => 1,
-                    'reorder_qty' => 15,
-                    'unit_of_measurement' => 'pcs',
-                    'safety_buffer' => '8 pcs',
-                    'storage_location' => 'Bay 1 - Shelf B',
-                    'supplier' => 'Metro Fleet Parts Inc.',
-                    'lead_time' => '24 Hours',
-                    'priority' => 'Critical',
-                ],
-                [
-                    'item_code' => 'FLT-AIR-02',
-                    'item_name' => 'Primary Air Induction Filter',
-                    'category' => 'Filters',
-                    'current_stock' => 2,
-                    'reorder_qty' => 10,
-                    'unit_of_measurement' => 'pcs',
-                    'safety_buffer' => '6 pcs',
-                    'storage_location' => 'Bay 1 - Shelf B',
-                    'supplier' => 'Cebu Auto Supply Corp.',
-                    'lead_time' => '48 Hours',
-                    'priority' => 'High',
-                ],
-                [
-                    'item_code' => 'LUB-15W40-DR',
-                    'item_name' => '15W-40 Synthetic Blend Engine Oil (Drum)',
-                    'category' => 'Lubricants',
-                    'current_stock' => 0,
-                    'reorder_qty' => 2,
-                    'unit_of_measurement' => 'drums',
-                    'safety_buffer' => '2 drums',
-                    'storage_location' => 'Fluid Storage Bay',
-                    'supplier' => 'Petron Commercial Distribution',
-                    'lead_time' => '3–4 Days',
-                    'priority' => 'High',
-                ],
-                [
-                    'item_code' => 'CLT-R50-5L',
-                    'item_name' => 'Heavy Duty Radiator Coolant 5L',
-                    'category' => 'Cooling',
-                    'current_stock' => 2,
-                    'reorder_qty' => 8,
-                    'unit_of_measurement' => 'cans',
-                    'safety_buffer' => '4 cans',
-                    'storage_location' => 'Fluid Storage Bay',
-                    'supplier' => 'Metro Fleet Parts Inc.',
-                    'lead_time' => '2–3 Days',
-                    'priority' => 'Medium',
-                ],
-            ]),
-        ];
-
+        // Only evidence-backed Operations and Restocking domains are active.
+        // Retired sample KPIs, fictional failures, fuel savings, and suppliers
+        // are not constructed for production analytics.
         $buses = Bus::query()->orderBy('bus_no')->get();
         $inventoryItems = InventoryItem::query()->orderBy('category')->orderBy('parts_name')->get();
 
         return (object) [
-            'all' => $allPrescriptive,
-            'fleet' => $fleetPrescriptive,
-            'fuel' => $fuelPrescriptive,
-            'bus_health' => $busHealthPrescriptive,
-            'inventory' => $inventoryPrescriptive,
             'operations' => $this->buildOperationsPrescriptiveData($request, $buses, $fleet),
             'restocking' => $this->buildRestockingPrescriptiveData($request, $inventoryItems),
         ];
     }
 
-    /**
+        /**
      * Build Thesis Objective 6.4.1 Operations Prescriptive Recommendations.
      */
     private function buildOperationsPrescriptiveData(Request $request, Collection $buses, array $fleet): object
@@ -1914,9 +1307,17 @@ class AnalyticsStageController extends Controller
         $selectedBus = strtoupper(trim((string) $request->input('bus', 'all')));
         $period = (string) $request->input('period', 'this-month');
         // Explicit, read-only sample preview. Never activate by missing-data fallback.
-        $demoMode = $request->boolean('preview', false);
+        $demoMode = app()->environment('local', 'testing') && $request->boolean('preview', false);
 
-        [$start, $end] = $this->resolveDatePeriod($period);
+        [$start, $end] = $this->resolveDatePeriod(
+            $period,
+            config('app.business_timezone', 'Asia/Manila')
+        );
+        // Unlike historical analytics, scheduling recommendations must include
+        // upcoming trips through the end of the selected calendar month.
+        if ($period === 'this-month') {
+            $end = $end->copy()->endOfMonth();
+        }
 
         $tripQuery = TripSchedule::query()
             ->with(['shuttleRoute', 'assignments.bus'])
@@ -1931,28 +1332,22 @@ class AnalyticsStageController extends Controller
         $realTrips = $tripQuery->orderBy('trip_date')->orderBy('departure_time')->get();
         $realCount = $realTrips->count();
 
-        $unassignedTrips = $realTrips->filter(function (TripSchedule $trip): bool {
-            $status = strtolower(trim((string) $trip->assignment_status));
-            return in_array($status, ['unassigned', 'pending', 'open', 'partial', ''], true)
-                || $trip->assignments->isEmpty();
-        })->values();
+        $unassignedTrips = $realTrips->filter(fn (TripSchedule $trip): bool =>
+            in_array($trip->status, ['Scheduled', 'Ready'], true)
+            && ! $trip->hasDeparted()
+            && $trip->shuttleRoute?->status === 'Active'
+            && ! $trip->hasOperationalHistory()
+            && ! $trip->is_fully_assigned
+        )->values();
 
-        // Query active personnel and available buses
-        $drivers = Driver::query()->get();
-        $eligibleDrivers = $drivers->filter(fn ($d) => strtolower(trim((string) $d->employment_status)) === 'active')->values();
-
-        $openJobBusNos = collect();
-        if (Schema::hasTable('job_orders')) {
-            $openJobBusNos = DB::table('job_orders')
-                ->whereNotIn('status', ['Completed', 'Complete', 'Closed', 'Done', 'Cancelled'])
-                ->pluck('bus_no')
-                ->map(fn ($b) => strtoupper(trim((string) $b)));
-        }
-
-        $availableBuses = $buses->filter(function (Bus $bus) use ($openJobBusNos): bool {
-            return strtolower(trim((string) $bus->status)) === 'active'
-                && ! $openJobBusNos->contains(strtoupper(trim((string) $bus->bus_no)));
-        })->values();
+        $eligibleDrivers = Driver::query()->with('authorizedBuses')
+            ->where('employment_status', 'Active')->orderBy('driver_name')->get();
+        $openJobBusNos = \App\Models\Maintenance\JobOrder::query()->blocksDispatch()
+            ->pluck('bus_no')->map(fn ($number) => strtoupper(trim((string) $number)));
+        $availableBuses = Bus::query()->with('operationClients')->where('status', 'Active')
+            ->where('fleet_purpose', 'Regular')->get()
+            ->reject(fn (Bus $bus) => $openJobBusNos->contains(strtoupper(trim((string) $bus->bus_no))))
+            ->sortBy('bus_no', SORT_NATURAL)->values();
 
         // Conflict detection: 15-minute headway rule on same route & resource deficit
         $conflicts = collect();
@@ -1990,53 +1385,54 @@ class AnalyticsStageController extends Controller
             ]);
         }
 
-        // Check if demo simulation should be displayed
-        $isDemo = $demoMode || ($unassignedTrips->isEmpty() && $realCount === 0);
-        if ($isDemo) {
-            return $this->getDemoOperationsPrescriptiveData($period, $selectedBus, $realCount);
-        }
-
-        // Build recommendation records from real live records
-        // Suggestions are advisory. Do not propose an already-assigned resource or
-        // a driver without confirmed attendance for the target trip date.
-        $reservedByDay = TripAssignment::query()
-            ->with('tripSchedule')
+        // Read-only recommendations; never synthesize missing operational records.
+        $existingAssignments = TripAssignment::query()->with('tripSchedule')
             ->whereHas('tripSchedule', fn ($query) => $query
-                ->whereBetween('trip_date', [$start->toDateString(), $end->toDateString()])
-                ->whereNotIn('status', ['Cancelled']))
-            ->get()
-            ->groupBy(fn (TripAssignment $assignment) => $assignment->tripSchedule?->trip_date?->toDateString() ?? '');
+                ->whereBetween('trip_date', [$start->copy()->subDay()->toDateString(), $end->copy()->addDay()->toDateString()])
+                ->whereNotIn('status', ['Cancelled', 'Completed']))
+            ->get();
 
-        $attendanceByDay = DriverAttendance::query()
-            ->whereBetween('attendance_date', [$start->toDateString(), $end->toDateString()])
-            ->whereNotNull('time_in')
-            ->whereNull('time_out')
-            ->get()
-            ->groupBy(fn (DriverAttendance $attendance) => $attendance->attendance_date?->toDateString() ?? '');
-
-        $suggestedBusIds = [];
-        $suggestedDriverIds = [];
-        $scheduleRecommendations = $unassignedTrips->map(function (TripSchedule $trip) use ($availableBuses, $eligibleDrivers, $reservedByDay, $attendanceByDay, &$suggestedBusIds, &$suggestedDriverIds): object {
-            $day = $trip->trip_date?->toDateString() ?? '';
-            $existing = $reservedByDay->get($day, collect());
-            $bus = $availableBuses->first(fn (Bus $candidate) =>
-                ! in_array($day . ':' . $candidate->id, $suggestedBusIds, true)
-                && ! $existing->contains(fn (TripAssignment $a) => (int) $a->bus_id === (int) $candidate->id)
+        $proposed = collect();
+        $scheduleRecommendations = $unassignedTrips->flatMap(function (TripSchedule $trip) use ($availableBuses, $eligibleDrivers, $existingAssignments, $proposed, $selectedBus) {
+            $remaining = max(0, (int) ($trip->required_buses ?? 1) - $trip->assigned_buses_count);
+            $startTime = $trip->departureDateTime();
+            $endTime = $trip->estimatedArrivalDateTime();
+            $busy = $existingAssignments->filter(fn (TripAssignment $assignment) =>
+                $assignment->tripSchedule && ($assignment->trip_schedule_id === $trip->id
+                    || ($startTime->lt($assignment->tripSchedule->estimatedArrivalDateTime())
+                        && $endTime->gt($assignment->tripSchedule->departureDateTime())))
             );
-            $driver = $eligibleDrivers->first(fn (Driver $candidate) =>
-                ! in_array($day . ':' . $candidate->driver_id, $suggestedDriverIds, true)
-                && $attendanceByDay->get($day, collect())->contains('driver_id', $candidate->driver_id)
-                && ! $existing->contains(fn (TripAssignment $a) => (string) $a->driver_id === (string) $candidate->driver_id
-                    || (int) $a->driver_master_id === (int) $candidate->id)
-            );
-            if ($bus) $suggestedBusIds[] = $day . ':' . $bus->id;
-            if ($driver) $suggestedDriverIds[] = $day . ':' . $driver->driver_id;
-            $assignedBus = $bus?->bus_no ?? 'Needs selection';
-            $assignedDriver = $driver?->driver_name ?? 'Needs selection';
+            $rows = collect();
+            for ($slot = 0; $slot < $remaining; $slot++) {
+                $bus = null;
+                $driver = null;
+                $client = mb_strtolower(trim((string) $trip->client_name));
+                $overlappingProposals = $proposed->filter(fn ($pair) =>
+                    $startTime->lt($pair['end']) && $endTime->gt($pair['start']));
+                foreach ($availableBuses as $candidateBus) {
+                    if ($selectedBus !== '' && $selectedBus !== 'ALL' && strtoupper(trim($candidateBus->bus_no)) !== $selectedBus) continue;
+                    $clients = $candidateBus->operationClients->pluck('name')->map(fn ($name) => mb_strtolower(trim($name)));
+                    if (($client === '' ? $clients->isNotEmpty() : ! $clients->contains($client))
+                        || $busy->contains(fn ($assignment) => (int) $assignment->bus_id === (int) $candidateBus->id)
+                        || $overlappingProposals->contains('bus_id', $candidateBus->id)) continue;
+                    $candidateDriver = $eligibleDrivers->first(fn (Driver $candidate) =>
+                        $candidate->authorizedBuses->contains('id', $candidateBus->id)
+                        && (! $candidate->license_expiration || $candidate->license_expiration->toDateString() >= $trip->trip_date->toDateString())
+                        && ! $busy->contains(fn ($assignment) => (string) $assignment->driver_id === (string) $candidate->driver_id || (int) $assignment->driver_master_id === (int) $candidate->id)
+                        && ! $overlappingProposals->contains('driver_id', $candidate->driver_id));
+                    if ($candidateDriver) {
+                        $bus = $candidateBus;
+                        $driver = $candidateDriver;
+                        $proposed->push(['bus_id' => $bus->id, 'driver_id' => $driver->driver_id, 'start' => $startTime, 'end' => $endTime]);
+                        break;
+                    }
+                }
+                $assignedBus = $bus?->bus_no ?? 'Needs selection';
+                $assignedDriver = $driver?->driver_name ?? 'Needs selection';
             $duration = (int) ($trip->planned_duration_minutes ?: 0);
             $depTime = $trip->departure_time ? Carbon::parse($trip->departure_time) : null;
 
-            return (object) [
+            $rows->push((object) [
                 'trip_code' => $trip->trip_code,
                 'route_code' => $trip->route_code_snapshot ?: ($trip->shuttleRoute?->route_code ?? 'Route'),
                 'route_name' => $trip->route_name_snapshot ?: ($trip->shuttleRoute?->route_name ?? 'Not recorded'),
@@ -2048,20 +1444,22 @@ class AnalyticsStageController extends Controller
                 'recommended_bus' => $assignedBus,
                 'recommended_driver' => $assignedDriver,
                 'headway_gap' => 'Needs review',
-                'reason' => 'Candidate resources are based on active records. Confirm attendance, rest, authorization, PMS, and headway before assigning.',
-                'status' => 'Pending Approval',
-            ];
+                'reason' => $bus && $driver ? 'Compatible regular pair; Operations approval required.' : 'No compatible regular pair found; review availability or Reserve options.',
+                'status' => $bus && $driver ? 'Pending Approval' : 'No compatible pair',
+            ]);
+            }
+            return $rows;
         });
 
         $driverRecommendations = $eligibleDrivers->take(8)->map(function (Driver $driver, int $index): object {
             return (object) [
                 'driver_name' => $driver->driver_name,
                 'shift' => $driver->shift ?: 'Morning Shift',
-                'attendance_status' => 'Not checked',
-                'bus_authorization' => 'Not verified',
+                'attendance_status' => 'After trip',
+                'bus_authorization' => $driver->authorizedBuses->pluck('bus_no')->implode(', ') ?: 'No authorized buses',
                 'duty_hours' => 'Not measured',
                 'eligibility' => 'Requires review',
-                'reason' => 'Employment is active; verify attendance, duty hours, license, and assignment conflicts.',
+                'reason' => 'Active driver; confirm availability, bus authorization, and assignment conflicts.',
             ];
         });
 
@@ -2072,6 +1470,7 @@ class AnalyticsStageController extends Controller
                 'status' => $bus->status ?: 'Active',
                 'pms_headroom' => 'No open JO recorded',
                 'capacity' => (int) $bus->capacity,
+                'fleet_purpose' => $bus->fleet_purpose,
                 'eligibility' => 'Requires review',
                 'reason' => 'Active status and no open Job Order recorded; verify PMS and pre-trip checklist.',
             ];
@@ -2116,7 +1515,7 @@ class AnalyticsStageController extends Controller
             'available_buses_count' => $availableBuses->count(),
             'conflicts_count' => $conflicts->count(),
             'total_scheduled_trips' => $realCount,
-            'assigned_trips_count' => max(0, $realCount - $unassignedTrips->count()),
+            'assigned_trips_count' => $realTrips->filter(fn (TripSchedule $trip) => $trip->is_fully_assigned)->count(),
             'schedule_recommendations' => $scheduleRecommendations,
             'driver_recommendations' => $driverRecommendations,
             'bus_recommendations' => $busRecommendations,
@@ -2302,7 +1701,7 @@ class AnalyticsStageController extends Controller
     {
         $period = (string) $request->input('period', 'this-month');
         // Explicit, read-only sample preview. Never activate by missing-data fallback.
-        $demoMode = $request->boolean('preview', false);
+        $demoMode = app()->environment('local', 'testing') && $request->boolean('preview', false);
 
         $totalItems = $inventoryItems->count();
         $thresholdCalculator = app(\App\Services\Warehouse\InventoryThresholdCalculator::class);
@@ -2317,7 +1716,7 @@ class AnalyticsStageController extends Controller
         $attentionItems = $inventoryItems->filter($needsReorder)->values();
 
         // Check if demo simulation should be active
-        $isDemo = $demoMode || $totalItems === 0;
+        $isDemo = $demoMode;
         if ($isDemo) {
             return $this->getDemoRestockingPrescriptiveData($period, $totalItems);
         }

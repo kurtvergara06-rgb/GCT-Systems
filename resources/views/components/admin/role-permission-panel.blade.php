@@ -11,10 +11,15 @@
         ? null
         : strtolower(trim((string) $selectedRolePermission->department));
 
+    // Count only the capabilities actually displayed in this selected role's matrix.
+    // Protected System Admin retains the complete system-wide count.
     $visibleModules = collect($permissionModules);
+    $countedModules = $isProtectedRole
+        ? $visibleModules
+        : $visibleModules->only([$roleModuleKey, 'analytics']);
 
     // The protected System Admin is granted all capabilities by User::hasSystemPermission().
-    $enabledCapabilities = $visibleModules
+    $enabledCapabilities = $countedModules
         ->flatMap(function ($module, $moduleKey) use ($selectedPermissions) {
             return collect($module['capabilities'])->mapWithKeys(
                 fn ($capability, $capabilityKey) => [
@@ -29,7 +34,7 @@
         ->filter()
         ->count();
 
-    $totalCapabilities = $visibleModules
+    $totalCapabilities = $countedModules
         ->sum(fn ($module) => count($module['capabilities']));
 
     if ($isProtectedRole) {
@@ -88,7 +93,7 @@
 
     <form
         method="POST"
-        action="{{ route('admin.users.store') }}"
+        action="{{ route('admin.roles-permissions.update', ['rolePermission' => $selectedRolePermission->role_key]) }}"
         id="rolePermissionForm"
         data-confirm-form
         data-confirm-title="Save Role Permissions?"
@@ -97,8 +102,7 @@
         data-confirm-type="status"
     >
         @csrf
-        <input type="hidden" name="_permission_update" value="1">
-        <input type="hidden" name="role_key" value="{{ $selectedRolePermission->role_key }}">
+        @method('PUT')
 
         <div class="role-capability-strip">
             <div class="capability-item">
@@ -167,7 +171,7 @@
 
                 <div class="system-admin-module-list">
                     @foreach($visibleModules as $moduleKey => $module)
-                        <article class="system-admin-module-row">
+                        <article class="system-admin-module-row {{ $moduleKey === 'analytics' ? 'analytics-capability-row' : '' }}">
                             <div class="module-access-info">
                                 <div class="module-access-icon {{ $moduleKey }}">
                                     <i class="fa-solid {{ $module['icon'] }}"></i>
@@ -207,17 +211,17 @@
                     <div>
                         <span class="section-kicker">Module Permissions</span>
                         <h2>Department Permissions</h2>
-                        <p>{{ $departmentLabel }} permissions and Analytics access can be granted. Other departments remain isolated.</p>
+                        <p>Manage {{ $departmentLabel }} permissions and supported Analytics access. Other departments remain isolated.</p>
                     </div>
                     <span class="access-count-badge">{{ $enabledCapabilities }} of {{ $totalCapabilities }} Allowed</span>
                 </div>
                 <div class="system-admin-module-list">
-                    @foreach($visibleModules->except(['administration']) as $moduleKey => $module)
+                    @foreach($visibleModules->only([$roleModuleKey, 'analytics']) as $moduleKey => $module)
                         @php
                             $isHomeModule = $moduleKey === $roleModuleKey;
                             $capabilities = $module['capabilities'];
                         @endphp
-                        <article class="system-admin-module-row">
+                        <article class="system-admin-module-row {{ $moduleKey === 'analytics' ? 'analytics-capability-row' : '' }}">
                             <div class="module-access-info">
                                 <div class="module-access-icon {{ $moduleKey }}"><i class="fa-solid {{ $module['icon'] }}"></i></div>
                                 <div>
@@ -262,31 +266,57 @@
         @endif
 
         <section class="module-access-section assigned-role-accounts">
-            <div class="module-access-heading">
-                <div>
-                    <span class="section-kicker">Registered Accounts</span>
-                    <h2>Assigned Accounts</h2>
-                    <p>These {{ $assignedAccounts->count() }} accounts inherit changes to this role. Review the impact before saving.</p>
-                </div>
-                <span class="access-count-badge">{{ $assignedAccounts->count() }} Accounts</span>
-            </div>
-            @forelse($assignedAccounts as $account)
-                <div class="assigned-role-account-row">
-                    <div>
-                        <strong>{{ $account->name }}</strong>
-                        <span>{{ $account->email }}</span>
+            <details id="assignedAccountsDisclosure" class="assigned-accounts-disclosure">
+                <summary class="assigned-accounts-summary">
+                    <span class="assigned-accounts-heading">
+                        <span class="assigned-accounts-heading-icon"><i class="fa-solid fa-users" aria-hidden="true"></i></span>
+                        <span class="assigned-accounts-title"><strong>Assigned Accounts</strong><small>Employees inheriting this role's permissions</small></span>
+                    </span>
+                    <span class="assigned-accounts-summary-actions"><span class="access-count-badge">{{ $assignedAccounts->count() }} Accounts</span><span class="assigned-accounts-toggle-label">View Accounts</span><i class="fa-solid fa-chevron-down" aria-hidden="true"></i></span>
+                </summary>
+                <div class="assigned-accounts-body">
+                    <div class="assigned-accounts-toolbar">
+                        <label class="assigned-accounts-search"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><span class="sr-only">Search assigned accounts</span><input id="assignedAccountSearch" type="search" placeholder="Search assigned accounts..." autocomplete="off"></label>
                     </div>
-                    @if($account->status)
-                        <x-ui.status-badge :status="$account->status" type="user" />
-                    @endif
+                    <div class="assigned-accounts-table-wrap">
+                        <table class="assigned-accounts-table">
+                            <thead><tr><th scope="col">Account</th><th scope="col">Status</th></tr></thead>
+                            <tbody id="assignedAccountsRows">
+                                @foreach($assignedAccounts as $account)
+                                    <tr data-assigned-account data-search="{{ strtolower($account->name . ' ' . $account->email) }}" data-status="{{ strtolower((string) $account->status) }}">
+                                        <td><strong>{{ $account->name }}</strong><small>{{ $account->email }}</small></td>
+                                        <td>@if($account->status)<x-ui.status-badge :status="$account->status" type="user" />@else<span>Unknown</span>@endif</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                        <p class="assigned-role-account-empty" id="assignedAccountEmpty" hidden>No matching assigned accounts.</p>
+                    </div>
+                    <div class="assigned-accounts-footer">
+                        <span id="assignedAccountsRange" aria-live="polite">Showing 0 of {{ $assignedAccounts->count() }} accounts</span>
+                        <div class="assigned-accounts-pages" aria-label="Assigned accounts pagination">
+                            <button type="button" id="assignedAccountsPrevious" aria-label="Previous page" disabled><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
+                            <span id="assignedAccountsPage" aria-live="polite">Page 1 of 1</span>
+                            <button type="button" id="assignedAccountsNext" aria-label="Next page" disabled><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>
+                        </div>
+                        <a class="assigned-role-account-link" href="{{ route('admin.users') }}">Manage Accounts <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a>
+                    </div>
                 </div>
-            @empty
-                <p class="assigned-role-account-empty">No accounts are currently assigned to this role.</p>
-            @endforelse
-            <a class="assigned-role-account-link" href="{{ route('admin.users') }}">Manage accounts</a>
+            </details>
         </section>
 
         @unless($isProtectedRole)
+            <section class="permission-change-review" id="permissionChangeReview" hidden aria-live="polite">
+                <div class="permission-change-heading">
+                    <span class="permission-change-heading-icon"><i class="fa-solid fa-clipboard-check" aria-hidden="true"></i></span>
+                    <div class="permission-change-heading-copy">
+                        <strong>Review Permission Changes</strong>
+                        <p id="permissionChangeImpact">Changes affect {{ $assignedAccounts->count() }} assigned accounts.</p>
+                    </div>
+                    <span class="permission-change-count" id="permissionChangeCount" aria-label="Pending changes">0 Changes</span>
+                </div>
+                <ul id="permissionChangeList" class="permission-change-list"></ul>
+            </section>
             <div class="permission-edit-actions">
                 <div class="selected-role-state" id="permissionEditStatus">
                     <span><i class="fa-solid fa-eye"></i> Review Mode</span>

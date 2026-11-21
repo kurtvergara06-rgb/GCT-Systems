@@ -1,8 +1,6 @@
 <x-layout.app
     title="{{ !empty($applicationsPage) ? 'FROMS - Applications' : 'FROMS - Accounts' }}"
     :assets="[
-        'resources/css/Main-styles/main.css',
-        'resources/css/Main-styles/sidebar.css',
         'resources/css/Admin/User_Management/users.css',
         'resources/js/Admin/User_Management/users.js'
     ]"
@@ -115,32 +113,37 @@
                            class="application-status-tab {{ (request('status') === 'Rejected' ? 'Rejected' : 'Pending') === $statusValue ? 'is-active' : '' }}"
                            @if((request('status') === 'Rejected' ? 'Rejected' : 'Pending') === $statusValue) aria-current="page" @endif>
                             {{ $label }}
-                            @if($statusValue === 'Pending') <span class="application-status-count">{{ $pendingUsers }}</span> @endif
                         </a>
                     @endforeach
                 </nav>
+                @else
+                <x-ui.record-tabs
+                    class="account-status-tabs"
+                    label="Filter system accounts by activation status"
+                    :items="[
+                        ['url' => route('admin.users', array_merge(request()->except('status', 'page'), ['status' => 'Active'])), 'label' => 'Active', 'icon' => 'fa-list-check', 'active' => request('status') !== 'Inactive'],
+                        ['url' => route('admin.users', array_merge(request()->except('status', 'page'), ['status' => 'Inactive'])), 'label' => 'Deactivated', 'icon' => 'fa-clock-rotate-left', 'active' => request('status') === 'Inactive'],
+                    ]"
+                />
                 @endif
                 <x-ui.table-toolbar
                      :action="!empty($applicationsPage) ? route('admin.applications') : route('admin.users')"
                     class="records-toolbar users-toolbar"
                     search-placeholder="Search by name, email, role, or department..."
                     search-label="{{ !empty($applicationsPage) ? 'Search Applications' : 'Search Accounts' }}"
-                    :filter-count="(int) (request()->filled('department') && request('department') !== 'All Departments') + (int) (request()->filled('role') && request('role') !== 'All Roles') + (int) (empty($applicationsPage) && request()->filled('status') && request('status') !== 'All Status')"
+                    :filter-count="(int) (request()->filled('department') && request('department') !== 'All Departments') + (int) (request()->filled('role') && request('role') !== 'All Roles')"
                     filter-title="{{ !empty($applicationsPage) ? 'Filter Applications' : 'Filter Accounts' }}"
                     :sort-options="['created_at' => 'Created Date', 'name' => 'Account Name', 'email' => 'Email', 'department' => 'Department', 'role' => 'Role', 'status' => 'Status']"
                     default-sort="created_at"
                     default-direction="desc"
                     :show-button="false"
                 >
-                    @if(!empty($applicationsPage))
-                        <x-slot:hidden><input type="hidden" name="status" value="{{ request('status') === 'Rejected' ? 'Rejected' : 'Pending' }}"></x-slot:hidden>
-                    @endif
+                    <x-slot:hidden>
+                        <input type="hidden" name="status" value="{{ !empty($applicationsPage) ? (request('status') === 'Rejected' ? 'Rejected' : 'Pending') : (request('status') === 'Inactive' ? 'Inactive' : 'Active') }}">
+                    </x-slot:hidden>
                     <x-slot:filters>
                         <x-ui.table-toolbar-field label="Department" name="department" default="All Departments"><option value="All Departments">All Departments</option>@foreach($departmentOptions as $department)<option value="{{ $department }}" @selected(request('department') === $department)>{{ $department }}</option>@endforeach</x-ui.table-toolbar-field>
                         <x-ui.table-toolbar-field label="Role" name="role" default="All Roles"><option value="All Roles">All Roles</option>@foreach(($roles ?? []) as $roleValue => $roleLabel)<option value="{{ $roleValue }}" @selected(request('role') === $roleValue)>{{ $roleLabel }}</option>@endforeach</x-ui.table-toolbar-field>
-                        @if(empty($applicationsPage))
-                            <x-ui.table-toolbar-field label="Status" name="status" default="All Status"><option value="All Status">All Statuses</option>@foreach(($statuses ?? []) as $status)<option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>@endforeach</x-ui.table-toolbar-field>
-                        @endif
                     </x-slot:filters>
                 </x-ui.table-toolbar>
                 </div>
@@ -330,6 +333,7 @@
                                                 data-avatar-url="{{ $user->profilePhotoUrl() }}"
                                             />
 
+                                            @if(auth()->user()?->hasSystemPermission('administration', 'full_control'))
                                             <x-ui.action-button
                                                 type="edit"
                                                 class="open-edit-user-modal action-edit"
@@ -403,29 +407,8 @@
                                                     />
                                                 </form>
                                             @endif
-
-                                            @if(! $isOwnAccount)
-                                                <form
-                                                    action="{{ route('admin.users.destroy', $user) }}"
-                                                    method="POST"
-                                                    data-confirm-form
-                                                    data-confirm-title="Delete Account?"
-                                                    data-confirm-message="Are you sure you want to delete {{ $user->name }}? This action cannot be undone."
-                                                    data-confirm-button="Yes, Delete"
-                                                    data-confirm-type="delete"
-                                                >
-                                                    @csrf
-                                                    @method('DELETE')
-
-                                                    <x-ui.action-button
-                                                        type="delete"
-                                                        button-type="submit"
-                                                        class="action-delete"
-                                                        title="Delete Account"
-                                                        data-icon-only
-                                                    />
-                                                </form>
                                             @endif
+
                                         </div>
                                     </td>
                                 </tr>
@@ -435,7 +418,7 @@
                                     colspan="{{ !empty($applicationsPage) ? 6 : 7 }}"
                                     icon="fa-users"
                                     message="{{ !empty($applicationsPage) ? 'No Applications Found' : 'No User Accounts Found' }}"
-                                    description="{{ !empty($applicationsPage) ? 'No applications match the selected status or filters.' : 'No system user accounts match your search or department filter.' }}"
+                                    description="{{ !empty($applicationsPage) ? 'No applications match the selected status or filters.' : ((request('status') === 'Inactive' ? 'Inactive' : 'Active') === 'Inactive' ? 'No deactivated accounts match the current filters.' : 'No active accounts match the current filters.') }}"
                                 />
                             @endforelse
                         </tbody>
@@ -447,9 +430,6 @@
                 @endif
             </x-ui.ajax-region>
 
-            <footer class="admin-footer">
-                © 2026 FROMS. All rights reserved.
-            </footer>
         </main>
     </div>
 
@@ -524,7 +504,7 @@
                     <p id="userFormModalSubtitle">Create a new account and assign department and role access.</p>
                 </div>
 
-                <button type="button" class="modal-close-btn" id="closeUserFormModal" data-icon-only>
+                <button type="button" class="modal-close-btn" id="closeUserFormModal" aria-label="Close account form" title="Close account form">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>

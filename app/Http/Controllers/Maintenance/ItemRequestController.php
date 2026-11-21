@@ -262,11 +262,33 @@ class ItemRequestController extends Controller
             // Zero-stock JOs still need a procurement path, but must never
             // create an empty IR that Warehouse cannot physically fulfill.
             if ($parts !== []) {
+                // Store the full approved JO requirement in one IR. The
+                // stock preview controls what can be physically handed over,
+                // not what the JO ultimately needs from later PO receipts.
+                // Unquantified legacy JOs retain their original preview for
+                // Head reconciliation rather than acquiring a guessed total.
+                $requestedParts = $parts;
+                if ($parser->hasExplicitQuantities((string) $jo->part_needed)) {
+                    $approvedParts = $parser->parsePartText((string) $jo->part_needed);
+                    $normalize = fn ($name, $unit) => mb_strtolower(trim((string) $name)).'|'
+                        .$parser->normalizeUnit((string) $unit);
+                    $requestedParts = collect($approvedParts)->map(function (array $approved) use ($parts, $normalize) {
+                        $match = collect($parts)->first(fn ($available) =>
+                            $normalize($available['name'] ?? '', $available['unit'] ?? '')
+                            === $normalize($approved['name'], $approved['unit']));
+                        return [
+                            'name' => $approved['name'],
+                            'quantity' => (int) $approved['quantity'],
+                            'unit' => $approved['unit'],
+                            'inventory_item_id' => $approved['inventory_item_id'] ?? ($match['inventory_item_id'] ?? null),
+                        ];
+                    })->values()->all();
+                }
                 ItemRequest::create([
                     'job_order_id' => $jo->id,
                     'requested_by' => auth()->id(),
                     'status' => 'Submitted',
-                    'requested_parts' => $parts,
+                    'requested_parts' => $requestedParts,
                     'remarks' => $data['remarks'] ?? null,
                 ]);
                 if (in_array($jo->part_status, [null, 'Not Requested'], true)) {

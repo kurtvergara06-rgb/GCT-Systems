@@ -283,6 +283,32 @@ class FrontendUiUxComprehensiveTest extends TestCase
     // =========================================================================
     // 1. GLOBAL LAYOUT TEST
     // =========================================================================
+    public function test_account_banners_and_navigation_respect_light_and_dark_appearance(): void
+    {
+        $accountCss = file_get_contents(resource_path('css/Account/account.css'));
+        $preferenceCss = file_get_contents(resource_path('css/Main-styles/account-preferences.css'));
+
+        foreach ([
+            'profile' => 'account-profile-primary',
+            'personalization' => 'gct-personalization-intro',
+            'preferences' => 'gct-settings-intro',
+            'settings' => 'account-security-hero',
+        ] as $view => $selector) {
+            $blade = file_get_contents(resource_path("views/Account/{$view}.blade.php"));
+            $this->assertStringContainsString($selector, $blade);
+        }
+
+        $this->assertStringContainsString('background: linear-gradient(120deg, #ffffff 0%, #e8f2ff 60%, #dcecff 100%);', $accountCss);
+        $this->assertStringContainsString('background: #eaf1fa;', $accountCss);
+        $this->assertStringContainsString('background: linear-gradient(115deg, #ffffff, #e8f2ff 75%, #dcecff);', $accountCss);
+        $this->assertStringContainsString('html[data-gct-theme="dark"] .account-page:has(.account-profile-primary) .account-hero-card', $accountCss);
+        $this->assertStringContainsString('html[data-gct-theme="dark"] .account-page:has(.account-security-hero) .account-security-hero', $accountCss);
+        $this->assertStringContainsString('background: linear-gradient(110deg,#ffffff 0%,#e9f2ff 75%,#d9eafe 100%);', $preferenceCss);
+        $this->assertStringContainsString('background: linear-gradient(110deg, #ffffff, #e3efff);', $preferenceCss);
+        $this->assertStringContainsString('html[data-gct-theme="dark"] .account-page .gct-personalization-intro', $preferenceCss);
+        $this->assertStringContainsString('html[data-gct-theme="dark"] .account-page .gct-settings-intro', $preferenceCss);
+    }
+
     public function test_global_layout_components(): void
     {
         $response = $this->actingAs($this->adminUser)->get(route('admin.dashboard'));
@@ -333,7 +359,6 @@ class FrontendUiUxComprehensiveTest extends TestCase
             'Analytics Predictive' => route('analytics.stage', ['stage' => 'predictive']),
             'Analytics Prescriptive' => route('analytics.stage', ['stage' => 'prescriptive']),
             'General Settings' => route('admin.settings.general'),
-            'Notification Settings' => route('admin.settings.notifications'),
             'Security Settings' => route('admin.settings.security'),
         ];
 

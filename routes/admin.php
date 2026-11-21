@@ -37,6 +37,8 @@ Route::middleware('role:admin:head,admin:staff')->group(function () {
         '/admin/roles-permissions',
         'Admin.User_Management.permissions'
     )->name('admin.roles-permissions');
+    Route::put('/admin/roles-permissions/{rolePermission:role_key}', [AdminUserController::class, 'updateRolePermissions'])
+        ->name('admin.roles-permissions.update');
 
     Route::view(
         '/admin/activity-logs',
@@ -52,6 +54,7 @@ Route::middleware('role:admin:head,admin:staff')->group(function () {
         ->prefix('batch-file-processing')
         ->group(function () {
             Route::get('/', 'index')->name('batch-file-processing');
+            Route::get('/nlp-status', 'nlpStatus')->name('batch-file-processing.nlp-status');
             Route::post('/upload', 'upload')->name('batch-file-processing.upload');
             Route::get('/export', 'export')->name('batch-file-processing.export');
             Route::delete('/{batchUpload}', 'destroy')->name('batch-file-processing.destroy');
@@ -85,18 +88,10 @@ Route::middleware('role:admin:head,admin:staff')->group(function () {
     Route::get('/analytics/overview', [AnalyticsOverviewController::class, 'index'])
         ->name('analytics.overview');
 
-    Route::view(
-        '/admin/settings/general',
-        'Admin.Settings.general-settings'
-    )->name('admin.settings.general');
+    Route::get('/admin/settings/general', [\App\Http\Controllers\Admin\GeneralSettingsController::class, 'index'])->name('admin.settings.general');
+    Route::put('/admin/settings/general', [\App\Http\Controllers\Admin\GeneralSettingsController::class, 'update'])->middleware('role:admin:head')->name('admin.settings.general.update');
+    Route::get('/admin/settings/general/services', [\App\Http\Controllers\Admin\GeneralSettingsController::class, 'services'])->name('admin.settings.general.services');
 
-    Route::view(
-        '/admin/settings/notifications',
-        'Admin.Settings.notification-settings'
-    )->name('admin.settings.notifications');
-
-    Route::view(
-        '/admin/settings/security',
-        'Admin.Settings.security-settings'
-    )->name('admin.settings.security');
+    Route::get('/admin/settings/security', [\App\Http\Controllers\Admin\SecuritySettingsController::class, 'index'])->name('admin.settings.security');
+    Route::put('/admin/settings/security', [\App\Http\Controllers\Admin\SecuritySettingsController::class, 'update'])->middleware('role:admin:head')->name('admin.settings.security.update');
 });

@@ -24,8 +24,11 @@ class WarehouseDashboardController extends Controller
             ->groupBy('inventory_item_id')
             ->pluck('reserved', 'inventory_item_id');
 
+        $thresholds = app(\App\Services\Warehouse\InventoryReorderPointService::class)
+            ->resolveMany($inventoryItems);
+
         foreach ($inventoryItems as $item) {
-            $threshold = $calculator->effectiveReorderPoint($item);
+            $threshold = $thresholds[$item->id]['reorder_point'] ?? null;
             $reserved = (int) $reservations->get($item->id, 0);
             $onHand = (int) ($item->quantity_available ?? $item->on_hand ?? 0);
             $item->warehouse_effective_reorder_point = $threshold;

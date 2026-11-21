@@ -1,4 +1,5 @@
 @php
+    if (! isset($maintenanceAnalytics)) {
     $activeAnalysis = in_array(request('domain'), ['fuel'], true) ? 'fuel' : 'fleet-trip';
     $diagnosticUrl = route('analytics.stage', ['stage' => 'diagnostic'], false);
     $normalizedSelectedBus = strtoupper(trim((string) $selectedBus));
@@ -39,12 +40,26 @@
         ];
     }
 
-    $currentFilters = request()->only(['period', 'bus', 'preview']);
-    $isDemo = $activeAnalysis === 'fleet-trip' ? $incidentData->is_demo : $fuelData->is_demo;
+    }
+    if (isset($maintenanceAnalytics)) {
+        $departmentScoped = true;
+        $pageTitle = $title = ucfirst($stage).' Analytics';
+        $pageSubtitle = $subtitle = match ($stage) {
+            'descriptive' => 'Maintenance performance overview',
+            'diagnostic' => 'Maintenance and fuel issue investigation',
+            'predictive' => 'Estimates based on verified historical maintenance and fuel records',
+            default => 'Recommendations for Maintenance Head review',
+        };
+        $pageAssets = [
+            'resources/css/Admin/Analytics/design-system.css',
+            'resources/css/Admin/Analytics/maintenance.css',
+            'resources/js/Admin/Analytics/maintenance.js',
+        ];
+    }
 @endphp
 <x-layout.app
     title="FROMS - Diagnostic Analytics"
-    :assets="[
+    :assets="isset($maintenanceAnalytics) ? $pageAssets : [
         'resources/css/Admin/Analytics/diagnostic/diagnostic-rebuild.css',
         'resources/css/Admin/Analytics/design-system.css',
         'resources/js/Admin/Analytics/diagnostic/diagnostic-analytics.js'
@@ -52,12 +67,22 @@
     :partial-navigation="false"
 >
     <div class="app">
-        <x-layout.sidebar department="Admin" />
-        <main class="main analytics-stage-page diagnostic-rebuild">
+        <x-layout.sidebar :department="isset($maintenanceAnalytics) ? auth()->user()->department : 'Admin'" />
+        <main class="main analytics-stage-page {{ isset($maintenanceAnalytics) ? 'department-analytics-page' : '' }} diagnostic-rebuild">
             <x-layout.topbar
                 title="Diagnostic Analytics"
-                subtitle="Incident and replacement evidence, fuel consumption patterns, and review signals · Objective 6.2."
-            />
+                :subtitle="isset($maintenanceAnalytics) ? $subtitle : 'Incident and replacement evidence, fuel consumption patterns, and review signals · Objective 6.2.'"
+            >
+                @if(isset($maintenanceAnalytics))
+                    <x-slot:toolbar>
+                        @include('Admin.Analytics.maintenance.filters')
+                    </x-slot:toolbar>
+                @endif
+            </x-layout.topbar>
+            @if(isset($maintenanceAnalytics))
+                @include('Admin.Analytics.maintenance.content')
+            @else
+
 
             <!-- Hidden JSON payload consumed by Chart.js script -->
             <script type="application/json" id="diagnosticAnalyticsData">
@@ -152,10 +177,12 @@
                                 <canvas id="diagnosticIncidentTrendChart"></canvas>
                             </div>
                         @else
-                            <div class="dashboard-empty-state">
-                                <div class="dashboard-empty-icon"><i class="fa-solid fa-chart-line"></i></div>
-                                <h3>No Incident Trends to Display</h3>
-                                <p>No incidents or replacement dispatches were recorded for the selected period.</p>
+                            <div class="diagnostic-empty-state" role="status">
+                                <div class="diagnostic-empty-icon"><i class="fa-solid fa-chart-line" aria-hidden="true"></i></div>
+                                <span class="diagnostic-empty-eyebrow">NO MATCHING RECORDS</span>
+                                <h3>No Incident Trends Yet</h3>
+                                <p>Reported incidents and replacement dispatches will appear here when records match your filters.</p>
+                                <a href="{{ route('incidents') }}" class="diagnostic-empty-link">View Incident Reports <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
                             </div>
                         @endif
                     </div>
@@ -201,10 +228,11 @@
                             </div>
                         </div>
                         @else
-                            <div class="dashboard-empty-state">
-                                <div class="dashboard-empty-icon"><i class="fa-solid fa-chart-pie"></i></div>
-                                <h3>No Root-Cause Data</h3>
-                                <p>Incident causes will appear after incident records are available.</p>
+                            <div class="diagnostic-empty-state" role="status">
+                                <div class="diagnostic-empty-icon"><i class="fa-solid fa-chart-pie" aria-hidden="true"></i></div>
+                                <span class="diagnostic-empty-eyebrow">AWAITING INCIDENT DATA</span>
+                                <h3>No Causes to Analyze</h3>
+                                <p>Incident categories will be summarized here once matching reports are recorded.</p>
                             </div>
                         @endif
                     </div>
@@ -231,10 +259,12 @@
                                 <canvas id="diagnosticReplacementIntervalChart"></canvas>
                             </div>
                         @else
-                            <div class="dashboard-empty-state">
-                                <div class="dashboard-empty-icon"><i class="fa-solid fa-stopwatch"></i></div>
-                                <h3>No Replacement Response Data</h3>
-                                <p>No replacement bus dispatches were recorded for this period.</p>
+                            <div class="diagnostic-empty-state" role="status">
+                                <div class="diagnostic-empty-icon"><i class="fa-solid fa-stopwatch" aria-hidden="true"></i></div>
+                                <span class="diagnostic-empty-eyebrow">NO DISPATCH INTERVALS</span>
+                                <h3>No Response Times Available</h3>
+                                <p>Response times need a reported incident and a recorded replacement dispatch timestamp.</p>
+                                <a href="{{ route('incidents') }}" class="diagnostic-empty-link">View Incident Reports <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
                             </div>
                         @endif
                     </div>
@@ -248,7 +278,7 @@
                                 <p>Diagnostic assessment of service disruption containment and recovery efficiency.</p>
                             </div>
                             <span class="chart-kpi-pill text-green">
-                                <i class="fa-solid fa-circle-check"></i> Monitored
+                                <i class="fa-solid fa-circle-check"></i> {{ $incidentData->total_incidents > 0 ? 'Data Available' : 'Awaiting Data' }}
                             </span>
                         </div>
 
@@ -321,8 +351,8 @@
                                         <tr>
                                             <td>
                                                 <span class="code-pill" title="{{ $record->incident_no }}">{{ $record->incident_no }}</span>
-                                                @if($record->is_demo)
-                                                    <span class="badge-chip demo-badge" style="font-size: 9px; padding: 1px 4px; background: #fef3c7; color: #b45309; margin-left: 4px;">SAMPLE</span>
+                                                @if(!app()->isProduction() && $record->is_demo)
+                                                    <span class="badge-chip" title="Not sourced from production records">NON-PRODUCTION</span>
                                                 @endif
                                             </td>
                                             <td>
@@ -372,10 +402,12 @@
                             </table>
                         </div>
                     @else
-                        <div class="dashboard-empty-state">
-                            <div class="dashboard-empty-icon"><i class="fa-solid fa-shield-check"></i></div>
-                            <h3>Zero Incidents Recorded</h3>
-                            <p>No operational disruptions or breakdown reports match the current filters.</p>
+                        <div class="diagnostic-empty-state diagnostic-empty-state-wide" role="status">
+                            <div class="diagnostic-empty-icon"><i class="fa-solid fa-clipboard-check" aria-hidden="true"></i></div>
+                            <span class="diagnostic-empty-eyebrow">NO MATCHING INCIDENT REPORTS</span>
+                            <h3>No Incident Evidence for This Period</h3>
+                            <p>There are no incident or replacement records matching the selected date and fleet filters. This does not confirm that no incidents occurred outside those filters.</p>
+                            <a href="{{ route('incidents') }}" class="diagnostic-empty-link">Open Incident Reports <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
                         </div>
                     @endif
                 </div>
@@ -628,8 +660,8 @@
                                         <tr>
                                             <td>
                                                 <span class="bus-chip"><i class="fa-solid fa-bus"></i> {{ $unit->bus_no }}</span>
-                                                @if($unit->is_demo ?? false)
-                                                    <span class="badge-chip demo-badge" style="font-size: 9px; padding: 1px 4px; background: #fef3c7; color: #b45309; margin-left: 4px;">SAMPLE</span>
+                                                @if(!app()->isProduction() && ($unit->is_demo ?? false))
+                                                    <span class="badge-chip" title="Not sourced from production records">NON-PRODUCTION</span>
                                                 @endif
                                             </td>
                                             <td>{{ number_format((float)($unit->distance_km ?? 0), 1) }}</td>
@@ -694,6 +726,7 @@
                     </p>
                 </div>
 
+            @endif
             @endif
         </main>
     </div>

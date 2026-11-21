@@ -120,7 +120,7 @@
 
                 <tr class="{{ $assignmentStatus === 'Working' ? 'row-on-duty' : '' }}">
                   <td>
-                    <span class="mechanic-id-pill">{{ $mechanic->mechanic_id }}</span>
+                    <x-ui.id-badge :value="$mechanic->mechanic_id" size="small" tone="neutral" class="mechanic-id-pill" />
                   </td>
 
                   <td>

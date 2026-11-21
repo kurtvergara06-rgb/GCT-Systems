@@ -22,7 +22,6 @@ class AdminRouteAuthorizationTest extends TestCase
             'admin.import-export',
             'admin.data-history',
             'admin.settings.general',
-            'admin.settings.notifications',
             'admin.settings.security',
         ];
 

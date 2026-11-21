@@ -57,6 +57,9 @@ const showLoader = () => {
     // page scope. Keep the cover dark for the entire transition.
     const darkEnabledOnPage = document.body.dataset.gctOperationPage === '1'
         || document.body.dataset.gctMaintenancePage === '1'
+        || document.body.dataset.gctWarehousePage === '1'
+        || document.body.dataset.gctPurchasePage === '1'
+        || document.body.dataset.gctAdminPage === '1'
         || document.querySelector('.account-page') !== null;
     loader.dataset.gctLoaderTheme = document.documentElement.dataset.gctTheme === 'dark'
         && darkEnabledOnPage
@@ -168,10 +171,9 @@ const normalizeSidebarActiveState = () => {
     });
 };
 
-// The partial-navigation runtime intentionally excludes sidebar links so
-// destination pages can run their own DOMContentLoaded initialization.
-// Show the same cover on those full-document navigations before the browser
-// leaves the old page; the destination layout owns the first-paint cover.
+// Compatible sidebar destinations use partial navigation and keep the shell
+// mounted; legacy or explicitly excluded destinations still perform full loads.
+// In either case the loader is positioned over main content, not the sidebar.
 const isFullPageNavigationLink = (event) => {
     if (event.defaultPrevented || event.button !== 0
         || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return false;
@@ -187,9 +189,10 @@ const isFullPageNavigationLink = (event) => {
     try { url = new URL(href, window.location.href); } catch { return false; }
     if (url.origin !== window.location.origin) return false;
     if (url.href === window.location.href) return false;
-    return Boolean(link.closest('#appSidebar')
-        || link.hasAttribute('data-no-partial-navigation')
-        || url.pathname === '/operation/trip-schedule');
+    return Boolean(link.hasAttribute('data-no-partial-navigation')
+        || url.pathname === '/operation/trip-schedule'
+        || (link.closest('#appSidebar')
+            && document.querySelector('meta[name="gct-partial-navigation"]')?.content !== 'enabled'));
 };
 
 document.addEventListener('click', (event) => {

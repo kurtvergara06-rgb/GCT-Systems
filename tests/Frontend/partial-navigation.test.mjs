@@ -259,3 +259,27 @@ test('DDR filter portal synchronization leaves other departments untouched', () 
     assert.deepEqual(env.removed, []);
     assert.deepEqual(env.portals, []);
 });
+test('sidebar menu links use partial navigation when shell support is enabled', () => {
+    const start = source.indexOf('const eligibleLink =');
+    const end = source.indexOf("document.addEventListener('click'", start);
+    assert.ok(start >= 0 && end > start);
+    const context = vm.createContext({
+        window: { location: new URL('http://gct.test/admin/dashboard') },
+        document: { querySelector: () => ({ content: 'enabled' }) },
+        absoluteUrl: value => new URL(value, 'http://gct.test/admin/dashboard').href,
+        URL,
+    });
+    const eligible = vm.runInContext(source.slice(start, end) + '\neligibleLink;', context);
+    const sidebarLink = (href, attributes = []) => ({
+        href,
+        closest: selector => selector === '#appSidebar' ? {} : null,
+        hasAttribute: attr => attributes.includes(attr),
+        getAttribute: attr => attr === 'href' ? href : null,
+    });
+    const click = { defaultPrevented: false, button: 0, metaKey: false, ctrlKey: false, shiftKey: false, altKey: false };
+    assert.equal(eligible(sidebarLink('/admin/notifications'), click), true);
+    assert.equal(eligible(sidebarLink('/operation/trip-schedule'), click), false);
+    assert.equal(eligible(sidebarLink('/admin/activity-logs', ['data-no-partial-navigation']), click), false);
+    context.document.querySelector = () => ({ content: 'disabled' });
+    assert.equal(eligible(sidebarLink('/admin/notifications'), click), false);
+});

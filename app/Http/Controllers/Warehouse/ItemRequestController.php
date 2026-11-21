@@ -29,18 +29,22 @@ class ItemRequestController extends Controller
         // signed batch, track remaining JO requirements without rewriting
         // the originally submitted request or any signed issuance record.
         $irNumber = 'IR-'.($itemRequest->created_at?->format('Y') ?? '0000').'-'.str_pad((string) $itemRequest->id, 4, '0', STR_PAD_LEFT);
-        $hasHandover = InventoryIssuance::query()->where(fn ($q) => $q
+        $hasHandover = InventoryIssuance::query()->confirmedSigned()->where(fn ($q) => $q
             ->where('reference_no', $irNumber)->orWhere('reference_no', 'like', $irNumber.'-B%'))->exists();
-        $parts = $hasHandover && $itemRequest->jobOrder
+        $joQuantityVerified = $itemRequest->jobOrder
+            && $parser->hasExplicitQuantities((string) $itemRequest->jobOrder->part_needed);
+        // One persistent IR covers the JO requirement, including quantities
+        // still awaiting a partial PO delivery. Legacy bare labels remain
+        // visible for review but are not accepted as authoritative limits.
+        $parts = $joQuantityVerified
             ? $parser->parsePartText((string) $itemRequest->jobOrder->part_needed)
             : ($itemRequest->requested_parts ?? []);
         $snapshot = $workflow->inventoryAvailability($parts);
-        $previous = InventoryIssuance::query()->where(fn ($query) => $query
+        $previous = InventoryIssuance::query()->confirmedSigned()->where(fn ($query) => $query
             ->where('reference_no', $irNumber)->orWhere('reference_no', 'like', $irNumber.'-B%'))
             ->with('items')->get();
-        $key = static fn ($name, $unit, $id = null): string => $id
-            ? 'id:'.(int) $id
-            : mb_strtolower(preg_replace('/[^a-z0-9]+/i', '', trim((string) $name))).'|'.$parser->normalizeUnit((string) $unit);
+        $key = static fn ($name, $unit, $id = null): string =>
+            mb_strtolower(preg_replace('/[^a-z0-9]+/i', '', trim((string) $name))).'|'.$parser->normalizeUnit((string) $unit);
         $issued = [];
         foreach ($previous as $batch) {
             foreach ($batch->items as $entry) {
@@ -82,6 +86,8 @@ class ItemRequestController extends Controller
             'request_id' => $itemRequest->id,
             'status' => $snapshot['status'],
             'release_policy' => $itemRequest->jobOrder?->parts_issue_strategy ?? 'complete_before_issuance',
+            'jo_quantity_verified' => (bool) $joQuantityVerified,
+            'quantity_review_required' => ! $joQuantityVerified,
             'reserved_stock' => $hasAllocation,
             'parts' => collect($snapshot['parts'])->map(fn (array $part) => [
                 'name' => $part['name'],
@@ -99,7 +105,9 @@ class ItemRequestController extends Controller
                 'reference' => $batch->reference_no,
                 'issued_at' => $batch->issued_at?->format('M d, Y h:i A'),
                 'received_by' => $batch->received_by,
-                'signed_slip_url' => route('warehouse.item-requests.signed-slip', [$itemRequest, 'batch' => $batch->id]),
+                'signed_slip_url' => Storage::disk('local')->exists($batch->signed_slip_path)
+                    ? route('warehouse.item-requests.signed-slip', [$itemRequest, 'batch' => $batch->id])
+                    : null,
             ])->values(),
             'checked_at' => now(config('app.business_timezone', 'Asia/Manila'))->toIso8601String(),
             'note' => 'Availability is informational. Verify again during actual issuance.',
@@ -142,16 +150,25 @@ class ItemRequestController extends Controller
                 if (! $jo || $jo->review_status !== 'Approved' || $jo->status === 'Completed') {
                     throw ValidationException::withMessages(['issue' => 'The linked Job Order must be approved and still open for maintenance.']);
                 }
-                $previous = InventoryIssuance::query()
+                if (! $parser->hasExplicitQuantities((string) $jo->part_needed)) {
+                    throw ValidationException::withMessages([
+                        'issue' => 'The approved Job Order does not specify exact part quantities. Maintenance Head must reconcile the JO and IR quantities before further SWIS issuance.',
+                    ]);
+                }
+                $previous = InventoryIssuance::query()->confirmedSigned()
                     ->where(fn ($query) => $query->where('reference_no', $irNumber)
                         ->orWhere('reference_no', 'like', $irNumber.'-B%'))
                     ->with('items')->orderBy('id')->lockForUpdate()->get();
-                if ($ir->status === 'Issued' && ($previous->isEmpty() || $jo->part_status === 'Issued')) {
+                // Legacy/demo records may mark an IR/JO as Issued without
+                // any confirmed signed SWIS. Only signed JO fulfillment can
+                // close further physical handovers; never trust that stale flag.
+                if ($ir->status === 'Issued'
+                    && ! in_array($ir->id, $this->issuedRequestsWithOutstandingSignedParts($parser), true)) {
                     throw ValidationException::withMessages(['issue' => 'This request is already fully issued.']);
                 }
-                $parts = collect($previous->isNotEmpty()
-                    ? $parser->parsePartText((string) $jo->part_needed)
-                    : ($ir->requested_parts ?? []))->values();
+                // The JO-approved requirement is the ceiling for every
+                // handover, even when an earlier IR listed only stock on hand.
+                $parts = collect($parser->parsePartText((string) $jo->part_needed))->values();
                 if ($parts->isEmpty() || count($validated['issued_quantities']) !== $parts->count()) {
                     throw ValidationException::withMessages(['issued_quantities' => 'All current JO item rows must be included. Refresh the issuance slip.']);
                 }
@@ -162,11 +179,11 @@ class ItemRequestController extends Controller
                     mb_strtolower(preg_replace('/[^a-z0-9]+/i', '', trim((string) $name))).'|'.$parser->normalizeUnit((string) $unit);
                 $matchingIds = $stockItems->groupBy(fn ($item) =>
                     $nameKey($item->parts_name ?? $item->item_name, $item->unit ?? $item->unit_of_measurement));
-                $key = static function ($name, $unit, $id = null) use ($nameKey, $matchingIds): string {
-                    if ($id) return 'id:'.(int) $id;
-                    $matches = $matchingIds->get($nameKey($name, $unit), collect());
-                    return $matches->count() === 1 ? 'id:'.$matches->first()->id : 'name:'.$nameKey($name, $unit);
-                };
+                // Count signed batches and JO requirements by normalized
+                // part + unit; inventory identity is resolved separately when
+                // allocating stock. A signed item ID must not hide fulfillment
+                // of a legacy name-based JO requirement.
+                $key = static fn ($name, $unit, $id = null): string => $nameKey($name, $unit);
                 $already = [];
                 foreach ($previous as $batch) {
                     foreach ($batch->items as $entry) {
@@ -210,7 +227,7 @@ class ItemRequestController extends Controller
                     ->map(fn ($other) => 'IR-'.($other->created_at?->format('Y') ?? '0000').'-'.str_pad((string) $other->id, 4, '0', STR_PAD_LEFT));
                 $otherIssued = [];
                 if ($otherIrReferences->isNotEmpty()) {
-                    $otherBatches = InventoryIssuance::query()
+                    $otherBatches = InventoryIssuance::query()->confirmedSigned()
                         ->where(function ($query) use ($otherIrReferences) {
                             foreach ($otherIrReferences as $reference) {
                                 $query->orWhere('reference_no', $reference)
@@ -319,7 +336,7 @@ class ItemRequestController extends Controller
                 $allIr = ItemRequest::query()->where('job_order_id', $jo->id)->get();
                 $allReferences = $allIr->map(fn ($record) => 'IR-'.($record->created_at?->format('Y') ?? '0000').'-'.str_pad((string) $record->id, 4, '0', STR_PAD_LEFT));
                 $issuedAcrossJo = [];
-                $allBatches = InventoryIssuance::query()->where(function ($query) use ($allReferences) {
+                $allBatches = InventoryIssuance::query()->confirmedSigned()->where(function ($query) use ($allReferences) {
                     foreach ($allReferences as $ref) {
                         $query->orWhere('reference_no', $ref)->orWhere('reference_no', 'like', $ref.'-B%');
                     }
@@ -337,7 +354,8 @@ class ItemRequestController extends Controller
                     (int) ($issuedAcrossJo[$partKey] ?? 0) >= (int) $required);
                 $fullyIssued = $allJoPartsIssued;
                 $priorPartStatus = $jo->part_status;
-                $newPartStatus = $allJoPartsIssued || $priorPartStatus === 'Issued' ? 'Issued' : 'Partial';
+                // A stale legacy 'Issued' flag cannot override the signed JO ledger.
+                $newPartStatus = $allJoPartsIssued ? 'Issued' : 'Partial';
                 $jobUpdates = ['part_status' => $newPartStatus];
                 // A signed, recorded partial handover may start approved repair work
                 // only when the Head explicitly authorized issue_available_only.
@@ -389,8 +407,8 @@ class ItemRequestController extends Controller
                 ])->values()->all();
                 $jo->audits()->create([
                     'user_id' => auth()->id(),
-                    'action' => $newPartStatus === 'Issued' && $priorPartStatus !== 'Issued'
-                        ? 'parts_fully_issued' : 'parts_partially_issued',
+                    // Audit the signed fulfillment result, not a stale legacy status.
+                    'action' => $allJoPartsIssued ? 'parts_fully_issued' : 'parts_partially_issued',
                     'from_status' => $priorPartStatus,
                     'to_status' => $newPartStatus,
                     'notes' => 'Warehouse issued '.array_sum($nowTotals).' unit(s) for '.$batchRef
@@ -422,7 +440,7 @@ class ItemRequestController extends Controller
     public function signedSlip(Request $request, ItemRequest $itemRequest)
     {
         $reference = 'IR-'.($itemRequest->created_at?->format('Y') ?? '0000').'-'.str_pad((string) $itemRequest->id, 4, '0', STR_PAD_LEFT);
-        $query = InventoryIssuance::query()->where(fn ($q) => $q
+        $query = InventoryIssuance::query()->confirmedSigned()->where(fn ($q) => $q
             ->where('reference_no', $reference)->orWhere('reference_no', 'like', $reference.'-B%'));
         if ($request->filled('batch')) {
             $batchId = $request->query('batch');
@@ -430,11 +448,76 @@ class ItemRequestController extends Controller
             $query->whereKey((int) $batchId);
         }
         $issuance = $query->latest('id')->firstOrFail();
-        if (! $issuance->signed_slip_path || ! Storage::disk('local')->exists($issuance->signed_slip_path)) {
+        if (! Storage::disk('local')->exists($issuance->signed_slip_path)) {
             abort(404, 'Signed issuance slip not found.');
         }
 
         return Storage::disk('local')->download($issuance->signed_slip_path);
+    }
+
+
+    /**
+     * Return Issued IRs whose linked open JO still has parts without a signed
+     * Warehouse handover. The same per-part signed quantities drive the table.
+     * Completed JOs and terminal IR statuses remain historical.
+     *
+     * @return array<int, int>
+     */
+    private function issuedRequestsWithOutstandingSignedParts(PartParser $parser): array
+    {
+        $issuedIrs = ItemRequest::query()
+            ->where('status', 'Issued')
+            ->whereHas('jobOrder', fn ($jo) => $jo->where('status', '!=', 'Completed'))
+            ->with('jobOrder')
+            ->get(['id', 'job_order_id', 'created_at']);
+        if ($issuedIrs->isEmpty()) {
+            return [];
+        }
+
+        $jobs = $issuedIrs->pluck('job_order_id')->unique()->values();
+        $related = ItemRequest::query()
+            ->whereIn('job_order_id', $jobs)
+            ->get(['id', 'job_order_id', 'created_at']);
+        $references = $related->mapWithKeys(fn ($ir) => [
+            'IR-'.($ir->created_at?->format('Y') ?? '0000').'-'.str_pad((string) $ir->id, 4, '0', STR_PAD_LEFT) => $ir->job_order_id,
+        ]);
+        $issuedByJo = [];
+        $normalize = fn ($name, $unit) => mb_strtolower(
+            preg_replace('/[^a-z0-9]+/i', '', trim((string) $name))
+        ).'|'.$parser->normalizeUnit((string) $unit);
+
+        InventoryIssuance::query()->confirmedSigned()
+            ->where(function ($query) use ($references) {
+                foreach ($references->keys() as $ref) {
+                    $query->orWhere('reference_no', $ref)
+                        ->orWhere('reference_no', 'like', $ref.'-B%');
+                }
+            })
+            ->with('items')->get()
+            ->each(function ($batch) use ($references, $normalize, &$issuedByJo) {
+                $ref = preg_replace('/-B\\d+$/', '', (string) $batch->reference_no);
+                $joId = $references->get($ref);
+                if ($joId === null) {
+                    return;
+                }
+                foreach ($batch->items as $line) {
+                    $key = $normalize($line->item_name, $line->unit);
+                    $issuedByJo[$joId][$key] = ($issuedByJo[$joId][$key] ?? 0) + (int) $line->quantity;
+                }
+            });
+
+        return $issuedIrs->filter(function ($ir) use ($parser, $normalize, $issuedByJo) {
+            if (! $parser->hasExplicitQuantities((string) $ir->jobOrder->part_needed)) {
+                return true; // Unreconciled legacy JO is not proven complete.
+            }
+            $requirements = collect($parser->parsePartText((string) $ir->jobOrder->part_needed))
+                ->groupBy(fn ($part) => $normalize($part['name'], $part['unit']))
+                ->map(fn ($parts) => $parts->sum(fn ($part) => (int) $part['quantity']));
+            // A missing JO parts specification cannot prove an outstanding part.
+            return $requirements->contains(
+                fn ($needed, $key) => (int) ($issuedByJo[$ir->job_order_id][$key] ?? 0) < (int) $needed
+            );
+        })->pluck('id')->all();
     }
 
     public function index(Request $request, PartParser $parser)
@@ -443,23 +526,20 @@ class ItemRequestController extends Controller
         $view = $request->query('view') === 'history' ? 'history' : 'active';
         $query = ItemRequest::with('jobOrder');
 
-        // Issued IR handovers remain immutable. An issued IR linked to a JO
-        // with outstanding parts is tracked under Active until JO fulfillment.
-        $waitingForJo = static fn ($q) => $q->whereHas('jobOrder', fn ($jo) => $jo
-            ->where(function ($status) {
-                $status->whereNull('part_status')->orWhere('part_status', '!=', 'Issued');
-            }));
+        // Tab placement is based on actual signed JO fulfillment, not only
+        // legacy JO part_status (which may be 'Issued' on demo records).
+        $incompleteIssuedIds = $this->issuedRequestsWithOutstandingSignedParts($parser);
         if ($view === 'history') {
-            $query->where(function ($q) use ($historyStatuses) {
+            $query->where(function ($q) use ($historyStatuses, $incompleteIssuedIds) {
                 $q->whereIn('status', array_diff($historyStatuses, ['Issued']))
                     ->orWhere(fn ($issued) => $issued->where('status', 'Issued')
-                        ->whereDoesntHave('jobOrder', fn ($jo) => $jo
-                            ->whereNull('part_status')->orWhere('part_status', '!=', 'Issued')));
+                        ->whereNotIn('id', $incompleteIssuedIds));
             });
         } else {
-            $query->where(function ($q) use ($historyStatuses, $waitingForJo) {
+            $query->where(function ($q) use ($historyStatuses, $incompleteIssuedIds) {
                 $q->whereNotIn('status', $historyStatuses)
-                    ->orWhere(fn ($issued) => $issued->where('status', 'Issued')->where($waitingForJo));
+                    ->orWhere(fn ($issued) => $issued->where('status', 'Issued')
+                        ->whereIn('id', $incompleteIssuedIds));
             });
         }
 
@@ -501,12 +581,33 @@ class ItemRequestController extends Controller
         $references = $relatedIrs->mapWithKeys(fn ($ir) => [
             'IR-'.($ir->created_at?->format('Y') ?? '0000').'-'.str_pad((string) $ir->id, 4, '0', STR_PAD_LEFT) => $ir->job_order_id,
         ]);
-        $batches = $references->isEmpty() ? collect() : InventoryIssuance::query()
+        $batches = $references->isEmpty() ? collect() : InventoryIssuance::query()->confirmedSigned()
             ->where(function ($query) use ($references) {
                 foreach ($references->keys() as $ref) {
                     $query->orWhere('reference_no', $ref)->orWhere('reference_no', 'like', $ref.'-B%');
                 }
-            })->with('items')->get();
+            })->with('items')->orderBy('id')->get();
+
+        // Display a signed-slip shortcut only if a confirmed batch has an
+        // uploaded file that still exists. IR status alone is not evidence.
+        $referenceToRequest = $relatedIrs->mapWithKeys(fn ($ir) => [
+            'IR-'.($ir->created_at?->format('Y') ?? '0000').'-'.str_pad((string) $ir->id, 4, '0', STR_PAD_LEFT) => $ir->id,
+        ]);
+        $signedSlipByRequest = [];
+        foreach ($batches as $batch) {
+            if (! Storage::disk('local')->exists($batch->signed_slip_path)) {
+                continue;
+            }
+            $baseReference = preg_replace('/-B\\d+$/', '', (string) $batch->reference_no);
+            $requestId = $referenceToRequest->get($baseReference);
+            if ($requestId !== null) {
+                $signedSlipByRequest[$requestId] = route(
+                    'warehouse.item-requests.signed-slip',
+                    [$requestId, 'batch' => $batch->id]
+                );
+            }
+        }
+
         $issuedByJo = [];
         $normalizePart = fn ($name, $unit) => mb_strtolower(preg_replace('/[^a-z0-9]+/i', '', trim((string) $name))).'|'.$parser->normalizeUnit((string) $unit);
         foreach ($batches as $batch) {
@@ -518,6 +619,10 @@ class ItemRequestController extends Controller
                 $issuedByJo[$joId][$key] = ($issuedByJo[$joId][$key] ?? 0) + (int) $item->quantity;
             }
         }
+        $quantityReviewByJob = $requests->getCollection()->filter(fn ($ir) => $ir->jobOrder)
+            ->unique('job_order_id')
+            ->mapWithKeys(fn ($ir) => [$ir->job_order_id =>
+                ! $parser->hasExplicitQuantities((string) $ir->jobOrder->part_needed)]);
         $fulfillmentByJob = $requests->getCollection()->filter(fn ($ir) => $ir->jobOrder)
             ->unique('job_order_id')->mapWithKeys(function ($ir) use ($parser, $normalizePart, $issuedByJo) {
                 $required = collect($parser->parsePartText((string) $ir->jobOrder->part_needed))
@@ -541,13 +646,12 @@ class ItemRequestController extends Controller
             ->map(fn ($prs) => $prs->sum(fn ($pr) => count($parser->parsePartText((string) $pr->item))));
         $totalCount = ItemRequest::count();
         $submittedCount = ItemRequest::where('status', 'Submitted')->count();
-        $waitingIssuedCount = ItemRequest::query()->where('status', 'Issued')
-            ->whereHas('jobOrder', fn ($jo) => $jo->whereNull('part_status')->orWhere('part_status', '!=', 'Issued'))->count();
+        $waitingIssuedCount = count($incompleteIssuedIds);
         $activeCount = ItemRequest::whereNotIn('status', $historyStatuses)->count() + $waitingIssuedCount;
         $historyCount = ItemRequest::whereIn('status', $historyStatuses)->count() - $waitingIssuedCount;
 
         return view('Warehouse.item-requests', compact(
-            'requests', 'view', 'totalCount', 'submittedCount', 'activeCount', 'historyCount', 'stockByRequest', 'fulfillmentByJob', 'linkedPrPartsByJo'
+            'requests', 'view', 'totalCount', 'submittedCount', 'activeCount', 'historyCount', 'stockByRequest', 'fulfillmentByJob', 'linkedPrPartsByJo', 'signedSlipByRequest', 'incompleteIssuedIds', 'quantityReviewByJob'
         ));
     }
 }
