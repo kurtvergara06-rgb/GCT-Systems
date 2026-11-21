@@ -6,6 +6,9 @@
   <meta name="csrf-token" content="{{ csrf_token() }}">
 
   <title>GCT Transport Services | Sign Up</title>
+  <link rel="icon" type="image/png" href="{{ asset('img/gct_logo.png') }}?v=20261121">
+  <link rel="shortcut icon" type="image/png" href="{{ asset('img/gct_logo.png') }}?v=20261121">
+  <link rel="apple-touch-icon" href="{{ asset('img/gct_logo.png') }}">
 
   <link
     rel="stylesheet"
