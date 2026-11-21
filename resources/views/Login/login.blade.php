@@ -224,8 +224,8 @@
           <div class="auth-switch auth-switch--install">
             <span>New employee? <a href="{{ route('register') }}">Sign Up</a></span>
             @if($desktopDownloadReady)
-              <button class="pwa-install-link" type="button" id="fromsDesktopDownloadButton" aria-haspopup="dialog" aria-controls="fromsDesktopDownloadHelp"><i class="fa-solid fa-download" aria-hidden="true"></i> Download for Windows</button>
-              <button class="pwa-install-link" type="button" id="fromsDesktopDownloadAgain" hidden><i class="fa-solid fa-rotate-right" aria-hidden="true"></i> Download again</button>
+              <button class="desktop-download-link" type="button" id="fromsDesktopDownloadButton" aria-haspopup="dialog" aria-controls="fromsDesktopDownloadHelp"><i class="fa-solid fa-download" aria-hidden="true"></i> Download for Windows</button>
+              <button class="desktop-download-link" type="button" id="fromsDesktopDownloadAgain" hidden><i class="fa-solid fa-rotate-right" aria-hidden="true"></i> Download again</button>
             @endif
           </div>
 
@@ -293,30 +293,30 @@
   @endif
 
   @if($desktopDownloadReady)
-    <dialog id="fromsDesktopDownloadHelp" class="pwa-install-dialog" aria-labelledby="fromsDownloadTitle" aria-describedby="fromsDownloadInstructions">
-      <div class="pwa-install-dialog-heading">
-        <span class="pwa-install-dialog-eyebrow"><i class="fa-solid fa-desktop" aria-hidden="true"></i> Windows Desktop</span>
-        <button type="button" class="pwa-install-dialog-close" data-desktop-dialog-close aria-label="Close download information"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+    <dialog id="fromsDesktopDownloadHelp" class="desktop-download-dialog" aria-labelledby="fromsDownloadTitle" aria-describedby="fromsDownloadInstructions">
+      <div class="desktop-download-dialog-heading">
+        <span class="desktop-download-dialog-eyebrow"><i class="fa-solid fa-desktop" aria-hidden="true"></i> Windows Desktop</span>
+        <button type="button" class="desktop-download-dialog-close" data-desktop-dialog-close aria-label="Close download information"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
       </div>
-      <div class="pwa-install-app-identity">
-        <span class="pwa-install-app-icon"><img src="{{ asset('img/gct_logo.png') }}" alt="" width="56" height="56"></span>
+      <div class="desktop-download-app-identity">
+        <span class="desktop-download-app-icon"><img src="{{ asset('img/gct_logo.png') }}" alt="" width="56" height="56"></span>
         <div>
           <h2 id="fromsDownloadTitle">Get FROMS Desktop</h2>
           <p>GCT Transport Services · Windows application</p>
         </div>
       </div>
-      <p class="pwa-install-lead" id="fromsDownloadInstructions">Download the FROMS Desktop installer for Windows. It connects securely to the same live GCT Systems website and accounts.</p>
-      <div class="pwa-install-benefits" aria-label="Desktop application details">
+      <p class="desktop-download-lead" id="fromsDownloadInstructions">Download the FROMS Desktop installer for Windows. It connects securely to the same live GCT Systems website and accounts.</p>
+      <div class="desktop-download-benefits" aria-label="Desktop application details">
         <div><i class="fa-solid fa-laptop" aria-hidden="true"></i><span>Windows desktop application powered by Tauri</span></div>
         <div><i class="fa-solid fa-cloud" aria-hidden="true"></i><span>Requires internet access to the existing GCT system</span></div>
         <div><i class="fa-solid fa-shield-halved" aria-hidden="true"></i><span>Use your existing GCT account and permissions</span></div>
       </div>
-      <p class="pwa-install-status" id="fromsDownloadStatus" role="status" aria-live="polite"></p>
-      <div class="pwa-install-actions">
-        <button type="button" class="pwa-install-dialog-secondary" data-desktop-dialog-close>Not now</button>
-        <a id="fromsDesktopInstallerLink" class="pwa-install-dialog-primary" href="{{ $desktopInstallerUrl }}" rel="noopener noreferrer"><i class="fa-solid fa-download" aria-hidden="true"></i> Download installer</a>
+      <p class="desktop-download-status" id="fromsDownloadStatus" role="status" aria-live="polite"></p>
+      <div class="desktop-download-actions">
+        <button type="button" class="desktop-download-dialog-secondary" data-desktop-dialog-close>Not now</button>
+        <a id="fromsDesktopInstallerLink" class="desktop-download-dialog-primary" href="{{ $desktopInstallerUrl }}" rel="noopener noreferrer"><i class="fa-solid fa-download" aria-hidden="true"></i> Download installer</a>
       </div>
-      <p class="pwa-install-note">After downloading, open the installer on Windows. Your browser cannot verify when installation finishes.</p>
+      <p class="desktop-download-note">After downloading, open the installer on Windows. Your browser cannot verify when installation finishes.</p>
     </dialog>
   @endif
 
