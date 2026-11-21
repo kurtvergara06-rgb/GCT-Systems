@@ -90,7 +90,8 @@
   {{-- Standalone installation uses the same secure web session and online routes. --}}
   <link rel="manifest" href="{{ asset('manifest.webmanifest') }}">
   <meta name="theme-color" content="#062d61">
-  <link rel="icon" type="image/svg+xml" href="{{ asset('pwa-icon.svg') }}">
+  <link rel="icon" type="image/png" href="{{ asset('img/gct_logo.png') }}?v=20261121">
+  <link rel="shortcut icon" type="image/png" href="{{ asset('img/gct_logo.png') }}?v=20261121">
   <link rel="apple-touch-icon" href="{{ asset('img/gct_logo.png') }}">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
