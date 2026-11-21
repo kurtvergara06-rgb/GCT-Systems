@@ -5,8 +5,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="csrf-token" content="{{ csrf_token() }}">
 
+  {{-- A cosmetic marker only. The Tauri website webview opens with ?froms_desktop=1.
+       Session storage preserves the marker through login and logout redirects. --}}
+  <script>
+    (() => {
+      try {
+        const marker = new URLSearchParams(location.search).get('froms_desktop');
+        if (marker === '1') sessionStorage.setItem('froms-desktop-webview', '1');
+        if (sessionStorage.getItem('froms-desktop-webview') === '1') {
+          document.documentElement.dataset.fromsDesktop = 'true';
+        }
+      } catch (_) {
+        // Storage restrictions must never block sign-in.
+      }
+    })();
+  </script>
+
   <title>GCT Transport Services | Sign In</title>
-  <link rel="manifest" href="{{ asset('manifest.webmanifest') }}">
+
   <meta name="theme-color" content="#062d61">
   <link rel="icon" type="image/png" href="{{ asset('img/gct_logo.png') }}?v=20261121">
   <link rel="shortcut icon" type="image/png" href="{{ asset('img/gct_logo.png') }}?v=20261121">
@@ -215,9 +231,18 @@
             </svg>
             Continue with Google
           </a>
+          @php
+            $desktopInstallerUrl = trim((string) config('services.desktop.installer_url', ''));
+            $desktopDownloadReady = filter_var($desktopInstallerUrl, FILTER_VALIDATE_URL)
+                && parse_url($desktopInstallerUrl, PHP_URL_SCHEME) === 'https'
+                && preg_match('/\.(exe|msi)(?:$|[?#])/i', $desktopInstallerUrl);
+          @endphp
           <div class="auth-switch auth-switch--install">
             <span>New employee? <a href="{{ route('register') }}">Sign Up</a></span>
-            <button class="pwa-install-link" type="button" id="pwaInstallButton" aria-haspopup="dialog" aria-controls="pwaInstallHelp"><i class="fa-solid fa-download" aria-hidden="true"></i> Install App</button>
+            <button class="desktop-download-link" type="button" id="fromsDesktopDownloadButton" aria-haspopup="dialog" aria-controls="fromsDesktopDownloadHelp"><i class="fa-solid fa-download" aria-hidden="true"></i> Download for Windows</button>
+            @if($desktopDownloadReady)
+              <button class="desktop-download-link" type="button" id="fromsDesktopDownloadAgain" hidden><i class="fa-solid fa-rotate-right" aria-hidden="true"></i> Download again</button>
+            @endif
           </div>
 
           <nav class="auth-legal-links" aria-label="Legal information"><a data-legal-modal="Privacy Notice" href="{{ route('legal.privacy') }}">Privacy Notice</a><span aria-hidden="true">·</span><a data-legal-modal="Terms of Use" href="{{ route('legal.terms') }}">Terms of Use</a></nav>
@@ -283,35 +308,35 @@
     </div>
   @endif
 
-  <dialog id="pwaInstallHelp" class="pwa-install-dialog" aria-labelledby="pwaInstallTitle" aria-describedby="pwaInstallInstructions">
-    <div class="pwa-install-dialog-heading">
-      <span class="pwa-install-dialog-eyebrow"><i class="fa-solid fa-desktop" aria-hidden="true"></i> GCT Workspace</span>
-      <button type="button" class="pwa-install-dialog-close" data-pwa-install-close aria-label="Close installation guide"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
-    </div>
-    <div class="pwa-install-app-identity">
-      <span class="pwa-install-app-icon"><img src="{{ asset('img/gct_logo.png') }}" alt="" width="56" height="56"></span>
-      <div>
-        <h2 id="pwaInstallTitle">FROMS, one click away.</h2>
-        <p>Fleet Resource Optimization and Management System</p>
+  <dialog id="fromsDesktopDownloadHelp" class="desktop-download-dialog" aria-labelledby="fromsDownloadTitle" aria-describedby="fromsDownloadInstructions">
+      <div class="desktop-download-dialog-heading">
+        <span class="desktop-download-dialog-eyebrow"><i class="fa-solid fa-desktop" aria-hidden="true"></i> Windows Desktop</span>
+        <button type="button" class="desktop-download-dialog-close" data-desktop-dialog-close aria-label="Close download information"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
       </div>
-    </div>
-    <p class="pwa-install-lead" id="pwaInstallInstructions">Add FROMS to your device for quick access in its own dedicated window.</p>
-    <div class="pwa-install-benefits" aria-label="Installation benefits">
-      <div><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i><span>Open directly from your desktop or home screen</span></div>
-      <div><i class="fa-solid fa-window-maximize" aria-hidden="true"></i><span>Enjoy a focused, app-like workspace</span></div>
-      <div><i class="fa-solid fa-shield-halved" aria-hidden="true"></i><span>Keep your existing secure GCT sign-in</span></div>
-    </div>
-    <div class="pwa-install-steps" id="pwaInstallSteps" hidden>
-      <p class="pwa-install-steps-title">How to install</p>
-      <ol id="pwaInstallStepList"></ol>
-    </div>
-    <p class="pwa-install-status" id="pwaInstallStatus" role="status" aria-live="polite"></p>
-    <div class="pwa-install-actions">
-      <button type="button" class="pwa-install-dialog-secondary" data-pwa-install-close>Not now</button>
-      <button type="button" class="pwa-install-dialog-primary" id="pwaInstallConfirm"><i class="fa-solid fa-download" aria-hidden="true"></i><span>Continue to Install</span></button>
-    </div>
-    <p class="pwa-install-note">Installation is optional. An internet connection is still needed for live fleet data.</p>
-  </dialog>
+      <div class="desktop-download-app-identity">
+        <span class="desktop-download-app-icon"><img src="{{ asset('img/gct_logo.png') }}" alt="" width="56" height="56"></span>
+        <div>
+          <h2 id="fromsDownloadTitle">Get FROMS Desktop</h2>
+          <p>GCT Transport Services · Windows application</p>
+        </div>
+      </div>
+      <p class="desktop-download-lead" id="fromsDownloadInstructions">Download the FROMS Desktop installer for Windows. It connects securely to the same live GCT Systems website and accounts.</p>
+      <div class="desktop-download-benefits" aria-label="Desktop application details">
+        <div><i class="fa-solid fa-laptop" aria-hidden="true"></i><span>Windows desktop application powered by Tauri</span></div>
+        <div><i class="fa-solid fa-cloud" aria-hidden="true"></i><span>Requires internet access to the existing GCT system</span></div>
+        <div><i class="fa-solid fa-shield-halved" aria-hidden="true"></i><span>Use your existing GCT account and permissions</span></div>
+      </div>
+      <p class="desktop-download-status" id="fromsDownloadStatus" role="status" aria-live="polite">@unless($desktopDownloadReady)The Windows installer is being prepared. The download will be available here after the tested release is published.@endunless</p>
+      <div class="desktop-download-actions">
+        <button type="button" class="desktop-download-dialog-secondary" data-desktop-dialog-close>Not now</button>
+        @if($desktopDownloadReady)
+          <a id="fromsDesktopInstallerLink" class="desktop-download-dialog-primary" href="{{ $desktopInstallerUrl }}" rel="noopener noreferrer"><i class="fa-solid fa-download" aria-hidden="true"></i> Download .exe</a>
+        @else
+          <button type="button" class="desktop-download-dialog-primary" disabled aria-describedby="fromsDownloadStatus" title="Windows installer not published yet"><i class="fa-solid fa-download" aria-hidden="true"></i> Download .exe</button>
+        @endif
+      </div>
+      <p class="desktop-download-note">@if($desktopDownloadReady)After downloading, open the installer on Windows. Your browser cannot verify when installation finishes.@else No PWA shortcut is installed; this page will offer the real Windows installer when it is ready. @endif</p>
+    </dialog>
 
   <script>
     window.addEventListener('pageshow', (event) => {

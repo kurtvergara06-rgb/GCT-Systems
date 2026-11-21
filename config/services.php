@@ -41,6 +41,12 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    // Publish only after the signed or otherwise verified Windows installer is uploaded.
+    // Use a direct HTTPS link to a .exe or .msi asset (for example, GitHub Releases).
+    'desktop' => [
+        'installer_url' => env('FROMS_DESKTOP_INSTALLER_URL', ''),
+    ],
+
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),

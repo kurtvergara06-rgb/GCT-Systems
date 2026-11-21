@@ -6,46 +6,55 @@ use Tests\TestCase;
 
 class PwaFoundationTest extends TestCase
 {
-    public function test_install_manifest_exposes_standalone_application(): void
+    public function test_login_and_shell_no_longer_advertise_pwa_installation(): void
     {
-        $manifest = json_decode(file_get_contents(public_path('manifest.webmanifest')), true, 512, JSON_THROW_ON_ERROR);
-
-        $this->assertSame('standalone', $manifest['display']);
-        $this->assertSame('/', $manifest['start_url']);
-        $this->assertSame('/', $manifest['scope']);
-        $this->assertNotEmpty($manifest['icons']);
-    }
-
-    public function test_offline_worker_does_not_cache_authenticated_responses(): void
-    {
-        $worker = file_get_contents(public_path('sw.js'));
-
-        $this->assertStringContainsString("event.request.mode !== 'navigate'", $worker);
-        $this->assertStringContainsString("event.request.method !== 'GET'", $worker);
-        $this->assertStringContainsString('fetch(event.request)', $worker);
-        $this->assertStringContainsString('cache.match(OFFLINE_URL)', $worker);
-        $this->assertStringNotContainsString('cache.put(event.request', $worker);
-        $this->assertStringNotContainsString('caches.match(event.request', $worker);
-    }
-
-    public function test_authenticated_shell_exposes_manifest_and_shared_worker(): void
-    {
+        $login = file_get_contents(resource_path('views/Login/login.blade.php'));
         $layout = file_get_contents(resource_path('views/components/layout/app.blade.php'));
-        $app = file_get_contents(resource_path('js/app.js'));
-        $runtime = file_get_contents(resource_path('js/Main-js/pwa-runtime.js'));
 
-        $this->assertStringContainsString('manifest.webmanifest', $layout);
-        $this->assertStringContainsString('pwa-icon.svg', $layout);
-        $this->assertStringContainsString("import './Main-js/pwa-runtime.js';", $app);
-        $this->assertStringContainsString("register('/sw.js'", $runtime);
-        $this->assertStringNotContainsString('window.location.reload()', $runtime);
+        $this->assertStringNotContainsString('manifest.webmanifest', $login);
+        $this->assertStringNotContainsString('manifest.webmanifest', $layout);
+        $this->assertStringNotContainsString('pwaInstallButton', $login);
+        $this->assertStringContainsString('fromsDesktopDownloadButton', $login);
     }
 
-    public function test_offline_fallback_requires_connection_for_secure_data(): void
+    public function test_website_does_not_register_a_pwa_worker(): void
     {
-        $offline = file_get_contents(public_path('offline.html'));
+        $app = file_get_contents(resource_path('js/app.js'));
+        $login = file_get_contents(resource_path('js/Login/login.js'));
+        $runtime = file_get_contents(resource_path('js/Main-js/desktop-runtime.js'));
 
-        $this->assertStringContainsString('internet connection', $offline);
-        $this->assertStringContainsString('Try again', $offline);
+        $this->assertStringContainsString("import './Main-js/desktop-runtime.js';", $app);
+        $this->assertStringContainsString("import '../Main-js/desktop-runtime.js';", $login);
+        $this->assertStringNotContainsString('beforeinstallprompt', $login);
+        $this->assertStringContainsString('registration.unregister()', $runtime);
+        $this->assertStringNotContainsString("register('/sw.js'", $runtime);
+        $this->assertFileDoesNotExist(public_path('manifest.webmanifest'));
+        $this->assertFileDoesNotExist(public_path('sw.js'));
+        $this->assertFileDoesNotExist(public_path('offline.html'));
+    }
+
+    public function test_desktop_webview_hides_installer_without_affecting_browser_downloads(): void
+    {
+        $login = file_get_contents(resource_path('views/Login/login.blade.php'));
+        $js = file_get_contents(resource_path('js/Login/login.js'));
+        $css = file_get_contents(resource_path('css/Login/login.css'));
+
+        $this->assertStringContainsString("get('froms_desktop')", $login);
+        $this->assertStringContainsString("sessionStorage.setItem('froms-desktop-webview', '1')", $login);
+        $this->assertStringContainsString("dataset.fromsDesktop === 'true'", $js);
+        $this->assertStringContainsString('html[data-froms-desktop="true"] #fromsDesktopDownloadButton', $css);
+        $this->assertStringContainsString('html[data-froms-desktop="true"] #fromsDesktopDownloadHelp', $css);
+    }
+
+    public function test_installer_link_is_configurable_and_disabled_until_published(): void
+    {
+        $this->assertArrayHasKey('installer_url', config('services.desktop'));
+        $login = file_get_contents(resource_path('views/Login/login.blade.php'));
+        $this->assertStringContainsString('desktopDownloadReady', $login);
+        $this->assertStringContainsString('fromsDesktopInstallerLink', $login);
+        $this->assertStringContainsString('Download again', $login);
+        $this->assertStringContainsString('Download for Windows', $login);
+        $this->assertStringContainsString('The Windows installer is being prepared.', $login);
+        $this->assertStringContainsString('@if($desktopDownloadReady)', $login);
     }
 }

@@ -1,3 +1,4 @@
+import '../Main-js/desktop-runtime.js';
 document.addEventListener('DOMContentLoaded', () => {
   const emailInput = document.getElementById('loginEmail');
   const passwordInput = document.getElementById('loginPassword');
@@ -156,131 +157,57 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-/* Installation is optional; authentication must work independently of PWA support. */
-let fromsInstallPrompt = null;
-
-window.addEventListener('beforeinstallprompt', (event) => {
-  event.preventDefault();
-  fromsInstallPrompt = event;
-});
-
-window.addEventListener('appinstalled', () => {
-  fromsInstallPrompt = null;
-  document.getElementById('pwaInstallButton')?.setAttribute('hidden', '');
-  document.getElementById('pwaInstallHelp')?.close();
-});
-
+/* Desktop installer flow: no PWA shortcuts or native install prompts.
+   Browsers cannot detect completion of an external Windows installation. */
 document.addEventListener('DOMContentLoaded', () => {
-  const button = document.getElementById('pwaInstallButton');
-  const dialog = document.getElementById('pwaInstallHelp');
-  const confirm = document.getElementById('pwaInstallConfirm');
-  const status = document.getElementById('pwaInstallStatus');
-  const steps = document.getElementById('pwaInstallSteps');
-  const list = document.getElementById('pwaInstallStepList');
-  if (!button || !dialog || !confirm || !status || !steps || !list) return;
+  const button = document.getElementById('fromsDesktopDownloadButton');
+  const retryButton = document.getElementById('fromsDesktopDownloadAgain');
+  const dialog = document.getElementById('fromsDesktopDownloadHelp');
+  const link = document.getElementById('fromsDesktopInstallerLink');
+  const status = document.getElementById('fromsDownloadStatus');
+  if (!button || !dialog || !status) return;
 
-  const installed = () => window.matchMedia('(display-mode: standalone)').matches
-    || window.navigator.standalone === true;
+  // Desktop webview is marked before the page paints. Do not attach download
+  // handlers inside the installed application.
+  if (document.documentElement.dataset.fromsDesktop === 'true') return;
 
-  if (installed()) {
-    button.hidden = true;
-    return;
+  const downloadReady = Boolean(link && retryButton);
+
+  const key = 'froms-desktop-installer-requested-v1';
+  let downloadRequested = false;
+  try {
+    downloadRequested = downloadReady && window.localStorage.getItem(key) === 'yes';
+  } catch {
+    // Storage may be disabled; downloading must remain available.
   }
 
-  if ('serviceWorker' in navigator && window.isSecureContext) {
-    navigator.serviceWorker.register('/sw.js').catch(() => {
-      // Login and install instructions remain usable if registration fails.
-    });
-  }
-
-  const isAppleMobile = /iPad|iPhone|iPod/.test(navigator.userAgent)
-    || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-
-  const showSteps = (items) => {
-    list.replaceChildren();
-    items.forEach((item) => {
-      const li = document.createElement('li');
-      li.textContent = item;
-      list.appendChild(li);
-    });
-    steps.hidden = false;
+  const updateVisibility = () => {
+    button.hidden = downloadRequested;
+    if (retryButton) retryButton.hidden = !downloadRequested;
   };
+  updateVisibility();
 
-  const updateGuide = () => {
-    status.textContent = '';
-    confirm.hidden = true;
-    steps.hidden = true;
-
-    if (!window.isSecureContext) {
-      status.textContent = 'Installation requires HTTPS or localhost. Open the secure GCT website and try again.';
-      return;
-    }
-
-    if (isAppleMobile) {
-      showSteps([
-        'Open this website in Safari.',
-        'Tap the Share button in the browser toolbar.',
-        'Choose Add to Home Screen, then tap Add.',
-      ]);
-      return;
-    }
-
-    if (fromsInstallPrompt) {
-      confirm.hidden = false;
-      return;
-    }
-
-    showSteps([
-      'Open your browser menu or look for the Install icon beside the address bar.',
-      'Select Install app or Add to Home Screen if your browser offers it.',
-      'Confirm the installation to open FROMS as a separate app.',
-    ]);
-  };
-
-  dialog.querySelectorAll('[data-pwa-install-close]').forEach((close) => {
-    close.addEventListener('click', () => dialog.close());
-  });
-
-  button.addEventListener('click', () => {
-    if (installed()) {
-      button.hidden = true;
-      return;
-    }
-    updateGuide();
+  const openGuide = () => {
+    if (downloadReady) status.textContent = '';
     dialog.showModal();
+  };
+
+  button.addEventListener('click', openGuide);
+  retryButton?.addEventListener('click', openGuide);
+
+  dialog.querySelectorAll('[data-desktop-dialog-close]').forEach((closeButton) => {
+    closeButton.addEventListener('click', () => dialog.close());
   });
 
-  confirm.addEventListener('click', async () => {
-    if (!fromsInstallPrompt) {
-      updateGuide();
-      return;
-    }
-    const prompt = fromsInstallPrompt;
-    fromsInstallPrompt = null;
-    confirm.disabled = true;
-
+  link?.addEventListener('click', () => {
+    // This tracks intent to download, NOT OS installation or download completion.
+    downloadRequested = true;
     try {
-      await prompt.prompt();
-      const choice = await prompt.userChoice;
-      if (choice?.outcome === 'accepted') {
-        status.textContent = 'Installation confirmed. You can open FROMS from your device once it is installed.';
-        dialog.close();
-      } else {
-        status.textContent = 'Installation was cancelled. You can install FROMS later using your browser menu.';
-        showSteps([
-          'Open the browser menu or the Install icon beside the address bar.',
-          'Select Install app and confirm when you are ready.',
-        ]);
-      }
+      window.localStorage.setItem(key, 'yes');
     } catch {
-      status.textContent = 'The browser could not open installation right now. Use your browser menu to install instead.';
-      showSteps([
-        'Open the browser menu or the Install icon beside the address bar.',
-        'Select Install app when it becomes available.',
-      ]);
-    } finally {
-      confirm.disabled = false;
-      confirm.hidden = true;
+      // Do not block the download if storage is unavailable.
     }
+    updateVisibility();
+    dialog.close();
   });
 });

@@ -1,5 +1,5 @@
 import './echo';
-import './Main-js/pwa-runtime.js';
+import './Main-js/desktop-runtime.js';
 
 /* Cross-page assets and controls used by multiple modules. */
 import '../css/Main-styles/system-toast.css';
