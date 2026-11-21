@@ -40,5 +40,8 @@ class PwaFoundationTest extends TestCase
         $this->assertStringContainsString('desktopDownloadReady', $login);
         $this->assertStringContainsString('fromsDesktopInstallerLink', $login);
         $this->assertStringContainsString('Download again', $login);
+        $this->assertStringContainsString('Download for Windows', $login);
+        $this->assertStringContainsString('The Windows installer is being prepared.', $login);
+        $this->assertStringContainsString('@if($desktopDownloadReady)', $login);
     }
 }
