@@ -19,7 +19,7 @@ Do not point the website to the Tauri source repository, the locally running dev
 - Clicking **Download installer** records an intent-to-download flag in that browser's localStorage and hides the main download button. A **Download again** link remains available for failed or incomplete downloads.
 - This is not a Windows installation detector: website JavaScript cannot reliably determine whether the download completed or whether the app was installed. Clearing browser data or using another browser/device resets that flag.
 - If the URL is not configured, no misleading installer control is displayed.
-- The existing service worker and manifest may remain for the site's technical compatibility but the login installation action does not trigger `beforeinstallprompt`.
+- The old PWA manifest, service worker, offline fallback, and install prompts have been removed. The shared desktop runtime unregisters the previous service worker for returning browsers; existing PWA shortcuts already installed on employee devices must be removed manually.
 
 ## Security and maintenance
 
