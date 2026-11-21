@@ -24,3 +24,13 @@ Do not point the website to the Tauri source repository, the locally running dev
 ## Security and maintenance
 
 The Tauri app should open only the configured HTTPS GCT web origin, avoid exposing privileged native IPC to remote content, and use a normal installer/update release process. Keep the Laravel/Python services and MySQL database unchanged.
+
+## Hide the download button inside the installed Tauri application
+
+The Laravel login page detects the cosmetic startup query parameter `?froms_desktop=1` and stores it in the webview's sessionStorage. This hides both Windows installer buttons and the download modal before the login page paints, while regular browsers continue to show the normal download action. This flag is **not** an authentication or authorization boundary.
+
+In the separate, locally stored Tauri project, modify only the URL used to create the website child webview in `src-tauri/src/lib.rs`:
+- Local development: `http://gct_system.test?froms_desktop=1`
+- Render release: `https://gct-systems.onrender.com?froms_desktop=1`
+
+Do not add the parameter to the local titlebar webview, and do not grant native IPC permissions to the website webview. Rebuild the installer after changing the website URLs, then test logout/reload behavior. The website-only change cannot alter previously built Windows executables.
