@@ -38,7 +38,7 @@
       <p>Subject to applicable law, data subjects may request access, correction, or other appropriate actions concerning their personal data. To submit a request, contact the company's designated privacy officer or an authorized system administrator through the company's approved communication channel. The company must verify requests and assess applicable legal obligations before acting on them.</p>
 
       <h2>Cookies and device storage</h2>
-      <p>The application uses browser/session mechanisms needed for sign-in, security and system operation. Any additional analytics or optional tracking technologies should be disclosed and assessed separately before being enabled. If FROMS is installed as a progressive web app, sensitive operational records should not be made available offline without an approved security design.</p>
+      <p>The application uses browser/session mechanisms needed for sign-in, security and system operation. Any additional analytics or optional tracking technologies should be disclosed and assessed separately before being enabled. FROMS Desktop connects to the online system; sensitive operational records are not intended for offline storage.</p>
 
       <h2>Updates and company contact</h2>
       <p>This is an initial application notice and must be aligned with GCT Transport Services, Inc.'s approved privacy practices, actual service providers, retention schedule, contact details and publication date. For questions, contact the authorized company representative or system administrator.</p>
