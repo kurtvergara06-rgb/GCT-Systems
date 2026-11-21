@@ -888,3 +888,9 @@ input {
 @media (prefers-reduced-motion: reduce) {
   .pwa-install-dialog[open] { animation: none; }
 }
+
+/* Tauri installer download: the primary action is an external HTTPS link. */
+a.pwa-install-dialog-primary { text-decoration: none; }
+a.pwa-install-dialog-primary:hover { color: #fff; text-decoration: none; }
+.pwa-install-dialog-primary:focus-visible { outline: 3px solid #80ade8; outline-offset: 3px; }
+.auth-switch--install .pwa-install-link[hidden] { display: none !important; }
