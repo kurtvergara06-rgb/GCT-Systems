@@ -156,53 +156,131 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-/* Install UI is optional: login must remain usable if installation is unsupported. */
+/* Installation is optional; authentication must work independently of PWA support. */
 let fromsInstallPrompt = null;
+
 window.addEventListener('beforeinstallprompt', (event) => {
   event.preventDefault();
   fromsInstallPrompt = event;
 });
+
 window.addEventListener('appinstalled', () => {
   fromsInstallPrompt = null;
   document.getElementById('pwaInstallButton')?.setAttribute('hidden', '');
+  document.getElementById('pwaInstallHelp')?.close();
 });
+
 document.addEventListener('DOMContentLoaded', () => {
   const button = document.getElementById('pwaInstallButton');
   const dialog = document.getElementById('pwaInstallHelp');
-  const instructions = document.getElementById('pwaInstallInstructions');
-  if (!button || !dialog || !instructions) return;
+  const confirm = document.getElementById('pwaInstallConfirm');
+  const status = document.getElementById('pwaInstallStatus');
+  const steps = document.getElementById('pwaInstallSteps');
+  const list = document.getElementById('pwaInstallStepList');
+  if (!button || !dialog || !confirm || !status || !steps || !list) return;
 
-  const installed = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-  if (installed) {
+  const installed = () => window.matchMedia('(display-mode: standalone)').matches
+    || window.navigator.standalone === true;
+
+  if (installed()) {
     button.hidden = true;
     return;
   }
 
   if ('serviceWorker' in navigator && window.isSecureContext) {
     navigator.serviceWorker.register('/sw.js').catch(() => {
-      // A failed registration must not interrupt authentication.
+      // Login and install instructions remain usable if registration fails.
     });
   }
+
+  const isAppleMobile = /iPad|iPhone|iPod/.test(navigator.userAgent)
+    || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+  const showSteps = (items) => {
+    list.replaceChildren();
+    items.forEach((item) => {
+      const li = document.createElement('li');
+      li.textContent = item;
+      list.appendChild(li);
+    });
+    steps.hidden = false;
+  };
+
+  const updateGuide = () => {
+    status.textContent = '';
+    confirm.hidden = true;
+    steps.hidden = true;
+
+    if (!window.isSecureContext) {
+      status.textContent = 'Installation requires HTTPS or localhost. Open the secure GCT website and try again.';
+      return;
+    }
+
+    if (isAppleMobile) {
+      showSteps([
+        'Open this website in Safari.',
+        'Tap the Share button in the browser toolbar.',
+        'Choose Add to Home Screen, then tap Add.',
+      ]);
+      return;
+    }
+
+    if (fromsInstallPrompt) {
+      confirm.hidden = false;
+      return;
+    }
+
+    showSteps([
+      'Open your browser menu or look for the Install icon beside the address bar.',
+      'Select Install app or Add to Home Screen if your browser offers it.',
+      'Confirm the installation to open FROMS as a separate app.',
+    ]);
+  };
 
   dialog.querySelectorAll('[data-pwa-install-close]').forEach((close) => {
     close.addEventListener('click', () => dialog.close());
   });
 
-  button.addEventListener('click', async () => {
-    if (fromsInstallPrompt) {
-      const prompt = fromsInstallPrompt;
-      fromsInstallPrompt = null;
-      await prompt.prompt();
-      const choice = await prompt.userChoice;
-      if (choice?.outcome === 'accepted') button.hidden = true;
+  button.addEventListener('click', () => {
+    if (installed()) {
+      button.hidden = true;
       return;
     }
-    const ios = /iPhone|iPad|iPod/.test(navigator.userAgent);
-    instructions.textContent = ios
-      ? 'In Safari, tap Share, then Add to Home Screen. Confirm Add to install FROMS.'
-      : !window.isSecureContext
-        ? 'App installation requires HTTPS or localhost. Open the HTTPS production site on your device to install FROMS.'
-        : 'Open your browser menu and select Install app or Add to Home screen, if available.';
+    updateGuide();
     dialog.showModal();
+  });
+
+  confirm.addEventListener('click', async () => {
+    if (!fromsInstallPrompt) {
+      updateGuide();
+      return;
+    }
+    const prompt = fromsInstallPrompt;
+    fromsInstallPrompt = null;
+    confirm.disabled = true;
+
+    try {
+      await prompt.prompt();
+      const choice = await prompt.userChoice;
+      if (choice?.outcome === 'accepted') {
+        status.textContent = 'Installation confirmed. You can open FROMS from your device once it is installed.';
+        dialog.close();
+      } else {
+        status.textContent = 'Installation was cancelled. You can install FROMS later using your browser menu.';
+        showSteps([
+          'Open the browser menu or the Install icon beside the address bar.',
+          'Select Install app and confirm when you are ready.',
+        ]);
+      }
+    } catch {
+      status.textContent = 'The browser could not open installation right now. Use your browser menu to install instead.';
+      showSteps([
+        'Open the browser menu or the Install icon beside the address bar.',
+        'Select Install app when it becomes available.',
+      ]);
+    } finally {
+      confirm.disabled = false;
+      confirm.hidden = true;
+    }
   });
 });
