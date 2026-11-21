@@ -637,18 +637,18 @@ input {
 .auth-switch { margin: 11px 0 0; text-align: center; font-size: 13px; color: #64748b; }
 .auth-switch a { color: #07549a; font-weight: 700; text-decoration: underline; }
 .auth-switch--install { display:flex; align-items:center; justify-content:center; gap:18px; flex-wrap:wrap; }
-.pwa-install-link { display:inline-flex; align-items:center; gap:6px; padding:2px 0; border:0; background:transparent; color:#07549a; font-size:12px; font-weight:700; cursor:pointer; text-decoration:underline; text-underline-offset:3px; }
-.pwa-install-link:hover { color:#063f77; }
-.pwa-install-link:focus-visible { outline:2px solid #07549a; outline-offset:3px; border-radius:2px; }
-.pwa-install-link[hidden] { display:none; }
-.pwa-install-dialog { width:min(380px,calc(100vw - 32px)); max-width:380px; padding:24px; border:1px solid #dce5f2; border-radius:14px; background:#fff; color:#10214b; box-shadow:0 24px 70px rgba(3,27,64,.25); }
-.pwa-install-dialog::backdrop { background:rgba(3,27,64,.55); }
-.pwa-install-dialog-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; }
-.pwa-install-dialog-heading h2 { margin:0; font-size:21px; font-weight:800; }
-.pwa-install-dialog-close { display:grid; place-items:center; width:32px; height:32px; border:0; border-radius:6px; background:#f1f5fa; color:#10214b; cursor:pointer; }
-.pwa-install-dialog p { margin:16px 0 20px; font-size:14px; line-height:1.6; color:#52647d; }
-.pwa-install-dialog-done { min-height:40px; width:100%; border:0; border-radius:7px; background:#07549a; color:#fff; font-weight:700; cursor:pointer; }
-.pwa-install-dialog :is(button):focus-visible { outline:3px solid #80ade8; outline-offset:2px; }
+.desktop-download-link { display:inline-flex; align-items:center; gap:6px; padding:2px 0; border:0; background:transparent; color:#07549a; font-size:12px; font-weight:700; cursor:pointer; text-decoration:underline; text-underline-offset:3px; }
+.desktop-download-link:hover { color:#063f77; }
+.desktop-download-link:focus-visible { outline:2px solid #07549a; outline-offset:3px; border-radius:2px; }
+.desktop-download-link[hidden] { display:none; }
+.desktop-download-dialog { width:min(380px,calc(100vw - 32px)); max-width:380px; padding:24px; border:1px solid #dce5f2; border-radius:14px; background:#fff; color:#10214b; box-shadow:0 24px 70px rgba(3,27,64,.25); }
+.desktop-download-dialog::backdrop { background:rgba(3,27,64,.55); }
+.desktop-download-dialog-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.desktop-download-dialog-heading h2 { margin:0; font-size:21px; font-weight:800; }
+.desktop-download-dialog-close { display:grid; place-items:center; width:32px; height:32px; border:0; border-radius:6px; background:#f1f5fa; color:#10214b; cursor:pointer; }
+.desktop-download-dialog p { margin:16px 0 20px; font-size:14px; line-height:1.6; color:#52647d; }
+.desktop-download-dialog-done { min-height:40px; width:100%; border:0; border-radius:7px; background:#07549a; color:#fff; font-weight:700; cursor:pointer; }
+.desktop-download-dialog :is(button):focus-visible { outline:3px solid #80ade8; outline-offset:2px; }
 
 .registration-notice { font-size: 12px; line-height: 1.5; color: #64748b; margin: 5px 0 16px; }
 
@@ -753,9 +753,8 @@ input {
 .login-cooldown strong { font-variant-numeric: tabular-nums; }
 
 
-/* Branded, responsive PWA installation guide. Browser-owned install prompts
-   cannot be themed; this screen explains the install before handing off. */
-.pwa-install-dialog {
+/* Branded, responsive Windows installer downloadation guide. The download dialog explains the Windows installer before opening the release asset. */
+.desktop-download-dialog {
   width: min(490px, calc(100vw - 32px));
   max-width: 490px;
   max-height: min(88dvh, 760px);
@@ -768,129 +767,129 @@ input {
   color: #132849;
   box-shadow: 0 30px 100px rgba(2, 27, 67, .3);
 }
-.pwa-install-dialog[open] { animation: pwa-dialog-reveal .24s ease-out both; }
-.pwa-install-dialog::backdrop { background: rgba(3, 22, 49, .65); backdrop-filter: blur(5px); }
-.pwa-install-dialog-heading {
+.desktop-download-dialog[open] { animation: desktop-dialog-reveal .24s ease-out both; }
+.desktop-download-dialog::backdrop { background: rgba(3, 22, 49, .65); backdrop-filter: blur(5px); }
+.desktop-download-dialog-heading {
   display: flex; align-items: center; justify-content: space-between;
   gap: 14px; padding: 21px 26px 12px;
 }
-.pwa-install-dialog-eyebrow {
+.desktop-download-dialog-eyebrow {
   display: inline-flex; align-items: center; gap: 9px;
   color: #315c8a; font-size: 11px; font-weight: 800;
   letter-spacing: .12em; text-transform: uppercase;
 }
-.pwa-install-dialog-close {
+.desktop-download-dialog-close {
   width: 34px; height: 34px; flex: 0 0 34px;
   border: 1px solid #dce5f0; border-radius: 10px;
   background: #f5f8fc; color: #294263;
   display: grid; place-items: center; cursor: pointer;
 }
-.pwa-install-app-identity {
+.desktop-download-app-identity {
   display: flex; align-items: center; gap: 17px;
   padding: 14px 26px 3px;
 }
-.pwa-install-app-icon {
+.desktop-download-app-icon {
   width: 72px; height: 72px; flex: 0 0 72px;
   display: grid; place-items: center; overflow: hidden;
   border: 1px solid #cfdded; border-radius: 18px;
   background: linear-gradient(145deg, #f4f9ff, #e9f1fc);
   box-shadow: 0 9px 20px rgba(4, 40, 88, .09);
 }
-.pwa-install-app-icon img { width: 56px; height: 56px; object-fit: contain; }
-.pwa-install-app-identity h2 {
+.desktop-download-app-icon img { width: 56px; height: 56px; object-fit: contain; }
+.desktop-download-app-identity h2 {
   margin: 0 0 6px; color: #122749;
   font-size: clamp(19px, 3vw, 24px); line-height: 1.2;
   font-weight: 800; letter-spacing: -.025em;
 }
-.pwa-install-app-identity p {
+.desktop-download-app-identity p {
   margin: 0; color: #60748d; font-size: 11px; line-height: 1.45;
 }
-.pwa-install-dialog .pwa-install-lead {
+.desktop-download-dialog .desktop-download-lead {
   margin: 19px 26px 16px; color: #435875;
   font-size: 14px; line-height: 1.6;
 }
-.pwa-install-benefits {
+.desktop-download-benefits {
   display: grid; gap: 14px; padding: 19px 20px;
   margin: 0 26px; border: 1px solid #dce9f7;
   border-radius: 14px; background: #f6f9fe;
 }
-.pwa-install-benefits > div { display: flex; gap: 11px; align-items: flex-start; }
-.pwa-install-benefits i {
+.desktop-download-benefits > div { display: flex; gap: 11px; align-items: flex-start; }
+.desktop-download-benefits i {
   width: 19px; margin-top: 2px; flex: 0 0 19px;
   color: #07549a; text-align: center; font-size: 14px;
 }
-.pwa-install-benefits span { color: #304760; font-size: 12px; line-height: 1.5; }
-.pwa-install-steps {
+.desktop-download-benefits span { color: #304760; font-size: 12px; line-height: 1.5; }
+.desktop-download-steps {
   margin: 18px 26px 0; padding: 16px 18px;
   border: 1px solid #dfe7f0; border-radius: 12px;
 }
-.pwa-install-steps[hidden] { display: none; }
-.pwa-install-steps-title {
+.desktop-download-steps[hidden] { display: none; }
+.desktop-download-steps-title {
   margin: 0 0 9px !important; color: #153962 !important;
   font-size: 12px !important; font-weight: 800;
 }
-.pwa-install-steps ol {
+.desktop-download-steps ol {
   margin: 0; padding-left: 19px;
   color: #405772; font-size: 12px; line-height: 1.7;
 }
-.pwa-install-steps li + li { margin-top: 5px; }
-.pwa-install-status {
+.desktop-download-steps li + li { margin-top: 5px; }
+.desktop-download-status {
   margin: 12px 26px 0 !important; color: #365879 !important;
   font-size: 12px !important; line-height: 1.5 !important;
 }
-.pwa-install-status:empty { display: none; }
-.pwa-install-actions {
+.desktop-download-status:empty { display: none; }
+.desktop-download-actions {
   display: flex; gap: 12px; align-items: center;
   margin: 22px 26px 0;
 }
-.pwa-install-dialog-secondary, .pwa-install-dialog-primary {
+.desktop-download-dialog-secondary, .desktop-download-dialog-primary {
   min-height: 46px; padding: 10px 14px;
   border-radius: 10px; font-size: 13px; font-weight: 750;
   cursor: pointer;
 }
-.pwa-install-dialog-secondary {
+.desktop-download-dialog-secondary {
   flex: 0 0 120px; border: 1px solid #cddbea;
   color: #36516e; background: #fff;
 }
-.pwa-install-dialog-primary {
+.desktop-download-dialog-primary {
   flex: 1; display: flex; align-items: center; justify-content: center;
   gap: 9px; border: 1px solid #07549a; color: #fff;
   background: #07549a; box-shadow: 0 7px 16px rgba(7, 84, 154, .16);
 }
-.pwa-install-dialog-primary:hover { background: #06467f; }
-.pwa-install-dialog-primary[hidden] { display: none; }
-.pwa-install-dialog-primary:disabled { opacity: .6; cursor: wait; }
-.pwa-install-dialog :is(button):focus-visible {
+.desktop-download-dialog-primary:hover { background: #06467f; }
+.desktop-download-dialog-primary[hidden] { display: none; }
+.desktop-download-dialog-primary:disabled { opacity: .6; cursor: wait; }
+.desktop-download-dialog :is(button):focus-visible {
   outline: 3px solid #80ade8; outline-offset: 3px;
 }
-.pwa-install-dialog .pwa-install-note {
+.desktop-download-dialog .desktop-download-note {
   margin: 13px 26px 24px; color: #72839a;
   font-size: 11px; line-height: 1.5; text-align: center;
 }
-@keyframes pwa-dialog-reveal {
+@keyframes desktop-dialog-reveal {
   from { opacity: 0; transform: translateY(14px) scale(.985); }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 @media (max-width: 500px) {
-  .pwa-install-dialog { border-radius: 16px; }
-  .pwa-install-dialog-heading { padding: 17px 19px 10px; }
-  .pwa-install-app-identity { padding: 13px 19px 3px; gap: 12px; }
-  .pwa-install-app-icon { width: 60px; height: 60px; flex-basis: 60px; }
-  .pwa-install-app-icon img { width: 48px; height: 48px; }
-  .pwa-install-dialog .pwa-install-lead { margin: 15px 19px; }
-  .pwa-install-benefits { margin: 0 19px; }
-  .pwa-install-steps { margin: 15px 19px 0; }
-  .pwa-install-status { margin-inline: 19px !important; }
-  .pwa-install-actions { margin: 19px 19px 0; }
-  .pwa-install-dialog-secondary { flex-basis: 95px; }
-  .pwa-install-dialog .pwa-install-note { margin: 12px 19px 20px; }
+  .desktop-download-dialog { border-radius: 16px; }
+  .desktop-download-dialog-heading { padding: 17px 19px 10px; }
+  .desktop-download-app-identity { padding: 13px 19px 3px; gap: 12px; }
+  .desktop-download-app-icon { width: 60px; height: 60px; flex-basis: 60px; }
+  .desktop-download-app-icon img { width: 48px; height: 48px; }
+  .desktop-download-dialog .desktop-download-lead { margin: 15px 19px; }
+  .desktop-download-benefits { margin: 0 19px; }
+  .desktop-download-steps { margin: 15px 19px 0; }
+  .desktop-download-status { margin-inline: 19px !important; }
+  .desktop-download-actions { margin: 19px 19px 0; }
+  .desktop-download-dialog-secondary { flex-basis: 95px; }
+  .desktop-download-dialog .desktop-download-note { margin: 12px 19px 20px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .pwa-install-dialog[open] { animation: none; }
+  .desktop-download-dialog[open] { animation: none; }
 }
 
 /* Tauri installer download: the primary action is an external HTTPS link. */
-a.pwa-install-dialog-primary { text-decoration: none; }
-a.pwa-install-dialog-primary:hover { color: #fff; text-decoration: none; }
-.pwa-install-dialog-primary:focus-visible { outline: 3px solid #80ade8; outline-offset: 3px; }
-.auth-switch--install .pwa-install-link[hidden] { display: none !important; }
+a.desktop-download-dialog-primary { text-decoration: none; }
+a.desktop-download-dialog-primary:hover { color: #fff; text-decoration: none; }
+.desktop-download-dialog-primary:focus-visible { outline: 3px solid #80ade8; outline-offset: 3px; }
+.auth-switch--install .desktop-download-link[hidden] { display: none !important; }
