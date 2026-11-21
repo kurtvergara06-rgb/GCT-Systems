@@ -282,13 +282,34 @@
     </div>
   @endif
 
-  <dialog id="pwaInstallHelp" class="pwa-install-dialog" aria-labelledby="pwaInstallTitle">
+  <dialog id="pwaInstallHelp" class="pwa-install-dialog" aria-labelledby="pwaInstallTitle" aria-describedby="pwaInstallInstructions">
     <div class="pwa-install-dialog-heading">
-      <h2 id="pwaInstallTitle">Install FROMS</h2>
-      <button type="button" class="pwa-install-dialog-close" data-pwa-install-close aria-label="Close installation instructions"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+      <span class="pwa-install-dialog-eyebrow"><i class="fa-solid fa-desktop" aria-hidden="true"></i> GCT Workspace</span>
+      <button type="button" class="pwa-install-dialog-close" data-pwa-install-close aria-label="Close installation guide"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
     </div>
-    <p id="pwaInstallInstructions">Use your browser's installation option to add FROMS to your device.</p>
-    <button type="button" class="pwa-install-dialog-done" data-pwa-install-close>Got it</button>
+    <div class="pwa-install-app-identity">
+      <span class="pwa-install-app-icon"><img src="{{ asset('img/gct_logo.png') }}" alt="" width="56" height="56"></span>
+      <div>
+        <h2 id="pwaInstallTitle">FROMS, one click away.</h2>
+        <p>Fleet Resource Optimization and Management System</p>
+      </div>
+    </div>
+    <p class="pwa-install-lead" id="pwaInstallInstructions">Add FROMS to your device for quick access in its own dedicated window.</p>
+    <div class="pwa-install-benefits" aria-label="Installation benefits">
+      <div><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i><span>Open directly from your desktop or home screen</span></div>
+      <div><i class="fa-solid fa-window-maximize" aria-hidden="true"></i><span>Enjoy a focused, app-like workspace</span></div>
+      <div><i class="fa-solid fa-shield-halved" aria-hidden="true"></i><span>Keep your existing secure GCT sign-in</span></div>
+    </div>
+    <div class="pwa-install-steps" id="pwaInstallSteps" hidden>
+      <p class="pwa-install-steps-title">How to install</p>
+      <ol id="pwaInstallStepList"></ol>
+    </div>
+    <p class="pwa-install-status" id="pwaInstallStatus" role="status" aria-live="polite"></p>
+    <div class="pwa-install-actions">
+      <button type="button" class="pwa-install-dialog-secondary" data-pwa-install-close>Not now</button>
+      <button type="button" class="pwa-install-dialog-primary" id="pwaInstallConfirm"><i class="fa-solid fa-download" aria-hidden="true"></i><span>Continue to Install</span></button>
+    </div>
+    <p class="pwa-install-note">Installation is optional. An internet connection is still needed for live fleet data.</p>
   </dialog>
 
   <script>
