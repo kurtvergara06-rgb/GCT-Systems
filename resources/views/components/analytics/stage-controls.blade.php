@@ -18,7 +18,7 @@
 ])
 
 @php
-    $currentFilters = request()->only(['period', 'bus', 'demo']);
+    $currentFilters = request()->only(['period', 'bus']);
     $selectedBusNumber = strtoupper(trim((string) $selectedBus));
 @endphp
 
@@ -38,9 +38,6 @@
         @unless($dateRange)
             <input type="hidden" name="{{ $filterKey }}" value="{{ $active }}">
         @endunless
-        @if(! $dateRange && request()->has('demo'))
-            <input type="hidden" name="demo" value="{{ request('demo') }}">
-        @endif
 
         @if($dateRange)
             <label class="analytics-stage-controls__field">
