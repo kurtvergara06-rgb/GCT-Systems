@@ -167,6 +167,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const status = document.getElementById('fromsDownloadStatus');
   if (!button || !dialog || !status) return;
 
+  // Desktop webview is marked before the page paints. Do not attach download
+  // handlers inside the installed application.
+  if (document.documentElement.dataset.fromsDesktop === 'true') return;
+
   const downloadReady = Boolean(link && retryButton);
 
   const key = 'froms-desktop-installer-requested-v1';
