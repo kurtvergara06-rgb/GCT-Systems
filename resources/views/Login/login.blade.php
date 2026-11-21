@@ -223,8 +223,8 @@
           @endphp
           <div class="auth-switch auth-switch--install">
             <span>New employee? <a href="{{ route('register') }}">Sign Up</a></span>
+            <button class="desktop-download-link" type="button" id="fromsDesktopDownloadButton" aria-haspopup="dialog" aria-controls="fromsDesktopDownloadHelp"><i class="fa-solid fa-download" aria-hidden="true"></i> Download for Windows</button>
             @if($desktopDownloadReady)
-              <button class="desktop-download-link" type="button" id="fromsDesktopDownloadButton" aria-haspopup="dialog" aria-controls="fromsDesktopDownloadHelp"><i class="fa-solid fa-download" aria-hidden="true"></i> Download for Windows</button>
               <button class="desktop-download-link" type="button" id="fromsDesktopDownloadAgain" hidden><i class="fa-solid fa-rotate-right" aria-hidden="true"></i> Download again</button>
             @endif
           </div>
@@ -292,8 +292,7 @@
     </div>
   @endif
 
-  @if($desktopDownloadReady)
-    <dialog id="fromsDesktopDownloadHelp" class="desktop-download-dialog" aria-labelledby="fromsDownloadTitle" aria-describedby="fromsDownloadInstructions">
+  <dialog id="fromsDesktopDownloadHelp" class="desktop-download-dialog" aria-labelledby="fromsDownloadTitle" aria-describedby="fromsDownloadInstructions">
       <div class="desktop-download-dialog-heading">
         <span class="desktop-download-dialog-eyebrow"><i class="fa-solid fa-desktop" aria-hidden="true"></i> Windows Desktop</span>
         <button type="button" class="desktop-download-dialog-close" data-desktop-dialog-close aria-label="Close download information"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
@@ -311,14 +310,15 @@
         <div><i class="fa-solid fa-cloud" aria-hidden="true"></i><span>Requires internet access to the existing GCT system</span></div>
         <div><i class="fa-solid fa-shield-halved" aria-hidden="true"></i><span>Use your existing GCT account and permissions</span></div>
       </div>
-      <p class="desktop-download-status" id="fromsDownloadStatus" role="status" aria-live="polite"></p>
+      <p class="desktop-download-status" id="fromsDownloadStatus" role="status" aria-live="polite">@unless($desktopDownloadReady)The Windows installer is being prepared. The download will be available here after the tested release is published.@endunless</p>
       <div class="desktop-download-actions">
         <button type="button" class="desktop-download-dialog-secondary" data-desktop-dialog-close>Not now</button>
-        <a id="fromsDesktopInstallerLink" class="desktop-download-dialog-primary" href="{{ $desktopInstallerUrl }}" rel="noopener noreferrer"><i class="fa-solid fa-download" aria-hidden="true"></i> Download installer</a>
+        @if($desktopDownloadReady)
+          <a id="fromsDesktopInstallerLink" class="desktop-download-dialog-primary" href="{{ $desktopInstallerUrl }}" rel="noopener noreferrer"><i class="fa-solid fa-download" aria-hidden="true"></i> Download installer</a>
+        @endif
       </div>
-      <p class="desktop-download-note">After downloading, open the installer on Windows. Your browser cannot verify when installation finishes.</p>
+      <p class="desktop-download-note">@if($desktopDownloadReady)After downloading, open the installer on Windows. Your browser cannot verify when installation finishes.@else No PWA shortcut is installed; this page will offer the real Windows installer when it is ready. @endif</p>
     </dialog>
-  @endif
 
   <script>
     window.addEventListener('pageshow', (event) => {
