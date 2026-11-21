@@ -33,6 +33,19 @@ class PwaFoundationTest extends TestCase
         $this->assertFileDoesNotExist(public_path('offline.html'));
     }
 
+    public function test_desktop_webview_hides_installer_without_affecting_browser_downloads(): void
+    {
+        $login = file_get_contents(resource_path('views/Login/login.blade.php'));
+        $js = file_get_contents(resource_path('js/Login/login.js'));
+        $css = file_get_contents(resource_path('css/Login/login.css'));
+
+        $this->assertStringContainsString("get('froms_desktop')", $login);
+        $this->assertStringContainsString("sessionStorage.setItem('froms-desktop-webview', '1')", $login);
+        $this->assertStringContainsString("dataset.fromsDesktop === 'true'", $js);
+        $this->assertStringContainsString('html[data-froms-desktop="true"] #fromsDesktopDownloadButton', $css);
+        $this->assertStringContainsString('html[data-froms-desktop="true"] #fromsDesktopDownloadHelp', $css);
+    }
+
     public function test_installer_link_is_configurable_and_disabled_until_published(): void
     {
         $this->assertArrayHasKey('installer_url', config('services.desktop'));
