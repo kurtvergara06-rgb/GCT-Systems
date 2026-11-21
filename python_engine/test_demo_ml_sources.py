@@ -1,4 +1,4 @@
-"""Regression checks for client-demo ML source isolation."""
+"""Regression checks for development-only synthetic ML source isolation."""
 
 from __future__ import annotations
 
@@ -32,10 +32,13 @@ assert inventory_config.model_paths()["state"].name == "inventory_demand_state.j
 assert callable(inventory_prepare.main)
 
 thresholds = inventory_config.data_thresholds()
-assert thresholds["min_rows"] == 1000
-assert thresholds["min_parts"] == 10
+# Match the current genuine-data inventory readiness gates; don't pin
+# obsolete demo-era thresholds which are not the active model policy.
+assert thresholds["min_rows"] == 260
+assert thresholds["min_parts"] == 20
 assert thresholds["min_weeks"] == 13
 assert thresholds["min_buses"] == 3
+assert thresholds["min_stock_out_events"] == 500
 
 assert normalize_data_source("demo") == "synthetic"
 policy = evaluate_model_source("demo model", "demo")
@@ -47,4 +50,4 @@ policy = evaluate_model_source("demo model", "demo")
 assert policy.allowed is False
 assert policy.model_ready_message == "MODEL NOT READY"
 
-print("Demo ML source isolation checks passed.")
+print("Development-only synthetic ML source isolation checks passed.")
