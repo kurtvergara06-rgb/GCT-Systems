@@ -219,7 +219,7 @@
             $desktopInstallerUrl = trim((string) config('services.desktop.installer_url', ''));
             $desktopDownloadReady = filter_var($desktopInstallerUrl, FILTER_VALIDATE_URL)
                 && parse_url($desktopInstallerUrl, PHP_URL_SCHEME) === 'https'
-                && preg_match('/\\.(exe|msi)(?:$|[?#])/i', $desktopInstallerUrl);
+                && preg_match('/\.(exe|msi)(?:$|[?#])/i', $desktopInstallerUrl);
           @endphp
           <div class="auth-switch auth-switch--install">
             <span>New employee? <a href="{{ route('register') }}">Sign Up</a></span>
