@@ -5,6 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="csrf-token" content="{{ csrf_token() }}">
 
+  {{-- A cosmetic marker only. The Tauri website webview opens with ?froms_desktop=1.
+       Session storage preserves the marker through login and logout redirects. --}}
+  <script>
+    (() => {
+      try {
+        const marker = new URLSearchParams(location.search).get('froms_desktop');
+        if (marker === '1') sessionStorage.setItem('froms-desktop-webview', '1');
+        if (sessionStorage.getItem('froms-desktop-webview') === '1') {
+          document.documentElement.dataset.fromsDesktop = 'true';
+        }
+      } catch (_) {
+        // Storage restrictions must never block sign-in.
+      }
+    })();
+  </script>
+
   <title>GCT Transport Services | Sign In</title>
 
   <meta name="theme-color" content="#062d61">
