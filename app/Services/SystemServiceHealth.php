@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Symfony\Component\Mailer\Transport\Smtp\SmtpTransport;
 
@@ -63,6 +64,9 @@ class SystemServiceHealth
         if (in_array($driver, ['log', 'array'], true)) {
             return 'Disabled';
         }
+        if ($driver === 'brevo') {
+            return $this->brevoEmail();
+        }
         if ($driver !== 'smtp') {
             return 'Not verified';
         }
@@ -84,6 +88,37 @@ class SystemServiceHealth
                     $transport->stop();
                 } catch (\Throwable) {}
             }
+        }
+    }
+
+    /**
+     * Verify Brevo API authentication without sending a message.
+     * This is connectivity only; it cannot prove successful email delivery.
+     */
+    private function brevoEmail(): string
+    {
+        $key = trim((string) config('services.brevo.key', ''));
+        if ($key === '') {
+            return 'Not verified';
+        }
+
+        try {
+            // Fixed official account endpoint: never call the configured email-send URL.
+            $response = Http::acceptJson()
+                ->withHeaders(['api-key' => $key])
+                ->connectTimeout(2)
+                ->timeout(3)
+                ->get('https://api.brevo.com/v3/account');
+
+            if ($response->ok()) {
+                return 'Online';
+            }
+
+            // Account lookup permission or rate limits may differ from sending.
+            return in_array($response->status(), [403, 429], true)
+                ? 'Not verified' : 'Offline';
+        } catch (\\Throwable) {
+            return 'Offline';
         }
     }
 
