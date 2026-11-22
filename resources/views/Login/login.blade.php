@@ -338,6 +338,21 @@
       <p class="desktop-download-note">@if($desktopDownloadReady)After downloading, open the installer on Windows. Your browser cannot verify when installation finishes.@else No PWA shortcut is installed; this page will offer the real Windows installer when it is ready. @endif</p>
     </dialog>
 
+  {{-- Best-effort same-origin wake-up; no cross-origin access or login delay. --}}
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      try {
+        fetch(@json(route('python.wake')), {
+          method: 'GET',
+          credentials: 'same-origin',
+          cache: 'no-store',
+        }).catch(() => {});
+      } catch (_) {
+        // Keep the login screen usable even when networking is unavailable.
+      }
+    });
+  </script>
+
   <script>
     window.addEventListener('pageshow', (event) => {
       if (event.persisted) {
