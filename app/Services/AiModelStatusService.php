@@ -201,16 +201,16 @@ class AiModelStatusService
             'demo_ready' => false,
             'reachable' => true,
             'data_source' => $genuine ? 'Genuine Data' : ($developmentSource ? 'No verified genuine data' : 'Unknown Source'),
-            'dataset_type' => $datasetType !== '' ? $datasetType : 'Source not reported',
+            'dataset_type' => $genuine ? ($datasetType !== '' ? $datasetType : 'Source not reported') : 'No verified genuine training dataset',
             'sample_count' => $sampleCount,
             'reason' => ! $genuine
                 ? 'Training records from this endpoint are not verified as genuine GCT operational data and are excluded from production readiness.'
                 : trim((string) ($status['reason'] ?? $status['message'] ?? 'No readiness reason reported.')),
             'details' => [],
-            'model_version' => trim((string) ($status['model_version'] ?? '')),
-            'split_strategy' => trim((string) ($status['split_strategy'] ?? '')),
-            'selected_model' => trim((string) data_get($status, 'selected_model.name', '')),
-            'candidate_models' => $this->normalizeCandidates($status['candidate_models'] ?? []),
+            'model_version' => $genuine ? trim((string) ($status['model_version'] ?? '')) : '',
+            'split_strategy' => $genuine ? trim((string) ($status['split_strategy'] ?? '')) : '',
+            'selected_model' => $genuine ? trim((string) data_get($status, 'selected_model.name', '')) : '',
+            'candidate_models' => $genuine ? $this->normalizeCandidates($status['candidate_models'] ?? []) : [],
         ];
     }
 
@@ -263,7 +263,7 @@ class AiModelStatusService
             'demo_ready' => false,
             'reachable' => true,
             'data_source' => $genuine ? 'Genuine Data' : 'Unknown Source',
-            'dataset_type' => (string) ($status['dataset_type'] ?? 'GENUINE GCT GPS + ATTENDANCE RECORDS'),
+            'dataset_type' => $genuine ? (string) ($status['dataset_type'] ?? 'GENUINE GCT GPS + ATTENDANCE RECORDS') : 'No verified genuine training dataset',
             'sample_count' => $busCount + $driverCount,
             'reason' => $genuine
                 ? $this->schedulingReason($status, $fullyReady, $partiallyReady)
