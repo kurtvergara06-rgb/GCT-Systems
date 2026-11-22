@@ -54,7 +54,7 @@ class AdminDashboardTest extends TestCase
             'user_agent' => 'PHPUnit Browser',
         ]);
 
-        Cache::put('admin-dashboard:ai-model-health:v2', [], 120);
+        Cache::put('admin-dashboard:ai-model-health:v3', [], 120);
 
         $response = $this->actingAs($admin)
             ->get(route('admin.dashboard'));
@@ -113,7 +113,7 @@ class AdminDashboardTest extends TestCase
 
         // Simulate the real cache payload: plain PHP arrays, never objects.
         Cache::put(
-            'admin-dashboard:ai-model-health:v2',
+            'admin-dashboard:ai-model-health:v3',
             array_map(fn (object $status): array => (array) $status, $statuses),
             120
         );
@@ -128,7 +128,7 @@ class AdminDashboardTest extends TestCase
             ->assertSee('Inventory Forecast')
             ->assertSee('Auto Scheduling')
             ->assertSee('Partial ML')
-            ->assertSee('47,872 training samples')
+            ->assertSee('47,872 verified records')
             ->assertSee('data-ml-details', false)
             ->assertSee('adminMlDetailsDialog', false)
             ->assertDontSee('65%');
