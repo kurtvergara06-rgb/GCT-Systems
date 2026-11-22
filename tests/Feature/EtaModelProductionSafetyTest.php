@@ -92,7 +92,7 @@ class EtaModelProductionSafetyTest extends TestCase
         $eta = $models['eta'];
 
         $this->assertFalse($eta->ready);
-        $this->assertSame('MODEL NOT READY', $eta->state);
+        $this->assertSame('Data Not Verified', $eta->state);
         $this->assertSame('Unknown Source', $eta->data_source);
     }
 
@@ -125,8 +125,8 @@ class EtaModelProductionSafetyTest extends TestCase
         $eta = collect(app(AiModelStatusService::class)->all())->keyBy('key')['eta'];
 
         $this->assertFalse($eta->ready);
-        $this->assertSame('Development Only', $eta->state);
-        $this->assertSame('Simulated Data', $eta->data_source);
+        $this->assertSame('No Training Data', $eta->state);
+        $this->assertSame('No verified genuine data', $eta->data_source);
     }
 
     private function notReadyStatus(): array
