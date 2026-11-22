@@ -11,6 +11,27 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [LoginController::class, 'show'])->name('login');
 
+// The login page triggers this best-effort request in the background.
+// One wake attempt per ten minutes across workers; never hold up sign-in.
+Route::get('/python/wake', function () {
+    $baseUrl = rtrim((string) config('services.nlp.api_url'), '/');
+    if (! app()->environment('production') || ! str_starts_with($baseUrl, 'https://')) {
+        return response()->noContent();
+    }
+
+    try {
+        if (\Illuminate\Support\Facades\Cache::add('python-engine:wake-request:v1', true, now()->addMinutes(10))) {
+            \Illuminate\Support\Facades\Http::connectTimeout(1)->timeout(2)
+                ->get($baseUrl.'/health');
+        }
+    } catch (\Throwable) {
+        // The Python engine may be asleep: login must work independently.
+    }
+
+    return response()->noContent()->header('Cache-Control', 'no-store');
+})->middleware('throttle:20,1')->name('python.wake');
+
+
 // Public informational pages; authentication is not required to read these notices.
 Route::view('/privacy', 'Legal.privacy')->name('legal.privacy');
 Route::view('/terms', 'Legal.terms')->name('legal.terms');
