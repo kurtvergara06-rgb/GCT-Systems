@@ -48,7 +48,7 @@ class AppServiceProvider extends ServiceProvider
                 // __PHP_Incomplete_Class under the configured cache driver.
                 // A new key also invalidates the existing object-based snapshot.
                 $snapshot = Cache::remember(
-                    'admin-dashboard:ai-model-health:v3',
+                    'admin-dashboard:ai-model-health:v4',
                     now()->addSeconds(120),
                     fn (): array => json_decode(
                         json_encode(app(AiModelStatusService::class)->all(), JSON_THROW_ON_ERROR),

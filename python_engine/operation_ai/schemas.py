@@ -233,15 +233,17 @@ class AiRecommendationResponse(BaseModel):
 
 class MlTrainingStatusResponse(BaseModel):
     success: bool
-    data_source: str = "genuine"
-    dataset_type: str = "GENUINE GCT GPS + ATTENDANCE RECORDS"
-    policy_enforced: bool = True
+    data_source: str = "unverified"
+    dataset_type: str = "Reported scheduling training data; provenance unverified"
+    policy_enforced: bool = False
+    provenance_verified: bool = False
+    provenance_status: str = "verification_pending"
     bus_model_ready: bool = False
     driver_model_ready: bool = False
     bus_source: str = "rule_fallback"  # ml | data_fallback | rule_fallback
     driver_source: str = "rule_fallback"
-    bus_data_source: str = "genuine"
-    driver_data_source: str = "genuine"
+    bus_data_source: str = "unverified"
+    driver_data_source: str = "unverified"
     bus_is_production_model: bool = False
     driver_is_production_model: bool = False
     bus_reason: Optional[str] = None

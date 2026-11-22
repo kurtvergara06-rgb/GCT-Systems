@@ -14,14 +14,13 @@
             <span class="panel-kicker">Production ML Readiness</span>
             <h2 id="ai-model-status-heading">AI Model Status</h2>
             <p>
-                Live readiness and training-data provenance reported by the Python engine.
-                Simulation-ready models can use generated data locally, while production readiness still requires genuine data.
+                Service availability is reported by the Python engine. Training-data authenticity requires an independent audit; endpoint claims alone do not establish production suitability.
             </p>
         </div>
 
         <span class="model-policy-badge">
             <i class="fa-solid fa-shield-halved"></i>
-            Genuine-data policy
+            Provenance audit pending
         </span>
     </div>
 
@@ -58,11 +57,15 @@
                         <strong>{{ $model->data_source }}</strong>
                     </div>
                     <div>
-                        <span>Training records</span>
-                        <strong>{{ number_format($model->sample_count) }}</strong>
+                        <span>Training-data verification</span>
+                        <strong>{{ $model->count_label ?? 'Verification Pending' }}</strong>
                     </div>
                 </div>
 
+                <p class="ai-model-dataset">{{ $model->availability ?? 'Availability not reported' }}</p>
+                @if(isset($model->reported_sample_count))
+                    <p class="ai-model-dataset">{{ number_format($model->reported_sample_count) }} reported training rows — unverified</p>
+                @endif
                 <p class="ai-model-dataset">{{ $model->dataset_type }}</p>
 
                 @if(! empty($model->details))
@@ -71,7 +74,7 @@
                             <div>
                                 <span>{{ $detail->label }}</span>
                                 <strong>{{ $detail->value }}</strong>
-                                <small>{{ number_format($detail->sample_count) }} records</small>
+                                <small>{{ number_format($detail->reported_sample_count ?? 0) }} reported training rows — unverified</small>
                             </div>
                         @endforeach
                     </div>
@@ -162,9 +165,7 @@
         <i class="fa-solid fa-circle-info"></i>
         <span>
             <strong>Production rule:</strong>
-            a model is marked Ready only when its status endpoint confirms a genuine GCT data source and a usable production model.
-            A usable simulated model is marked <strong>Simulation Ready</strong> only when the explicit non-production ML setting is enabled, and remains visibly identified as simulated data.
-            Insufficient genuine history in production is shown as <strong>MODEL NOT READY</strong>.
+            all five model groups await independent provenance verification. Reported training rows are not verified operational records. Availability and reported model metrics are not audit approval.
         </span>
     </div>
 </section>

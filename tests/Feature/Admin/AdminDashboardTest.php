@@ -54,7 +54,7 @@ class AdminDashboardTest extends TestCase
             'user_agent' => 'PHPUnit Browser',
         ]);
 
-        Cache::put('admin-dashboard:ai-model-health:v3', [], 120);
+        Cache::put('admin-dashboard:ai-model-health:v4', [], 120);
 
         $response = $this->actingAs($admin)
             ->get(route('admin.dashboard'));
@@ -98,13 +98,18 @@ class AdminDashboardTest extends TestCase
         ]);
 
         $statuses = collect([
-            ['key' => 'eta', 'state' => 'Development Only', 'tone' => 'warning', 'sample_count' => 362],
-            ['key' => 'fuel', 'state' => 'Ready', 'tone' => 'ready', 'sample_count' => 156],
-            ['key' => 'delay', 'state' => 'Development Only', 'tone' => 'warning', 'sample_count' => 500],
-            ['key' => 'inventory', 'state' => 'Development Only', 'tone' => 'warning', 'sample_count' => 47872],
-            ['key' => 'scheduling', 'state' => 'Partial ML', 'tone' => 'partial', 'sample_count' => 373],
+            ['key' => 'eta', 'reported_sample_count' => 362],
+            ['key' => 'fuel', 'reported_sample_count' => 156],
+            ['key' => 'delay', 'reported_sample_count' => 500],
+            ['key' => 'inventory', 'reported_sample_count' => 47872],
+            ['key' => 'scheduling', 'reported_sample_count' => null],
         ])->map(fn (array $entry) => (object) array_merge([
-            'data_source' => 'Genuine Data',
+            'state' => 'Provenance Not Verified',
+            'tone' => 'not-ready',
+            'sample_count' => 0,
+            'count_label' => 'Verification Pending',
+            'availability' => 'Service reachable',
+            'data_source' => 'Source Not Verified',
             'dataset_type' => 'GCT operational records',
             'model_version' => '1.0.0',
             'reason' => 'Status verified by model endpoint.',
@@ -113,7 +118,7 @@ class AdminDashboardTest extends TestCase
 
         // Simulate the real cache payload: plain PHP arrays, never objects.
         Cache::put(
-            'admin-dashboard:ai-model-health:v3',
+            'admin-dashboard:ai-model-health:v4',
             array_map(fn (object $status): array => (array) $status, $statuses),
             120
         );
@@ -127,8 +132,11 @@ class AdminDashboardTest extends TestCase
             ->assertSee('Delay Prediction')
             ->assertSee('Inventory Forecast')
             ->assertSee('Auto Scheduling')
-            ->assertSee('Partial ML')
-            ->assertSee('47,872 verified records')
+            ->assertSee('Verification Pending')
+            ->assertSee('Provenance Not Verified')
+            ->assertSee('Source Not Verified')
+            ->assertDontSee('373 verified records')
+            ->assertDontSee('47,872 verified records')
             ->assertSee('data-ml-details', false)
             ->assertSee('adminMlDetailsDialog', false)
             ->assertDontSee('65%');

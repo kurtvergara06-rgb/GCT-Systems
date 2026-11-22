@@ -8,7 +8,7 @@ use Tests\TestCase;
 
 class AiModelStatusServiceTest extends TestCase
 {
-    public function test_it_reports_only_genuine_production_models_as_ready(): void
+    public function test_self_reported_genuine_models_remain_unverified_pending_audit(): void
     {
         Http::fake([
             '*/eta/status' => Http::response([
@@ -65,21 +65,21 @@ class AiModelStatusServiceTest extends TestCase
 
         $models = collect(app(AiModelStatusService::class)->all())->keyBy('key');
 
-        $this->assertTrue($models['eta']->ready);
-        $this->assertSame('Ready', $models['eta']->state);
-        $this->assertTrue($models['fuel']->ready);
-        $this->assertSame('Ready', $models['fuel']->state);
+        $this->assertFalse($models['eta']->ready);
+        $this->assertSame('Provenance Not Verified', $models['eta']->state);
+        $this->assertFalse($models['fuel']->ready);
+        $this->assertSame('Provenance Not Verified', $models['fuel']->state);
 
         $this->assertFalse($models['delay']->ready);
-        $this->assertSame('Insufficient Data', $models['delay']->state);
+        $this->assertSame('Provenance Not Verified', $models['delay']->state);
         $this->assertFalse($models['inventory']->ready);
-        $this->assertSame('No Training Data', $models['inventory']->state);
+        $this->assertSame('Provenance Not Verified', $models['inventory']->state);
 
         $this->assertFalse($models['scheduling']->ready);
-        $this->assertSame('Partial ML', $models['scheduling']->state);
-        $this->assertSame('Genuine Data', $models['scheduling']->data_source);
-        $this->assertSame('ML Ready', $models['scheduling']->details[0]->value);
-        $this->assertSame('Data Fallback', $models['scheduling']->details[1]->value);
+        $this->assertSame('Provenance Not Verified', $models['scheduling']->state);
+        $this->assertSame('Source Not Verified', $models['scheduling']->data_source);
+        $this->assertSame('Reported loaded', $models['scheduling']->details[0]->value);
+        $this->assertSame('Reported fallback / not ready', $models['scheduling']->details[1]->value);
     }
 
     public function test_it_never_marks_sample_or_synthetic_models_as_production_ready(): void
@@ -140,16 +140,16 @@ class AiModelStatusServiceTest extends TestCase
 
         $this->assertFalse($models['delay']->ready);
         $this->assertFalse($models['delay']->demo_ready);
-        $this->assertSame('No Training Data', $models['delay']->state);
+        $this->assertSame('Provenance Not Verified', $models['delay']->state);
         $this->assertSame('not-ready', $models['delay']->tone);
-        $this->assertSame('No verified genuine data', $models['delay']->data_source);
+        $this->assertSame('Sample / Synthetic Data Reported', $models['delay']->data_source);
         $this->assertSame(0, $models['delay']->sample_count);
 
         $this->assertFalse($models['inventory']->ready);
         $this->assertFalse($models['inventory']->demo_ready);
-        $this->assertSame('No Training Data', $models['inventory']->state);
+        $this->assertSame('Provenance Not Verified', $models['inventory']->state);
         $this->assertSame('not-ready', $models['inventory']->tone);
-        $this->assertSame('No verified genuine data', $models['inventory']->data_source);
+        $this->assertSame('Sample / Synthetic Data Reported', $models['inventory']->data_source);
         $this->assertSame(0, $models['inventory']->sample_count);
     }
 

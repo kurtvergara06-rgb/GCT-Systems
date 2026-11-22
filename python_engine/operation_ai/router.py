@@ -25,25 +25,25 @@ router = APIRouter()
 def ml_training_status() -> MlTrainingStatusResponse:
     """Report ML model readiness for the scheduling recommender.
 
-    The active Random Forest pipeline is trained only from genuine GCT GPS
-    trip outcomes (bus model) and genuine driver attendance history (driver
-    model). The legacy generated-data neural scorer is not represented here.
+    Technical model readiness and saved row counts are reported separately
+    from provenance. The retained artifacts have not passed a source-record
+    audit; loading a model does not establish production suitability.
     """
     bus = bus_readiness()
     driver = driver_readiness()
     return MlTrainingStatusResponse(
         success=True,
-        data_source="genuine",
-        dataset_type="GENUINE GCT GPS + ATTENDANCE RECORDS",
-        policy_enforced=True,
+        data_source="unverified",
+        dataset_type="Reported scheduling training data; provenance unverified",
+        policy_enforced=False,
         bus_model_ready=bus.ml_ready,
         driver_model_ready=driver.ml_ready,
         bus_source=bus.source,
         driver_source=driver.source,
-        bus_data_source="genuine",
-        driver_data_source="genuine",
-        bus_is_production_model=bool(bus.ml_ready and bus.source == "ml"),
-        driver_is_production_model=bool(driver.ml_ready and driver.source == "ml"),
+        bus_data_source="unverified",
+        driver_data_source="unverified",
+        bus_is_production_model=False,
+        driver_is_production_model=False,
         bus_reason=bus.reason,
         driver_reason=driver.reason,
         bus_sample_count=bus.sample_count,

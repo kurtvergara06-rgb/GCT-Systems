@@ -63,9 +63,11 @@ class AiModelStatusService
             $responses = [];
         }
 
-        $status = fn (string $key): ?array => $this->decode($responses[$key] ?? null, $key);
+        $decoded = collect(['eta', 'fuel', 'delay', 'inventory', 'scheduling'])
+            ->mapWithKeys(fn (string $key): array => [$key => $this->decode($responses[$key] ?? null, $key)])->all();
+        $status = fn (string $key): ?array => $decoded[$key];
 
-        return [
+        $models = [
             $this->normalizeStandard(
                 key: 'eta',
                 name: 'ETA Model',
@@ -100,6 +102,56 @@ class AiModelStatusService
             ),
             $this->normalizeScheduling($status('scheduling')),
         ];
+
+        return array_map(fn (object $model): object => $this->pendingProvenance($model, $decoded[$model->key]), $models);
+    }
+
+    /** Endpoint claims are not independent audit approval. No prediction/artifact changes here. */
+    private function pendingProvenance(object $model, ?array $status): object
+    {
+        $model->provenance_verified = false;
+        $model->ready = false;
+        $model->demo_ready = false;
+        $model->sample_count = 0;
+        $model->count_label = $status === null ? 'Data unavailable' : 'Verification Pending';
+        $model->reported_sample_count = null;
+        $model->availability = $status === null ? 'Service unavailable' : 'Service reachable';
+        $model->data_source = 'Source Not Verified';
+        $model->dataset_type = 'Training dataset not independently verified';
+        $model->candidate_models = [];
+        $model->model_version = '';
+        $model->selected_model = '';
+        $model->split_strategy = '';
+        if ($status === null) {
+            return $model;
+        }
+
+        $sampleSources = ['sample', 'synthetic', 'generated', 'demo', 'development'];
+        $sample = collect(['data_source', 'source', 'training_source', 'model_source'])
+            ->contains(fn (string $field): bool => in_array(strtolower(trim((string) ($status[$field] ?? ''))), $sampleSources, true));
+        $model->state = 'Provenance Not Verified';
+        $model->tone = 'not-ready';
+        $model->data_source = $sample ? 'Sample / Synthetic Data Reported' : 'Source Not Verified';
+        $model->reason = $sample
+            ? 'This endpoint reports sample or synthetic training data. Conflicting genuine-data claims are not accepted; these rows are not verified operational evidence.'
+            : 'Source-record IDs, original training snapshots and artifact lineage have not passed an independent provenance audit. Model availability does not establish production suitability.';
+
+        if ($model->key === 'scheduling') {
+            $model->availability .= (($status['bus_model_ready'] ?? false) === true || ($status['driver_model_ready'] ?? false) === true)
+                ? ' · model component reported loaded' : ' · models not reported ready';
+            foreach ($model->details as $index => $part) {
+                $prefix = $index === 0 ? 'bus' : 'driver';
+                $part->sample_count = 0;
+                $part->reported_sample_count = max(0, (int) ($status[$prefix.'_sample_count'] ?? 0));
+                $part->value = ($status[$prefix.'_model_ready'] ?? false) === true ? 'Reported loaded' : 'Reported fallback / not ready';
+            }
+            // GPS samples and driver-level rows are different populations: never sum them.
+        } else {
+            $model->availability .= ($status['model_ready'] ?? false) === true ? ' · model reported loaded' : ' · model not reported ready';
+            $model->reported_sample_count = max(0, (int) ($status['sample_count'] ?? $status['training_record_count'] ?? 0));
+        }
+
+        return $model;
     }
 
     private function decode(mixed $response, string $key): ?array

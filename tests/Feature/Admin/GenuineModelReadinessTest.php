@@ -3,88 +3,75 @@
 namespace Tests\Feature\Admin;
 
 use App\Services\AiModelStatusService;
-use ReflectionMethod;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class GenuineModelReadinessTest extends TestCase
 {
-    private function standard(array $status): object
+    private function models(array $overrides = []): \Illuminate\Support\Collection
     {
-        return (new ReflectionMethod(AiModelStatusService::class, 'normalizeStandard'))
-            ->invoke(app(AiModelStatusService::class), 'inventory', 'Inventory Model', '#4', 'fa-boxes', $status, 'GENUINE GCT RECORDS');
+        $claimed = array_merge([
+            'success' => true, 'model_ready' => true, 'is_production_model' => true,
+            'data_source' => 'genuine', 'provenance_verified' => true,
+            'sample_count' => 156, 'model_version' => 'claimed-version',
+            'bus_model_ready' => true, 'driver_model_ready' => false,
+            'bus_sample_count' => 367, 'driver_sample_count' => 6,
+        ], $overrides);
+        Http::preventStrayRequests();
+        Http::fake(['*' => Http::response($claimed)]);
+        return collect(app(AiModelStatusService::class)->all())->keyBy('key');
     }
 
-    private function scheduling(array $status): object
+    public function test_endpoint_genuine_and_verified_flags_cannot_bypass_independent_audit(): void
     {
-        return (new ReflectionMethod(AiModelStatusService::class, 'normalizeScheduling'))
-            ->invoke(app(AiModelStatusService::class), $status);
+        foreach ($this->models() as $model) {
+            $this->assertTrue($model->reachable);
+            $this->assertFalse($model->ready);
+            $this->assertFalse($model->provenance_verified);
+            $this->assertSame('Provenance Not Verified', $model->state);
+            $this->assertSame('Source Not Verified', $model->data_source);
+            $this->assertSame('Verification Pending', $model->count_label);
+            $this->assertSame(0, $model->sample_count);
+            $this->assertStringContainsString('reported loaded', $model->availability);
+        }
     }
 
-    public function test_sample_inventory_rows_are_excluded_from_verified_production_counts(): void
+    public function test_reported_rows_are_retained_but_never_added_to_verified_counts(): void
     {
-        $model = $this->standard([
-            'success' => true,
-            'model_ready' => true,
-            'data_source' => 'sample',
-            'sample_count' => 47872,
-            'model_version' => 'prototype',
-        ]);
+        $models = $this->models();
+        $this->assertSame(156, $models['fuel']->reported_sample_count);
+        $schedule = $models['scheduling'];
+        $this->assertNull($schedule->reported_sample_count);
+        $this->assertSame(0, $schedule->sample_count);
+        $this->assertSame(367, $schedule->details[0]->reported_sample_count);
+        $this->assertSame(6, $schedule->details[1]->reported_sample_count);
+        $this->assertSame(0, $schedule->details[0]->sample_count);
+        $this->assertSame(0, $schedule->details[1]->sample_count);
+    }
 
-        $this->assertSame('No Training Data', $model->state);
-        $this->assertSame(0, $model->sample_count);
+    public function test_conflicting_sample_source_wins_over_genuine_claim(): void
+    {
+        $model = $this->models(['source' => 'sample'])['delay'];
+        $this->assertSame('Sample / Synthetic Data Reported', $model->data_source);
         $this->assertFalse($model->ready);
+        $this->assertSame(0, $model->sample_count);
+        $this->assertStringContainsString('Conflicting', $model->reason);
+    }
+
+    public function test_unknown_and_zero_history_are_pending_not_verified_zero_records(): void
+    {
+        $model = $this->models(['data_source' => '', 'sample_count' => 0, 'model_ready' => false])['eta'];
+        $this->assertSame('Verification Pending', $model->count_label);
+        $this->assertSame('Source Not Verified', $model->data_source);
+        $this->assertSame(0, $model->reported_sample_count);
+        $this->assertStringContainsString('not reported ready', $model->availability);
+    }
+
+    public function test_unverified_benchmarks_are_not_presented_as_validated_comparisons(): void
+    {
+        $model = $this->models(['candidate_models' => [['name' => 'claimed winner', 'selected' => true]]])['eta'];
+        $this->assertSame([], $model->candidate_models);
+        $this->assertSame('', $model->selected_model);
         $this->assertSame('', $model->model_version);
-        $this->assertSame('No verified genuine training dataset', $model->dataset_type);
-    }
-
-    public function test_unknown_provenance_is_not_counted_as_genuine(): void
-    {
-        $model = $this->standard(['model_ready' => true, 'sample_count' => 500]);
-
-        $this->assertSame('Data Not Verified', $model->state);
-        $this->assertSame(0, $model->sample_count);
-        $this->assertFalse($model->ready);
-    }
-
-    public function test_genuine_but_insufficient_training_data_is_reported_honestly(): void
-    {
-        $model = $this->standard([
-            'model_ready' => false,
-            'data_source' => 'genuine',
-            'sample_count' => 25,
-            'reason' => 'Insufficient genuine trip history.',
-        ]);
-
-        $this->assertSame('Insufficient Data', $model->state);
-        $this->assertSame(25, $model->sample_count);
-        $this->assertFalse($model->ready);
-    }
-
-    public function test_validated_genuine_trained_model_remains_ready(): void
-    {
-        $model = $this->standard([
-            'model_ready' => true,
-            'is_production_model' => true,
-            'data_source' => 'genuine',
-            'sample_count' => 156,
-        ]);
-
-        $this->assertSame('Ready', $model->state);
-        $this->assertSame(156, $model->sample_count);
-        $this->assertTrue($model->ready);
-    }
-
-    public function test_scheduling_does_not_assume_missing_source_is_genuine(): void
-    {
-        $model = $this->scheduling([
-            'bus_model_ready' => true,
-            'driver_model_ready' => true,
-            'bus_sample_count' => 367,
-            'driver_sample_count' => 6,
-        ]);
-
-        $this->assertSame('Data Not Verified', $model->state);
-        $this->assertSame(0, $model->sample_count);
-        $this->assertFalse($model->ready);
     }
 }
