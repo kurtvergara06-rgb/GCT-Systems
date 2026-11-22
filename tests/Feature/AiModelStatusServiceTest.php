@@ -71,9 +71,9 @@ class AiModelStatusServiceTest extends TestCase
         $this->assertSame('Ready', $models['fuel']->state);
 
         $this->assertFalse($models['delay']->ready);
-        $this->assertSame('MODEL NOT READY', $models['delay']->state);
+        $this->assertSame('Insufficient Data', $models['delay']->state);
         $this->assertFalse($models['inventory']->ready);
-        $this->assertSame('MODEL NOT READY', $models['inventory']->state);
+        $this->assertSame('No Training Data', $models['inventory']->state);
 
         $this->assertFalse($models['scheduling']->ready);
         $this->assertSame('Partial ML', $models['scheduling']->state);
@@ -139,16 +139,18 @@ class AiModelStatusServiceTest extends TestCase
         $models = collect(app(AiModelStatusService::class)->all())->keyBy('key');
 
         $this->assertFalse($models['delay']->ready);
-        $this->assertTrue($models['delay']->demo_ready);
-        $this->assertSame('Simulation Ready', $models['delay']->state);
-        $this->assertSame('partial', $models['delay']->tone);
-        $this->assertSame('Simulated Data', $models['delay']->data_source);
+        $this->assertFalse($models['delay']->demo_ready);
+        $this->assertSame('No Training Data', $models['delay']->state);
+        $this->assertSame('not-ready', $models['delay']->tone);
+        $this->assertSame('No verified genuine data', $models['delay']->data_source);
+        $this->assertSame(0, $models['delay']->sample_count);
 
         $this->assertFalse($models['inventory']->ready);
-        $this->assertTrue($models['inventory']->demo_ready);
-        $this->assertSame('Simulation Ready', $models['inventory']->state);
-        $this->assertSame('partial', $models['inventory']->tone);
-        $this->assertSame('Simulated Data', $models['inventory']->data_source);
+        $this->assertFalse($models['inventory']->demo_ready);
+        $this->assertSame('No Training Data', $models['inventory']->state);
+        $this->assertSame('not-ready', $models['inventory']->tone);
+        $this->assertSame('No verified genuine data', $models['inventory']->data_source);
+        $this->assertSame(0, $models['inventory']->sample_count);
     }
 
     public function test_it_reports_unreachable_status_endpoints_without_inventing_readiness(): void
