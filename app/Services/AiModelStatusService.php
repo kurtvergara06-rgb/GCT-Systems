@@ -165,7 +165,9 @@ class AiModelStatusService
             && $modelReady
             && $developmentSource
             && in_array($runtimeMode, ['development', 'dev', 'demo', 'local', 'testing', 'test'], true);
-        $sampleCount = (int) ($status['sample_count'] ?? $status['training_record_count'] ?? 0);
+        // Only verified genuine records may be counted on the production dashboard.
+        // Sample, synthetic, or unknown provenance never contributes to readiness.
+        $sampleCount = $genuine ? max(0, (int) ($status['sample_count'] ?? $status['training_record_count'] ?? 0)) : 0;
         $datasetType = trim((string) ($status['dataset_type'] ?? ''));
         if ($datasetType === '' && $genuine) {
             $datasetType = $expectedDataset;
@@ -174,15 +176,18 @@ class AiModelStatusService
         if ($productionReady) {
             $state = 'Ready';
             $tone = 'ready';
-        } elseif ($demoReady) {
-            $state = 'Simulation Ready';
-            $tone = 'partial';
-        } elseif ($modelReady && $developmentSource) {
-            $state = 'Development Only';
+        } elseif (! $genuine) {
+            $state = $developmentSource ? 'No Training Data' : 'Data Not Verified';
+            $tone = 'not-ready';
+        } elseif ($sampleCount === 0) {
+            $state = 'No Training Data';
+            $tone = 'not-ready';
+        } elseif (str_contains(strtolower((string) ($status['reason'] ?? $status['message'] ?? '')), 'insufficient')) {
+            $state = 'Insufficient Data';
             $tone = 'warning';
         } else {
-            $state = 'MODEL NOT READY';
-            $tone = 'not-ready';
+            $state = 'Not Trained';
+            $tone = 'warning';
         }
 
         return (object) [
@@ -193,12 +198,14 @@ class AiModelStatusService
             'state' => $state,
             'tone' => $tone,
             'ready' => $productionReady,
-            'demo_ready' => $demoReady,
+            'demo_ready' => false,
             'reachable' => true,
-            'data_source' => $this->sourceDisplayName($dataSource),
+            'data_source' => $genuine ? 'Genuine Data' : ($developmentSource ? 'No verified genuine data' : 'Unknown Source'),
             'dataset_type' => $datasetType !== '' ? $datasetType : 'Source not reported',
             'sample_count' => $sampleCount,
-            'reason' => trim((string) ($status['reason'] ?? $status['message'] ?? 'No readiness reason reported.')),
+            'reason' => ! $genuine
+                ? 'Training records from this endpoint are not verified as genuine GCT operational data and are excluded from production readiness.'
+                : trim((string) ($status['reason'] ?? $status['message'] ?? 'No readiness reason reported.')),
             'details' => [],
             'model_version' => trim((string) ($status['model_version'] ?? '')),
             'split_strategy' => trim((string) ($status['split_strategy'] ?? '')),
@@ -220,15 +227,20 @@ class AiModelStatusService
 
         $busReady = ($status['bus_model_ready'] ?? false) === true;
         $driverReady = ($status['driver_model_ready'] ?? false) === true;
-        $dataSource = strtolower(trim((string) ($status['data_source'] ?? 'genuine')));
+        // Never assume provenance is genuine just because the API omitted it.
+        $dataSource = strtolower(trim((string) ($status['data_source'] ?? '')));
         $genuine = $dataSource === 'genuine';
         $fullyReady = $busReady && $driverReady && $genuine;
         $partiallyReady = ($busReady || $driverReady) && $genuine;
 
+        $busCount = $genuine ? max(0, (int) ($status['bus_sample_count'] ?? 0)) : 0;
+        $driverCount = $genuine ? max(0, (int) ($status['driver_sample_count'] ?? 0)) : 0;
         $state = match (true) {
             $fullyReady => 'Ready',
             $partiallyReady => 'Partial ML',
-            default => 'MODEL NOT READY',
+            ! $genuine => 'Data Not Verified',
+            ($busCount + $driverCount) === 0 => 'No Training Data',
+            default => 'Insufficient Data',
         };
 
         $tone = match ($state) {
@@ -250,20 +262,22 @@ class AiModelStatusService
             'ready' => $fullyReady,
             'demo_ready' => false,
             'reachable' => true,
-            'data_source' => $genuine ? 'Genuine Data' : ucfirst($dataSource).' Data',
+            'data_source' => $genuine ? 'Genuine Data' : 'Unknown Source',
             'dataset_type' => (string) ($status['dataset_type'] ?? 'GENUINE GCT GPS + ATTENDANCE RECORDS'),
-            'sample_count' => (int) ($status['bus_sample_count'] ?? 0) + (int) ($status['driver_sample_count'] ?? 0),
-            'reason' => $this->schedulingReason($status, $fullyReady, $partiallyReady),
+            'sample_count' => $busCount + $driverCount,
+            'reason' => $genuine
+                ? $this->schedulingReason($status, $fullyReady, $partiallyReady)
+                : 'Scheduling training-data provenance is not verified as genuine; no records are counted.',
             'details' => [
                 (object) [
                     'label' => 'Bus model',
                     'value' => $busReady ? 'ML Ready' : $this->sourceLabel($busSource),
-                    'sample_count' => (int) ($status['bus_sample_count'] ?? 0),
+                    'sample_count' => $busCount,
                 ],
                 (object) [
                     'label' => 'Driver model',
                     'value' => $driverReady ? 'ML Ready' : $this->sourceLabel($driverSource),
-                    'sample_count' => (int) ($status['driver_sample_count'] ?? 0),
+                    'sample_count' => $driverCount,
                 ],
             ],
             'model_version' => '',
