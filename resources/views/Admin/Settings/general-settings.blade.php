@@ -98,6 +98,7 @@
                                 <div class="gs-service-tile"><strong><i class="fa-solid fa-{{ (['python'=>'microchip','nlp'=>'file-lines','database'=>'database','reverb'=>'tower-broadcast','email'=>'envelope','scheduler'=>'calendar-check'])[$key] }}" aria-hidden="true"></i><span>{{ $label }}</span></strong><span data-service-key="{{ $key }}" data-state="neutral">Checking…</span></div>
                             @endforeach
                         </div>
+                        <p data-email-service-message role="status"></p>
                         <div class="gs-service-footer">
                             <div class="gs-monitor-meta"><span><i class="fa-solid fa-rotate" aria-hidden="true"></i> Auto-refresh: 60s</span><button type="button" class="gs-refresh-service" data-check-services aria-label="Refresh service statuses" title="Refresh service statuses"><i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i></button></div>
                             <p data-service-message role="status">Checking services…</p>
@@ -142,6 +143,7 @@
                         row.textContent = online ? 'Online' : /^unavailable$/i.test(raw) ? 'Offline' : raw;
                         row.dataset.state = online ? 'ok' : /^(unavailable|offline)$/i.test(raw) ? 'error' : 'neutral';
                     });
+                    panel.querySelector('[data-email-service-message]').textContent = String(data.email_message ?? '');
                     const checked = new Date(data.checked_at);
                     message.textContent = Number.isFinite(checked.getTime())
                         ? 'Last checked: ' + checked.toLocaleTimeString('en-PH', {timeZone:'Asia/Manila', hour:'numeric', minute:'2-digit', second:'2-digit'})
@@ -152,6 +154,7 @@
                         row.textContent = 'Unknown'; row.dataset.state = 'neutral';
                     });
                     message.textContent = 'Unable to verify services. Retrying automatically.';
+                    panel.querySelector('[data-email-service-message]').textContent = '';
                 } finally {
                     clearTimeout(timeout);
                     request = null;

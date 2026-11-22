@@ -11,7 +11,8 @@ class PythonEngineWakeTest extends TestCase
     {
         $response = $this->get(route('login'));
         $response->assertOk();
-        $response->assertSee('/python/wake', false);
+        $this->assertSame('/python/wake', parse_url(route('python.wake'), PHP_URL_PATH));
+        $response->assertSee('fetch('.json_encode(route('python.wake')).',', false);
     }
 
     public function test_wake_route_is_a_no_op_outside_production(): void

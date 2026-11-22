@@ -65,7 +65,7 @@ class SystemServiceHealth
             return 'Disabled';
         }
         if ($driver === 'brevo') {
-            return $this->brevoEmail();
+            return $this->brevoEmail()['status'];
         }
         if ($driver !== 'smtp') {
             return 'Not verified';
@@ -95,30 +95,50 @@ class SystemServiceHealth
      * Verify Brevo API authentication without sending a message.
      * This is connectivity only; it cannot prove successful email delivery.
      */
-    private function brevoEmail(): string
+    public function emailReport(): array
+    {
+        $mailer = config('mail.default');
+        if (config("mail.mailers.{$mailer}.transport") === 'brevo') {
+            return $this->brevoEmail();
+        }
+
+        return ['status' => $this->email(), 'message' => 'Email monitoring checks connectivity only; no test email is sent.'];
+    }
+
+    /** @return array{status: string, message: string} */
+    private function brevoEmail(): array
     {
         $key = trim((string) config('services.brevo.key', ''));
         if ($key === '') {
-            return 'Not verified';
+            return ['status' => 'Not verified', 'message' => 'Brevo API key is not configured.'];
         }
 
         try {
-            // Fixed official account endpoint: never call the configured email-send URL.
+            // Transactional-email permission includes statistics; account permission is unnecessary.
+            // Use only the fixed official read endpoint, never the configured send URL.
             $response = Http::acceptJson()
                 ->withHeaders(['api-key' => $key])
+                ->withOptions(['allow_redirects' => false])
                 ->connectTimeout(2)
                 ->timeout(3)
-                ->get('https://api.brevo.com/v3/account');
+                ->get('https://api.brevo.com/v3/smtp/statistics/aggregatedReport', ['days' => 1]);
 
-            if ($response->ok()) {
-                return 'Online';
+            if ($response->ok() && is_array($response->json())
+                && is_int($response->json('requests')) && $response->json('requests') >= 0) {
+                return ['status' => 'Online', 'message' => 'Brevo transactional API authenticated and reachable. Email delivery was not tested.'];
             }
 
-            // Account lookup permission or rate limits may differ from sending.
-            return in_array($response->status(), [403, 429], true)
-                ? 'Not verified' : 'Offline';
+            // Never expose response bodies, exceptions or API keys in dashboard output.
+            return match ($response->status()) {
+                401 => ['status' => 'Offline', 'message' => 'Brevo rejected API authentication. Check the configured key.'],
+                403 => ['status' => 'Not verified', 'message' => 'Brevo denied the read-only transactional check. API permissions or access restrictions may block monitoring; this does not prove sending is unavailable.'],
+                429 => ['status' => 'Not verified', 'message' => 'Brevo rate-limited the check. Verification will retry on the next refresh.'],
+                default => $response->serverError()
+                    ? ['status' => 'Offline', 'message' => 'Brevo API is temporarily unavailable.']
+                    : ['status' => 'Not verified', 'message' => 'Brevo returned an unexpected verification response. Email delivery was not tested.'],
+            };
         } catch (\Throwable) {
-            return 'Offline';
+            return ['status' => 'Offline', 'message' => 'Brevo API could not be reached within the monitoring timeout.'];
         }
     }
 

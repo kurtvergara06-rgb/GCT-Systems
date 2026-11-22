@@ -58,7 +58,7 @@ class GeneralSettingsController extends Controller
 
     public function services(BatchFileProcessingController $batch, \App\Services\SystemServiceHealth $health)
     {
-        $statuses = Cache::remember('general-settings.service-status.v2', 30, function () use ($batch, $health) {
+        $statuses = Cache::remember('general-settings.service-status.v3', 30, function () use ($batch, $health) {
             $python = 'Unavailable';
             try {
                 $response = Http::connectTimeout(2)->timeout(3)
@@ -78,8 +78,9 @@ class GeneralSettingsController extends Controller
             } catch (\Throwable) {
                 $database = 'Unavailable';
             }
+            $email = $health->emailReport();
             return ['python' => $python, 'nlp' => $nlp, 'database' => $database,
-                'reverb' => $health->reverb(), 'email' => $health->email(),
+                'reverb' => $health->reverb(), 'email' => $email['status'], 'email_message' => $email['message'],
                 'checked_at' => now()->toIso8601String()];
         });
         return response()->json($statuses + [
