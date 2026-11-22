@@ -138,7 +138,7 @@
                             <div class="admin-ml-card-foot">
                                 <span class="admin-ml-samples">
                                     <i class="fa-solid fa-database" aria-hidden="true"></i>
-                                    {{ $samples === null ? 'Data unavailable' : number_format($samples).' training samples' }}
+                                    {{ $samples === null || $tone === 'offline' ? 'Data unavailable' : ($samples === 0 ? '0 verified records' : number_format($samples).' verified records') }}
                                 </span>
                                 <button type="button" class="admin-ml-info"
                                     aria-label="Details for {{ $definition['title'] }}"
@@ -147,17 +147,17 @@
                                     data-ml-status="{{ $state }}"
                                     data-ml-source="{{ $model->data_source ?? 'Unavailable' }}"
                                     data-ml-dataset="{{ $model->dataset_type ?? 'Not reported' }}"
-                                    data-ml-samples="{{ $samples === null ? 'Unavailable' : number_format($samples) }}"
+                                    data-ml-samples="{{ $samples === null || $tone === 'offline' ? 'Unavailable' : number_format($samples) }}"
                                     data-ml-version="{{ $model->model_version ?? '' }}"
                                     data-ml-reason="{{ $model->reason ?? 'Python model status is unavailable.' }}"
-                                    data-ml-components="{{ collect($details)->map(fn ($part) => ($part->label ?? '') . ': ' . ($part->value ?? '') . ' (' . number_format((int) ($part->sample_count ?? 0)) . ' samples)')->implode('; ') }}">
+                                    data-ml-components="{{ collect($details)->map(fn ($part) => ($part->label ?? '') . ': ' . ($part->value ?? '') . ' (' . number_format((int) ($part->sample_count ?? 0)) . ' verified records)')->implode('; ') }}">
                                     <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
                                 </button>
                             </div>
                         </article>
                     @endforeach
                 </div>
-                <p class="admin-ml-disclaimer">Readiness is reported by the Python Engine. Development models are not production-ready, and sample counts are not prediction accuracy.</p>
+                <p class="admin-ml-disclaimer">Only verified genuine training records are counted. Unverified or simulated records are excluded; record counts do not indicate model accuracy.</p>
             </section>
 
             <dialog id="adminMlDetailsDialog" class="admin-ml-dialog" aria-labelledby="adminMlDialogTitle">
@@ -173,7 +173,7 @@
                     <div class="admin-ml-dialog-fact"><span class="admin-ml-dialog-fact-icon"><i class="fa-solid fa-gauge-high" aria-hidden="true"></i></span><div><dt>Current status</dt><dd data-ml-field="status">—</dd></div></div>
                     <div class="admin-ml-dialog-fact"><span class="admin-ml-dialog-fact-icon"><i class="fa-solid fa-database" aria-hidden="true"></i></span><div><dt>Training source</dt><dd data-ml-field="source">—</dd></div></div>
                     <div class="admin-ml-dialog-fact"><span class="admin-ml-dialog-fact-icon"><i class="fa-solid fa-table" aria-hidden="true"></i></span><div><dt>Dataset</dt><dd data-ml-field="dataset">—</dd></div></div>
-                    <div class="admin-ml-dialog-fact"><span class="admin-ml-dialog-fact-icon"><i class="fa-solid fa-layer-group" aria-hidden="true"></i></span><div><dt>Samples</dt><dd data-ml-field="samples">—</dd></div></div>
+                    <div class="admin-ml-dialog-fact"><span class="admin-ml-dialog-fact-icon"><i class="fa-solid fa-layer-group" aria-hidden="true"></i></span><div><dt>Verified training records</dt><dd data-ml-field="samples">—</dd></div></div>
                     <div class="admin-ml-dialog-fact"><span class="admin-ml-dialog-fact-icon"><i class="fa-solid fa-code" aria-hidden="true"></i></span><div><dt>Model version</dt><dd data-ml-field="version">—</dd></div></div>
                     <div class="admin-ml-dialog-fact"><span class="admin-ml-dialog-fact-icon"><i class="fa-solid fa-puzzle-piece" aria-hidden="true"></i></span><div><dt>Components</dt><dd data-ml-field="components">—</dd></div></div>
                     <div class="admin-ml-dialog-reason"><span class="admin-ml-dialog-fact-icon"><i class="fa-solid fa-circle-info" aria-hidden="true"></i></span><div><dt>Readiness explanation</dt><dd data-ml-field="reason">—</dd></div></div>
