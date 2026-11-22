@@ -73,6 +73,9 @@ class AppServiceProvider extends ServiceProvider
             }
 
             $view->with('mlModelStatuses', $modelStatuses);
+            // Read current records outside the model-status cache so a cleanup
+            // or new upload is reflected independently of old training metadata.
+            $view->with('mlOperationalRecords', app(AiModelStatusService::class)->operationalRecordsPresent());
         });
 
         View::composer('Admin.User_Management.permissions', function ($view): void {

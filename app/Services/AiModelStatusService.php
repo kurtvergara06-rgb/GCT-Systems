@@ -5,10 +5,26 @@ namespace App\Services;
 use Illuminate\Http\Client\Pool;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class AiModelStatusService
 {
+    /** Current application records, separate from saved model training metadata. */
+    public function operationalRecordsPresent(): array
+    {
+        $gps = DB::table('gps_trip_records')->exists();
+
+        return [
+            'eta' => $gps,
+            'fuel' => DB::table('fuel_reports')->exists() || $gps,
+            'delay' => $gps,
+            'inventory' => DB::table('stock_movements')->exists(),
+            'scheduling' => $gps || DB::table('trip_assignments')->exists()
+                || DB::table('driver_attendances')->exists(),
+        ];
+    }
+
     /**
      * Query every production ML status endpoint in parallel and normalize the
      * results for the Analytics Overview. Synthetic/development models are

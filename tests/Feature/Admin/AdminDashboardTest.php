@@ -8,6 +8,8 @@ use App\Models\Admin\User;
 use App\Services\AdminDashboardService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class AdminDashboardTest extends TestCase
@@ -109,6 +111,7 @@ class AdminDashboardTest extends TestCase
             'sample_count' => 0,
             'count_label' => 'Verification Pending',
             'availability' => 'Service reachable',
+            'reachable' => true,
             'data_source' => 'Source Not Verified',
             'dataset_type' => 'GCT operational records',
             'model_version' => '1.0.0',
@@ -133,13 +136,52 @@ class AdminDashboardTest extends TestCase
             ->assertSee('Inventory Forecast')
             ->assertSee('Auto Scheduling')
             ->assertSee('Verification Pending')
-            ->assertSee('Provenance Not Verified')
+            ->assertSee('Awaiting data')
+            ->assertSee('No operational data yet')
+            ->assertSee('Waiting for new records')
+            ->assertSee('Service reachable')
             ->assertSee('Source Not Verified')
             ->assertDontSee('373 verified records')
             ->assertDontSee('47,872 verified records')
             ->assertSee('data-ml-details', false)
             ->assertSee('adminMlDetailsDialog', false)
             ->assertDontSee('65%');
+    }
+
+    public function test_empty_database_is_distinguished_from_an_unconfirmed_ml_service(): void
+    {
+        $admin = User::factory()->create(['department' => 'Admin', 'role' => 'Head', 'status' => 'Active']);
+        Http::preventStrayRequests();
+        Http::fake(['*' => Http::response([], 503)]);
+
+        $response = $this->actingAs($admin)->get(route('admin.dashboard'));
+
+        $response->assertOk()
+            ->assertSee('Awaiting data')
+            ->assertSee('No operational data yet')
+            ->assertSee('ML service status not confirmed')
+            ->assertDontSee('Service Unavailable')
+            ->assertDontSee('Data unavailable')
+            ->assertDontSee('Service reachable');
+        $this->assertSame(5, substr_count($response->getContent(), '>No operational data yet</p>'));
+    }
+
+    public function test_new_records_update_the_empty_state_even_when_model_status_is_cached(): void
+    {
+        $admin = User::factory()->create(['department' => 'Admin', 'role' => 'Head', 'status' => 'Active']);
+        Cache::put('admin-dashboard:ai-model-health:v4', [], 120);
+        $this->actingAs($admin)->get(route('admin.dashboard'))->assertSee('Awaiting data');
+
+        $batchId = DB::table('batch_uploads')->insertGetId([
+            'file_name' => 'qa.csv', 'stored_name' => 'qa.csv', 'file_path' => 'qa.csv',
+            'file_type' => 'csv', 'module' => 'Operation', 'data_type' => 'GPS Trip Records',
+            'status' => 'processed', 'uploaded_by' => $admin->id,
+        ]);
+        DB::table('gps_trip_records')->insert(['batch_upload_id' => $batchId, 'bus_no' => 'QA-ONLY']);
+
+        $response = $this->actingAs($admin)->get(route('admin.dashboard'));
+        $response->assertOk()->assertSee('ML service status not confirmed')->assertDontSee('Service reachable');
+        $this->assertSame(1, substr_count($response->getContent(), '>No operational data yet</p>'));
     }
 
     public function test_admin_dashboard_service_returns_expected_data_structure(): void

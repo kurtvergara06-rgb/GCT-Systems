@@ -119,8 +119,13 @@
                     @foreach($modelHealthCards as $definition)
                         @php
                             $model = $modelHealthByKey->get($definition['key']);
-                            $state = (string) ($model->state ?? 'Service Unavailable');
+                            $hasOperationalRecords = ($mlOperationalRecords[$definition['key']] ?? null);
+                            $awaitingData = $hasOperationalRecords === false;
+                            $reachable = ($model->reachable ?? false) === true;
+                            $state = $awaitingData ? 'Awaiting data' : ($reachable ? (string) $model->state : 'Status not confirmed');
+                            $trainingLabel = $reachable ? ($model->count_label ?? 'Verification Pending') : 'Training status not confirmed';
                             $tone = (string) ($model->tone ?? 'offline');
+                            if ($awaitingData) $tone = 'not-ready';
                             $statusClass = in_array($tone, ['ready', 'partial', 'warning', 'offline', 'not-ready'], true) ? $tone : 'not-ready';
                             $samples = $model ? (int) ($model->sample_count ?? 0) : null;
                             $details = $model->details ?? [];
@@ -135,11 +140,14 @@
                                 {{ $state }}
                             </span>
                             <p class="admin-ml-description">{{ $definition['description'] }}</p>
-                            <p class="admin-ml-description">{{ $model->availability ?? 'Availability not reported' }}</p>
+                            @if($awaitingData)
+                                <p class="admin-ml-description">No operational data yet</p>
+                            @endif
+                            <p class="admin-ml-description">{{ $reachable ? ($model->availability ?? 'Service reachable') : 'ML service status not confirmed' }}</p>
                             <div class="admin-ml-card-foot">
                                 <span class="admin-ml-samples">
                                     <i class="fa-solid fa-database" aria-hidden="true"></i>
-                                    {{ $model->count_label ?? 'Verification Pending' }}
+                                    {{ $awaitingData ? 'Waiting for new records' : $trainingLabel }}
                                 </span>
                                 <button type="button" class="admin-ml-info"
                                     aria-label="Details for {{ $definition['title'] }}"
@@ -148,9 +156,9 @@
                                     data-ml-status="{{ $state }}"
                                     data-ml-source="{{ $model->data_source ?? 'Unavailable' }}"
                                     data-ml-dataset="{{ $model->dataset_type ?? 'Not reported' }}"
-                                    data-ml-samples="{{ $model->count_label ?? 'Verification Pending' }}"
+                                    data-ml-samples="{{ $trainingLabel }}"
                                     data-ml-version="{{ $model->model_version ?? '' }}"
-                                    data-ml-reason="{{ $model->reason ?? 'Python model status is unavailable.' }}"
+                                    data-ml-reason="{{ ($awaitingData ? 'No operational records are currently available for this model group. New records do not automatically verify saved training data. ' : '') . ($model->reason ?? 'The ML service status check has not completed successfully.') }}"
                                     data-ml-components="{{ collect($details)->map(fn ($part) => ($part->label ?? '') . ': ' . number_format((int) ($part->reported_sample_count ?? 0)) . ' reported training rows — unverified; ' . ($part->value ?? 'Availability not reported'))->implode('; ') }}">
                                     <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
                                 </button>
