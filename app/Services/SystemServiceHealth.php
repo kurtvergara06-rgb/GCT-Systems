@@ -117,7 +117,7 @@ class SystemServiceHealth
             // Account lookup permission or rate limits may differ from sending.
             return in_array($response->status(), [403, 429], true)
                 ? 'Not verified' : 'Offline';
-        } catch (\\Throwable) {
+        } catch (\Throwable) {
             return 'Offline';
         }
     }
