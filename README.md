@@ -147,73 +147,19 @@ It is **not** a complete container definition for the separate FastAPI and Rever
 docker compose up
 ```
 
-## Delay Model #3
+## Predictive Analytics and Model Readiness
 
-The delay pipeline supports two explicit data sources:
+The Python engine provides ETA, fuel, delay, inventory, and operation scheduling assistance. Predictions must be interpreted according to their actual data source and model-readiness status. Rule-based results, historical-data fallbacks, and trained machine-learning predictions are distinct; none should be presented as trained or production-ready when they are not.
 
-```env
-DELAY_DATA_SOURCE=sample
-```
+Delay forecasting uses matched Daily Driver Reports and trip/incident relationships where available. Inventory forecasting requires sufficient genuine stock-movement history. Incomplete history may limit forecasting availability or accuracy.
 
-or:
-
-```env
-DELAY_DATA_SOURCE=genuine
-```
-
-`genuine` mode never silently falls back to sample data.
-
-Export genuine matched DDR history with:
-
-```bash
-php artisan delay:export-genuine
-```
-
-New DDR records prefer their stored `trip_schedule_id` / `trip_assignment_id`. Historical records can still use schedule matching.
-
-Incident features are tied to the exact trip whenever a direct trip relationship exists. Legacy fallback matching is only allowed for incidents that do not already belong to another explicit trip.
-
-## Inventory Model #4
-
-The inventory forecasting implementation currently uses generated/sample training data until sufficient genuine stock-movement history exists.
-
-Sample-model output must be treated as development/demo output, not as a production genuine forecast.
-
-Do not change the model to claim genuine readiness until real stock movements satisfy its readiness checks.
-
-## ML readiness and demo cleanup
-
-Local/client-demo deployments may explicitly allow sample-backed Models #3 and #4:
-
-```env
-APP_ENV=local
-ML_RUNTIME_MODE=development
-ALLOW_DEMO_ML=true
-DELAY_DATA_SOURCE=demo
-INVENTORY_DATA_SOURCE=demo
-```
-
-Laravel always disables demo-model serving when `APP_ENV=production`, even if `ALLOW_DEMO_ML` is accidentally enabled. Genuine production serving requires the Python status endpoint to report `is_production_model=true`.
-
-Run the read-only five-model audit while FastAPI is available:
+For a read-only readiness audit while FastAPI is available:
 
 ```bash
 python_engine/.venv/Scripts/python.exe python_engine/run_comprehensive_ml_audit.py
 ```
 
-Before removing demo artifacts, inspect the exact cleanup plan:
-
-```bash
-php artisan ml:cleanup-demo
-```
-
-When sufficient genuine data exists, execute the reviewed cleanup and switch `.env` to genuine sources:
-
-```bash
-php artisan ml:cleanup-demo --execute --switch-to-genuine
-```
-
-The command backs up `.env`, removes only its explicit Model #3/#4 demo artifact and exported-training targets, and leaves database records unchanged. It then prints the genuine retraining commands. Do not execute cleanup until the client demonstration no longer depends on the demo models.
+Do not alter training data provenance, bypass readiness checks, or delete model artifacts solely to change how results are described in documentation. Review operational data and model readiness before enabling predictions in production.
 
 ## Testing
 
@@ -229,7 +175,7 @@ or:
 composer run test
 ```
 
-The most recently reported local full-suite run (November 2026) passed **989 tests / 8,049 assertions**. This is a recorded result, not a guarantee that future commits or deployments will pass; rerun the suite after changes.
+Run the test suite for each release; historical pass counts are not a substitute for current verification.
 
 ### Frontend
 
@@ -301,13 +247,10 @@ The FastAPI engine is a separate service and should not be assumed to be private
 ## Repository Branches and History
 
 - `main` is the integration branch for the current GCT application. Avoid rewriting `main` history or pushing unfinished features directly.
-- The former `feature/global-dark-mode` branch was squashed to one verified commit, fast-forwarded into `main`, and deleted after integration.
-- `backup/gct-history` is a **historical archive**, not the current production code source. It was reconstructed to be 187 commits ahead of the then-current `main` without changing its final file tree.
-- The original backup history is retained by the Git tag `backup-gct-history-before-187-20261115`. Do not delete this recovery tag without reviewing its purpose.
+- Historical backup branches and tags are maintained separately from the production source. Do not rewrite protected history.
 
 ## Known Development Decisions
 
-- Department/role restrictive route middleware is intentionally deferred **during current testing** so one test account can move across Maintenance, Warehouse, Purchase, Operation, and Admin without multiple browser sessions.
-- This testing convenience must be reviewed before production access is opened to real users.
+- Review effective department and role authorization before granting production access. Documentation does not substitute for an RBAC security audit.
 - Genuine ML readiness is data-dependent and is not simulated with generated data.
 - Rule-based severity, NER, anomaly and ingestion modules exist and are checked at FastAPI startup. spaCy and Python PDF extraction are optional enhancements, not default requirements.
