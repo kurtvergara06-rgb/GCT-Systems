@@ -45,19 +45,14 @@ def main() -> None:
     scheduling_response = client.get("/operation/auto-scheduling/ai/training/status")
     check("Scheduling status reachable", scheduling_response.status_code == 200)
     scheduling = scheduling_response.json()
-    check("Scheduling source is genuine", scheduling["data_source"] == "genuine")
-    check("Scheduling bus source is genuine", scheduling["bus_data_source"] == "genuine")
-    check("Scheduling driver source is genuine", scheduling["driver_data_source"] == "genuine")
-    check(
-        "Scheduling bus production flag is honest",
-        scheduling["bus_is_production_model"]
-        is (scheduling["bus_model_ready"] and scheduling["bus_source"] == "ml"),
-    )
-    check(
-        "Scheduling driver production flag is honest",
-        scheduling["driver_is_production_model"]
-        is (scheduling["driver_model_ready"] and scheduling["driver_source"] == "ml"),
-    )
+    # Retained scheduling artifacts have not passed a source-record audit.
+    check("Scheduling source is unverified", scheduling["data_source"] == "unverified")
+    check("Scheduling bus source is unverified", scheduling["bus_data_source"] == "unverified")
+    check("Scheduling driver source is unverified", scheduling["driver_data_source"] == "unverified")
+    check("Scheduling bus is not production", scheduling["bus_is_production_model"] is False)
+    check("Scheduling driver is not production", scheduling["driver_is_production_model"] is False)
+    check("Scheduling bus readiness is boolean", isinstance(scheduling["bus_model_ready"], bool))
+    check("Scheduling driver readiness is boolean", isinstance(scheduling["driver_model_ready"], bool))
     check("Scheduling driver model is quarantined", scheduling["driver_model_ready"] is False)
     check("Scheduling driver uses data fallback", scheduling["driver_source"] == "data_fallback")
     check("Driver features omit obsolete shift", "shift_encoded" not in DRIVER_FEATURE_NAMES)
