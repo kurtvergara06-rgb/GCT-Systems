@@ -302,7 +302,7 @@
                       @endif
                     </div>
 
-                    <x-ui.status-badge :status="$jobOrder->status ?? 'Unknown'" class="dashboard-status {{ $statusClass }}" />
+                    <x-ui.status-badge :status="$jobOrder->display_status" class="dashboard-status {{ $statusClass }}" />
                   </div>
 
                   <div class="recent-job-description">
@@ -631,7 +631,7 @@
               @empty
                 <div class="dashboard-empty-state-sm">
                   <i class="fa-solid fa-check-double text-green"></i>
-                  <span>No active repairs currently delayed waiting for parts.</span>
+                  <span>No active repairs are waiting for parts.</span>
                 </div>
               @endforelse
               </div>

@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Admin\ActivityLog;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ActivityLogController extends Controller
 {
@@ -16,11 +18,32 @@ class ActivityLogController extends Controller
         );
     }
 
-    public function data(Request $request): array
+    public function export(Request $request): StreamedResponse
     {
-        $query = ActivityLog::query()
-            ->with('user:id,avatar_path');
+        $logs = $this->filteredLogs($request);
 
+        return response()->streamDownload(function () use ($logs): void {
+            $output = fopen('php://output', 'wb');
+            fputcsv($output, ['User', 'Role', 'Activity', 'Module', 'Reference', 'Event Type', 'Date & Time'], escape: '');
+
+            foreach ($logs->lazy(500) as $log) {
+                $row = [
+                    $log->user_name, $log->user_role, $log->activity, $log->module,
+                    $log->reference, $log->event_type, $log->created_at?->toIso8601String(),
+                ];
+
+                fputcsv($output, array_map(
+                    fn ($value) => is_string($value) && preg_match('/^[\s\x00-\x1f]*[=+@-]/', $value) ? "'".$value : $value,
+                    $row
+                ), escape: '');
+            }
+            fclose($output);
+        }, 'activity-logs.csv', ['Content-Type' => 'text/csv; charset=UTF-8', 'Cache-Control' => 'private, no-store']);
+    }
+
+    private function filteredLogs(Request $request): Builder
+    {
+        $query = ActivityLog::query();
         if ($request->filled('search')) {
             $search = trim((string) $request->input('search'));
 
@@ -62,9 +85,15 @@ class ActivityLogController extends Controller
             : 'created_at';
         $direction = $request->input('sort_direction', 'desc') === 'asc' ? 'asc' : 'desc';
 
-        $logs = $query
+        return $query
             ->orderBy($sort, $direction)
-            ->orderBy('id', 'desc')
+            ->orderBy('id', 'desc');
+    }
+
+    private function data(Request $request): array
+    {
+        $logs = $this->filteredLogs($request)
+            ->with('user:id,avatar_path')
             ->paginate(20)
             ->withQueryString();
 

@@ -21,11 +21,6 @@
   $adminThemePage = collect($assets)->contains(
     fn ($asset) => is_string($asset) && str_starts_with($asset, 'resources/css/Admin/')
   ) || request()->is('admin/*', 'analytics/*', 'batch-file-processing*');
-  // Account pages share the saved appearance preference and already have
-  // dark CSS. Resolve their theme before the first-paint loading cover too.
-  $accountThemePage = collect($assets)->contains(
-    fn ($asset) => is_string($asset) && str_starts_with($asset, 'resources/css/Account/')
-  );
   $performanceProfile = app()->environment('local') && request()->boolean('_gct_profile');
   $viteAssets = array_values(array_unique(array_merge([
     'resources/css/Main-styles/theme.css',
@@ -110,7 +105,7 @@
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
   >
 
-  @if(($operationThemePage || $maintenanceThemePage || $warehouseThemePage || $purchaseThemePage || $adminThemePage || $accountThemePage) && auth()->check())
+  @auth
     {{-- Resolve the saved browser theme before styles paint to avoid a light flash. --}}
     <script>
       (() => {
@@ -129,7 +124,7 @@
         }
       })();
     </script>
-  @endif
+  @endauth
 
   {{-- Critical first-paint cover for full document navigation.
        Sidebar links intentionally reload the document to reinitialize page scripts.

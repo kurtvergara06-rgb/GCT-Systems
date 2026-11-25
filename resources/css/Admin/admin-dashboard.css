@@ -597,7 +597,7 @@
 .chart-tab-group {
   display: inline-flex;
   align-items: center;
-  background: #f1f5f9;
+  background: light-dark(#f1f5f9, var(--gct-theme-input));
   padding: 3px;
   border-radius: 10px;
   gap: 3px;
@@ -625,7 +625,7 @@
 
 .chart-tab-btn.active {
   background: light-dark(#ffffff, var(--gct-theme-surface-raised));
-  color: #0057f8;
+  color: light-dark(#0057f8, var(--gct-theme-accent));
   box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
 }
 

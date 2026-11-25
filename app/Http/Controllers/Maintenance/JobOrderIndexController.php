@@ -37,6 +37,18 @@ class JobOrderIndexController extends Controller
             $query->open();
         }
 
+        $displayStatuses = $recordView === 'history'
+            ? ['Completed', 'Rejected']
+            : ['For Review', 'Revision Required', 'On Hold', 'In Progress', 'Waiting for Parts'];
+        $displayStatus = match ($request->query('status')) {
+            'On Going' => 'In Progress',
+            default => $request->query('status'),
+        };
+
+        if (in_array($displayStatus, $displayStatuses, true)) {
+            $query->whereDisplayStatus($displayStatus);
+        }
+
         if ($request->filled('search')) {
             $search = trim((string) $request->input('search'));
 
@@ -65,6 +77,12 @@ class JobOrderIndexController extends Controller
                 $query->where('part_status', 'Not Requested')
                     ->whereNotNull('part_needed')
                     ->whereRaw("TRIM(part_needed) != ''");
+            } elseif ($request->part_status === 'Fully Issued') {
+                $query->where('part_status', 'Issued');
+            } elseif ($request->part_status === 'Partially Issued') {
+                $query->whereIn('part_status', ['Partial', 'Partially Issued']);
+            } elseif ($request->part_status === 'Waiting for Parts') {
+                $query->whereIn('part_status', ['Delivered', 'Picked Up', 'Ordered', 'For Delivery', 'For Pick-up', 'For Purchase']);
             } else {
                 $query->where('part_status', $request->part_status);
             }
@@ -116,7 +134,7 @@ class JobOrderIndexController extends Controller
             ->where('review_status', 'Approved')
             ->whereIn('status', ['On Hold', 'On Going'])
             ->get(['id', 'status', 'part_needed', 'part_status', 'review_status']);
-        $onHold = $approvedActive->filter(fn (JobOrder $jobOrder) => $jobOrder->display_status === 'On Hold')->count();
+        $onHold = $approvedActive->filter(fn (JobOrder $jobOrder) => in_array($jobOrder->display_status, ['On Hold', 'Waiting for Parts'], true))->count();
         $onGoing = $approvedActive->filter(fn (JobOrder $jobOrder) => $jobOrder->display_status === 'In Progress')->count();
         $completed = JobOrder::where('status', 'Completed')->where('review_status', 'Approved')->count();
 
@@ -215,6 +233,8 @@ class JobOrderIndexController extends Controller
             'pmsCreate',
             'referralCreate',
             'recordView',
+            'displayStatuses',
+            'displayStatus',
             'viewPartsStock',
             'maintenanceJobCatalog',
             'maintenanceJobSkills'

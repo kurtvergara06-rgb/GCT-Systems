@@ -353,7 +353,6 @@ class FrontendUiUxComprehensiveTest extends TestCase
             'Notifications' => route('admin.notifications'),
             'Data Import Management' => route('admin.batch-file-processing'),
             'Data History' => route('admin.data-history'),
-            'Analytics Overview' => route('analytics.overview'),
             'Analytics Descriptive' => route('analytics.descriptive'),
             'Analytics Diagnostic' => route('analytics.stage', ['stage' => 'diagnostic']),
             'Analytics Predictive' => route('analytics.stage', ['stage' => 'predictive']),
@@ -382,7 +381,6 @@ class FrontendUiUxComprehensiveTest extends TestCase
     public function test_analytics_pages_render_without_forcing_a_notification(): void
     {
         $analyticsPages = [
-            'Overview' => route('analytics.overview'),
             'Descriptive' => route('analytics.descriptive'),
             'Diagnostic' => route('analytics.stage', ['stage' => 'diagnostic']),
             'Predictive' => route('analytics.stage', ['stage' => 'predictive']),

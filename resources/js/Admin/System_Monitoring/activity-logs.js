@@ -59,6 +59,20 @@ window.GCTPartialNavigation.registerInitializer('admin-activity-logs', '.activit
         }
     });
 
+    const syncExportTarget = () => {
+        const link = document.querySelector('.activity-logs-page [data-activity-export]');
+        if (!link) return;
+
+        const active = new URLSearchParams(window.location.search);
+        const destination = new URL(link.href);
+        destination.search = '';
+        for (const field of ['search', 'module', 'event', 'date', 'sort', 'sort_direction']) {
+            if (active.has(field)) destination.searchParams.set(field, active.get(field));
+        }
+        link.href = destination.href;
+    };
+    document.addEventListener('system:server-filter-finished', syncExportTarget);
+
     const modal = document.getElementById('activityDetailsModal');
     const closeButton = document.getElementById('closeActivityModal');
     const closeFooterButton = document.getElementById('closeActivityModalFooter');
@@ -148,4 +162,6 @@ window.GCTPartialNavigation.registerInitializer('admin-activity-logs', '.activit
             closeModal();
         }
     });
+
+    return () => document.removeEventListener('system:server-filter-finished', syncExportTarget);
 });

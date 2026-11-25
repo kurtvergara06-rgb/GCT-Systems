@@ -296,6 +296,7 @@ const cleanupPageOverlays = () => {
         'has-stacked-modal',
         'overflow-hidden',
         'batch-modal-open',
+        'history-modal-open',
         'transfer-activity-modal-open',
         'ai-modal-open',
     ];
@@ -594,7 +595,7 @@ const replaceMain = async (nextDocument, finalUrl, { push = true, restoreScroll 
     currentMain.replaceWith(nextMain);
     // Partial navigation swaps <main>, not <body>. Keep department theme
     // scopes in sync so department styles do not leak or disappear.
-    for (const scope of ['gctOperationPage', 'gctMaintenancePage', 'gctWarehousePage', 'gctPurchasePage']) {
+    for (const scope of ['gctOperationPage', 'gctMaintenancePage', 'gctWarehousePage', 'gctPurchasePage', 'gctAdminPage']) {
         if (nextDocument.body.dataset[scope] === '1') {
             document.body.dataset[scope] = '1';
         } else {

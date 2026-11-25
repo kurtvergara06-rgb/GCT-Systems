@@ -13,6 +13,13 @@ window.GCTPartialNavigation.registerInitializer('purchase-orders', '.purchase-or
     return;
   }
 
+  const actionHint = document.getElementById('poActionHint');
+  poForm.addEventListener('invalid', () => {
+    if (actionHint) {
+      actionHint.textContent = 'Enter the supplier name and complete every required purchase item field before submitting.';
+    }
+  }, true);
+
   // Render item breakdown above table overflow rather than inside a clipped cell.
   let activeItemsPopover = null;
   let activeItemsTrigger = null;

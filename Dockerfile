@@ -115,6 +115,7 @@ RUN mkdir -p \
 
 # Copy server configuration.
 COPY docker/nginx.conf /etc/nginx/nginx.conf
+COPY docker/uploads.ini /usr/local/etc/php/conf.d/zz-gct-uploads.ini
 COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY docker/start.sh /usr/local/bin/start.sh
 COPY docker/start-reverb.sh /usr/local/bin/start-reverb.sh

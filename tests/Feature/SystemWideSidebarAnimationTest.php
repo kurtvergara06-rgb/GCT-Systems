@@ -65,7 +65,7 @@ it('loads the warehouse dark appearance bridge through the shared layout', funct
     expect($layout)
         ->toContain('data-gct-warehouse-page="1"')
         ->toContain("'resources/css/Warehouse/warehouse-dark-mode.css'")
-        ->toContain('$warehouseThemePage || $purchaseThemePage || $adminThemePage || $accountThemePage');
+        ->toContain('gct:ui-preferences:');
 
     expect($theme)->toContain('[data-gct-warehouse-page="1"]');
     expect($warehouseCss)
@@ -109,7 +109,7 @@ it('keeps Warehouse dashboard dark canvas and readable chart labels', function (
         ->toContain("text: '#cbd5e1'")
         ->toContain('color: axisText')
         ->toContain('warehouseThemeObserver');
-    expect($preferences)->toContain("document.body.dataset.gctWarehousePage === '1'");
+    expect($preferences)->toContain('root.style.colorScheme = effectiveTheme');
 });
 
 

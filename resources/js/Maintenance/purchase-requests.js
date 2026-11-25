@@ -2230,7 +2230,15 @@ window.GCTPartialNavigation.registerInitializer('maintenance-pr-pending-review-a
   const submit = document.getElementById('createPrBtn');
   const tbody = document.getElementById('newPrPartsBody');
   const irTbody = document.getElementById('prReviewAvailableParts');
+  const errorMessage = document.getElementById('prPartsError');
+  const bus = document.getElementById('busNoInput');
+  const signature = document.getElementById('prApprovalSignature');
+  const placeholder = document.getElementById('prSignaturePlaceholder');
   const text = (id, value) => { const e = document.getElementById(id); if (e) e.textContent = value || '—'; };
+  const showError = (message = '') => {
+    errorMessage.textContent = message;
+    errorMessage.hidden = !message;
+  };
   const clear = (node) => { if (node) node.replaceChildren(); };
   let sequence = 0;
   const renderPartStatus = (cell, label) => {
@@ -2263,11 +2271,21 @@ window.GCTPartialNavigation.registerInitializer('maintenance-pr-pending-review-a
   };
   const load = async () => {
     const seq = ++sequence;
-    submit.disabled = true;
+    showError();
     form.querySelectorAll('[data-generated-pr-part]').forEach(el => el.remove());
+    bus.value = '';
+    ['prReviewLinkedJo', 'prReviewBus', 'prReviewMechanics', 'prApproverName'].forEach(id => text(id));
+    signature.hidden = true;
+    signature.removeAttribute('src');
+    placeholder.hidden = false;
     const option = select.selectedOptions[0];
     const url = option?.dataset.jobOrderUrl;
-    if (!url) return;
+    submit.disabled = Boolean(url);
+    if (!url) {
+      render(tbody, [], 'For Purchase');
+      render(irTbody, [], 'Available');
+      return;
+    }
     clear(tbody); clear(irTbody);
     try {
       const response = await fetch(url, { credentials: 'same-origin', headers: { Accept: 'application/json' } });
@@ -2278,9 +2296,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-pr-pending-review-a
       text('prReviewBus', data.bus_no);
       text('prReviewMechanics', data.assigned_mechanics);
       text('prApproverName', data.approver_name);
-      const bus = document.getElementById('busNoInput'); if (bus) bus.value = data.bus_no || '';
-      const signature = document.getElementById('prApprovalSignature');
-      const placeholder = document.getElementById('prSignaturePlaceholder');
+      bus.value = data.bus_no || '';
       if (signature) { signature.hidden = !data.signature_url; if (data.signature_url) signature.src = data.signature_url; else signature.removeAttribute('src'); }
       if (placeholder) placeholder.hidden = !!data.signature_url;
       const shortages = Array.isArray(data.parts) ? data.parts : [];
@@ -2298,7 +2314,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-pr-pending-review-a
     } catch (error) {
       if (seq !== sequence) return;
       render(tbody, [], 'For Purchase');
-      text('prReviewLinkedJo', error.message);
+      showError(error.message);
       submit.disabled = true;
     }
   };
@@ -2313,5 +2329,7 @@ window.GCTPartialNavigation.registerInitializer('maintenance-pr-pending-review-a
     modal.style.display = 'flex';
     void load();
   });
+  select.addEventListener('invalid', () => showError('Select an approved Job Order before submitting the Purchase Request.'));
   select.addEventListener('change', load);
+  if (modal.classList.contains('show')) void load();
 });

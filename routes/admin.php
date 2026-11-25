@@ -1,7 +1,7 @@
 <?php
 
+use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\Admin\AdminUserController;
-use App\Http\Controllers\Admin\AnalyticsOverviewController;
 use App\Http\Controllers\Admin\BatchFileProcessingController;
 use App\Http\Controllers\Admin\DataHistoryController;
 use Illuminate\Support\Facades\Route;
@@ -40,10 +40,10 @@ Route::middleware('role:admin:head,admin:staff')->group(function () {
     Route::put('/admin/roles-permissions/{rolePermission:role_key}', [AdminUserController::class, 'updateRolePermissions'])
         ->name('admin.roles-permissions.update');
 
-    Route::view(
-        '/admin/activity-logs',
-        'Admin.System_Monitoring.activity-logs'
-    )->name('admin.activity-logs');
+    Route::get('/admin/activity-logs', [ActivityLogController::class, 'index'])
+        ->name('admin.activity-logs');
+    Route::get('/admin/activity-logs/export', [ActivityLogController::class, 'export'])
+        ->name('admin.activity-logs.export');
 
     Route::view(
         '/admin/notifications',
@@ -85,8 +85,7 @@ Route::middleware('role:admin:head,admin:staff')->group(function () {
     )->name('admin.data-history.show');
 
     Route::redirect('/analytics', '/analytics/descriptive')->name('analytics');
-    Route::get('/analytics/overview', [AnalyticsOverviewController::class, 'index'])
-        ->name('analytics.overview');
+    Route::redirect('/analytics/overview', '/analytics/descriptive');
 
     Route::get('/admin/settings/general', [\App\Http\Controllers\Admin\GeneralSettingsController::class, 'index'])->name('admin.settings.general');
     Route::put('/admin/settings/general', [\App\Http\Controllers\Admin\GeneralSettingsController::class, 'update'])->middleware('role:admin:head')->name('admin.settings.general.update');

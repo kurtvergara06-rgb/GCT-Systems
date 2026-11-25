@@ -68,11 +68,10 @@ export default defineConfig({
                 // ======================================================
 
                 'resources/css/Admin/Data_Management/batch-file-processing.css',
-                'resources/css/Admin/Data_Management/generic-batch-review.css',
                 'resources/css/Admin/Data_Management/data-history.css',
-                'resources/css/Admin/Data_Management/uploading-data.css',
 
                 'resources/js/Admin/Data_Management/batch-file-processing.js',
+                'resources/js/Admin/Data_Management/data-history.js',
 
                 // ======================================================
                 // ADMIN — SYSTEM MONITORING
@@ -95,7 +94,6 @@ export default defineConfig({
                 // ADMIN — ANALYTICS
                 // ======================================================
 
-                'resources/css/Admin/Analytics/overview/overview.css',
                 'resources/css/Admin/Analytics/overview/live-data.css',
                 'resources/css/Admin/Analytics/overview/analytics-stage-hub.css',
                 'resources/css/Admin/Analytics/overview/fleet-trip.css',

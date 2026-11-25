@@ -239,7 +239,7 @@ html[data-gct-theme="dark"] .activity-modal {
     height: 38px;
     padding: 0 14px;
     background: #ffc400;
-    color: light-dark(#061f3d, var(--gct-theme-fg));
+    color: #061f3d;
     font-size: 12px;
     font-weight: 800;
 }

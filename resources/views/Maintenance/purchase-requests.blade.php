@@ -363,7 +363,7 @@
                       <div class="pr-ir-panel-body">
                           <label class="pr-document-field pr-document-field-full">
                               <span>Approved Job Order <span class="ui-required">*</span></span>
-                              <select name="job_order_no" id="jobOrderSelect" class="pr-review-source-select" required>
+                              <select name="job_order_no" id="jobOrderSelect" aria-describedby="prPartsError" required>
                                   <option value="">Select an approved Job Order</option>
                                   @foreach($availablePrJobOrders as $jobOrder)
                                       <option value="{{ $jobOrder->job_order_no }}" data-job-order-url="{{ route('purchase-requests.job-order-data', $jobOrder, false) }}" @selected(old('job_order_no', $selectedJobOrder?->job_order_no) === $jobOrder->job_order_no)>{{ $jobOrder->job_order_no }}</option>
@@ -437,7 +437,7 @@
 
           <footer class="pr-document-footer">
               <button type="button" id="cancelPrModal" class="ui-form-btn ui-form-btn-cancel">Cancel</button>
-              <button type="submit" id="createPrBtn" class="ui-form-btn ui-form-btn-primary" disabled><i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Submit to Warehouse</button>
+              <button type="submit" id="createPrBtn" class="ui-form-btn ui-form-btn-primary"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Submit to Warehouse</button>
           </footer>
       </x-ui.form-modal>
 

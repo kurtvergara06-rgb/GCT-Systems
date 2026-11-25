@@ -274,11 +274,10 @@
 </section>
 
 @if($selectedBatch && count($rawHeaders) > 0)
-    <div class="records-modal-overlay" id="rawUploadModal">
-        <div class="records-modal">
+    <x-ui.dialog id="rawUploadModal" class="records-modal-overlay" panel-class="records-modal" labelled-by="rawUploadModalTitle">
             <div class="records-modal-header">
                 <div>
-                    <h2>Full Raw Uploaded Data</h2>
+                    <h2 id="rawUploadModalTitle">Full Raw Uploaded Data</h2>
                     <p>
                         Original rows from {{ $selectedBatch->file_name }}
                         before cleaning and formatting.
@@ -352,18 +351,16 @@
                     >Next</a>
                 </nav>
             @endif
-        </div>
-    </div>
+        </x-ui.dialog>
 @endif
 
 
-<div class="batch-delete-modal-overlay" id="batchDeleteModal">
-    <div class="batch-delete-modal">
+<x-ui.dialog id="batchDeleteModal" class="batch-delete-modal-overlay" panel-class="batch-delete-modal" labelled-by="batchDeleteTitle">
         <div class="batch-delete-icon">
             <i class="fa-solid fa-triangle-exclamation"></i>
         </div>
 
-        <h2>Delete Uploaded File?</h2>
+        <h2 id="batchDeleteTitle">Delete Uploaded File?</h2>
         <p>
             Are you sure you want to delete
             <strong id="batchDeleteFileName">this uploaded file</strong>?
@@ -390,5 +387,4 @@
                 </button>
             </div>
         </form>
-    </div>
-</div>
+    </x-ui.dialog>

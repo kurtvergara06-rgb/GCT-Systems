@@ -30,9 +30,9 @@
     display: grid;
     place-items: center;
     min-height: 190px;
-    border: 1px dashed #d9e3ef;
+    border: 1px dashed light-dark(#d9e3ef, var(--gct-theme-border));
     border-radius: 10px;
-    background: #fbfdff;
+    background: light-dark(#fbfdff, var(--gct-theme-surface-raised));
 }
 
 .predictive-fuel-page .has-empty-chart .analytics-compact-empty {

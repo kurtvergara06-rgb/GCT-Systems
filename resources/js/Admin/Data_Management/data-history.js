@@ -9,14 +9,15 @@ function initDataHistoryPage() {
     const errorCount = document.getElementById('historyModalErrorCount');
     const actionLink = document.getElementById('historyModalActionLink');
     const actionText = document.getElementById('historyModalActionText');
+    let activeRequest;
 
     function setText(id, value) {
-        const element = document.getElementById(id);
-        if (element) element.textContent = value || '—';
+        const element = modal.querySelector('#' + id);
+        if (element) element.textContent = value == null || value === '' ? '—' : value;
     }
 
     function setStatus(value, button) {
-        const target = document.getElementById('historyModalStatus');
+        const target = modal.querySelector('#historyModalStatus');
         if (!target) return;
         const rowBadge = button.closest('tr')?.querySelector('[data-ui-component="status-badge"]');
         if (!value || !rowBadge) {
@@ -30,12 +31,15 @@ function initDataHistoryPage() {
     }
 
     function resetExtras() {
-        if (validationContainer) validationContainer.style.display = 'none';
-        if (errorsList) errorsList.innerHTML = '';
+        if (validationContainer) validationContainer.hidden = true;
+        errorsList?.replaceChildren();
         if (actionLink) actionLink.style.display = 'none';
     }
 
     async function openModal(button) {
+        activeRequest?.abort();
+        const controller = new AbortController();
+        activeRequest = controller;
         resetExtras();
 
         // 1. Instant preliminary fill from data attributes
@@ -62,6 +66,7 @@ function initDataHistoryPage() {
 
         try {
             const response = await fetch(detailUrl, {
+                signal: controller.signal,
                 headers: {
                     'Accept': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest',
@@ -71,6 +76,7 @@ function initDataHistoryPage() {
             if (!response.ok) return;
 
             const data = await response.json();
+            if (controller.signal.aborted) return;
 
             setText('historyModalFile', data.file_name);
             setText('historyModalType', data.activity_type);
@@ -90,13 +96,18 @@ function initDataHistoryPage() {
             if (Array.isArray(data.validation_errors) && data.validation_errors.length > 0) {
                 if (errorCount) errorCount.textContent = data.validation_errors.length;
                 if (errorsList) {
-                    errorsList.innerHTML = data.validation_errors.map(err => {
-                        const rowNum = err.row ? `<strong>Row ${err.row}:</strong> ` : '';
-                        const msg = typeof err === 'string' ? err : (err.message || JSON.stringify(err));
-                        return `<div>${rowNum}${msg}</div>`;
-                    }).join('');
+                    errorsList.replaceChildren(...data.validation_errors.map(error => {
+                        const row = document.createElement('div');
+                        if (error?.row) {
+                            const label = document.createElement('strong');
+                            label.textContent = `Row ${error.row}: `;
+                            row.append(label);
+                        }
+                        row.append(typeof error === 'string' ? error : (error?.message || JSON.stringify(error)));
+                        return row;
+                    }));
                 }
-                if (validationContainer) validationContainer.style.display = 'block';
+                if (validationContainer) validationContainer.hidden = false;
             }
 
             // Render direct remediation / navigation link
@@ -106,7 +117,7 @@ function initDataHistoryPage() {
                     if (data.activity_type === 'Batch Processing') {
                         actionText.textContent = 'Go to Batch File Processing';
                     } else if (data.activity_type === 'Import') {
-                        actionText.textContent = 'Go to Import / Export';
+                        actionText.textContent = 'Go to Data History';
                     } else {
                         actionText.textContent = 'View Activity';
                     }
@@ -114,11 +125,12 @@ function initDataHistoryPage() {
                 actionLink.style.display = 'inline-flex';
             }
         } catch (error) {
-            console.error('Failed to load data activity details:', error);
+            if (error.name !== 'AbortError') console.error('Failed to load data activity details:', error);
         }
     }
 
     function closeModal() {
+        activeRequest?.abort();
         modal.classList.remove('show');
         document.body.classList.remove('history-modal-open');
         resetExtras();

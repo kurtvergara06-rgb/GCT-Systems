@@ -57,17 +57,18 @@ class FrontendAssetOptimizationTest extends TestCase
         );
     }
 
-    public function test_duplicate_toast_and_data_history_entries_are_removed(): void
+    public function test_toast_is_shared_and_history_script_loads_only_on_its_page(): void
     {
         $dataHistory = file_get_contents(
             resource_path('views/Admin/Data_Management/data-history.blade.php')
         );
         $vite = file_get_contents(base_path('vite.config.js'));
+        $app = file_get_contents(resource_path('js/app.js'));
+        $historyScript = 'resources/js/Admin/Data_Management/data-history.js';
 
-        $this->assertStringNotContainsString(
-            'resources/js/Admin/Data_Management/data-history.js',
-            $dataHistory
-        );
+        $this->assertSame(1, substr_count($dataHistory, $historyScript));
+        $this->assertSame(1, substr_count($vite, $historyScript));
+        $this->assertStringNotContainsString('data-history.js', $app);
 
         $this->assertStringNotContainsString(
             "'resources/css/Main-styles/system-toast.css',",
@@ -75,10 +76,6 @@ class FrontendAssetOptimizationTest extends TestCase
         );
         $this->assertStringNotContainsString(
             "'resources/js/Main-js/system-toast.js',",
-            $vite
-        );
-        $this->assertStringNotContainsString(
-            "'resources/js/Admin/Data_Management/data-history.js',",
             $vite
         );
     }

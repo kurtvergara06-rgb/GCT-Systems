@@ -94,11 +94,9 @@ class MechanicListController extends Controller
             $mechanic->setAttribute('status', $hasTimedOut ? 'Timed Out' : $baseStatus);
             $mechanic->setAttribute('active_job', $activeJob);
             $isPresent = ! $hasTimedOut && in_array($baseStatus, ['Present', 'Late', 'On Duty'], true);
-            $working = $activeJob && $activeJob->actual_started_at !== null
-                && (trim((string) $activeJob->part_needed) === '' || $activeJob->part_status === 'Issued');
-            $mechanic->setAttribute('assignment_status', ! $isPresent || $mechanic->employment_status !== 'Active'
-                ? 'Not Available'
-                : ($working ? 'Working' : ($activeJob ? 'Assigned' : 'Available')));
+            $mechanic->setAttribute('assignment_status', $this->assignmentStatus(
+                $activeJob, $isPresent && $mechanic->employment_status === 'Active'
+            ));
             $mechanic->setAttribute(
                 'effective_status',
                 $activeJob && $activeJob->actual_started_at !== null
@@ -125,19 +123,12 @@ class MechanicListController extends Controller
         $totalMechanics = $allMechanics->count();
         $assignmentCounts = $allMechanics->countBy(function (Mechanic $mechanic) use ($attendanceByMechanic, $activeJobs): string {
             $attendance = $attendanceByMechanic->get($mechanic->mechanic_id);
-            if ($attendance?->time_out !== null || ! in_array($attendance?->status, ['Present', 'Late', 'On Duty'], true)) {
-                return 'Not Available';
-            }
-            $job = $activeJobs->get(Str::lower(trim($mechanic->mechanic_name)));
-            if (! $job) {
-                return 'Available';
-            }
-            return $job->actual_started_at !== null
-                && (trim((string) $job->part_needed) === '' || $job->part_status === 'Issued')
-                ? 'Working' : 'Assigned';
+            $present = $attendance?->time_out === null && in_array($attendance?->status, ['Present', 'Late', 'On Duty'], true);
+
+            return $this->assignmentStatus($activeJobs->get(Str::lower(trim($mechanic->mechanic_name))), $present);
         });
         $availableMechanics = $assignmentCounts->get('Available', 0);
-        $assignedMechanics = $assignmentCounts->get('Assigned', 0);
+        $assignedMechanics = $assignmentCounts->get('Assigned', 0) + $assignmentCounts->get('Waiting for Parts', 0);
         $onDutyMechanics = $assignmentCounts->get('Working', 0);
         $notAvailableMechanics = $assignmentCounts->get('Not Available', 0);
 
@@ -149,5 +140,16 @@ class MechanicListController extends Controller
             'notAvailableMechanics',
             'onDutyMechanics'
         ));
+    }
+
+    private function assignmentStatus(?JobOrder $job, bool $present): string
+    {
+        return match (true) {
+            ! $present => 'Not Available',
+            $job === null => 'Available',
+            $job->isWaitingForRequiredParts() => 'Waiting for Parts',
+            $job->actual_started_at !== null => 'Working',
+            default => 'Assigned',
+        };
     }
 }

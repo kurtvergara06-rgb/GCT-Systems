@@ -51,6 +51,7 @@ class AdvanceOperationTripStatuses extends Command
                             && str_starts_with((string) $trip->trip_code, 'TRIP-DEMO')
                             && $trip->hasDeparted()
                             && $trip->is_fully_assigned
+                            && ! $trip->hasPmsDueBus()
                             && $trip->assignments()->exists()) {
                             $trip->status = 'Ready';
                         }
@@ -79,7 +80,8 @@ class AdvanceOperationTripStatuses extends Command
                         }
                         if ($trip->assignments()->doesntExist()
                             || $trip->assignment_status !== 'Assigned'
-                            || $trip->departureDateTime()->greaterThan($now)) {
+                            || $trip->departureDateTime()->greaterThan($now)
+                            || ($trip->status === 'Ready' && $trip->hasPmsDueBus())) {
                             return;
                         }
 

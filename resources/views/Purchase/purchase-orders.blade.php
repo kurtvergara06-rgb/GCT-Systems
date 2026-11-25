@@ -500,7 +500,7 @@ data-po-no="{{ $purchaseOrder->po_no }}"
         <div class="po-modal-actions" id="poEditActions">
           <div class="po-action-hint">
             <i class="fa-solid fa-circle-info"></i>
-            <span id="poActionHint">Review items before saving.</span>
+            <span id="poActionHint" role="status">Review items before saving.</span>
           </div>
           <div class="po-action-buttons">
             <button type="button" id="cancelPoModal" class="secondary-btn po-cancel-btn">Cancel</button>

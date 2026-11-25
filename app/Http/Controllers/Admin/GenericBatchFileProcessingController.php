@@ -18,7 +18,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
-use Illuminate\View\View;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
 use RuntimeException;
@@ -38,32 +37,6 @@ class GenericBatchFileProcessingController extends Controller
     {
         return back()->withErrors([
             'gps_file' => 'Only PDF files containing GPS Trip Records are supported.',
-        ]);
-    }
-
-    public function review(BatchUpload $batchUpload): View|RedirectResponse
-    {
-        if ($batchUpload->data_type === 'GPS Trip Records') {
-            return redirect()->route('batch-file-processing', [
-                'batch_id' => $batchUpload->id,
-            ]);
-        }
-
-        $batchUpload->load([
-            'processedRecords' => fn ($query) => $query->orderBy('id'),
-            'dataActivity.processor',
-        ]);
-
-        $records = $batchUpload->processedRecords;
-        $headers = $records
-            ->flatMap(fn (BatchProcessedRecord $record) => array_keys($record->payload ?? []))
-            ->unique()
-            ->values();
-
-        return view('Admin.Data_Management.generic-batch-review', [
-            'batch' => $batchUpload,
-            'records' => $records,
-            'headers' => $headers,
         ]);
     }
 
