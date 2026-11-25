@@ -26,14 +26,15 @@ class BusController extends Controller
     {
         $fleetTab = $request->query('fleet_purpose', 'Regular');
         $query = Bus::query();
+        $restrictedBuses = Bus::maintenanceRestrictedBusNumbers();
         if ($fleetTab === 'Inactive') {
             $query->where('status', 'Inactive')
-                ->whereNotIn('bus_no', $this->unresolvedJobOrderBusNumbers());
+                ->whereNotIn('bus_no', $restrictedBuses);
         } else {
             $query->where('fleet_purpose', $fleetTab === 'Reserve' ? 'Reserve' : 'Regular')
-                ->where(function ($q): void {
+                ->where(function ($q) use ($restrictedBuses): void {
                     $q->where('status', '!=', 'Inactive')
-                        ->orWhereIn('bus_no', $this->unresolvedJobOrderBusNumbers());
+                        ->orWhereIn('bus_no', $restrictedBuses);
                 });
         }
 
@@ -54,13 +55,13 @@ class BusController extends Controller
             && $request->status !== 'All Status'
         ) {
             if ($request->status === 'Under Maintenance') {
-                $query->where(function ($query): void {
+                $query->where(function ($query) use ($restrictedBuses): void {
                     $query->where('status', 'Under Maintenance')
-                        ->orWhereIn('bus_no', $this->unresolvedJobOrderBusNumbers());
+                        ->orWhereIn('bus_no', $restrictedBuses);
                 });
             } else {
                 $query->where('status', $request->status)
-                    ->whereNotIn('bus_no', $this->unresolvedJobOrderBusNumbers());
+                    ->whereNotIn('bus_no', $restrictedBuses);
             }
         }
 
@@ -90,8 +91,7 @@ class BusController extends Controller
             ->sortBy(fn ($assignment) => $assignment->tripSchedule->trip_date->format('Y-m-d').' '.$assignment->tripSchedule->departure_time)
             ->groupBy('bus_id');
 
-        $maintenanceLockedBusNumbers = JobOrder::query()
-            ->blocksDispatch()
+        $maintenanceLockedBusNumbers = (clone $restrictedBuses)
             ->whereIn('bus_no', $buses->getCollection()->pluck('bus_no'))
             ->pluck('bus_no')
             ->map(fn ($busNo) => strtoupper(trim((string) $busNo)))
@@ -116,13 +116,13 @@ class BusController extends Controller
         $totalBuses = Bus::count();
 
         $activeBuses = Bus::where('status', 'Active')
-            ->whereNotIn('bus_no', $this->unresolvedJobOrderBusNumbers())
+            ->whereNotIn('bus_no', $restrictedBuses)
             ->count();
 
         $underMaintenance = Bus::query()
-            ->where(function ($query): void {
+            ->where(function ($query) use ($restrictedBuses): void {
                 $query->where('status', 'Under Maintenance')
-                    ->orWhereIn('bus_no', $this->unresolvedJobOrderBusNumbers());
+                    ->orWhereIn('bus_no', $restrictedBuses);
             })
             ->count();
 
@@ -132,7 +132,7 @@ class BusController extends Controller
         $availableBuses = Bus::query()
             ->where('status', 'Active')
             ->where('fleet_purpose', 'Regular')
-            ->whereNotIn('bus_no', $this->unresolvedJobOrderBusNumbers())
+            ->whereNotIn('bus_no', $restrictedBuses)
             ->whereDoesntHave('tripAssignments', function ($query): void {
                 $query->whereHas('tripSchedule', fn ($schedule) => $schedule
                     ->whereNotIn('status', ['Cancelled', 'Completed', 'Missed'])
@@ -805,12 +805,6 @@ class BusController extends Controller
                     ->whereDate('trip_date', '>=', today(config('app.business_timezone', 'Asia/Manila'))->toDateString());
             })
             ->exists();
-    }
-
-    private function unresolvedJobOrderBusNumbers()
-    {
-        return JobOrder::query()->blocksDispatch()
-            ->select('bus_no');
     }
 
     private function hasTripBusHistory(Bus $bus, bool $lock = false): bool

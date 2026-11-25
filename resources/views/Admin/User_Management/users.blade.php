@@ -435,8 +435,7 @@
 
     {{-- PENDING APPLICATION REVIEW --}}
     @if(auth()->user()?->hasSystemPermission('administration', 'full_control'))
-        <div class="admin-modal-overlay" id="applicationReviewModal" role="dialog" aria-modal="true" aria-labelledby="applicationReviewTitle">
-            <div class="admin-user-modal application-review-dialog">
+        <x-ui.dialog id="applicationReviewModal" class="admin-modal-overlay" panel-class="admin-user-modal application-review-dialog" labelled-by="applicationReviewTitle">
                 <div class="admin-modal-header application-review-header">
                     <div>
                         <div class="application-review-eyebrow"><i class="fa-regular fa-address-card" aria-hidden="true"></i> EMPLOYEE ONBOARDING</div>
@@ -490,13 +489,11 @@
                         <button type="submit" name="decision" value="approve" class="application-approve-button" id="applicationReviewApprove"><i class="fa-solid fa-check" aria-hidden="true"></i> Approve Application</button>
                     </div>
                 </form>
-            </div>
-        </div>
+            </x-ui.dialog>
     @endif
 
     {{-- ADD / EDIT ACCOUNT MODAL --}}
-    <div class="admin-modal-overlay" id="userFormModal">
-        <div class="admin-user-modal account-edit-dialog">
+    <x-ui.dialog id="userFormModal" class="admin-modal-overlay" panel-class="admin-user-modal account-edit-dialog" labelled-by="userFormModalTitle">
             <div class="admin-modal-header account-edit-header">
                 <span class="account-edit-header-icon" aria-hidden="true"><i class="fa-solid fa-user-gear"></i></span>
                 <div>
@@ -616,15 +613,13 @@
             </form>
             <form id="accountEmailResendForm" method="POST">@csrf</form>
             <form id="accountEmailCancelForm" method="POST">@csrf @method('DELETE')</form>
-        </div>
-    </div>
+        </x-ui.dialog>
 
     {{-- VIEW ACCOUNT MODAL --}}
-    <div class="admin-modal-overlay" id="viewUserModal">
-        <div class="admin-user-modal view-user-modal">
+    <x-ui.dialog id="viewUserModal" class="admin-modal-overlay" panel-class="admin-user-modal view-user-modal" labelled-by="viewUserModalTitle">
             <div class="admin-modal-header">
                 <div>
-                    <h2>Account Details</h2>
+                    <h2 id="viewUserModalTitle">Account Details</h2>
                     <p>Read-only account information and access assignment.</p>
                 </div>
 
@@ -657,15 +652,13 @@
             <div class="admin-modal-footer modal-actions">
                 <button type="button" class="secondary-btn btn-cancel" id="closeViewUserModalBottom">Close</button>
             </div>
-        </div>
-    </div>
+        </x-ui.dialog>
 
     {{-- RESET PASSWORD MODAL --}}
-    <div class="admin-modal-overlay" id="resetPasswordModal">
-        <div class="admin-user-modal">
+    <x-ui.dialog id="resetPasswordModal" class="admin-modal-overlay" panel-class="admin-user-modal" labelled-by="resetPasswordModalTitle">
             <div class="admin-modal-header">
                 <div>
-                    <h2>Reset Password</h2>
+                    <h2 id="resetPasswordModalTitle">Reset Password</h2>
                     <p id="resetPasswordSubtitle">Set a new password for this system account.</p>
                 </div>
 
@@ -704,6 +697,5 @@
                     <button type="submit" class="primary-btn btn-save">Reset Password</button>
                 </div>
             </form>
-        </div>
-    </div>
+        </x-ui.dialog>
 </x-layout.app>

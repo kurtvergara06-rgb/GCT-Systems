@@ -45,12 +45,7 @@ const applyPreferences = (preferences) => {
     root.dataset.gctFontSize = preferences.fontSize;
     root.classList.toggle('gct-density-compact', preferences.density === 'compact');
     root.classList.toggle('gct-reduced-motion', preferences.reducedMotion);
-    // Use dark native controls in departments with scoped dark styling.
-    const darkPageEnabled = document.body.dataset.gctOperationPage === '1'
-        || document.body.dataset.gctMaintenancePage === '1'
-        || document.body.dataset.gctWarehousePage === '1'
-        || document.querySelector('.account-page, .department-analytics-page') !== null;
-    root.style.colorScheme = darkPageEnabled ? effectiveTheme : 'light';
+    root.style.colorScheme = effectiveTheme;
 };
 const updateInputs = (preferences) => {
     document.querySelectorAll('[data-gct-preference]').forEach((control) => {

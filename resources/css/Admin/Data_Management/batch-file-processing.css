@@ -1318,9 +1318,9 @@ html[data-gct-theme="dark"] .records-modal { background:#18263b; color:#eaf2fc; 
     z-index: 2;
     height: 40px;
     padding: 0 12px;
-    border-bottom: 1px solid #dce5ef;
-    background: #edf3fb;
-    color: #30465f;
+    border-bottom: 1px solid light-dark(#dce5ef, var(--gct-theme-border));
+    background: light-dark(#edf3fb, var(--gct-theme-surface-raised));
+    color: light-dark(#30465f, var(--gct-theme-fg));
     font-size: 9px;
     font-weight: 900;
     letter-spacing: 0.035em;
@@ -1332,7 +1332,7 @@ html[data-gct-theme="dark"] .records-modal { background:#18263b; color:#eaf2fc; 
 .records-modal-table td {
     height: 46px;
     padding: 7px 12px;
-    border-bottom: 1px solid #e8edf3;
+    border-bottom: 1px solid light-dark(#e8edf3, var(--gct-theme-border));
     color: light-dark(#334155, var(--gct-theme-fg));
     font-size: 10.5px;
     text-align: left;
@@ -1341,11 +1341,11 @@ html[data-gct-theme="dark"] .records-modal { background:#18263b; color:#eaf2fc; 
 }
 
 .records-modal-table tbody tr:nth-child(even) {
-    background: #fbfdff;
+    background: light-dark(#fbfdff, var(--gct-theme-surface-raised));
 }
 
 .records-modal-table tbody tr:hover td {
-    background: #f2f7fd;
+    background: light-dark(#f2f7fd, var(--gct-theme-hover));
 }
 
 .records-modal-table td:first-child,
@@ -1442,8 +1442,8 @@ html[data-gct-theme="dark"] .records-modal { background:#18263b; color:#eaf2fc; 
 
 .batch-feedback-icon.error,
 .batch-delete-icon {
-    background: #fee2e2;
-    color: #dc2626;
+    background: light-dark(#fee2e2, #482932);
+    color: light-dark(#dc2626, #ffc3cc);
 }
 
 .batch-feedback-modal h2,

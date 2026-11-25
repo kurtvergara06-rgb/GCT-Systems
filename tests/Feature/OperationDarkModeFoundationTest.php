@@ -115,8 +115,7 @@ class OperationDarkModeFoundationTest extends TestCase
         $this->assertStringContainsString('--gct-id-foreground: #e6f0ff', $themeCss);
         $this->assertStringContainsString('var(--gct-trip-group-heading-bg, #eaf1fb) !important', $tripCss);
         $this->assertStringContainsString('var(--gct-theme-surface)', $operationCss);
-        $this->assertStringContainsString("document.body.dataset.gctOperationPage === '1'", $preferencesJs);
-        $this->assertStringContainsString("root.style.colorScheme = darkPageEnabled ? effectiveTheme : 'light'", $preferencesJs);
+        $this->assertStringContainsString('root.style.colorScheme = effectiveTheme', $preferencesJs);
     }
 
     public function test_driver_master_employment_badges_preserve_readable_semantic_colors(): void
@@ -263,7 +262,7 @@ class OperationDarkModeFoundationTest extends TestCase
             strpos($layout, '@vite($viteAssets)'),
             strpos($layout, 'document.documentElement.dataset.gctTheme = theme')
         );
-        $this->assertStringContainsString("['gctOperationPage', 'gctMaintenancePage', 'gctWarehousePage', 'gctPurchasePage']", $navigation);
+        $this->assertStringContainsString("['gctOperationPage', 'gctMaintenancePage', 'gctWarehousePage', 'gctPurchasePage', 'gctAdminPage']", $navigation);
         $this->assertStringContainsString("nextDocument.body.dataset[scope] === '1'", $navigation);
         $this->assertStringContainsString('delete document.body.dataset[scope]', $navigation);
         $this->assertStringContainsString("theme: 'light'", $preferences);

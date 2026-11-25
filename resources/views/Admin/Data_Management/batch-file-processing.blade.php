@@ -2,7 +2,6 @@
     title="FROMS - Data Import Management"
     :assets="[
         'resources/css/Admin/Data_Management/batch-file-processing.css',
-        'resources/css/Admin/Data_Management/generic-batch-review.css',
         'resources/js/Admin/Data_Management/batch-file-processing.js',
     ]"
 >
@@ -137,7 +136,6 @@
         <x-layout.topbar
             title="Data Import Management"
             subtitle="Convert raw, messy, or semi-structured files into reviewed structured records."
-            notification-count="6"
         />
 
         <section class="batch-top-grid">

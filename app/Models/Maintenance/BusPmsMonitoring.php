@@ -2,7 +2,9 @@
 
 namespace App\Models\Maintenance;
 
+use App\Services\Maintenance\DdrPmsMileageService;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -37,6 +39,22 @@ class BusPmsMonitoring extends Model
         return $this->belongsTo(Bus::class);
     }
 
+    /** @return Collection<int, int> */
+    public static function dueBusIds(?array $busIds = null): Collection
+    {
+        $monitors = self::query()->where('is_active', true)
+            ->when($busIds !== null, fn ($query) => $query->whereIn('bus_id', $busIds))
+            ->with('bus:id,bus_no')->get();
+
+        $due = $monitors->filter(fn (self $monitor) => $monitor->status() === 'PMS Due');
+        $remaining = $monitors->diff($due)->values();
+        $estimates = app(DdrPmsMileageService::class)->estimates($remaining);
+
+        return $due->concat($remaining->filter(fn (self $monitor) =>
+            $monitor->status(data_get($estimates->get($monitor->bus_id), 'estimated_odometer_km')) === 'PMS Due'
+        ))->pluck('bus_id')->values();
+    }
+
     public function nextDueDate(): CarbonImmutable
     {
         return $this->last_completed_pms_date->addMonthsNoOverflow($this->interval_months);
@@ -58,7 +76,7 @@ class BusPmsMonitoring extends Model
             return 'Inactive';
         }
 
-        if (now()->startOfDay()->greaterThanOrEqualTo($this->nextDueDate())) {
+        if (now(config('app.business_timezone', 'Asia/Manila'))->toDateString() >= $this->nextDueDate()->toDateString()) {
             return 'PMS Due';
         }
 

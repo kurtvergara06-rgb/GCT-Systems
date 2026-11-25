@@ -49,8 +49,9 @@ class MaintenanceDashboardController extends Controller
         });
 
         $totalActiveJobOrders = $activeJobOrders->count();
-        $ongoingCount = $activeJobOrders->where('status', 'On Going')->count();
-        $onHoldCount = $activeJobOrders->where('status', 'On Hold')->count();
+        $waitingAfterStart = $activeJobOrders->where('status', 'On Going')->where('display_status', 'Waiting for Parts')->count();
+        $ongoingCount = $activeJobOrders->where('status', 'On Going')->count() - $waitingAfterStart;
+        $onHoldCount = $activeJobOrders->where('status', 'On Hold')->count() + $waitingAfterStart;
         $completedCount = $allJobOrders
             ->where('status', 'Completed')
             ->where('review_status', 'Approved')

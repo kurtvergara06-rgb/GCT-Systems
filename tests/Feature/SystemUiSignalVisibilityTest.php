@@ -51,7 +51,7 @@ class SystemUiSignalVisibilityTest extends TestCase
     public function test_primary_department_views_use_the_shared_status_component(): void
     {
         $views = [
-            resource_path('views/Admin/Data_Management/uploading-data.blade.php'),
+            resource_path('views/Admin/Data_Management/batch-file-processing.blade.php'),
             resource_path('views/Operation/Shuttle_Bus_Management/bus-master-list.blade.php'),
             resource_path('views/Operation/Scheduling_And_Dispatch/driver-bus-assignment.blade.php'),
             resource_path('views/Operation/Incidents/index.blade.php'),

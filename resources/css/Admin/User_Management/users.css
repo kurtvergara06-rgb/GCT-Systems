@@ -723,8 +723,12 @@ html[data-gct-theme="dark"] .admin-modal-overlay .view-user-top {
 #applicationReviewModal .application-review-date small { font-size: 12px; }
 #applicationReviewModal .application-review-status {
   display: inline-flex; gap: 6px; align-items: center;
-  border-radius: 999px; padding: 6px 10px; background: #e8f7ee; color: #187044;
+  border-radius: 999px; padding: 6px 10px; background: light-dark(#e8f7ee, #193b2c); color: light-dark(#187044, #a8edbc);
   font-size: 12px; font-weight: 750;
+}
+#applicationReviewModal .application-review-status[data-verified="false"] {
+  background: light-dark(#fff4d8, #3e3425);
+  color: light-dark(#80560f, #f6d68e);
 }
 #applicationReviewModal #applicationReviewVerified { color: inherit; }
 #applicationReviewModal .application-review-section-heading h3 { margin: 0 0 5px; color: light-dark(#122f55, var(--gct-theme-fg)); font-size: 15px; }
@@ -746,8 +750,8 @@ html[data-gct-theme="dark"] .admin-modal-overlay .view-user-top {
   gap: 8px; padding: 0 15px; font-weight: 750; font-size: 13px; border-radius: 9px;
   transition: background-color .15s ease, box-shadow .15s ease;
 }
-#applicationReviewModal .application-review-actions button:first-child { background: #f5f7fa; color: #52637c; border-color: #e0e6ed; }
-#applicationReviewModal .application-review-actions .application-reject-button { background: #fff0f1; color: #b42739; border-color: #f4c8ce !important; }
+#applicationReviewModal .application-review-actions button:first-child { background: light-dark(#f5f7fa, var(--gct-theme-surface-raised)); color: light-dark(#52637c, var(--gct-theme-fg)); border-color: light-dark(#e0e6ed, var(--gct-theme-border)); }
+#applicationReviewModal .application-review-actions .application-reject-button { background: light-dark(#fff0f1, #482932); color: light-dark(#b42739, #ffc3cc); border-color: light-dark(#f4c8ce, #855360) !important; }
 #applicationReviewModal .application-review-actions .application-approve-button { background: #145cb5; color: #fff; border-color: #145cb5 !important; }
 #applicationReviewModal .application-review-actions button:hover:not(:disabled) { box-shadow: 0 3px 9px rgba(15,36,70,.1); }
 @media(max-width: 620px) {

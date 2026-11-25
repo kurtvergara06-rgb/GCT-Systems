@@ -116,6 +116,7 @@ final class StatusBadge
             'waiting-for-purchase' => ['tone' => 'pending', 'icon' => 'fa-cart-shopping'],
             'waiting-for-delivery' => ['tone' => 'pending', 'icon' => 'fa-truck'],
             'waiting-for-stock' => ['tone' => 'pending', 'icon' => 'fa-boxes-stacked'],
+            'waiting-for-parts' => ['tone' => 'warning', 'icon' => 'fa-circle-pause'],
             'requested' => ['tone' => 'pending', 'icon' => 'fa-file-lines'],
             'due-soon' => ['tone' => 'warning', 'icon' => 'fa-triangle-exclamation'],
             'urgent-action' => ['tone' => 'warning', 'icon' => 'fa-triangle-exclamation'],

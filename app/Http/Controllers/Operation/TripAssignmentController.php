@@ -214,7 +214,7 @@ class TripAssignmentController extends Controller
         $orderedEligibleBuses = Bus::query()
             ->where('status', 'Active')
             ->where('fleet_purpose', 'Regular')
-            ->whereNotIn('bus_no', JobOrder::query()->blocksDispatch()->select('bus_no'))
+            ->whereNotIn('bus_no', Bus::maintenanceRestrictedBusNumbers())
             ->get()
             ->sort(fn (Bus $a, Bus $b): int =>
                 (($a->fleet_purpose === 'Reserve' ? 1 : 0) <=> ($b->fleet_purpose === 'Reserve' ? 1 : 0))
@@ -437,7 +437,7 @@ class TripAssignmentController extends Controller
             ->with('operationClients:id,name')
             ->where('status', 'Active')
             ->whereIn('fleet_purpose', $canSelectReserve ? ['Regular', 'Reserve'] : ['Regular'])
-            ->whereNotIn('bus_no', JobOrder::query()->blocksDispatch()->select('bus_no'))
+            ->whereNotIn('bus_no', Bus::maintenanceRestrictedBusNumbers())
             ->when(
                 $busyBusIds !== [],
                 fn ($query) => $query->whereNotIn('id', $busyBusIds)
@@ -670,7 +670,8 @@ class TripAssignmentController extends Controller
 
                 $this->assertAssignmentMutable($trip, $lockedAssignment);
                 $hasUnavailableAssignedBus = $lockedAssignment->bus === null
-                    || $lockedAssignment->bus->status !== 'Active';
+                    || $lockedAssignment->bus->status !== 'Active'
+                    || $lockedAssignment->bus->isPmsDue();
                 $isReadyReplacement = $trip->status === 'Ready'
                     || ($trip->status === 'Scheduled' && $hasUnavailableAssignedBus);
                 $replacementReason = trim((string) $request->input('replacement_reason', ''));
@@ -1047,7 +1048,7 @@ class TripAssignmentController extends Controller
         $buses = Bus::query()->with(['operationClients:id,name', 'authorizedDrivers'])
             ->where('status', 'Active')
             ->where('fleet_purpose', 'Regular')
-            ->whereNotIn('bus_no', JobOrder::query()->blocksDispatch()->select('bus_no'))
+            ->whereNotIn('bus_no', Bus::maintenanceRestrictedBusNumbers())
             ->when($busyBusIds !== [], fn ($query) => $query->whereNotIn('id', $busyBusIds))
             ->get();
 
@@ -1094,7 +1095,7 @@ class TripAssignmentController extends Controller
             ->whereKey($busId)
             ->where('status', 'Active')
             ->whereIn('fleet_purpose', ['Regular', 'Reserve'])
-            ->whereNotIn('bus_no', JobOrder::query()->blocksDispatch()->select('bus_no'))
+            ->whereNotIn('bus_no', Bus::maintenanceRestrictedBusNumbers())
             ->lockForUpdate()
             ->first();
 
@@ -1104,9 +1105,13 @@ class TripAssignmentController extends Controller
             ]);
         }
 
-        if (JobOrder::query()->blocksDispatch()
-            ->where('bus_no', $bus->bus_no)
-                        ->exists()) {
+        if ($bus->isPmsDue()) {
+            throw ValidationException::withMessages([
+                'bus_id' => 'The selected bus is due for PMS.',
+            ]);
+        }
+
+        if (JobOrder::query()->blocksDispatch()->where('bus_no', $bus->bus_no)->exists()) {
             throw ValidationException::withMessages([
                 'bus_id' => 'This bus has an unresolved Maintenance Job Order and cannot be assigned until Maintenance clears it.',
             ]);

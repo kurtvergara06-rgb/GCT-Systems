@@ -4,6 +4,7 @@ namespace App\Models\Maintenance;
 
 use App\Models\Operation\TripAssignment;
 use App\Models\TopbarNotification;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -41,6 +42,20 @@ class Bus extends Model
         'pms_interval_km' => 'decimal:2',
         'next_pms_km' => 'decimal:2',
     ];
+
+    public static function maintenanceRestrictedBusNumbers(): Builder
+    {
+        $dueIds = BusPmsMonitoring::dueBusIds();
+
+        return self::query()->select('bus_no')->where(fn (Builder $bus) => $bus
+            ->whereIn('bus_no', JobOrder::query()->blocksDispatch()->select('bus_no'))
+            ->orWhere(fn (Builder $active) => $active->where('status', 'Active')->whereIn('id', $dueIds)));
+    }
+
+    public function isPmsDue(): bool
+    {
+        return BusPmsMonitoring::dueBusIds([$this->id])->isNotEmpty();
+    }
 
     public function authorizedDrivers(): BelongsToMany
     {

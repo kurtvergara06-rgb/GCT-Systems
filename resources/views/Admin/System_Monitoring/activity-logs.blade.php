@@ -27,6 +27,11 @@
                     subtitle="Review actions recorded automatically from actual FROMS accounts and modules."
                 >
                     <x-slot:actions>
+                        <a class="primary-btn gct-table-toolbar-action"
+                            href="{{ route('admin.activity-logs.export', request()->only(['search', 'module', 'event', 'date', 'sort', 'sort_direction'])) }}"
+                            data-activity-export download>
+                            <i class="fa-solid fa-file-csv" aria-hidden="true"></i> Export CSV
+                        </a>
                         <span class="activity-count">
                             {{ number_format($logs->total()) }} {{ $logs->total() === 1 ? 'Activity' : 'Activities' }}
                         </span>
@@ -197,8 +202,7 @@
         </main>
     </div>
 
-    <div id="activityDetailsModal" class="activity-modal-overlay" role="presentation">
-        <div class="activity-modal" role="dialog" aria-modal="true" aria-labelledby="activityDetailsTitle" aria-describedby="activityDetailsDescription">
+    <x-ui.dialog id="activityDetailsModal" class="activity-modal-overlay" panel-class="activity-modal" labelled-by="activityDetailsTitle" described-by="activityDetailsDescription">
             <div class="activity-modal-header">
                 <div class="modal-heading">
                     <div class="modal-icon"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i></div>
@@ -264,6 +268,5 @@
             <div class="activity-modal-footer">
                 <button type="button" id="closeActivityModalFooter" class="modal-done-btn"><i class="fa-solid fa-check" aria-hidden="true"></i> Done</button>
             </div>
-        </div>
-    </div>
+        </x-ui.dialog>
 </x-layout.app>

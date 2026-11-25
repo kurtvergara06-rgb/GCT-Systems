@@ -14,6 +14,7 @@ window.GCTPartialNavigation.registerInitializer('admin-users', '.users-main', fu
       setReviewText('applicationReviewEmail', button.dataset.email);
       setReviewText('applicationReviewApplied', button.dataset.applied);
       const verified = button.dataset.verified === '1';
+      reviewModal.querySelector('.application-review-status').dataset.verified = String(verified);
       setReviewText('applicationReviewVerified', verified ? 'Email verified' : 'Email not yet verified — approval unavailable');
       const approve = document.getElementById('applicationReviewApprove');
       if (approve) approve.disabled = !verified;

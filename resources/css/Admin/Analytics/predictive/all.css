@@ -1286,19 +1286,19 @@
 }
 
 .horizon-row--danger {
-    background: #fffafa;
+    background: light-dark(#fffafa, #34252e);
 }
 
 .horizon-row--warning {
-    background: #fffdf7;
+    background: light-dark(#fffdf7, #332c23);
 }
 
 .horizon-row--info {
-    background: #f8faff;
+    background: light-dark(#f8faff, #202d45);
 }
 
 .horizon-row--success {
-    background: #f9fefb;
+    background: light-dark(#f9fefb, #1a332e);
 }
 
 .horizon-indicator {

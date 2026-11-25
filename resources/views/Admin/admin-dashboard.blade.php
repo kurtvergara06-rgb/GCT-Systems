@@ -82,7 +82,7 @@
                     <strong class="admin-command-metric-value">{{ number_format($batchMetrics['in_review'] ?? 0) }}</strong>
                     <small class="admin-command-metric-description"><i class="fa-solid fa-circle-info" aria-hidden="true"></i>{{ number_format($batchMetrics['total'] ?? 0) }} total uploads</small>
                 </a>
-                <a href="{{ route('analytics.overview') }}" class="admin-command-metric admin-command-metric--ml">
+                <a href="#admin-ml-health" class="admin-command-metric admin-command-metric--ml">
                     <span class="admin-command-metric-head"><span class="admin-command-metric-icon"><i class="fa-solid fa-server" aria-hidden="true"></i></span><span class="admin-command-metric-label">ML Services Reachable</span></span>
                     <strong class="admin-command-metric-value">{{ $reachableModelGroups }}<em>/5</em></strong>
                     <small class="admin-command-metric-description"><i class="fa-solid fa-circle-info" aria-hidden="true"></i>Endpoint response, not ML readiness</small>
@@ -100,7 +100,7 @@
                     ['key' => 'scheduling', 'title' => 'Auto Scheduling', 'description' => 'Bus and driver recommendations', 'icon' => 'fa-bus', 'accent' => 'scheduling'],
                 ];
             @endphp
-            <section class="admin-ml-section" aria-labelledby="admin-ml-title">
+            <section id="admin-ml-health" class="admin-ml-section" aria-labelledby="admin-ml-title">
                 <header class="admin-ml-header">
                     <div class="admin-ml-heading">
                         <span class="admin-ml-heading-icon" aria-hidden="true"><i class="fa-solid fa-brain"></i></span>
@@ -111,7 +111,7 @@
                     </div>
                     <div class="admin-ml-actions">
                         <span class="admin-ml-count"><span class="admin-ml-count-dot"></span>5 Model Groups</span>
-                        <a class="admin-ml-view-all" href="{{ route('analytics.overview') }}">View Details <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+                        <a class="admin-ml-view-all" href="{{ route('analytics.stage', ['stage' => 'predictive']) }}">Predictive Analytics <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
                     </div>
                 </header>
 
@@ -169,7 +169,7 @@
                 <p class="admin-ml-disclaimer">Training-data verification is pending. Reported training rows are not verified operational records. Service reachability and model availability do not establish production suitability.</p>
             </section>
 
-            <dialog id="adminMlDetailsDialog" class="admin-ml-dialog" aria-labelledby="adminMlDialogTitle">
+            <x-ui.dialog native id="adminMlDetailsDialog" class="admin-ml-dialog" labelled-by="adminMlDialogTitle">
                 <div class="admin-ml-dialog-head">
                     <span class="admin-ml-dialog-symbol" aria-hidden="true"><i class="fa-solid fa-layer-group"></i></span>
                     <div class="admin-ml-dialog-heading">
@@ -188,7 +188,7 @@
                     <div class="admin-ml-dialog-reason"><span class="admin-ml-dialog-fact-icon"><i class="fa-solid fa-circle-info" aria-hidden="true"></i></span><div><dt>Readiness explanation</dt><dd data-ml-field="reason">—</dd></div></div>
                 </dl>
                 <footer class="admin-ml-dialog-footer"><button type="button" class="admin-ml-dialog-done" data-ml-close>Close</button></footer>
-            </dialog>
+            </x-ui.dialog>
 
 
             <section class="admin-command-content" aria-label="System Activity Trends and Action Required">

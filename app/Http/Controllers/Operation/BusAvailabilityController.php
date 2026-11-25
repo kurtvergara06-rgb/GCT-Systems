@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Operation;
 
 use App\Http\Controllers\Controller;
 use App\Models\Maintenance\Bus;
-use App\Models\Maintenance\JobOrder;
 use App\Models\Operation\TripAssignment;
 use App\Support\TableSort;
 use Illuminate\Http\Request;
@@ -24,8 +23,7 @@ class BusAvailabilityController extends Controller
 
         // A stale Active master status must never override an unresolved JO.
         // Match on the internal bus_no used by Maintenance, not the plate number.
-        $restrictedBusNumbers = JobOrder::query()->blocksDispatch()
-                        ->distinct()
+        $restrictedBusNumbers = Bus::maintenanceRestrictedBusNumbers()
             ->pluck('bus_no')
             ->filter()
             ->values();

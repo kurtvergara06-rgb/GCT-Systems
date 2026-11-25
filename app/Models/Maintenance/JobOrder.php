@@ -6,6 +6,7 @@ use App\Models\Admin\User;
 use App\Models\Operation\Incident;
 use App\Models\TopbarNotification;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -53,6 +54,8 @@ class JobOrder extends Model
         'approved_at' => 'datetime',
         'actual_started_at' => 'datetime',
         'actual_completed_at' => 'datetime',
+        'parts_wait_started_at' => 'datetime',
+        'parts_wait_seconds' => 'integer',
         'inventory_snapshot' => 'array',
     ];
 
@@ -64,11 +67,24 @@ class JobOrder extends Model
             if ($partNeeded === '') {
                 $jobOrder->part_needed = null;
                 $jobOrder->part_status = 'No Parts Required';
+            } elseif (in_array($jobOrder->part_status, [null, '', 'Unknown', 'No Parts Needed', 'No Parts Required'], true)) {
+                $jobOrder->part_status = 'Not Requested';
+            }
+
+            if ($jobOrder->status === 'Completed' || $jobOrder->review_status === 'Rejected') {
                 return;
             }
 
-            if (in_array($jobOrder->part_status, [null, '', 'Unknown', 'No Parts Needed', 'No Parts Required'], true)) {
-                $jobOrder->part_status = 'Not Requested';
+            if ($jobOrder->actual_started_at && $jobOrder->isWaitingForRequiredParts()) {
+                $jobOrder->parts_wait_started_at ??= now();
+
+                return;
+            }
+
+            if ($jobOrder->parts_wait_started_at) {
+                $jobOrder->parts_wait_seconds = ($jobOrder->parts_wait_seconds ?? 0)
+                    + max(0, (int) $jobOrder->parts_wait_started_at->diffInSeconds(now()));
+                $jobOrder->parts_wait_started_at = null;
             }
         });
 
@@ -119,7 +135,7 @@ class JobOrder extends Model
             return null;
         }
 
-        $dueAt = $this->actual_started_at->copy();
+        $dueAt = $this->actual_started_at->copy()->addSeconds($this->parts_wait_seconds ?? 0);
         $value = (float) $this->estimated_duration_value;
 
         return match ($this->estimated_duration_unit) {
@@ -250,15 +266,25 @@ class JobOrder extends Model
             return $this->review_status;
         }
 
-        // Legacy records may still have status=On Going from assignment time.
-        // Never represent unissued parts as active repair work.
-        if ($this->isWaitingForRequiredParts()
-            && $this->review_status === 'Approved'
-            && $this->status !== 'On Going') {
-            return 'On Hold';
+        if ($this->review_status === 'Approved' && $this->isWaitingForRequiredParts()) {
+            return 'Waiting for Parts';
         }
 
         return $this->status === 'On Going' ? 'In Progress' : $this->status;
+    }
+
+    public function scopeWhereDisplayStatus(Builder $query, string $status): Builder
+    {
+        return $query->whereRaw(<<<'SQL'
+            CASE
+                WHEN review_status IN ('For Review', 'Revision Required', 'Rejected') THEN review_status
+                WHEN status <> 'Completed' AND review_status = 'Approved'
+                    AND TRIM(COALESCE(part_needed, '')) <> ''
+                    AND COALESCE(part_status, '') <> 'Issued' THEN 'Waiting for Parts'
+                WHEN status = 'On Going' THEN 'In Progress'
+                ELSE status
+            END = ?
+            SQL, [$status]);
     }
 
     /**

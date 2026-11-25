@@ -1705,10 +1705,10 @@ html[data-gct-theme="dark"] .analytics-stage-page .analytics-stage-controls__fil
     gap: 7px;
     min-height: 36px;
     padding: 7px 11px;
-    border: 1px solid #bfdbfe;
+    border: 1px solid light-dark(#bfdbfe, var(--gct-theme-control-border));
     border-radius: 8px;
-    background: var(--ds-blue-soft);
-    color: var(--ds-blue-dark);
+    background: light-dark(var(--ds-blue-soft), var(--gct-theme-surface-raised));
+    color: light-dark(var(--ds-blue-dark), var(--gct-theme-accent));
     font-size: 11px;
     font-weight: 700;
     white-space: normal;

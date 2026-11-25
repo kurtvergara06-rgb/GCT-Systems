@@ -2,7 +2,6 @@
 
 namespace App\Providers;
 
-use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\Admin\FuelAnalyticsController;
 use App\Http\Controllers\Admin\NotificationCenterController;
 use App\Http\Controllers\Purchase\PurchaseDashboardController;
@@ -82,10 +81,6 @@ class AppServiceProvider extends ServiceProvider
             $view->with(
                 app(RolePermissionService::class)->data(request()->query('role'))
             );
-        });
-
-        View::composer('Admin.System_Monitoring.activity-logs', function ($view): void {
-            $view->with(app(ActivityLogController::class)->data(request()));
         });
 
         View::composer('Admin.System_Monitoring.notifications', function ($view): void {

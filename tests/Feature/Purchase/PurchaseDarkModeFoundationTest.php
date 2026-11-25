@@ -121,7 +121,7 @@ class PurchaseDarkModeFoundationTest extends TestCase
         $transitions = file_get_contents(resource_path('js/Main-js/page-transitions.js'));
 
         $this->assertStringContainsString(
-            '($operationThemePage || $maintenanceThemePage || $warehouseThemePage || $purchaseThemePage || $adminThemePage || $accountThemePage)',
+            'gct:ui-preferences:',
             $layout
         );
         $this->assertStringContainsString(

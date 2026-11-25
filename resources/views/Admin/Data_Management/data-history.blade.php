@@ -2,6 +2,7 @@
     title="FROMS - GPS Processing History"
     :assets="[
         'resources/css/Admin/Data_Management/data-history.css',
+        'resources/js/Admin/Data_Management/data-history.js',
     ]"
 >
     <div class="app">
@@ -208,8 +209,7 @@
         </main>
     </div>
 
-    <div id="historyDetailsModal" class="history-modal-overlay">
-        <div class="history-modal">
+    <x-ui.dialog id="historyDetailsModal" class="history-modal-overlay" panel-class="history-modal" labelled-by="historyDetailsTitle">
             <div class="history-modal-header">
                 <div class="history-modal-title">
                     <div class="history-modal-icon">
@@ -217,7 +217,7 @@
                     </div>
 
                     <div>
-                        <h2>GPS Processing Details</h2>
+                        <h2 id="historyDetailsTitle">GPS Processing Details</h2>
                         <p>File information and processing results.</p>
                     </div>
                 </div>
@@ -244,11 +244,11 @@
                     <div class="history-detail-item history-detail-item-wide"><span>Error / Notes</span><strong id="historyModalError">—</strong></div>
                 </div>
 
-                <div id="historyModalValidationContainer" style="display:none;margin-top:14px;">
-                    <div style="font-size:11px;font-weight:700;color:#dc2626;text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;">
+                <div id="historyModalValidationContainer" class="history-validation" hidden>
+                    <div class="history-validation-label">
                         Validation Errors (<span id="historyModalErrorCount">0</span>)
                     </div>
-                    <div id="historyModalErrorsList" style="max-height:140px;overflow-y:auto;background:#fef2f2;border:1px solid #fee2e2;border-radius:10px;padding:10px 12px;font-size:12px;color:#991b1b;display:flex;flex-direction:column;gap:6px;">
+                    <div id="historyModalErrorsList" class="history-validation-errors">
                     </div>
                 </div>
             </div>
@@ -260,6 +260,5 @@
                 </a>
                 <button type="button" id="closeHistoryModalFooter" class="history-close-btn" style="margin-left:auto;">Close</button>
             </div>
-        </div>
-    </div>
+        </x-ui.dialog>
 </x-layout.app>

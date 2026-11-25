@@ -26,7 +26,7 @@
             />
 
             <section data-ajax-region="summary" class="stats-grid jo-stats-grid">
-                <x-ui.summary-card label="On Hold" value="{{ $onHold ?? 0 }}" small="Job Orders" icon="fa-pause" color="yellow" />
+                <x-ui.summary-card label="On Hold / Waiting for Parts" value="{{ $onHold ?? 0 }}" small="Job Orders" icon="fa-pause" color="yellow" />
                 <x-ui.summary-card label="In Progress" value="{{ $onGoing ?? 0 }}" small="Job Orders" icon="fa-spinner" color="blue" />
                 <x-ui.summary-card label="Completed" value="{{ $completed ?? 0 }}" small="Job Orders" icon="fa-check" color="green" />
                 <x-ui.summary-card label="Needs Parts" value="{{ $needParts ?? 0 }}" small="Pending parts" icon="fa-screwdriver-wrench" color="red" />
@@ -89,12 +89,12 @@
                     class="toolbar job-toolbar"
                     search-placeholder="Search bus, mechanic, maintenance type, or part..."
                       search-label="Search Job Orders"
-                      :filter-count="(int) (request()->filled('part_status') && request('part_status') !== 'All Part Statuses') + (int) (request()->filled('maintenance_type') && request('maintenance_type') !== 'All Types')"
+                      :filter-count="(int) in_array($displayStatus, $displayStatuses, true) + (int) (request()->filled('part_status') && request('part_status') !== 'All Part Statuses') + (int) (request()->filled('maintenance_type') && request('maintenance_type') !== 'All Types')"
                       filter-title="Filter Job Orders"
                       :sort-options="['created_at' => 'Created Date', 'job_order_no' => 'Job Order Number', 'bus_no' => 'Bus Number', 'start_date' => 'Start Date', 'status' => 'JO Status', 'part_status' => 'Part Status']"
                       default-sort="created_at"
                       default-direction="desc"
-                    data-server-filter="{{ $recordView === 'history' ? 'true' : 'false' }}"
+                    data-server-filter="true"
                 >
                     <x-slot:hidden>
                         @if($recordView === 'history')
@@ -102,6 +102,13 @@
                         @endif
                     </x-slot:hidden>
                     <x-slot:filters>
+                            <x-ui.table-toolbar-field label="Job Order Status" name="status" default="All Statuses">
+                                <option value="All Statuses">All Statuses</option>
+                                @foreach($displayStatuses as $status)
+                                    <option value="{{ $status }}" @selected($displayStatus === $status)>{{ $status }}</option>
+                                @endforeach
+                            </x-ui.table-toolbar-field>
+
                             <x-ui.table-toolbar-field label="Part Status" name="part_status" default="All Part Statuses">
                                 @foreach([
                                     'All Part Statuses', 'No Parts Required', 'Not Requested', 'Not Issued',
@@ -149,7 +156,7 @@
                             @forelse($jobOrders as $jobOrder)
                                 @php
                                     $isCompleted = $jobOrder->status === 'Completed';
-                                    $isOnHold = $jobOrder->display_status === 'On Hold';
+                                    $isOnHold = in_array($jobOrder->display_status, ['On Hold', 'Waiting for Parts'], true);
                                     $hasMechanic = !empty($jobOrder->assigned_mechanic);
                                     $hasNeededParts = !empty($jobOrder->part_needed);
                                     $joStatus = $jobOrder->display_status;
@@ -257,9 +264,9 @@
                                         @if($hasPartsAwaitingIssue)
                                             <span class="jo-estimate-inline" title="Warehouse stock is available, but physical issuance is not yet complete.">Stock Available — Awaiting Issuance</span>
                                         @endif
-                                        @if($hasPartsDelayRisk)
-                                            <span class="jo-parts-delay-indicator" title="Warehouse stock cannot currently cover all required parts. Check reserved and already-issued quantities before procurement.">
-                                                <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> Possible Delay — Missing Parts
+                                        @if($joStatus === 'Waiting for Parts')
+                                            <span class="jo-estimate-inline">
+                                                {{ $jobOrder->actual_started_at ? 'ETC paused' : 'ETC has not started' }}
                                             </span>
                                         @endif
                                     </td>
@@ -357,7 +364,7 @@
                                                         data-jo-type="{{ $jobOrder->maintenance_type }}"
                                                         data-jo-mechanics="{{ $assignedMechanicNames->join(', ') ?: 'Not assigned' }}"
                                                         data-jo-estimate="{{ $jobOrder->formatted_estimated_duration ?: 'Not provided' }}"
-                                                        data-jo-started="{{ $jobOrder->start_date?->format('M d, Y · h:i A') ?? 'Not started' }}"
+                                                        data-jo-started="{{ $jobOrder->actual_started_at?->format('M d, Y · h:i A') ?? 'Not started' }}"
                                                         data-jo-parts="{{ !$hasNeededParts ? 'No Parts Required' : $partStatus }}"
                                                         title="Complete Job Order {{ $jobOrder->job_order_no }}" aria-label="Complete Job Order {{ $jobOrder->job_order_no }}">
                                                         <i class="fa-solid fa-check" aria-hidden="true"></i>
@@ -410,7 +417,7 @@
                                                             </div>
                                         <div class="jo-view-time-fields">
                                                                 <div><span><i class="fa-regular fa-clock" aria-hidden="true"></i> Verified Duration</span><strong class="jo-view-duration">{{ $jobOrder->formatted_estimated_duration }}</strong></div>
-                                                                <div><span>Started</span><strong>{{ $jobOrder->start_date?->format('M d, Y · h:i A') ?? 'Not started' }}</strong></div>
+                                                                <div><span>Started</span><strong>{{ $jobOrder->actual_started_at?->format('M d, Y · h:i A') ?? 'Not started' }}</strong></div>
                                                                 <div><span>Completed</span><strong>{{ $jobOrder->completion_date?->format('M d, Y · h:i A') ?? 'Not completed' }}</strong></div>
                                                             </div>
                                                         </div>
@@ -474,8 +481,8 @@
                                                                     <div class="jo-parts-delay-note" role="note">
                                                                         <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
                                                                         <div>
-                                                                            <strong>Possible Delay — Parts Shortage</strong>
-                                                                            <p>Some required parts are still pending. The estimated duration may need review if the shortage causes a delay.</p>
+                                                                            <strong>Waiting for Parts — Stock Shortage</strong>
+                                                                            <p>Warehouse stock cannot cover all required parts. The ETC is on hold until the required handover is complete.</p>
                                                                         </div>
                                                                     </div>
                                                                 @endif

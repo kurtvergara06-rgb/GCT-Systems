@@ -28,7 +28,6 @@ class DepartmentRouteRegistrationTest extends TestCase
             'admin.users',
             'batch-file-processing',
             'analytics',
-            'analytics.overview',
             'analytics.descriptive',
             'analytics.fleet-trip',
             'analytics.fuel',

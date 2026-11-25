@@ -5270,16 +5270,6 @@ body > .pr-parts-floating-menu .pr-parts-dropdown-item > b {
     .purchase-page .pr-pending-table-wrap { overflow-x: auto; }
 }
 
-/* PR Review inherits the IR pattern: JO identity is linked by Review, never reselected. */
-#prModal .pr-review-source-select {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    opacity: 0;
-    pointer-events: none;
-}
 #prModal .pr-review-linked-jo {
     display: flex;
     align-items: center;

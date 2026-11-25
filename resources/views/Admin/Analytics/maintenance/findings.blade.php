@@ -11,9 +11,9 @@
     @empty<tr><td colspan="{{ $recommendations ? 5 : 4 }}" class="ma-empty">No verified findings match these filters. This does not establish that every vehicle is fault-free.</td></tr>@endforelse</tbody>
 </table></div>
 @foreach($rows as $row)
-    <dialog class="ma-dialog" id="maFinding{{ $loop->index }}" aria-labelledby="maFindingTitle{{ $loop->index }}">
+    <x-ui.dialog native class="ma-dialog" :id="'maFinding'.$loop->index" :labelled-by="'maFindingTitle'.$loop->index">
         <header><h2 id="maFindingTitle{{ $loop->index }}">{{ $row['title'] }}</h2><button type="button" class="ma-button ma-detail-close" aria-label="Close details">×</button></header>
         <dl><dt>Bus</dt><dd>{{ $row['bus'] }}</dd><dt>Recorded reference</dt><dd>{{ $row['reference'] }}</dd><dt>Evidence</dt><dd>{{ $row['evidence'] }}</dd><dt>Review action</dt><dd>{{ $row['action'] }}</dd></dl>
         <p class="ma-notice">Read-only analytics. Use the existing authorized Maintenance workflow to review or change a record.</p>
-    </dialog>
+    </x-ui.dialog>
 @endforeach

@@ -180,8 +180,7 @@
         </main>
     </div>
 
-    <div class="activity-modal-overlay" id="notificationDetailsModal" role="presentation">
-        <div class="activity-modal notification-details-modal" role="dialog" aria-modal="true" aria-labelledby="notificationModalTitle" aria-describedby="notificationModalMessage">
+    <x-ui.dialog id="notificationDetailsModal" class="activity-modal-overlay" panel-class="activity-modal notification-details-modal" labelled-by="notificationModalTitle" described-by="notificationModalMessage">
             <div class="activity-modal-header">
                 <div class="modal-heading">
                     <div class="modal-icon"><i class="fa-solid fa-bell" aria-hidden="true"></i></div>
@@ -216,6 +215,5 @@
                 <button type="button" id="closeNotificationModalFooter" class="notification-modal-secondary-btn">Close</button>
                 <button type="button" id="notificationModalMarkRead" class="modal-done-btn" hidden><i class="fa-solid fa-check"></i> Mark as Read</button>
             </div>
-        </div>
-    </div>
+        </x-ui.dialog>
 </x-layout.app>

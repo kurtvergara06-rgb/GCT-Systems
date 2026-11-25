@@ -200,9 +200,17 @@ class TripSchedule extends Model
         return $assigned > 0 && $assigned < $required;
     }
 
+    public function hasPmsDueBus(): bool
+    {
+        $busIds = $this->assignments()->whereNotNull('bus_id')->pluck('bus_id')->all();
+
+        return $busIds !== [] && \App\Models\Maintenance\BusPmsMonitoring::dueBusIds($busIds)->isNotEmpty();
+    }
+
     public function canBeDispatched(): bool
     {
         return $this->status === 'Ready'
+            && ! $this->hasPmsDueBus()
             && ! $this->assignments()->whereHas('bus', fn ($query) => $query->where('status', '!=', 'Active'))->exists()
             && $this->is_fully_assigned
             && ! in_array($this->status, ['Cancelled', 'Dispatched', 'Completed'], true);
@@ -219,7 +227,7 @@ class TripSchedule extends Model
         $requiredCount = max(1, (int) ($this->required_buses ?? 1));
         $hasUnavailableBus = $this->assignments()
             ->whereHas('bus', fn ($query) => $query->where('status', '!=', 'Active'))
-            ->exists();
+            ->exists() || $this->hasPmsDueBus();
 
         if ($assignedCount === 0) {
             $this->assignment_status = 'Unassigned';

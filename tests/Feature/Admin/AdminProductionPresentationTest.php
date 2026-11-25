@@ -12,8 +12,7 @@ class AdminProductionPresentationTest extends TestCase
             'Admin/admin-dashboard.blade.php',
             'Admin/Settings/security-settings.blade.php',
             'Admin/System_Monitoring/activity-logs.blade.php',
-            'Admin/Data_Management/generic-batch-review.blade.php',
-            'Admin/Data_Management/uploading-data.blade.php',
+            'Admin/Data_Management/batch-file-processing.blade.php',
         ] as $path) {
             $view = file_get_contents(resource_path('views/'.$path));
             $this->assertStringNotContainsString('notification-count="6"', $view, $path);

@@ -227,11 +227,11 @@
     gap: 6px;
     padding: 4px 10px;
     border-radius: 8px;
-    background: #f8fafc;
-    border: 1px solid #edf2f7;
+    background: light-dark(#f8fafc, var(--gct-theme-surface-raised));
+    border: 1px solid light-dark(#edf2f7, var(--gct-theme-border));
     font-size: 11px;
     font-weight: 600;
-    color: #475569;
+    color: light-dark(#475569, var(--gct-theme-fg));
 }
 
 .diagnostic-chart-shell {
@@ -697,9 +697,9 @@ html[data-gct-theme="dark"] .diagnostic-rebuild .status-name-desc small {
 
 /* Historical Baseline Callout */
 .baseline-callout-card {
-    background: #f0f7ff;
-    border: 1px solid #bfdbfe;
-    border-left: 4px solid #2563eb;
+    background: light-dark(#f0f7ff, var(--gct-theme-surface-raised));
+    border: 1px solid light-dark(#bfdbfe, var(--gct-theme-border));
+    border-left: 4px solid light-dark(#2563eb, var(--gct-theme-accent));
     border-radius: 12px;
     padding: 16px 20px;
     margin-top: 20px;
@@ -709,7 +709,7 @@ html[data-gct-theme="dark"] .diagnostic-rebuild .status-name-desc small {
     margin: 0 0 5px;
     font-size: 14px;
     font-weight: 800;
-    color: #1e40af;
+    color: light-dark(#1e40af, var(--gct-theme-accent));
     display: flex;
     align-items: center;
     gap: 8px;
@@ -718,7 +718,7 @@ html[data-gct-theme="dark"] .diagnostic-rebuild .status-name-desc small {
 .baseline-callout-card p {
     margin: 0;
     font-size: 12px;
-    color: #1e3a8a;
+    color: light-dark(#1e3a8a, var(--gct-theme-fg));
     line-height: 1.5;
 }
 

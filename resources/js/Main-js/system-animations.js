@@ -2,7 +2,7 @@ import gsap from 'gsap';
 
 const MODULE_PAGE_CONFIG = Object.freeze({
     admin: Object.freeze({
-        roots: '.admin-dashboard-main, .users-main, .permissions-page, .records-page, .import-export-page, .batch-main, .generic-batch-page, .data-history-page, .activity-logs-page, .general-settings-page, .security-settings-page, .notification-settings-page, .analytics-overview-page, .analytics-stage-page',
+        roots: '.admin-dashboard-main, .users-main, .permissions-page, .records-page, .import-export-page, .batch-main, .generic-batch-page, .data-history-page, .activity-logs-page, .general-settings-page, .security-settings-page, .notification-settings-page, .analytics-stage-page',
     }),
     operation: Object.freeze({
         roots: '.operation-dashboard-main, .trip-records-page, .bus-master-list-page, .trip-schedule-page, .assignment-page, .auto-scheduling-page, .routes-page, .personnel-master-page, .driver-attendance-page, .mechanic-attendance-page, .inc-page, .ddr-page',
